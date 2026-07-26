@@ -63,18 +63,26 @@ function Invoke-UnityTestAssembly {
     # -nographics keeps automated runs headless and reproducible.
     # Remove it later if a PlayMode test must validate actual rendered pixels,
     # GPU behavior, or other visual output that is unavailable in headless mode.
-    & $validationUnityPath `
-        -batchmode `
-        -nographics `
-        -projectPath $validationProjectPath `
-        -runTests `
-        -testPlatform $Mode `
-        -assemblyNames $AssemblyName `
-        -randomOrderSeed 12345 `
-        -testResults $resultFile `
-        -logFile $logFile
+    $unityArguments = @(
+        '-batchmode',
+        '-nographics',
+        '-projectPath', "`"$validationProjectPath`"",
+        '-runTests',
+        '-testPlatform', $Mode,
+        '-assemblyNames', $AssemblyName,
+        '-randomOrderSeed', '12345',
+        '-testResults', "`"$resultFile`"",
+        '-logFile', "`"$logFile`""
+    )
 
-    $unityExitCode = $LASTEXITCODE
+    $unityProcess = Start-Process `
+        -FilePath $validationUnityPath `
+        -ArgumentList $unityArguments `
+        -WindowStyle Hidden `
+        -Wait `
+        -PassThru
+
+    $unityExitCode = $unityProcess.ExitCode
     if ($unityExitCode -ne 0) {
         throw "$Mode tests failed with exit code $unityExitCode. See '$logFile'."
     }
