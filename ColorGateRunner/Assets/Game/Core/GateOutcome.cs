@@ -5,6 +5,7 @@ namespace ColorGateRunner.Core
         Ignored,
         Matched,
         Shielded,
+        Invulnerable,
         Mismatched
     }
 }

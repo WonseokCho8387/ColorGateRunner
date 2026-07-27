@@ -3,11 +3,14 @@ namespace ColorGateRunner.Core
     public sealed class GameSession
     {
         private readonly DeterministicGateSequence _gateSequence;
+        private readonly DeterministicGatePatternSequence _patternSequence;
 
         public GameSession(uint configuredSeed)
         {
             ConfiguredSeed = configuredSeed;
             _gateSequence = new DeterministicGateSequence(configuredSeed);
+            _patternSequence =
+                new DeterministicGatePatternSequence(configuredSeed);
             ResetRunValues();
         }
 
@@ -23,6 +26,9 @@ namespace ColorGateRunner.Core
 
         public RunState CurrentState { get; private set; }
         public bool ShieldActive { get; private set; }
+        public float ShieldRecoveryRemaining { get; private set; }
+        public bool IsInvulnerable =>
+            CurrentState == RunState.ShieldRecovery;
 
         public bool StartRun()
         {
@@ -37,7 +43,8 @@ namespace ColorGateRunner.Core
 
         public bool TryToggleColor()
         {
-            if (CurrentState != RunState.Playing)
+            if (CurrentState != RunState.Playing &&
+                CurrentState != RunState.ShieldRecovery)
             {
                 return false;
             }
@@ -50,16 +57,26 @@ namespace ColorGateRunner.Core
 
         public GateOutcome ResolveGate(RunnerColor gateColor)
         {
-            if (CurrentState != RunState.Playing)
+            if (CurrentState != RunState.Playing &&
+                CurrentState != RunState.ShieldRecovery)
             {
                 return GateOutcome.Ignored;
             }
 
             if (gateColor != CurrentColor)
             {
+                if (CurrentState == RunState.ShieldRecovery)
+                {
+                    return GateOutcome.Invulnerable;
+                }
+
                 if (ShieldActive)
                 {
                     ShieldActive = false;
+                    ShieldRecoveryRemaining =
+                        GameRules.ShieldRecoveryDuration;
+                    CurrentState = RunState.ShieldRecovery;
+                    UpdateSpeed();
                     return GateOutcome.Shielded;
                 }
 
@@ -83,19 +100,54 @@ namespace ColorGateRunner.Core
                 throw new System.ArgumentOutOfRangeException(nameof(deltaSeconds));
             }
 
-            if (CurrentState != RunState.Playing)
+            if (CurrentState != RunState.Playing &&
+                CurrentState != RunState.ShieldRecovery)
             {
                 return;
             }
 
             ElapsedPlayingSeconds += deltaSeconds;
+            if (CurrentState == RunState.ShieldRecovery)
+            {
+                ShieldRecoveryRemaining =
+                    System.Math.Max(
+                        0f,
+                        ShieldRecoveryRemaining - deltaSeconds);
+                if (ShieldRecoveryRemaining == 0f)
+                {
+                    CurrentState = RunState.Playing;
+                }
+            }
             UpdateSpeed();
         }
 
         public void Restart()
         {
             _gateSequence.Reset(ConfiguredSeed);
+            _patternSequence.Reset(ConfiguredSeed);
             ResetRunValues();
+        }
+
+        public bool BeginCountdown()
+        {
+            if (CurrentState != RunState.Ready)
+            {
+                return false;
+            }
+
+            CurrentState = RunState.Countdown;
+            return true;
+        }
+
+        public bool CompleteCountdown()
+        {
+            if (CurrentState != RunState.Countdown)
+            {
+                return false;
+            }
+
+            CurrentState = RunState.Playing;
+            return true;
         }
 
         public RunnerColor GetNextGateColor()
@@ -108,6 +160,18 @@ namespace ColorGateRunner.Core
             return _gateSequence.GetNextSpacing(CurrentSpeed);
         }
 
+        public GatePlan GetNextGatePlan()
+        {
+            return _patternSequence.GetNext(CurrentSpeed);
+        }
+
+        public SpeedPresentation GetSpeedPresentation()
+        {
+            return GameRules.GetSpeedPresentation(
+                ElapsedPlayingSeconds,
+                CurrentSpeed);
+        }
+
         private void ResetRunValues()
         {
             CurrentColor = RunnerColor.Red;
@@ -116,13 +180,30 @@ namespace ColorGateRunner.Core
             ElapsedPlayingSeconds = 0f;
             CurrentState = RunState.Ready;
             ShieldActive = false;
+            ShieldRecoveryRemaining = 0f;
         }
 
         private void UpdateSpeed()
         {
-            CurrentSpeed = GameRules.CalculateSpeed(
+            float baseSpeed = GameRules.CalculateSpeed(
                 CurrentScore,
                 ElapsedPlayingSeconds);
+            if (CurrentState == RunState.ShieldRecovery)
+            {
+                float recoveryProgress =
+                    1f -
+                    (ShieldRecoveryRemaining /
+                    GameRules.ShieldRecoveryDuration);
+                float multiplier =
+                    GameRules.ShieldRecoveryInitialSpeedMultiplier +
+                    ((1f - GameRules.ShieldRecoveryInitialSpeedMultiplier) *
+                    recoveryProgress);
+                CurrentSpeed = baseSpeed * multiplier;
+            }
+            else
+            {
+                CurrentSpeed = baseSpeed;
+            }
         }
     }
 }

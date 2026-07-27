@@ -51,7 +51,7 @@ namespace ColorGateRunner.Presentation
             bool inserted = false;
             for (int index = 0; index < result.Length; index++)
             {
-                if (!inserted && (source >= existingCount || score >= existing[source]))
+                if (!inserted && (source >= existingCount || score > existing[source]))
                 {
                     result[index] = score;
                     inserted = true;
@@ -64,6 +64,51 @@ namespace ColorGateRunner.Presentation
 
             return result;
         }
+
+        internal static ScoreHistoryUpdate InsertWithResult(
+            int[] existing,
+            int score)
+        {
+            int existingCount =
+                existing == null ? 0 : Math.Min(existing.Length, Capacity);
+            int rank = -1;
+            if (score > 0)
+            {
+                int insertionIndex = 0;
+                while (insertionIndex < existingCount &&
+                    score <= existing[insertionIndex])
+                {
+                    insertionIndex++;
+                }
+
+                if (insertionIndex < Capacity)
+                {
+                    rank = insertionIndex;
+                }
+            }
+
+            bool isNewBest =
+                score > 0 &&
+                (existingCount == 0 || score > existing[0]);
+            return new ScoreHistoryUpdate(
+                Insert(existing, score),
+                rank,
+                isNewBest);
+        }
+    }
+
+    internal readonly struct ScoreHistoryUpdate
+    {
+        internal ScoreHistoryUpdate(int[] scores, int insertedRank, bool isNewBest)
+        {
+            Scores = scores;
+            InsertedRank = insertedRank;
+            IsNewBest = isNewBest;
+        }
+
+        internal int[] Scores { get; }
+        internal int InsertedRank { get; }
+        internal bool IsNewBest { get; }
     }
 
     internal sealed class PlayerPrefsScoreHistoryStore : IScoreHistoryStore

@@ -33,7 +33,20 @@ Clean, readable, toy-like mobile visuals using simple geometric shapes.
 - Player movement stops immediately
 - Brief screen shake
 - Player becomes desaturated
-- Game-over UI appears within 0.5 seconds
+- Player progressively drops, tilts, and shrinks
+- Game-over UI appears after approximately 0.9 seconds
+
+### Speed readability
+
+- Four stages use restrained FOV changes from 60 to 74 degrees
+- Player trail and peripheral speed lines strengthen with each stage
+- A small HUD label states the current speed stage
+
+### Shield
+
+- Active shield is continuously visible around the player
+- Acquisition and break use distinct centered messages and reusable bursts
+- Recovery uses a controlled blink without obscuring upcoming gates
 
 ## Constraints
 

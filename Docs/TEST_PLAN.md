@@ -32,8 +32,9 @@
 - `NonlinearSpeed_HasMeasuredProgression`.
 - `NonlinearSpeed_EarlyAccelerationExceedsLateAcceleration`.
 - `Speed_IncreasesWithScore`.
-- `Speed_NeverExceedsTwelve`.
+- `Speed_NeverExceedsFourteen`.
 - `SameAdvanceSequence_ProducesSameSpeed`.
+- `SpeedPresentation_StagesIncreaseVisualOutputs`.
 
 ### Gate generation
 
@@ -51,6 +52,23 @@
 - `Shield_MilestoneActivatesAndProtectsExactlyOneMismatch`.
 - `Shield_MatchingWhileActiveDoesNotCreateASecondCharge`.
 - `Restart_ResetsShield`.
+- `ShieldBreak_EntersRecoveryAndReducesSpeed`.
+- `ShieldRecovery_MismatchIsIgnoredWithoutScore`.
+- `ShieldRecovery_ExpiresDeterministicallyAndSpeedRecovers`.
+- `Restart_ClearsShieldRecovery`.
+
+### Countdown
+
+- `Countdown_DoesNotAdvanceTimeAndCompletesOnce`.
+
+### Authored gate patterns
+
+- `PatternSequence_SameSeedReplaysIdentically`.
+- `PatternSequence_DifferentSeedChangesPlans`.
+- `PatternSequence_UsesDistinctFairTimingAndNoImmediateRepeat`.
+- `PatternSequence_ColorRunNeverExceedsFour`.
+- `SameColorBait_ContainsOneReadableException`.
+- `PatternSequence_DiagnosticReportsFirstThirtyAndDistribution`.
 
 ### State transitions
 
@@ -79,7 +97,7 @@
   `HigherScore_UpdatesBestScore`,
   `LowerScore_DoesNotReplaceBestScore`.
 - Retry:
-  `Retry_StartsPlayingImmediately`,
+  `Retry_EntersCountdown`,
   `Retry_ClearsFailureFeedback`,
   `Retry_DoesNotAlsoStartGameplay`.
 - Deterministic layout:
@@ -94,6 +112,20 @@
   `ScoreHistory_RejectsZeroAndLowSixthScore`,
   `GameOver_ShowsCompletedRunInTopScores`,
   `BestScore_IsConsistentWithTopScoreRankOne`.
+- Step 6 perceptible feedback and state sequencing:
+  `Countdown_DoesNotAdvanceGameplayOrAcceptInput`,
+  `Countdown_CompletesOnceIntoPlaying`,
+  `Countdown_RepeatedRetryDoesNotOverlap`,
+  `SpeedStages_ChangeFovTrailAndSpeedLines`,
+  `ShieldAcquisition_ShowsPersistentPlayerAndHudFeedback`,
+  `ShieldBreak_ShowsDistinctRecoveryFeedback`,
+  `Failure_AnimatesProgressivelyBeforeGameOver`.
+- Infinite track and curve experiment:
+  `TrackPool_LongRunRecyclesWithoutGapsOrGrowth`,
+  `CurveExperiment_IsPresentButDisabledForLongRunSafety`.
+- Score hierarchy:
+  `ScoreHistory_RankPolicyHandlesBestDuplicateAndRejection`,
+  `GameOver_ShowsCompletedRunInTopScores`.
 
 - Ready and Red scene initialization:
   `Scene_StartsInReady`, `Scene_StartsWithRedPlayer`.
@@ -109,7 +141,7 @@
   `Death_StopsMovementImmediately`,
   `Death_ShowsGameOverPanel`.
 - Complete retry behavior:
-  `Retry_StartsPlayingImmediately`,
+  `Retry_EntersCountdown`,
   `Restart_RestoresPlayerPosition`,
   `Restart_RestoresRedColor`,
   `Restart_ResetsHudScore`,
@@ -137,8 +169,10 @@
 - No active post-processing volume:
   `Scene_HasNoActivePostProcessingVolume`.
 - Camera post-processing disabled: `Camera_PostProcessingIsDisabled`.
-- Fixed pre-created gate pool: `Scene_HasFixedGatePool`.
-- Unique Step 5 UI and reusable feedback objects:
+- Fixed pre-created gate and track pools:
+  `Scene_HasFixedGatePool`,
+  `TrackPool_LongRunRecyclesWithoutGapsOrGrowth`.
+- Unique Step 6 UI and reusable feedback objects:
   `Scene_HasNoDuplicateStep4PresentationObjects`.
 
 ## Manual mobile check
@@ -147,13 +181,20 @@
 - Score and shield UI are not clipped by notches or rounded corners on at
   least one Android device or simulator profile.
 - Text is readable.
-- Restart takes no more than two taps.
+- Retry starts its countdown with one tap.
 - No visible stutter occurs during gate spawning.
 - Thirty consecutive restarts do not crash the app.
-- The 0.85-second failure reveal is long enough to identify the wrong gate but
+- The 0.9-second animated failure reveal is long enough to identify the wrong gate but
   does not feel sluggish.
-- Opening acceleration, spacing variation, shield-break readability, and
-  immediate Retry feel clear during a 30-second human playtest.
+- Opening acceleration is perceptible through movement, FOV, trail, speed
+  lines, and stage labeling.
+- Pattern timing and exception-color gates are visibly distinct rather than
+  only numerically different.
+- Shield acquisition, persistent state, break, and recovery cannot be confused
+  with a correct gate.
+- The five-second Retry countdown feels preparatory rather than frustrating.
+- The framed Top 5, current row marker, Best badge, and New Best message have a
+  clear visual hierarchy.
 
 ## Step 4 feedback status and deferred work
 

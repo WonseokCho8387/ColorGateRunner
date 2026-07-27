@@ -7,12 +7,15 @@ namespace ColorGateRunner.Core
         public const uint DefaultSeed = 12345u;
         public const int InitialScore = 0;
         public const float InitialSpeed = 6f;
-        public const float SpeedGrowthRate = 0.1f;
-        public const float ScoreAcceleration = 0.04f;
-        public const float MaximumSpeed = 12f;
+        public const float SpeedGrowthRate = 0.14f;
+        public const float ScoreAcceleration = 0.02f;
+        public const float MaximumSpeed = 14f;
         public const float MinimumReactionTime = 0.85f;
         public const float GateSafetyMargin = 0.5f;
         public const int ShieldScoreMilestone = 3;
+        public const float ShieldRecoveryDuration = 2f;
+        public const float ShieldRecoveryInitialSpeedMultiplier = 0.65f;
+        public const float DefaultCountdownDuration = 5f;
         public const int MaximumConsecutiveGateColors = 4;
         public const float MinimumGateDistance = 5.5f;
         public const int AllowedGateSpacingCount = 4;
@@ -75,6 +78,58 @@ namespace ColorGateRunner.Core
             }
 
             return (speed * MinimumReactionTime) + GateSafetyMargin;
+        }
+
+        public static SpeedPresentation GetSpeedPresentation(
+            float elapsedPlayingSeconds,
+            float currentSpeed)
+        {
+            if (elapsedPlayingSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(elapsedPlayingSeconds));
+            }
+
+            if (currentSpeed < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(currentSpeed));
+            }
+
+            SpeedStage stage;
+            if (elapsedPlayingSeconds < 5f)
+            {
+                stage = SpeedStage.Start;
+            }
+            else if (elapsedPlayingSeconds < 12f)
+            {
+                stage = SpeedStage.Accelerating;
+            }
+            else if (elapsedPlayingSeconds < 25f)
+            {
+                stage = SpeedStage.Fast;
+            }
+            else
+            {
+                stage = SpeedStage.MaximumPressure;
+            }
+
+            float intensity = Math.Max(
+                0f,
+                Math.Min(
+                    1f,
+                    (currentSpeed - InitialSpeed) /
+                    (MaximumSpeed - InitialSpeed)));
+
+            switch (stage)
+            {
+                case SpeedStage.Start:
+                    return new SpeedPresentation(stage, intensity, 60f, 0.1f, 0f, 1f);
+                case SpeedStage.Accelerating:
+                    return new SpeedPresentation(stage, intensity, 65f, 0.35f, 18f, 1.25f);
+                case SpeedStage.Fast:
+                    return new SpeedPresentation(stage, intensity, 70f, 0.7f, 40f, 1.55f);
+                default:
+                    return new SpeedPresentation(stage, intensity, 74f, 1f, 70f, 1.9f);
+            }
         }
     }
 }

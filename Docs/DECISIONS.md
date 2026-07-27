@@ -83,16 +83,17 @@ Status: Accepted historical baseline. Replaced decisions are marked
 
 ## Step 5 autonomous gameplay-feel iteration
 
-Status: Active
+Status: Accepted historical baseline. Replaced decisions are marked
+`Superseded`.
 
 - Playtesting found that Step 4 acceleration was technically continuous but
   not perceptually obvious, gate gaps still looked mechanical, immediate game
   over obscured the failed gate, and Retry required an unnecessary second tap.
-- Speed is deterministic and ease-out:
+- **Superseded by Step 6:** Speed is deterministic and ease-out:
   `min(12, 6 + (12 - 6) * (1 - exp(-0.1 * elapsedPlayingSeconds)) + score * 0.04)`.
   Time advances only while Playing; negative deltas remain rejected. Restart
   resets elapsed time and speed.
-- A dedicated spacing xorshift32 stream is seeded with
+- **Superseded by Step 6:** A dedicated spacing xorshift32 stream is seeded with
   `normalizedSeed XOR 0x9E3779B9`. Each gap starts at
   `speed * 0.85 + 0.5`, rounds upward to 0.5 units, and adds a deterministic
   short/medium/long band offset of `0`, `1.5`, or `3` units. A band may repeat
@@ -100,15 +101,15 @@ Status: Active
 - The persistent top HUD is parented under `SafeAreaRoot`. `SafeAreaLayout`
   converts `Screen.safeArea` to normalized anchors and reapplies them only
   when the safe area or resolution changes.
-- A lethal mismatch locks Core in Dead immediately, stops movement and input,
+- **Superseded by Step 6:** A lethal mismatch locks Core in Dead immediately, stops movement and input,
   highlights the failed gate, tilts and neutralizes the player, shakes only
   the fixed camera position, and delays the game-over panel by 0.85 seconds.
-- Retry performs `Restart` followed by `StartRun`: it resets the complete run
+- **Superseded by Step 6:** Retry performs `Restart` followed by `StartRun`: it resets the complete run
   and presentation and resumes Playing immediately without showing Ready.
-- A single non-stacking shield is granted at score 3. It consumes one
+- **Superseded by Step 6:** A single non-stacking shield is granted at score 3. It consumes one
   mismatched gate, awards no point, and keeps Playing; the next mismatch is
   lethal. Retry clears it. The HUD shows active and unavailable states.
-- Completed positive scores are inserted into a descending local Top 5.
+- **Superseded visually by Step 6:** Completed positive scores are inserted into a descending local Top 5.
   Duplicates are allowed, only five are retained, missing/corrupt PlayerPrefs
   data falls back to an empty list, and Best remains at least Top 5 rank 1.
   Persistence remains outside Core behind `IScoreHistoryStore`.
@@ -118,3 +119,56 @@ Status: Active
 - Live-changing gate colors, visibility/fog modifiers, currency, paid or
   ad-based Continue, online leaderboards, extra colors, moving/fake gates,
   combos, audio, haptics, and BPM-based placement remain deferred.
+
+## Step 6 perceptible game-feel and infinite-track iteration
+
+Status: Active
+
+- Step 5 human playtesting found that numerically valid acceleration and gap
+  variance were not perceptible, shield state was effectively invisible,
+  shield use had no recovery moment, defeat changed too abruptly, immediate
+  Retry lacked preparation, Top 5 lacked hierarchy, and the fixed 1000-unit
+  floor disappeared during long runs. Same-color runs with one exception gate
+  produced the strongest excitement.
+- Speed now uses
+  `min(14, 6 + (14 - 6) * (1 - exp(-0.14 * elapsed)) + score * 0.02)`.
+  Four perceptual stages begin at 0, 5, 12, and 25 seconds. They control
+  movement, camera FOV (`60/65/70/74`), trail intensity
+  (`0.1/0.35/0.7/1`), speed-line rate (`0/18/40/70`), and an explicit HUD
+  stage label.
+- Gate generation uses a separate seeded pattern stream with authored
+  `Steady`, `ShortShortLong`, `LongShortLong`, `Compression`, `Release`,
+  `SameColorBait`, and `SingleColorBreak` patterns. The same pattern cannot be
+  selected twice consecutively. Gaps are expressed as 0.9–1.9 seconds and
+  converted to distance using current speed plus the 0.5-unit safety margin.
+- `SameColorBait` intentionally produces base/base/base/exception/base and is
+  unavailable during the first onboarding gates. Global color runs remain
+  capped at four.
+- The finite floor is replaced by six pooled 40-unit straight track segments.
+  A segment whose end is more than 20 units behind the player moves to the
+  farthest segment's end anchor. Normal play performs no Instantiate/Destroy.
+- A 16-degree, eight-piece gentle curve exists as the inactive
+  `CurveSegmentExperiment`. It is intentionally isolated until path-following
+  player, camera, and gate placement can be validated without weakening the
+  infinite straight-track guarantee.
+- Score 3 still grants one non-stacking shield, now shown by a persistent
+  rotating player ring, animated HUD state, centered `SHIELD` message, and
+  reusable activation burst.
+- Shield absorption enters authoritative `ShieldRecovery` for 2 seconds:
+  0.12-second presentation hit-stop, 65% initial speed multiplier that
+  recovers smoothly, blinking player, invulnerability, `SHIELD BREAK`
+  messaging, distinct burst, and no score from protected mismatches.
+- Lethal failure is authoritative immediately but presented over 0.9 seconds.
+  The player progressively moves, drops, tilts, shrinks, and neutralizes while
+  the camera shake eases and the failed gate stays marked. Game Over appears
+  after the readable animation point.
+- Retry performs Core Restart, enters a configurable five-second `Countdown`,
+  displays `5–1` and `GO`, ignores gameplay input, and does not advance score,
+  movement, or elapsed gameplay time. It transitions to Playing exactly once.
+- Game Over separates `CURRENT`, a starred `BEST`, `NEW BEST`, and a framed
+  `TOP 5`. Positive completed scores remain descending, capped at five, and
+  duplicate scores rank after existing equal scores. The current row receives
+  a visible marker, `RANK n` label, and a 0.6-second reusable pulse.
+- Fog, live-changing gate colors, reduced visibility, currencies, paid or
+  ad-based Continue, ads, online leaderboards, additional power-up types,
+  extra player colors, audio, haptics, and BPM synchronization remain deferred.

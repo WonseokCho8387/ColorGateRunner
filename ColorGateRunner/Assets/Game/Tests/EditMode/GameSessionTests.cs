@@ -167,10 +167,10 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(session.CurrentState, Is.EqualTo(RunState.Dead));
         }
 
-        [TestCase(1, 6.04f)]
-        [TestCase(5, 6.2f)]
-        [TestCase(10, 6.4f)]
-        [TestCase(25, 7f)]
+        [TestCase(1, 6.02f)]
+        [TestCase(5, 6.1f)]
+        [TestCase(10, 6.2f)]
+        [TestCase(25, 6.5f)]
         public void Speed_IncreasesWithScore(int score, float expectedSpeed)
         {
             GameSession session = CreatePlayingSession();
@@ -181,7 +181,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Speed_NeverExceedsTwelve()
+        public void Speed_NeverExceedsFourteen()
         {
             GameSession session = CreatePlayingSession();
 
@@ -236,14 +236,14 @@ namespace ColorGateRunner.Tests.EditMode
 
             session.Advance(10f);
 
-            Assert.That(session.CurrentSpeed, Is.EqualTo(9.7927f).Within(0.001f));
+            Assert.That(session.CurrentSpeed, Is.EqualTo(12.0272f).Within(0.001f));
         }
 
         [TestCase(0f, 6f)]
-        [TestCase(5f, 8.360816f)]
-        [TestCase(10f, 9.792723f)]
-        [TestCase(20f, 11.187988f)]
-        [TestCase(30f, 11.701277f)]
+        [TestCase(5f, 10.027318f)]
+        [TestCase(10f, 12.027224f)]
+        [TestCase(20f, 13.513519f)]
+        [TestCase(30f, 13.880035f)]
         public void NonlinearSpeed_HasMeasuredProgression(
             float elapsedSeconds,
             float expectedSpeed)
@@ -276,10 +276,14 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 session.ResolveGate(OppositeOf(session.CurrentColor)),
                 Is.EqualTo(GateOutcome.Shielded));
-            Assert.That(session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.ShieldRecovery));
             Assert.That(session.CurrentScore, Is.EqualTo(score));
             Assert.That(session.ShieldActive, Is.False);
 
+            Assert.That(
+                session.ResolveGate(OppositeOf(session.CurrentColor)),
+                Is.EqualTo(GateOutcome.Invulnerable));
+            session.Advance(GameRules.ShieldRecoveryDuration);
             Assert.That(
                 session.ResolveGate(OppositeOf(session.CurrentColor)),
                 Is.EqualTo(GateOutcome.Mismatched));
@@ -307,7 +311,107 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(GateOutcome.Shielded));
             Assert.That(
                 session.ResolveGate(OppositeOf(session.CurrentColor)),
+                Is.EqualTo(GateOutcome.Invulnerable));
+            session.Advance(GameRules.ShieldRecoveryDuration);
+            Assert.That(
+                session.ResolveGate(OppositeOf(session.CurrentColor)),
                 Is.EqualTo(GateOutcome.Mismatched));
+        }
+
+        [Test]
+        public void ShieldBreak_EntersRecoveryAndReducesSpeed()
+        {
+            GameSession session = CreatePlayingSession();
+            ResolveMatchingGates(session, GameRules.ShieldScoreMilestone);
+            session.Advance(5f);
+            float beforeBreak = session.CurrentSpeed;
+
+            Assert.That(
+                session.ResolveGate(OppositeOf(session.CurrentColor)),
+                Is.EqualTo(GateOutcome.Shielded));
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.ShieldRecovery));
+            Assert.That(session.IsInvulnerable, Is.True);
+            Assert.That(session.CurrentSpeed, Is.LessThan(beforeBreak * 0.7f));
+        }
+
+        [Test]
+        public void ShieldRecovery_MismatchIsIgnoredWithoutScore()
+        {
+            GameSession session = CreatePlayingSession();
+            ResolveMatchingGates(session, GameRules.ShieldScoreMilestone);
+            session.ResolveGate(OppositeOf(session.CurrentColor));
+            int score = session.CurrentScore;
+
+            Assert.That(
+                session.ResolveGate(OppositeOf(session.CurrentColor)),
+                Is.EqualTo(GateOutcome.Invulnerable));
+            Assert.That(session.CurrentScore, Is.EqualTo(score));
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.ShieldRecovery));
+        }
+
+        [Test]
+        public void ShieldRecovery_ExpiresDeterministicallyAndSpeedRecovers()
+        {
+            GameSession session = CreatePlayingSession();
+            ResolveMatchingGates(session, GameRules.ShieldScoreMilestone);
+            session.ResolveGate(OppositeOf(session.CurrentColor));
+            float reduced = session.CurrentSpeed;
+
+            session.Advance(GameRules.ShieldRecoveryDuration * 0.5f);
+            float midway = session.CurrentSpeed;
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.ShieldRecovery));
+            Assert.That(midway, Is.GreaterThan(reduced));
+
+            session.Advance(GameRules.ShieldRecoveryDuration * 0.5f);
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(session.IsInvulnerable, Is.False);
+            Assert.That(session.CurrentSpeed, Is.GreaterThan(midway));
+        }
+
+        [Test]
+        public void Restart_ClearsShieldRecovery()
+        {
+            GameSession session = CreatePlayingSession();
+            ResolveMatchingGates(session, GameRules.ShieldScoreMilestone);
+            session.ResolveGate(OppositeOf(session.CurrentColor));
+
+            session.Restart();
+
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.Ready));
+            Assert.That(session.ShieldRecoveryRemaining, Is.Zero);
+            Assert.That(session.IsInvulnerable, Is.False);
+        }
+
+        [Test]
+        public void Countdown_DoesNotAdvanceTimeAndCompletesOnce()
+        {
+            GameSession session = CreateSession();
+
+            Assert.That(session.BeginCountdown(), Is.True);
+            session.Advance(GameRules.DefaultCountdownDuration);
+            Assert.That(session.ElapsedPlayingSeconds, Is.Zero);
+            Assert.That(session.TryToggleColor(), Is.False);
+            Assert.That(session.CompleteCountdown(), Is.True);
+            Assert.That(session.CompleteCountdown(), Is.False);
+            Assert.That(session.CurrentState, Is.EqualTo(RunState.Playing));
+        }
+
+        [Test]
+        public void SpeedPresentation_StagesIncreaseVisualOutputs()
+        {
+            SpeedPresentation start =
+                GameRules.GetSpeedPresentation(0f, GameRules.CalculateSpeed(0, 0f));
+            SpeedPresentation accelerating =
+                GameRules.GetSpeedPresentation(6f, GameRules.CalculateSpeed(0, 6f));
+            SpeedPresentation fast =
+                GameRules.GetSpeedPresentation(15f, GameRules.CalculateSpeed(0, 15f));
+            SpeedPresentation maximum =
+                GameRules.GetSpeedPresentation(30f, GameRules.CalculateSpeed(0, 30f));
+
+            Assert.That(accelerating.CameraFieldOfView, Is.GreaterThan(start.CameraFieldOfView));
+            Assert.That(fast.TrailIntensity, Is.GreaterThan(accelerating.TrailIntensity));
+            Assert.That(maximum.SpeedLineRate, Is.GreaterThan(fast.SpeedLineRate));
+            Assert.That(maximum.MarkerIntensity, Is.GreaterThan(fast.MarkerIntensity));
         }
 
         [Test]

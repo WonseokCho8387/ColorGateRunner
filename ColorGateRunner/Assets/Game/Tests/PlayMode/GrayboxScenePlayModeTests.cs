@@ -196,8 +196,9 @@ namespace ColorGateRunner.Tests.PlayMode
 
             gate.TryResolveCrossing();
 
+            _controller.Tick(0.05f);
             Assert.That(_controller.GameplayCamera.transform.position, Is.Not.EqualTo(originalPosition));
-            _controller.Tick(0.3f);
+            _controller.Tick(0.25f);
 
             Assert.That(_controller.GameplayCamera.transform.position, Is.EqualTo(originalPosition));
             Assert.That(_controller.GameplayCamera.transform.rotation, Is.EqualTo(originalRotation));
@@ -223,9 +224,9 @@ namespace ColorGateRunner.Tests.PlayMode
             gate.TryResolveCrossing();
 
             Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
-            _controller.Tick(0.84f);
+            _controller.Tick(0.88f);
             Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
-            _controller.Tick(0.02f);
+            _controller.Tick(0.03f);
             Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
         }
 
@@ -237,7 +238,7 @@ namespace ColorGateRunner.Tests.PlayMode
             KillSessionFromPlaying();
             _controller.Tick(0.9f);
 
-            Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("SCORE  1"));
+            Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("CURRENT  1"));
         }
 
         [Test]
@@ -248,7 +249,7 @@ namespace ColorGateRunner.Tests.PlayMode
             KillSessionFromPlaying();
             _controller.Tick(0.9f);
 
-            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  1"));
+            Assert.That(_controller.BestScoreText.text, Does.Contain("BEST  1"));
         }
 
         [Test]
@@ -274,17 +275,18 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(_controller.BestScore, Is.EqualTo(5));
             Assert.That(_bestScoreStore.StoredScore, Is.EqualTo(5));
-            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  5"));
+            Assert.That(_controller.BestScoreText.text, Does.Contain("BEST  5"));
         }
 
         [Test]
-        public void Retry_StartsPlayingImmediately()
+        public void Retry_EntersCountdown()
         {
             KillSession();
 
             _controller.RestartButton.onClick.Invoke();
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
+            Assert.That(_controller.CountdownPanel.activeSelf, Is.True);
         }
 
         [Test]
@@ -375,7 +377,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 pointer,
                 ExecuteEvents.pointerClickHandler);
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
             Assert.That(_controller.ReadyOverlay.activeSelf, Is.False);
         }
 
@@ -480,7 +482,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 pointer,
                 ExecuteEvents.pointerClickHandler);
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
         }
 
         [Test]
@@ -629,12 +631,24 @@ namespace ColorGateRunner.Tests.PlayMode
                 "ScoreLabel",
                 "ScoreValue",
                 "ShieldIndicator",
+                "ShieldVisual",
+                "ShieldMessage",
+                "SpeedStage",
+                "CountdownPanel",
+                "CountdownText",
                 "GameOverPanel",
                 "GameOverScore",
                 "BestScore",
                 "TopScores",
+                "TopScoresPanel",
+                "BestBadge",
+                "NewBestText",
                 "RestartButton",
                 "SuccessParticles",
+                "ShieldParticles",
+                "SpeedLines",
+                "TrackPool",
+                "CurveSegmentExperiment",
                 "EventSystem"
             };
 
@@ -674,11 +688,21 @@ namespace ColorGateRunner.Tests.PlayMode
             GateView firstMismatch = _controller.GetGate(3);
             MismatchCurrentColorFrom(firstMismatch.AssignedColor);
             Assert.That(firstMismatch.TryResolveCrossing(), Is.True);
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.ShieldRecovery));
             Assert.That(_controller.Session.ShieldActive, Is.False);
             Assert.That(_controller.Session.CurrentScore, Is.EqualTo(3));
 
             GateView secondMismatch = _controller.GetGate(4);
+            MismatchCurrentColorFrom(secondMismatch.AssignedColor);
+            secondMismatch.TryResolveCrossing();
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.ShieldRecovery));
+
+            _controller.Tick(0.13f);
+            _controller.Tick(GameRules.ShieldRecoveryDuration);
             MismatchCurrentColorFrom(secondMismatch.AssignedColor);
             secondMismatch.TryResolveCrossing();
             Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Dead));
@@ -720,7 +744,11 @@ namespace ColorGateRunner.Tests.PlayMode
             KillSessionFromPlaying();
             _controller.Tick(0.9f);
 
-            Assert.That(_controller.TopScoresText.text, Does.Contain("1.  1"));
+            Assert.That(_controller.TopScoresText.text, Does.Contain("1."));
+            Assert.That(_controller.TopScoresText.text, Does.Contain("1"));
+            Assert.That(_controller.TopScoresText.text, Does.Contain("►"));
+            Assert.That(_controller.CompletedRunRank, Is.Zero);
+            Assert.That(_controller.NewBestText.text, Does.Contain("RANK 1"));
         }
 
         [Test]
@@ -732,7 +760,237 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetScoreHistoryStoreForTests(_historyStore);
 
             Assert.That(_controller.BestScore, Is.EqualTo(8));
-            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  8"));
+            Assert.That(_controller.BestScoreText.text, Does.Contain("BEST  8"));
+        }
+
+        [Test]
+        public void Countdown_DoesNotAdvanceGameplayOrAcceptInput()
+        {
+            KillSession();
+            _controller.RestartButton.onClick.Invoke();
+            RunnerColor initialColor = _controller.Session.CurrentColor;
+
+            SendGameplayTap();
+            _controller.Tick(2f);
+
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
+            Assert.That(_controller.Session.ElapsedPlayingSeconds, Is.Zero);
+            Assert.That(_controller.Session.CurrentScore, Is.Zero);
+            Assert.That(_controller.Session.CurrentColor, Is.EqualTo(initialColor));
+            Assert.That(_controller.PlayerTransform.position, Is.EqualTo(new Vector3(0f, 1f, 0f)));
+        }
+
+        [Test]
+        public void Countdown_CompletesOnceIntoPlaying()
+        {
+            KillSession();
+            _controller.RestartButton.onClick.Invoke();
+
+            _controller.Tick(_controller.CountdownDuration - 0.3f);
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("1"));
+            _controller.Tick(0.1f);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("GO"));
+            _controller.Tick(0.3f);
+
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.CountdownPanel.activeSelf, Is.False);
+            float elapsed = _controller.Session.ElapsedPlayingSeconds;
+            _controller.Tick(0f);
+            Assert.That(_controller.Session.ElapsedPlayingSeconds, Is.EqualTo(elapsed));
+        }
+
+        [Test]
+        public void Countdown_RepeatedRetryDoesNotOverlap()
+        {
+            KillSession();
+            _controller.RestartButton.onClick.Invoke();
+            _controller.Tick(1f);
+            float remaining = _controller.CountdownRemaining;
+
+            _controller.RestartButton.onClick.Invoke();
+
+            Assert.That(_controller.CountdownRemaining, Is.EqualTo(remaining));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Countdown));
+        }
+
+        [Test]
+        public void SpeedStages_ChangeFovTrailAndSpeedLines()
+        {
+            SendGameplayTap();
+            float startingFov = _controller.GameplayCamera.fieldOfView;
+            float startingTrail = _controller.PlayerTrail.time;
+
+            _controller.Tick(13f);
+            ParticleSystem.EmissionModule emission = _controller.SpeedLines.emission;
+
+            Assert.That(_controller.GameplayCamera.fieldOfView, Is.GreaterThan(startingFov));
+            Assert.That(_controller.PlayerTrail.time, Is.GreaterThan(startingTrail));
+            Assert.That(emission.rateOverTime.constant, Is.GreaterThan(0f));
+            Assert.That(_controller.SpeedStageText.text, Is.EqualTo("SPEED  III"));
+        }
+
+        [Test]
+        public void ShieldAcquisition_ShowsPersistentPlayerAndHudFeedback()
+        {
+            SendGameplayTap();
+            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
+            {
+                ResolveGateAsMatch(_controller.GetGate(index));
+            }
+
+            Assert.That(_controller.Session.ShieldActive, Is.True);
+            Assert.That(_controller.ShieldVisual.activeSelf, Is.True);
+            Assert.That(_controller.ShieldText.text, Does.Contain("READY"));
+            Assert.That(_controller.ShieldMessageText.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.ShieldMessageText.text, Is.EqualTo("SHIELD"));
+            Assert.That(_controller.ShieldParticles.particleCount, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void ShieldBreak_ShowsDistinctRecoveryFeedback()
+        {
+            SendGameplayTap();
+            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
+            {
+                ResolveGateAsMatch(_controller.GetGate(index));
+            }
+            GateView gate = _controller.GetGate(3);
+            MismatchCurrentColorFrom(gate.AssignedColor);
+
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.ShieldRecovery));
+            Assert.That(_controller.ShieldVisual.activeSelf, Is.False);
+            Assert.That(_controller.ShieldText.text, Does.Contain("BROKEN"));
+            Assert.That(_controller.ShieldMessageText.text, Is.EqualTo("SHIELD BREAK"));
+            Assert.That(_controller.ShieldParticles.particleCount, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Failure_AnimatesProgressivelyBeforeGameOver()
+        {
+            GateView gate = StartAndMismatchFirstGate();
+            Vector3 startPosition = _controller.PlayerTransform.position;
+            Quaternion startRotation = _controller.PlayerTransform.rotation;
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.PlayerTransform.position, Is.EqualTo(startPosition));
+            Assert.That(_controller.PlayerTransform.rotation, Is.EqualTo(startRotation));
+            _controller.Tick(0.45f);
+            Assert.That(_controller.PlayerTransform.position.y, Is.LessThan(startPosition.y));
+            Assert.That(_controller.PlayerTransform.rotation, Is.Not.EqualTo(startRotation));
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
+            _controller.Tick(0.46f);
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void TrackPool_LongRunRecyclesWithoutGapsOrGrowth()
+        {
+            TrackPoolController pool = _controller.TrackPool;
+            int initialCount = pool.SegmentCount;
+            const float TravelDistance = 5000f;
+
+            for (float distance = 0f; distance <= TravelDistance; distance += 10f)
+            {
+                pool.Tick(distance);
+                AssertTrackContinuityAndCoverage(pool, distance);
+            }
+
+            Assert.That(pool.SegmentCount, Is.EqualTo(initialCount));
+            Assert.That(
+                Object.FindObjectsByType<TrackSegmentView>(
+                    FindObjectsInactive.Include).Length,
+                Is.EqualTo(initialCount + 1));
+        }
+
+        [Test]
+        public void CurveExperiment_IsPresentButDisabledForLongRunSafety()
+        {
+            GameObject curve = GameObject.Find("CurveSegmentExperiment");
+            if (curve == null)
+            {
+                TrackSegmentView[] all =
+                    Object.FindObjectsByType<TrackSegmentView>(
+                        FindObjectsInactive.Include);
+                for (int index = 0; index < all.Length; index++)
+                {
+                    if (all[index].name == "CurveSegmentExperiment")
+                    {
+                        curve = all[index].gameObject;
+                        break;
+                    }
+                }
+            }
+
+            Assert.That(curve, Is.Not.Null);
+            Assert.That(curve.activeSelf, Is.False);
+            Assert.That(
+                curve.GetComponent<TrackSegmentView>().IsCurveExperiment,
+                Is.True);
+        }
+
+        [Test]
+        public void TrackMarkers_UseDistinctMaterialFromGround()
+        {
+            TrackSegmentView segment = _controller.TrackPool.GetSegment(0);
+            Renderer ground =
+                segment.transform.Find("Ground").GetComponent<Renderer>();
+            Renderer marker =
+                segment.transform.Find("LaneMarker_00").GetComponent<Renderer>();
+
+            Assert.That(marker.sharedMaterial, Is.Not.SameAs(ground.sharedMaterial));
+        }
+
+        [Test]
+        public void ScoreHistory_RankPolicyHandlesBestDuplicateAndRejection()
+        {
+            int[] existing = { 20, 15, 15, 10, 5 };
+
+            ScoreHistoryUpdate best = ScoreHistory.InsertWithResult(existing, 25);
+            ScoreHistoryUpdate duplicate = ScoreHistory.InsertWithResult(existing, 15);
+            ScoreHistoryUpdate rejected = ScoreHistory.InsertWithResult(existing, 4);
+
+            Assert.That(best.InsertedRank, Is.Zero);
+            Assert.That(best.IsNewBest, Is.True);
+            Assert.That(duplicate.InsertedRank, Is.EqualTo(3));
+            Assert.That(duplicate.IsNewBest, Is.False);
+            Assert.That(rejected.InsertedRank, Is.EqualTo(-1));
+            Assert.That(rejected.Scores, Is.EqualTo(existing));
+        }
+
+        private static void AssertTrackContinuityAndCoverage(
+            TrackPoolController pool,
+            float playerZ)
+        {
+            var segments = new TrackSegmentView[pool.SegmentCount];
+            for (int index = 0; index < segments.Length; index++)
+            {
+                segments[index] = pool.GetSegment(index);
+                Assert.That(float.IsNaN(segments[index].transform.position.z), Is.False);
+            }
+
+            System.Array.Sort(
+                segments,
+                (left, right) =>
+                    left.StartAnchorPosition.z.CompareTo(right.StartAnchorPosition.z));
+            bool covered = false;
+            for (int index = 0; index < segments.Length; index++)
+            {
+                if (index > 0)
+                {
+                    Assert.That(
+                        segments[index].StartAnchorPosition,
+                        Is.EqualTo(segments[index - 1].EndAnchorPosition));
+                }
+
+                covered |=
+                    playerZ >= segments[index].StartAnchorPosition.z &&
+                    playerZ <= segments[index].EndAnchorPosition.z;
+            }
+
+            Assert.That(covered, Is.True, $"No track segment covered z={playerZ}.");
         }
 
         private void SendGameplayTap()

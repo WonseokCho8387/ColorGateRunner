@@ -25,7 +25,9 @@ character color to each approaching gate.
 ## Player states
 
 - Ready
+- Countdown
 - Playing
+- ShieldRecovery
 - Dead
 
 ## Rules
@@ -34,11 +36,12 @@ character color to each approaching gate.
 - Colors: Red and Blue only
 - Each passed gate adds 1 point.
 - Initial movement speed: 6 units per second.
-- Speed follows a deterministic ease-out from 6 toward 12 using growth rate
-  0.1, with a modest 0.04 units-per-point contribution.
-- Maximum speed: 12 units per second.
-- A shield is granted once at score 3. It protects exactly one wrong gate
-  without awarding score; a later wrong gate ends the game.
+- Speed follows a deterministic ease-out from 6 toward 14 using growth rate
+  0.14, with a modest 0.02 units-per-point contribution.
+- Maximum speed: 14 units per second.
+- A shield is granted once at score 3. It protects exactly one wrong gate,
+  awards no score, and enters two seconds of reduced-speed invulnerability.
+  A wrong gate after recovery ends the game.
 - Correct gates must never end the game.
 - Input is ignored after death.
 
@@ -46,16 +49,23 @@ character color to each approaching gate.
 
 - Gate colors are generated from a deterministic seed.
 - No more than four consecutive gates may use the same color.
-- Gate spacing comes from a separate deterministic seeded stream. Its minimum
-  is based on current speed, 0.85 seconds of reaction time, and a 0.5-unit
-  safety margin; short, medium, and long bands add controlled variation.
+- Gate spacing and color relationships come from deterministic authored
+  patterns. Time-to-gate values range from 0.9 to 1.9 seconds and convert to
+  distance using current speed plus a 0.5-unit safety margin.
 - Default test seed: 12345.
+
+## Infinite track
+
+- Six pre-created 40-unit straight segments recycle behind the player.
+- Adjacent end/start anchors remain coincident.
+- A disabled 16-degree curve experiment is retained separately until safe
+  path following is implemented.
 
 ## Restart
 
-- Retry resets score, elapsed Playing time, speed, player color, shield, color
-  and spacing sequences, feedback, and player position, then starts Playing
-  immediately.
+- Retry resets score, elapsed Playing time, speed, player color, shield,
+  patterns, feedback, player position, and track, then runs a configurable
+  five-second countdown before Playing.
 - The same test seed produces the same gate colors and layout.
 
 ## Out of scope
