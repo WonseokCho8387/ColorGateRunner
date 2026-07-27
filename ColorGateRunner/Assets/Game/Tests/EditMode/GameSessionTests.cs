@@ -33,11 +33,11 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void NewSession_SpeedIsFour()
+        public void NewSession_UsesUpdatedBaseSpeed()
         {
             GameSession session = CreateSession();
 
-            Assert.That(session.CurrentSpeed, Is.EqualTo(4f));
+            Assert.That(session.CurrentSpeed, Is.EqualTo(6f));
         }
 
         [Test]
@@ -167,12 +167,11 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(session.CurrentState, Is.EqualTo(RunState.Dead));
         }
 
-        [TestCase(4, 4f)]
-        [TestCase(5, 4.15f)]
-        [TestCase(9, 4.15f)]
-        [TestCase(10, 4.3f)]
-        [TestCase(15, 4.45f)]
-        public void ScoreThreshold_UpdatesSpeed(int score, float expectedSpeed)
+        [TestCase(1, 6.12f)]
+        [TestCase(5, 6.6f)]
+        [TestCase(10, 7.2f)]
+        [TestCase(25, 9f)]
+        public void Speed_IncreasesWithScore(int score, float expectedSpeed)
         {
             GameSession session = CreatePlayingSession();
 
@@ -182,13 +181,79 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Speed_IsCappedAtNine()
+        public void Speed_NeverExceedsTwelve()
         {
             GameSession session = CreatePlayingSession();
 
             ResolveMatchingGates(session, 500);
+            session.Advance(1000f);
 
             Assert.That(session.CurrentSpeed, Is.EqualTo(GameRules.MaximumSpeed));
+        }
+
+        [Test]
+        public void Advance_WhilePlaying_IncreasesElapsedTime()
+        {
+            GameSession session = CreatePlayingSession();
+
+            session.Advance(1.25f);
+
+            Assert.That(session.ElapsedPlayingSeconds, Is.EqualTo(1.25f));
+        }
+
+        [Test]
+        public void Advance_WhileReady_DoesNotIncreaseElapsedTime()
+        {
+            GameSession session = CreateSession();
+
+            session.Advance(1f);
+
+            Assert.That(session.ElapsedPlayingSeconds, Is.Zero);
+        }
+
+        [Test]
+        public void Advance_WhileDead_DoesNotIncreaseElapsedTime()
+        {
+            GameSession session = CreateDeadSession();
+
+            session.Advance(1f);
+
+            Assert.That(session.ElapsedPlayingSeconds, Is.Zero);
+        }
+
+        [Test]
+        public void Advance_NegativeDelta_IsRejected()
+        {
+            GameSession session = CreatePlayingSession();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => session.Advance(-0.01f));
+        }
+
+        [Test]
+        public void Speed_IncreasesWithElapsedTime()
+        {
+            GameSession session = CreatePlayingSession();
+
+            session.Advance(10f);
+
+            Assert.That(session.CurrentSpeed, Is.EqualTo(6.8f).Within(0.0001f));
+        }
+
+        [Test]
+        public void SameAdvanceSequence_ProducesSameSpeed()
+        {
+            GameSession first = CreatePlayingSession();
+            GameSession second = CreatePlayingSession();
+            float[] deltas = { 0.016f, 0.02f, 0.033f, 0.5f, 1.25f };
+
+            for (int index = 0; index < deltas.Length; index++)
+            {
+                first.Advance(deltas[index]);
+                second.Advance(deltas[index]);
+            }
+
+            Assert.That(second.ElapsedPlayingSeconds, Is.EqualTo(first.ElapsedPlayingSeconds));
+            Assert.That(second.CurrentSpeed, Is.EqualTo(first.CurrentSpeed));
         }
 
         [Test]
@@ -235,6 +300,17 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void Restart_ResetsElapsedTime()
+        {
+            GameSession session = CreatePlayingSession();
+            session.Advance(5f);
+
+            session.Restart();
+
+            Assert.That(session.ElapsedPlayingSeconds, Is.Zero);
+        }
+
+        [Test]
         public void Restart_ReplaysSequence()
         {
             const int sequenceLength = 64;
@@ -245,6 +321,29 @@ namespace ColorGateRunner.Tests.EditMode
             RunnerColor[] restartedSequence = ReadSequence(session, sequenceLength);
 
             Assert.That(restartedSequence, Is.EqualTo(firstSequence));
+        }
+
+        [Test]
+        public void Restart_ReplaysColorAndSpacingSequence()
+        {
+            const int sequenceLength = 32;
+            GameSession session = CreateSession();
+            RunnerColor[] firstColors = new RunnerColor[sequenceLength];
+            float[] firstSpacings = new float[sequenceLength];
+
+            for (int index = 0; index < sequenceLength; index++)
+            {
+                firstColors[index] = session.GetNextGateColor();
+                firstSpacings[index] = session.GetNextGateSpacing();
+            }
+
+            session.Restart();
+
+            for (int index = 0; index < sequenceLength; index++)
+            {
+                Assert.That(session.GetNextGateColor(), Is.EqualTo(firstColors[index]));
+                Assert.That(session.GetNextGateSpacing(), Is.EqualTo(firstSpacings[index]));
+            }
         }
 
         private static GameSession CreateSession()

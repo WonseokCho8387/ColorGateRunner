@@ -128,9 +128,33 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void GateSpacing_MinimumIsSix()
+        public void SpacingSequence_UsesOnlyAllowedValues()
         {
-            Assert.That(GameRules.MinimumGateDistance, Is.EqualTo(6f));
+            DeterministicGateSequence sequence =
+                new DeterministicGateSequence(TestSeed);
+
+            for (int index = 0; index < 1000; index++)
+            {
+                float spacing = sequence.GetNextSpacing();
+                Assert.That(GameRules.IsAllowedGateSpacing(spacing), Is.True);
+                Assert.That(spacing, Is.GreaterThanOrEqualTo(5.5f));
+            }
+        }
+
+        [Test]
+        public void SpacingSequence_IsDeterministic()
+        {
+            DeterministicGateSequence first =
+                new DeterministicGateSequence(TestSeed);
+            DeterministicGateSequence second =
+                new DeterministicGateSequence(TestSeed);
+
+            for (int index = 0; index < 1000; index++)
+            {
+                Assert.That(
+                    second.GetNextSpacing(),
+                    Is.EqualTo(first.GetNextSpacing()));
+            }
         }
 
         [Test]

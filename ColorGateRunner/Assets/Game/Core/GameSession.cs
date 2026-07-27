@@ -19,6 +19,8 @@ namespace ColorGateRunner.Core
 
         public float CurrentSpeed { get; private set; }
 
+        public float ElapsedPlayingSeconds { get; private set; }
+
         public RunState CurrentState { get; private set; }
 
         public bool StartRun()
@@ -59,8 +61,24 @@ namespace ColorGateRunner.Core
             }
 
             CurrentScore++;
-            CurrentSpeed = GameRules.CalculateSpeed(CurrentScore);
+            UpdateSpeed();
             return GateOutcome.Matched;
+        }
+
+        public void Advance(float deltaSeconds)
+        {
+            if (deltaSeconds < 0f)
+            {
+                throw new System.ArgumentOutOfRangeException(nameof(deltaSeconds));
+            }
+
+            if (CurrentState != RunState.Playing)
+            {
+                return;
+            }
+
+            ElapsedPlayingSeconds += deltaSeconds;
+            UpdateSpeed();
         }
 
         public void Restart()
@@ -74,12 +92,25 @@ namespace ColorGateRunner.Core
             return _gateSequence.GetNextColor();
         }
 
+        public float GetNextGateSpacing()
+        {
+            return _gateSequence.GetNextSpacing();
+        }
+
         private void ResetRunValues()
         {
             CurrentColor = RunnerColor.Red;
             CurrentScore = GameRules.InitialScore;
             CurrentSpeed = GameRules.InitialSpeed;
+            ElapsedPlayingSeconds = 0f;
             CurrentState = RunState.Ready;
+        }
+
+        private void UpdateSpeed()
+        {
+            CurrentSpeed = GameRules.CalculateSpeed(
+                CurrentScore,
+                ElapsedPlayingSeconds);
         }
     }
 }

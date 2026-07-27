@@ -8,6 +8,8 @@ namespace ColorGateRunner.Core
         private RunnerColor _previousColor;
         private int _consecutiveColorCount;
         private bool _hasPreviousColor;
+        private int _spacingIndex;
+        private int _spacingOffset;
 
         public DeterministicGateSequence(uint seed)
         {
@@ -42,12 +44,24 @@ namespace ColorGateRunner.Core
             return nextColor;
         }
 
+        public float GetNextSpacing()
+        {
+            int allowedSpacingIndex =
+                (_spacingOffset + _spacingIndex) % GameRules.AllowedGateSpacingCount;
+            _spacingIndex++;
+            return GameRules.GetAllowedGateSpacing(allowedSpacingIndex);
+        }
+
         public void Reset(uint seed)
         {
-            _state = NormalizeSeed(seed);
+            uint normalizedSeed = NormalizeSeed(seed);
+            _state = normalizedSeed;
             _previousColor = RunnerColor.Red;
             _consecutiveColorCount = 0;
             _hasPreviousColor = false;
+            _spacingIndex = 0;
+            _spacingOffset =
+                (int)(normalizedSeed % GameRules.AllowedGateSpacingCount);
         }
 
         internal static uint NormalizeSeed(uint seed)

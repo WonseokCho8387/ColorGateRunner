@@ -33,9 +33,10 @@ character color to each approaching gate.
 - Initial player color: Red
 - Colors: Red and Blue only
 - Each passed gate adds 1 point.
-- Initial movement speed: 4 units per second.
-- Speed increases by 0.15 after every 5 points.
-- Maximum speed: 9 units per second.
+- Initial movement speed: 6 units per second.
+- Speed increases continuously by 0.08 per elapsed Playing second and by 0.12
+  per point.
+- Maximum speed: 12 units per second.
 - Collision with the wrong gate ends the game.
 - Correct gates must never end the game.
 - Input is ignored after death.
@@ -44,13 +45,14 @@ character color to each approaching gate.
 
 - Gate colors are generated from a deterministic seed.
 - No more than four consecutive gates may use the same color.
-- Minimum distance between gates: 6 units.
+- Gate spacing uses the deterministic values 5.5, 6, 7, and 8 units.
 - Default test seed: 12345.
 
 ## Restart
 
-- Restart resets score, speed, player color, gate sequence and player position.
-- The same test seed produces the same gate sequence.
+- Restart resets score, elapsed Playing time, speed, player color, color and
+  spacing sequences, feedback, and player position.
+- The same test seed produces the same gate colors and layout.
 
 ## Out of scope
 

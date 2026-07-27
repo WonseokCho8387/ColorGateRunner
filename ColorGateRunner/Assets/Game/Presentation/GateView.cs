@@ -10,10 +10,12 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Renderer[] gateRenderers;
 
         private bool _hasResolved;
+        private bool _isShowingFailure;
 
         public RunnerColor AssignedColor { get; private set; }
 
         internal bool HasResolved => _hasResolved;
+        internal bool IsShowingFailure => _isShowingFailure;
 
         private void OnTriggerEnter(Collider other)
         {
@@ -39,6 +41,7 @@ namespace ColorGateRunner.Presentation
         {
             AssignedColor = color;
             _hasResolved = false;
+            _isShowingFailure = false;
 
             Vector3 position = transform.position;
             position.z = worldZ;
@@ -47,6 +50,15 @@ namespace ColorGateRunner.Presentation
             for (int index = 0; index < gateRenderers.Length; index++)
             {
                 gateRenderers[index].sharedMaterial = material;
+            }
+        }
+
+        internal void ShowFailure(Material failureMaterial)
+        {
+            _isShowingFailure = true;
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                gateRenderers[index].sharedMaterial = failureMaterial;
             }
         }
 

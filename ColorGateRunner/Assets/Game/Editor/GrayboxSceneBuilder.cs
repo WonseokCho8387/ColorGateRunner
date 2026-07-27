@@ -21,6 +21,7 @@ namespace ColorGateRunner.Editor
         internal static readonly Color RedColor = FromHex(0xE63946);
         internal static readonly Color BlueColor = FromHex(0x2D7FF9);
         internal static readonly Color NeutralColor = FromHex(0xD9D9D9);
+        internal static readonly Color FailureColor = FromHex(0x6B7280);
 
         private static readonly Vector3 PlayerStartPosition = new Vector3(0f, 1f, 0f);
         private static readonly Vector3 CameraPosition = new Vector3(0f, 8f, -10f);
@@ -41,6 +42,11 @@ namespace ColorGateRunner.Editor
             Material neutralMaterial = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Neutral.mat",
                 NeutralColor);
+            Material failureMaterial = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Failure.mat",
+                FailureColor);
+            Material particleMaterial = CreateOrUpdateParticleMaterial(
+                GeneratedMaterialsFolder + "/SuccessParticle.mat");
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             RemovePreviousSceneObjects(scene);
@@ -63,14 +69,42 @@ namespace ColorGateRunner.Editor
                 controller,
                 redMaterial,
                 blueMaterial);
+            ParticleSystem successParticles = CreateSuccessParticles(
+                generatedRoot.transform,
+                particleMaterial);
 
             Canvas canvas = CreateCanvas(generatedRoot.transform);
             GameplayTapSurface tapSurface = CreateTapSurface(canvas.transform);
-            Text scoreText = CreateScoreText(canvas.transform);
-            GameObject readyLabel = CreateReadyLabel(canvas.transform);
+            GameObject scorePanel;
+            Text scoreLabel;
+            Text scoreText;
+            RectTransform scorePulseTarget;
+            CreateScoreHud(
+                canvas.transform,
+                out scorePanel,
+                out scoreLabel,
+                out scoreText,
+                out scorePulseTarget);
+            GameObject readyOverlay;
+            Text readyTitle;
+            Text readyInstruction;
+            Text readyTap;
+            CreateReadyOverlay(
+                canvas.transform,
+                out readyOverlay,
+                out readyTitle,
+                out readyInstruction,
+                out readyTap);
             GameObject gameOverPanel;
+            Text gameOverScore;
+            Text bestScore;
             Button restartButton;
-            CreateGameOverUi(canvas.transform, out gameOverPanel, out restartButton);
+            CreateGameOverUi(
+                canvas.transform,
+                out gameOverPanel,
+                out gameOverScore,
+                out bestScore,
+                out restartButton);
             CreateEventSystem(generatedRoot.transform);
 
             tapSurface.Configure(controller);
@@ -81,15 +115,25 @@ namespace ColorGateRunner.Editor
                 gameplayCamera,
                 redMaterial,
                 blueMaterial,
+                failureMaterial,
+                scorePanel,
+                scoreLabel,
                 scoreText,
-                readyLabel,
+                scorePulseTarget,
+                readyOverlay,
+                readyTitle,
+                readyInstruction,
+                readyTap,
                 gameOverPanel,
+                gameOverScore,
+                bestScore,
                 restartButton,
                 tapSurface,
+                successParticles,
                 gates);
 
             gameOverPanel.SetActive(false);
-            readyLabel.SetActive(true);
+            readyOverlay.SetActive(true);
 
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
 
@@ -134,6 +178,8 @@ namespace ColorGateRunner.Editor
             EventSystem[] eventSystems =
                 generatedRoot.GetComponentsInChildren<EventSystem>(true);
             GateView[] gates = generatedRoot.GetComponentsInChildren<GateView>(true);
+            ParticleSystem[] particleSystems =
+                generatedRoot.GetComponentsInChildren<ParticleSystem>(true);
 
             if (controllers.Length != 1 || !controllers[0].HasRequiredReferences())
             {
@@ -151,6 +197,26 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     $"Expected {GatePoolSize} pre-created gates, found {gates.Length}.");
+            }
+
+            if (particleSystems.Length != 1 ||
+                CountNamedTransforms(generatedRoot, "Canvas") != 1 ||
+                CountNamedTransforms(generatedRoot, "ReadyOverlay") != 1 ||
+                CountNamedTransforms(generatedRoot, "ReadyTitle") != 1 ||
+                CountNamedTransforms(generatedRoot, "ReadyInstruction") != 1 ||
+                CountNamedTransforms(generatedRoot, "TapToStartVisual") != 1 ||
+                CountNamedTransforms(generatedRoot, "ScorePanel") != 1 ||
+                CountNamedTransforms(generatedRoot, "ScoreLabel") != 1 ||
+                CountNamedTransforms(generatedRoot, "ScoreValue") != 1 ||
+                CountNamedTransforms(generatedRoot, "GameOverPanel") != 1 ||
+                CountNamedTransforms(generatedRoot, "GameOverScore") != 1 ||
+                CountNamedTransforms(generatedRoot, "BestScore") != 1 ||
+                CountNamedTransforms(generatedRoot, "RestartButton") != 1 ||
+                CountNamedTransforms(generatedRoot, "SuccessParticles") != 1 ||
+                CountNamedTransforms(generatedRoot, "EventSystem") != 1)
+            {
+                throw new InvalidOperationException(
+                    "Generated feedback or UI objects are missing or duplicated.");
             }
 
             Transform[] transforms = generatedRoot.GetComponentsInChildren<Transform>(true);
@@ -287,6 +353,7 @@ namespace ColorGateRunner.Editor
         {
             GateView[] gates = new GateView[GatePoolSize];
             GameSession previewSession = new GameSession(GameRules.DefaultSeed);
+            float gateZ = PlayerStartPosition.z;
 
             for (int index = 0; index < GatePoolSize; index++)
             {
@@ -323,9 +390,8 @@ namespace ColorGateRunner.Editor
                 RunnerColor color = previewSession.GetNextGateColor();
                 Material material =
                     color == RunnerColor.Red ? redMaterial : blueMaterial;
-                float z = PlayerStartPosition.z +
-                    ((index + 1) * GameRules.MinimumGateDistance);
-                gate.Activate(color, material, z);
+                gateZ += previewSession.GetNextGateSpacing();
+                gate.Activate(color, material, gateZ);
                 gates[index] = gate;
             }
 
@@ -351,6 +417,40 @@ namespace ColorGateRunner.Editor
             }
 
             return part.GetComponent<Renderer>();
+        }
+
+        private static ParticleSystem CreateSuccessParticles(
+            Transform parent,
+            Material material)
+        {
+            GameObject particleObject = new GameObject(
+                "SuccessParticles",
+                typeof(ParticleSystem));
+            particleObject.transform.SetParent(parent, false);
+
+            ParticleSystem particles = particleObject.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule main = particles.main;
+            main.playOnAwake = false;
+            main.loop = false;
+            main.duration = 0.3f;
+            main.startLifetime = 0.28f;
+            main.startSpeed = 1.8f;
+            main.startSize = 0.14f;
+            main.startColor = Color.white;
+            main.maxParticles = 32;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.enabled = false;
+
+            ParticleSystem.ShapeModule shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.15f;
+
+            ParticleSystemRenderer renderer =
+                particleObject.GetComponent<ParticleSystemRenderer>();
+            renderer.sharedMaterial = material;
+            return particles;
         }
 
         private static Canvas CreateCanvas(Transform parent)
@@ -385,42 +485,123 @@ namespace ColorGateRunner.Editor
             return tapObject.AddComponent<GameplayTapSurface>();
         }
 
-        private static Text CreateScoreText(Transform parent)
+        private static void CreateScoreHud(
+            Transform parent,
+            out GameObject panel,
+            out Text label,
+            out Text value,
+            out RectTransform pulseTarget)
         {
-            Text text = CreateText(
-                "ScoreText",
-                parent,
+            panel = CreateUiObject("ScorePanel", parent);
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 1f);
+            panelRect.anchorMax = new Vector2(0.5f, 1f);
+            panelRect.pivot = new Vector2(0.5f, 1f);
+            panelRect.anchoredPosition = new Vector2(0f, -64f);
+            panelRect.sizeDelta = new Vector2(280f, 150f);
+
+            Image panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0.06f, 0.08f, 0.1f, 0.82f);
+            panelImage.raycastTarget = false;
+            Outline outline = panel.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 1f, 1f, 0.65f);
+            outline.effectDistance = new Vector2(3f, -3f);
+
+            label = CreateText(
+                "ScoreLabel",
+                panel.transform,
+                "SCORE",
+                28,
+                TextAnchor.MiddleCenter);
+            RectTransform labelRect = label.rectTransform;
+            labelRect.anchorMin = new Vector2(0f, 0.65f);
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            value = CreateText(
+                "ScoreValue",
+                panel.transform,
                 "0",
                 72,
                 TextAnchor.MiddleCenter);
-            RectTransform rect = text.rectTransform;
-            rect.anchorMin = new Vector2(0.25f, 1f);
-            rect.anchorMax = new Vector2(0.75f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -80f);
-            rect.sizeDelta = new Vector2(0f, 120f);
-            return text;
+            RectTransform valueRect = value.rectTransform;
+            valueRect.anchorMin = Vector2.zero;
+            valueRect.anchorMax = new Vector2(1f, 0.72f);
+            valueRect.offsetMin = Vector2.zero;
+            valueRect.offsetMax = Vector2.zero;
+            pulseTarget = valueRect;
         }
 
-        private static GameObject CreateReadyLabel(Transform parent)
+        private static void CreateReadyOverlay(
+            Transform parent,
+            out GameObject overlay,
+            out Text title,
+            out Text instruction,
+            out Text tapText)
         {
-            Text text = CreateText(
-                "ReadyLabel",
-                parent,
-                "TAP TO START",
-                52,
+            overlay = CreateUiObject("ReadyOverlay", parent);
+            StretchToParent(overlay.GetComponent<RectTransform>());
+
+            Image dimmer = overlay.AddComponent<Image>();
+            dimmer.color = new Color(0.02f, 0.03f, 0.05f, 0.68f);
+            dimmer.raycastTarget = false;
+
+            title = CreateText(
+                "ReadyTitle",
+                overlay.transform,
+                "COLOR GATE",
+                88,
                 TextAnchor.MiddleCenter);
-            RectTransform rect = text.rectTransform;
-            rect.anchorMin = new Vector2(0.15f, 0.25f);
-            rect.anchorMax = new Vector2(0.85f, 0.4f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            return text.gameObject;
+            RectTransform titleRect = title.rectTransform;
+            titleRect.anchorMin = new Vector2(0.08f, 0.62f);
+            titleRect.anchorMax = new Vector2(0.92f, 0.78f);
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+
+            instruction = CreateText(
+                "ReadyInstruction",
+                overlay.transform,
+                "MATCH YOUR COLOR TO EACH GATE",
+                34,
+                TextAnchor.MiddleCenter);
+            RectTransform instructionRect = instruction.rectTransform;
+            instructionRect.anchorMin = new Vector2(0.08f, 0.48f);
+            instructionRect.anchorMax = new Vector2(0.92f, 0.58f);
+            instructionRect.offsetMin = Vector2.zero;
+            instructionRect.offsetMax = Vector2.zero;
+
+            GameObject startButton = CreateUiObject(
+                "TapToStartVisual",
+                overlay.transform);
+            RectTransform buttonRect = startButton.GetComponent<RectTransform>();
+            buttonRect.anchorMin = new Vector2(0.2f, 0.3f);
+            buttonRect.anchorMax = new Vector2(0.8f, 0.4f);
+            buttonRect.offsetMin = Vector2.zero;
+            buttonRect.offsetMax = Vector2.zero;
+
+            Image buttonImage = startButton.AddComponent<Image>();
+            buttonImage.color = new Color(1f, 1f, 1f, 0.94f);
+            buttonImage.raycastTarget = false;
+            Outline outline = startButton.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.45f);
+            outline.effectDistance = new Vector2(4f, -4f);
+
+            tapText = CreateText(
+                "ReadyTapText",
+                startButton.transform,
+                "TAP TO START",
+                44,
+                TextAnchor.MiddleCenter);
+            tapText.color = new Color(0.07f, 0.09f, 0.12f, 1f);
+            StretchToParent(tapText.rectTransform);
         }
 
         private static void CreateGameOverUi(
             Transform parent,
             out GameObject panel,
+            out Text currentScore,
+            out Text bestScore,
             out Button restartButton)
         {
             panel = CreateUiObject("GameOverPanel", parent);
@@ -442,10 +623,34 @@ namespace ColorGateRunner.Editor
             titleRect.offsetMin = Vector2.zero;
             titleRect.offsetMax = Vector2.zero;
 
+            currentScore = CreateText(
+                "GameOverScore",
+                panel.transform,
+                "SCORE  0",
+                48,
+                TextAnchor.MiddleCenter);
+            RectTransform currentScoreRect = currentScore.rectTransform;
+            currentScoreRect.anchorMin = new Vector2(0.1f, 0.47f);
+            currentScoreRect.anchorMax = new Vector2(0.9f, 0.57f);
+            currentScoreRect.offsetMin = Vector2.zero;
+            currentScoreRect.offsetMax = Vector2.zero;
+
+            bestScore = CreateText(
+                "BestScore",
+                panel.transform,
+                "BEST  0",
+                40,
+                TextAnchor.MiddleCenter);
+            RectTransform bestScoreRect = bestScore.rectTransform;
+            bestScoreRect.anchorMin = new Vector2(0.1f, 0.39f);
+            bestScoreRect.anchorMax = new Vector2(0.9f, 0.48f);
+            bestScoreRect.offsetMin = Vector2.zero;
+            bestScoreRect.offsetMax = Vector2.zero;
+
             GameObject buttonObject = CreateUiObject("RestartButton", panel.transform);
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
-            buttonRect.anchorMin = new Vector2(0.25f, 0.35f);
-            buttonRect.anchorMax = new Vector2(0.75f, 0.47f);
+            buttonRect.anchorMin = new Vector2(0.25f, 0.24f);
+            buttonRect.anchorMax = new Vector2(0.75f, 0.34f);
             buttonRect.offsetMin = Vector2.zero;
             buttonRect.offsetMax = Vector2.zero;
 
@@ -457,7 +662,7 @@ namespace ColorGateRunner.Editor
             Text label = CreateText(
                 "Label",
                 buttonObject.transform,
-                "RESTART",
+                "RETRY",
                 48,
                 TextAnchor.MiddleCenter);
             label.color = new Color(0.1f, 0.1f, 0.1f, 1f);
@@ -531,6 +736,33 @@ namespace ColorGateRunner.Editor
             return material;
         }
 
+        private static Material CreateOrUpdateParticleMaterial(string path)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                Shader shader = Shader.Find(
+                    "Universal Render Pipeline/Particles/Unlit");
+                if (shader == null)
+                {
+                    shader = Shader.Find("Particles/Standard Unlit");
+                }
+
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+
+            Color color = new Color(0.96f, 0.98f, 1f, 1f);
+            material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         private static void EnsureAssetFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path))
@@ -565,6 +797,21 @@ namespace ColorGateRunner.Editor
             }
 
             return false;
+        }
+
+        private static int CountNamedTransforms(GameObject root, string name)
+        {
+            int count = 0;
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            for (int index = 0; index < transforms.Length; index++)
+            {
+                if (transforms[index].name == name)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         internal static bool IsCameraPostProcessingEnabled(Camera camera)

@@ -18,6 +18,7 @@ namespace ColorGateRunner.Tests.PlayMode
         private const int ExpectedGatePoolSize = 5;
 
         private GameSceneController _controller;
+        private InMemoryBestScoreStore _bestScoreStore;
 
         [UnitySetUp]
         public IEnumerator LoadGrayboxScene()
@@ -27,6 +28,50 @@ namespace ColorGateRunner.Tests.PlayMode
 
             _controller = Object.FindAnyObjectByType<GameSceneController>();
             Assert.That(_controller, Is.Not.Null, "SampleScene must contain the graybox controller.");
+            _bestScoreStore = new InMemoryBestScoreStore();
+            _controller.SetBestScoreStoreForTests(_bestScoreStore);
+        }
+
+        [Test]
+        public void Ready_ShowsDimmedStartOverlay()
+        {
+            Image dimmer = _controller.ReadyOverlay.GetComponent<Image>();
+
+            Assert.That(_controller.ReadyOverlay.activeSelf, Is.True);
+            Assert.That(dimmer, Is.Not.Null);
+            Assert.That(dimmer.color.a, Is.GreaterThanOrEqualTo(0.5f));
+            Assert.That(_controller.RestartButton.gameObject.activeInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void Ready_ShowsTitleAndStartInstruction()
+        {
+            Assert.That(_controller.ReadyTitleText.text, Is.EqualTo("COLOR GATE"));
+            Assert.That(_controller.ReadyInstructionText.text, Does.Contain("MATCH"));
+            Assert.That(_controller.ReadyInstructionText.text, Does.Contain("COLOR"));
+            Assert.That(_controller.ReadyTapText.text, Is.EqualTo("TAP TO START"));
+        }
+
+        [Test]
+        public void GameplayTap_HidesReadyOverlay()
+        {
+            SendGameplayTap();
+
+            Assert.That(_controller.ReadyOverlay.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void ScoreHud_HasLabelAndFramedPanel()
+        {
+            Image panelImage = _controller.ScorePanel.GetComponent<Image>();
+            Outline outline = _controller.ScorePanel.GetComponent<Outline>();
+
+            Assert.That(_controller.ScorePanel.activeInHierarchy, Is.True);
+            Assert.That(panelImage, Is.Not.Null);
+            Assert.That(panelImage.color.a, Is.GreaterThan(0.5f));
+            Assert.That(outline, Is.Not.Null);
+            Assert.That(_controller.ScoreLabel.text, Is.EqualTo("SCORE"));
+            Assert.That(_controller.ScoreText.fontSize, Is.GreaterThan(_controller.ScoreLabel.fontSize));
         }
 
         [Test]
@@ -91,6 +136,30 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CorrectGate_TriggersFeedback()
+        {
+            Vector3 initialScale = _controller.PlayerTransform.localScale;
+            GateView gate = StartAndMatchFirstGate();
+
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.IsSuccessFeedbackActive, Is.True);
+            Assert.That(_controller.PlayerTransform.localScale.x, Is.GreaterThan(initialScale.x));
+            Assert.That(_controller.SuccessParticles.particleCount, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void CorrectGate_PulsesScore()
+        {
+            GateView gate = StartAndMatchFirstGate();
+
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.IsScorePulsing, Is.True);
+            Assert.That(_controller.ScorePulseTarget.localScale.x, Is.GreaterThan(1f));
+        }
+
+        [Test]
         public void MismatchingTrigger_EndsRun()
         {
             GateView gate = StartAndMismatchFirstGate();
@@ -98,6 +167,37 @@ namespace ColorGateRunner.Tests.PlayMode
             gate.TryResolveCrossing();
 
             Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Dead));
+        }
+
+        [Test]
+        public void IncorrectGate_TriggersFailureFeedback()
+        {
+            GateView gate = StartAndMismatchFirstGate();
+
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.IsFailureFeedbackActive, Is.True);
+            Assert.That(gate.IsShowingFailure, Is.True);
+            Assert.That(
+                _controller.PlayerRenderer.sharedMaterial.name,
+                Does.StartWith("Failure"));
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void CameraShake_RestoresOriginalPosition()
+        {
+            GateView gate = StartAndMismatchFirstGate();
+            Vector3 originalPosition = _controller.GameplayCamera.transform.position;
+            Quaternion originalRotation = _controller.GameplayCamera.transform.rotation;
+
+            gate.TryResolveCrossing();
+
+            Assert.That(_controller.GameplayCamera.transform.position, Is.Not.EqualTo(originalPosition));
+            _controller.Tick(0.3f);
+
+            Assert.That(_controller.GameplayCamera.transform.position, Is.EqualTo(originalPosition));
+            Assert.That(_controller.GameplayCamera.transform.rotation, Is.EqualTo(originalRotation));
         }
 
         [Test]
@@ -120,6 +220,52 @@ namespace ColorGateRunner.Tests.PlayMode
             gate.TryResolveCrossing();
 
             Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void GameOver_ShowsCurrentScore()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+
+            Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("SCORE  1"));
+        }
+
+        [Test]
+        public void GameOver_ShowsBestScore()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+
+            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  1"));
+        }
+
+        [Test]
+        public void HigherScore_UpdatesBestScore()
+        {
+            SendGameplayTap();
+            ResolveGateAsMatch(_controller.GetGate(0));
+            ResolveGateAsMatch(_controller.GetGate(1));
+            KillSessionFromPlaying();
+
+            Assert.That(_controller.BestScore, Is.EqualTo(2));
+            Assert.That(_bestScoreStore.StoredScore, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void LowerScore_DoesNotReplaceBestScore()
+        {
+            _bestScoreStore = new InMemoryBestScoreStore(5);
+            _controller.SetBestScoreStoreForTests(_bestScoreStore);
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+
+            Assert.That(_controller.BestScore, Is.EqualTo(5));
+            Assert.That(_bestScoreStore.StoredScore, Is.EqualTo(5));
+            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  5"));
         }
 
         [Test]
@@ -184,6 +330,69 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RestartButton.onClick.Invoke();
 
             Assert.That(CaptureGateColors(), Is.EqualTo(initialColors));
+        }
+
+        [Test]
+        public void Retry_ClearsFailureFeedback()
+        {
+            KillSession();
+
+            _controller.RestartButton.onClick.Invoke();
+
+            Assert.That(_controller.IsFailureFeedbackActive, Is.False);
+            Assert.That(_controller.PlayerTransform.localScale, Is.EqualTo(Vector3.one));
+            Assert.That(
+                _controller.PlayerRenderer.sharedMaterial.name,
+                Does.StartWith("Red"));
+            Assert.That(_controller.SuccessParticles.particleCount, Is.Zero);
+            for (int index = 0; index < _controller.GatePoolSize; index++)
+            {
+                Assert.That(_controller.GetGate(index).IsShowingFailure, Is.False);
+            }
+        }
+
+        [Test]
+        public void Retry_DoesNotAlsoStartGameplay()
+        {
+            KillSession();
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left
+            };
+
+            ExecuteEvents.Execute(
+                _controller.RestartButton.gameObject,
+                pointer,
+                ExecuteEvents.pointerClickHandler);
+
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Ready));
+            Assert.That(_controller.ReadyOverlay.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void GateSpacing_UsesAllowedDistances()
+        {
+            float previousZ = _controller.PlayerTransform.position.z;
+            for (int index = 0; index < _controller.GatePoolSize; index++)
+            {
+                float gateZ = _controller.GetGate(index).transform.position.z;
+                float spacing = gateZ - previousZ;
+                Assert.That(GameRules.IsAllowedGateSpacing(spacing), Is.True);
+                previousZ = gateZ;
+            }
+        }
+
+        [Test]
+        public void Restart_ReplaysIdenticalGateLayout()
+        {
+            RunnerColor[] initialColors = CaptureGateColors();
+            float[] initialPositions = CaptureGatePositions();
+            KillSession();
+
+            _controller.RestartButton.onClick.Invoke();
+
+            Assert.That(CaptureGateColors(), Is.EqualTo(initialColors));
+            Assert.That(CaptureGatePositions(), Is.EqualTo(initialPositions));
         }
 
         [Test]
@@ -388,6 +597,38 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(CountGateViews(), Is.EqualTo(ExpectedGatePoolSize));
         }
 
+        [Test]
+        public void Scene_HasNoDuplicateStep4PresentationObjects()
+        {
+            GameObject generatedRoot = GameObject.Find(GeneratedRootName);
+            Assert.That(generatedRoot, Is.Not.Null);
+            string[] uniqueNames =
+            {
+                "Canvas",
+                "ReadyOverlay",
+                "ReadyTitle",
+                "ReadyInstruction",
+                "TapToStartVisual",
+                "ScorePanel",
+                "ScoreLabel",
+                "ScoreValue",
+                "GameOverPanel",
+                "GameOverScore",
+                "BestScore",
+                "RestartButton",
+                "SuccessParticles",
+                "EventSystem"
+            };
+
+            for (int index = 0; index < uniqueNames.Length; index++)
+            {
+                Assert.That(
+                    CountNamedTransforms(generatedRoot, uniqueNames[index]),
+                    Is.EqualTo(1),
+                    $"{uniqueNames[index]} must exist exactly once.");
+            }
+        }
+
         private void SendGameplayTap()
         {
             var pointer = new PointerEventData(EventSystem.current)
@@ -462,10 +703,36 @@ namespace ColorGateRunner.Tests.PlayMode
             return colors;
         }
 
+        private float[] CaptureGatePositions()
+        {
+            var positions = new float[_controller.GatePoolSize];
+            for (int index = 0; index < positions.Length; index++)
+            {
+                positions[index] = _controller.GetGate(index).transform.position.z;
+            }
+
+            return positions;
+        }
+
         private static int CountGateViews()
         {
             return Object.FindObjectsByType<GateView>(
                 FindObjectsInactive.Include).Length;
+        }
+
+        private static int CountNamedTransforms(GameObject root, string objectName)
+        {
+            int count = 0;
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            for (int index = 0; index < transforms.Length; index++)
+            {
+                if (transforms[index].name == objectName)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static void AssertInsideViewport(Camera camera, Vector3 worldPosition)
@@ -474,6 +741,26 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(viewport.z, Is.GreaterThan(0f));
             Assert.That(viewport.x, Is.InRange(0f, 1f));
             Assert.That(viewport.y, Is.InRange(0f, 1f));
+        }
+
+        private sealed class InMemoryBestScoreStore : IBestScoreStore
+        {
+            internal InMemoryBestScoreStore(int initialScore = 0)
+            {
+                StoredScore = initialScore;
+            }
+
+            internal int StoredScore { get; private set; }
+
+            public int Load()
+            {
+                return StoredScore;
+            }
+
+            public void Save(int score)
+            {
+                StoredScore = score;
+            }
         }
     }
 }
