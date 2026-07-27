@@ -75,15 +75,18 @@ namespace ColorGateRunner.Editor
 
             Canvas canvas = CreateCanvas(generatedRoot.transform);
             GameplayTapSurface tapSurface = CreateTapSurface(canvas.transform);
+            Transform safeAreaRoot = CreateSafeAreaRoot(canvas.transform);
             GameObject scorePanel;
             Text scoreLabel;
             Text scoreText;
+            Text shieldText;
             RectTransform scorePulseTarget;
             CreateScoreHud(
-                canvas.transform,
+                safeAreaRoot,
                 out scorePanel,
                 out scoreLabel,
                 out scoreText,
+                out shieldText,
                 out scorePulseTarget);
             GameObject readyOverlay;
             Text readyTitle;
@@ -98,12 +101,14 @@ namespace ColorGateRunner.Editor
             GameObject gameOverPanel;
             Text gameOverScore;
             Text bestScore;
+            Text topScores;
             Button restartButton;
             CreateGameOverUi(
                 canvas.transform,
                 out gameOverPanel,
                 out gameOverScore,
                 out bestScore,
+                out topScores,
                 out restartButton);
             CreateEventSystem(generatedRoot.transform);
 
@@ -120,6 +125,7 @@ namespace ColorGateRunner.Editor
                 scoreLabel,
                 scoreText,
                 scorePulseTarget,
+                shieldText,
                 readyOverlay,
                 readyTitle,
                 readyInstruction,
@@ -127,6 +133,7 @@ namespace ColorGateRunner.Editor
                 gameOverPanel,
                 gameOverScore,
                 bestScore,
+                topScores,
                 restartButton,
                 tapSurface,
                 successParticles,
@@ -201,6 +208,7 @@ namespace ColorGateRunner.Editor
 
             if (particleSystems.Length != 1 ||
                 CountNamedTransforms(generatedRoot, "Canvas") != 1 ||
+                CountNamedTransforms(generatedRoot, "SafeAreaRoot") != 1 ||
                 CountNamedTransforms(generatedRoot, "ReadyOverlay") != 1 ||
                 CountNamedTransforms(generatedRoot, "ReadyTitle") != 1 ||
                 CountNamedTransforms(generatedRoot, "ReadyInstruction") != 1 ||
@@ -208,9 +216,11 @@ namespace ColorGateRunner.Editor
                 CountNamedTransforms(generatedRoot, "ScorePanel") != 1 ||
                 CountNamedTransforms(generatedRoot, "ScoreLabel") != 1 ||
                 CountNamedTransforms(generatedRoot, "ScoreValue") != 1 ||
+                CountNamedTransforms(generatedRoot, "ShieldIndicator") != 1 ||
                 CountNamedTransforms(generatedRoot, "GameOverPanel") != 1 ||
                 CountNamedTransforms(generatedRoot, "GameOverScore") != 1 ||
                 CountNamedTransforms(generatedRoot, "BestScore") != 1 ||
+                CountNamedTransforms(generatedRoot, "TopScores") != 1 ||
                 CountNamedTransforms(generatedRoot, "RestartButton") != 1 ||
                 CountNamedTransforms(generatedRoot, "SuccessParticles") != 1 ||
                 CountNamedTransforms(generatedRoot, "EventSystem") != 1)
@@ -485,11 +495,20 @@ namespace ColorGateRunner.Editor
             return tapObject.AddComponent<GameplayTapSurface>();
         }
 
+        private static Transform CreateSafeAreaRoot(Transform parent)
+        {
+            GameObject root = CreateUiObject("SafeAreaRoot", parent);
+            StretchToParent(root.GetComponent<RectTransform>());
+            root.AddComponent<SafeAreaLayout>();
+            return root.transform;
+        }
+
         private static void CreateScoreHud(
             Transform parent,
             out GameObject panel,
             out Text label,
             out Text value,
+            out Text shield,
             out RectTransform pulseTarget)
         {
             panel = CreateUiObject("ScorePanel", parent);
@@ -498,7 +517,7 @@ namespace ColorGateRunner.Editor
             panelRect.anchorMax = new Vector2(0.5f, 1f);
             panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.anchoredPosition = new Vector2(0f, -64f);
-            panelRect.sizeDelta = new Vector2(280f, 150f);
+            panelRect.sizeDelta = new Vector2(300f, 190f);
 
             Image panelImage = panel.AddComponent<Image>();
             panelImage.color = new Color(0.06f, 0.08f, 0.1f, 0.82f);
@@ -514,7 +533,7 @@ namespace ColorGateRunner.Editor
                 28,
                 TextAnchor.MiddleCenter);
             RectTransform labelRect = label.rectTransform;
-            labelRect.anchorMin = new Vector2(0f, 0.65f);
+            labelRect.anchorMin = new Vector2(0f, 0.72f);
             labelRect.anchorMax = Vector2.one;
             labelRect.offsetMin = Vector2.zero;
             labelRect.offsetMax = Vector2.zero;
@@ -526,11 +545,23 @@ namespace ColorGateRunner.Editor
                 72,
                 TextAnchor.MiddleCenter);
             RectTransform valueRect = value.rectTransform;
-            valueRect.anchorMin = Vector2.zero;
-            valueRect.anchorMax = new Vector2(1f, 0.72f);
+            valueRect.anchorMin = new Vector2(0f, 0.2f);
+            valueRect.anchorMax = new Vector2(1f, 0.76f);
             valueRect.offsetMin = Vector2.zero;
             valueRect.offsetMax = Vector2.zero;
             pulseTarget = valueRect;
+
+            shield = CreateText(
+                "ShieldIndicator",
+                panel.transform,
+                "SHIELD  EMPTY",
+                22,
+                TextAnchor.MiddleCenter);
+            RectTransform shieldRect = shield.rectTransform;
+            shieldRect.anchorMin = Vector2.zero;
+            shieldRect.anchorMax = new Vector2(1f, 0.22f);
+            shieldRect.offsetMin = Vector2.zero;
+            shieldRect.offsetMax = Vector2.zero;
         }
 
         private static void CreateReadyOverlay(
@@ -602,6 +633,7 @@ namespace ColorGateRunner.Editor
             out GameObject panel,
             out Text currentScore,
             out Text bestScore,
+            out Text topScores,
             out Button restartButton)
         {
             panel = CreateUiObject("GameOverPanel", parent);
@@ -647,10 +679,22 @@ namespace ColorGateRunner.Editor
             bestScoreRect.offsetMin = Vector2.zero;
             bestScoreRect.offsetMax = Vector2.zero;
 
+            topScores = CreateText(
+                "TopScores",
+                panel.transform,
+                "TOP SCORES\n--",
+                28,
+                TextAnchor.UpperCenter);
+            RectTransform topScoresRect = topScores.rectTransform;
+            topScoresRect.anchorMin = new Vector2(0.15f, 0.15f);
+            topScoresRect.anchorMax = new Vector2(0.85f, 0.4f);
+            topScoresRect.offsetMin = Vector2.zero;
+            topScoresRect.offsetMax = Vector2.zero;
+
             GameObject buttonObject = CreateUiObject("RestartButton", panel.transform);
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
-            buttonRect.anchorMin = new Vector2(0.25f, 0.24f);
-            buttonRect.anchorMax = new Vector2(0.75f, 0.34f);
+            buttonRect.anchorMin = new Vector2(0.25f, 0.05f);
+            buttonRect.anchorMax = new Vector2(0.75f, 0.14f);
             buttonRect.offsetMin = Vector2.zero;
             buttonRect.offsetMax = Vector2.zero;
 

@@ -22,6 +22,7 @@ namespace ColorGateRunner.Core
         public float ElapsedPlayingSeconds { get; private set; }
 
         public RunState CurrentState { get; private set; }
+        public bool ShieldActive { get; private set; }
 
         public bool StartRun()
         {
@@ -56,11 +57,21 @@ namespace ColorGateRunner.Core
 
             if (gateColor != CurrentColor)
             {
+                if (ShieldActive)
+                {
+                    ShieldActive = false;
+                    return GateOutcome.Shielded;
+                }
+
                 CurrentState = RunState.Dead;
                 return GateOutcome.Mismatched;
             }
 
             CurrentScore++;
+            if (CurrentScore == GameRules.ShieldScoreMilestone)
+            {
+                ShieldActive = true;
+            }
             UpdateSpeed();
             return GateOutcome.Matched;
         }
@@ -94,7 +105,7 @@ namespace ColorGateRunner.Core
 
         public float GetNextGateSpacing()
         {
-            return _gateSequence.GetNextSpacing();
+            return _gateSequence.GetNextSpacing(CurrentSpeed);
         }
 
         private void ResetRunValues()
@@ -104,6 +115,7 @@ namespace ColorGateRunner.Core
             CurrentSpeed = GameRules.InitialSpeed;
             ElapsedPlayingSeconds = 0f;
             CurrentState = RunState.Ready;
+            ShieldActive = false;
         }
 
         private void UpdateSpeed()

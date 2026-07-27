@@ -7,9 +7,12 @@ namespace ColorGateRunner.Core
         public const uint DefaultSeed = 12345u;
         public const int InitialScore = 0;
         public const float InitialSpeed = 6f;
-        public const float TimeAcceleration = 0.08f;
-        public const float ScoreAcceleration = 0.12f;
+        public const float SpeedGrowthRate = 0.1f;
+        public const float ScoreAcceleration = 0.04f;
         public const float MaximumSpeed = 12f;
+        public const float MinimumReactionTime = 0.85f;
+        public const float GateSafetyMargin = 0.5f;
+        public const int ShieldScoreMilestone = 3;
         public const int MaximumConsecutiveGateColors = 4;
         public const float MinimumGateDistance = 5.5f;
         public const int AllowedGateSpacingCount = 4;
@@ -26,9 +29,10 @@ namespace ColorGateRunner.Core
                 throw new ArgumentOutOfRangeException(nameof(elapsedPlayingSeconds));
             }
 
-            float calculatedSpeed =
-                InitialSpeed +
-                (elapsedPlayingSeconds * TimeAcceleration) +
+            double normalizedProgress =
+                1d - Math.Exp(-SpeedGrowthRate * elapsedPlayingSeconds);
+            float calculatedSpeed = InitialSpeed +
+                ((MaximumSpeed - InitialSpeed) * (float)normalizedProgress) +
                 (score * ScoreAcceleration);
             return Math.Min(MaximumSpeed, calculatedSpeed);
         }
@@ -61,6 +65,16 @@ namespace ColorGateRunner.Core
             }
 
             return false;
+        }
+
+        public static float CalculateMinimumSafeSpacing(float speed)
+        {
+            if (speed < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(speed));
+            }
+
+            return (speed * MinimumReactionTime) + GateSafetyMargin;
         }
     }
 }

@@ -19,6 +19,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private GameSceneController _controller;
         private InMemoryBestScoreStore _bestScoreStore;
+        private InMemoryScoreHistoryStore _historyStore;
 
         [UnitySetUp]
         public IEnumerator LoadGrayboxScene()
@@ -30,6 +31,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller, Is.Not.Null, "SampleScene must contain the graybox controller.");
             _bestScoreStore = new InMemoryBestScoreStore();
             _controller.SetBestScoreStoreForTests(_bestScoreStore);
+            _historyStore = new InMemoryScoreHistoryStore();
+            _controller.SetScoreHistoryStoreForTests(_historyStore);
         }
 
         [Test]
@@ -181,7 +184,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(
                 _controller.PlayerRenderer.sharedMaterial.name,
                 Does.StartWith("Failure"));
-            Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
         }
 
         [Test]
@@ -219,6 +222,10 @@ namespace ColorGateRunner.Tests.PlayMode
 
             gate.TryResolveCrossing();
 
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
+            _controller.Tick(0.84f);
+            Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
+            _controller.Tick(0.02f);
             Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
         }
 
@@ -228,6 +235,7 @@ namespace ColorGateRunner.Tests.PlayMode
             GateView gate = StartAndMatchFirstGate();
             gate.TryResolveCrossing();
             KillSessionFromPlaying();
+            _controller.Tick(0.9f);
 
             Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("SCORE  1"));
         }
@@ -238,6 +246,7 @@ namespace ColorGateRunner.Tests.PlayMode
             GateView gate = StartAndMatchFirstGate();
             gate.TryResolveCrossing();
             KillSessionFromPlaying();
+            _controller.Tick(0.9f);
 
             Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  1"));
         }
@@ -269,13 +278,13 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Restart_ReturnsStateToReady()
+        public void Retry_StartsPlayingImmediately()
         {
             KillSession();
 
             _controller.RestartButton.onClick.Invoke();
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Ready));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
         }
 
         [Test]
@@ -355,6 +364,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void Retry_DoesNotAlsoStartGameplay()
         {
             KillSession();
+            _controller.Tick(0.9f);
             var pointer = new PointerEventData(EventSystem.current)
             {
                 button = PointerEventData.InputButton.Left
@@ -365,19 +375,23 @@ namespace ColorGateRunner.Tests.PlayMode
                 pointer,
                 ExecuteEvents.pointerClickHandler);
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Ready));
-            Assert.That(_controller.ReadyOverlay.activeSelf, Is.True);
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.ReadyOverlay.activeSelf, Is.False);
         }
 
         [Test]
-        public void GateSpacing_UsesAllowedDistances()
+        public void GateSpacing_RespectsReactionTimeMinimum()
         {
             float previousZ = _controller.PlayerTransform.position.z;
             for (int index = 0; index < _controller.GatePoolSize; index++)
             {
                 float gateZ = _controller.GetGate(index).transform.position.z;
                 float spacing = gateZ - previousZ;
-                Assert.That(GameRules.IsAllowedGateSpacing(spacing), Is.True);
+                Assert.That(
+                    spacing,
+                    Is.GreaterThanOrEqualTo(
+                        GameRules.CalculateMinimumSafeSpacing(
+                            _controller.Session.CurrentSpeed)));
                 previousZ = gateZ;
             }
         }
@@ -447,6 +461,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void RestartClick_DoesNotAlsoTriggerGameplayTap()
         {
             KillSession();
+            _controller.Tick(0.9f);
             Transform gameOverPanel = _controller.RestartButton.transform.parent;
             Assert.That(
                 gameOverPanel.GetSiblingIndex(),
@@ -465,7 +480,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 pointer,
                 ExecuteEvents.pointerClickHandler);
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Ready));
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
         }
 
         [Test]
@@ -605,6 +620,7 @@ namespace ColorGateRunner.Tests.PlayMode
             string[] uniqueNames =
             {
                 "Canvas",
+                "SafeAreaRoot",
                 "ReadyOverlay",
                 "ReadyTitle",
                 "ReadyInstruction",
@@ -612,9 +628,11 @@ namespace ColorGateRunner.Tests.PlayMode
                 "ScorePanel",
                 "ScoreLabel",
                 "ScoreValue",
+                "ShieldIndicator",
                 "GameOverPanel",
                 "GameOverScore",
                 "BestScore",
+                "TopScores",
                 "RestartButton",
                 "SuccessParticles",
                 "EventSystem"
@@ -627,6 +645,94 @@ namespace ColorGateRunner.Tests.PlayMode
                     Is.EqualTo(1),
                     $"{uniqueNames[index]} must exist exactly once.");
             }
+        }
+
+        [Test]
+        public void SafeArea_CalculatesNormalizedAnchors()
+        {
+            SafeAreaLayout.CalculateAnchors(
+                new Rect(0f, 100f, 1080f, 1720f),
+                1080,
+                1920,
+                out Vector2 min,
+                out Vector2 max);
+
+            Assert.That(min, Is.EqualTo(new Vector2(0f, 100f / 1920f)));
+            Assert.That(max, Is.EqualTo(new Vector2(1f, 1820f / 1920f)));
+        }
+
+        [Test]
+        public void Shield_ProtectsOneMismatchThenNextMismatchFails()
+        {
+            SendGameplayTap();
+            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
+            {
+                ResolveGateAsMatch(_controller.GetGate(index));
+            }
+            Assert.That(_controller.Session.ShieldActive, Is.True);
+
+            GateView firstMismatch = _controller.GetGate(3);
+            MismatchCurrentColorFrom(firstMismatch.AssignedColor);
+            Assert.That(firstMismatch.TryResolveCrossing(), Is.True);
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(_controller.Session.ShieldActive, Is.False);
+            Assert.That(_controller.Session.CurrentScore, Is.EqualTo(3));
+
+            GateView secondMismatch = _controller.GetGate(4);
+            MismatchCurrentColorFrom(secondMismatch.AssignedColor);
+            secondMismatch.TryResolveCrossing();
+            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Dead));
+        }
+
+        [Test]
+        public void ScoreHistory_SortsTruncatesAndAllowsDuplicates()
+        {
+            int[] scores = System.Array.Empty<int>();
+            foreach (int score in new[] { 4, 9, 2, 9, 7, 1 })
+            {
+                scores = ScoreHistory.Insert(scores, score);
+            }
+
+            Assert.That(scores, Is.EqualTo(new[] { 9, 9, 7, 4, 2 }));
+        }
+
+        [Test]
+        public void ScoreHistory_CorruptedDataFallsBackToEmpty()
+        {
+            Assert.That(ScoreHistory.Parse("12,broken,7"), Is.Empty);
+            Assert.That(ScoreHistory.Parse(string.Empty), Is.Empty);
+        }
+
+        [Test]
+        public void ScoreHistory_RejectsZeroAndLowSixthScore()
+        {
+            int[] full = { 10, 9, 8, 7, 6 };
+
+            Assert.That(ScoreHistory.Insert(full, 0), Is.EqualTo(full));
+            Assert.That(ScoreHistory.Insert(full, 5), Is.EqualTo(full));
+        }
+
+        [Test]
+        public void GameOver_ShowsCompletedRunInTopScores()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+            _controller.Tick(0.9f);
+
+            Assert.That(_controller.TopScoresText.text, Does.Contain("1.  1"));
+        }
+
+        [Test]
+        public void BestScore_IsConsistentWithTopScoreRankOne()
+        {
+            _bestScoreStore = new InMemoryBestScoreStore(2);
+            _controller.SetBestScoreStoreForTests(_bestScoreStore);
+            _historyStore.Save(new[] { 8, 5, 3 });
+            _controller.SetScoreHistoryStoreForTests(_historyStore);
+
+            Assert.That(_controller.BestScore, Is.EqualTo(8));
+            Assert.That(_controller.BestScoreText.text, Is.EqualTo("BEST  8"));
         }
 
         private void SendGameplayTap()
@@ -760,6 +866,21 @@ namespace ColorGateRunner.Tests.PlayMode
             public void Save(int score)
             {
                 StoredScore = score;
+            }
+        }
+
+        private sealed class InMemoryScoreHistoryStore : IScoreHistoryStore
+        {
+            private int[] _scores = System.Array.Empty<int>();
+
+            public int[] Load()
+            {
+                return _scores;
+            }
+
+            public void Save(int[] scores)
+            {
+                _scores = scores;
             }
         }
     }

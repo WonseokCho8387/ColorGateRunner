@@ -10,7 +10,9 @@ namespace ColorGateRunner.Presentation
         private const float ScorePulseDuration = 0.2f;
         private const float SuccessPulseDuration = 0.25f;
         private const float FailureShakeDuration = 0.22f;
+        private const float FailurePresentationDelay = 0.85f;
         private const float FailureShakeAmplitude = 0.14f;
+        private const float ReadyPulseSpeed = 3f;
 
         [SerializeField] private uint configuredSeed = GameRules.DefaultSeed;
         [SerializeField] private Transform player;
@@ -23,6 +25,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text scoreLabel;
         [SerializeField] private Text scoreText;
         [SerializeField] private RectTransform scorePulseTarget;
+        [SerializeField] private Text shieldText;
         [SerializeField] private GameObject readyOverlay;
         [SerializeField] private Text readyTitleText;
         [SerializeField] private Text readyInstructionText;
@@ -30,6 +33,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Text gameOverScoreText;
         [SerializeField] private Text bestScoreText;
+        [SerializeField] private Text topScoresText;
         [SerializeField] private Button restartButton;
         [SerializeField] private GameplayTapSurface gameplayTapSurface;
         [SerializeField] private ParticleSystem successParticles;
@@ -38,6 +42,8 @@ namespace ColorGateRunner.Presentation
         private GameSession _session;
         private IBestScoreStore _bestScoreStore;
         private int _bestScore;
+        private IScoreHistoryStore _scoreHistoryStore;
+        private int[] _topScores;
         private Vector3 _playerStartPosition;
         private Vector3 _playerStartScale;
         private Vector3 _cameraStartPosition;
@@ -47,6 +53,9 @@ namespace ColorGateRunner.Presentation
         private float _scorePulseRemaining;
         private float _successPulseRemaining;
         private float _failureShakeRemaining;
+        private float _failurePresentationRemaining;
+        private bool _gameOverReady;
+        private float _readyPulseElapsed;
 
         internal GameSession Session => _session;
         internal Transform PlayerTransform => player;
@@ -63,6 +72,8 @@ namespace ColorGateRunner.Presentation
         internal GameObject GameOverPanel => gameOverPanel;
         internal Text GameOverScoreText => gameOverScoreText;
         internal Text BestScoreText => bestScoreText;
+        internal Text TopScoresText => topScoresText;
+        internal Text ShieldText => shieldText;
         internal Button RestartButton => restartButton;
         internal GameplayTapSurface TapSurface => gameplayTapSurface;
         internal ParticleSystem SuccessParticles => successParticles;
@@ -79,6 +90,9 @@ namespace ColorGateRunner.Presentation
             _session = new GameSession(configuredSeed);
             _bestScoreStore = new PlayerPrefsBestScoreStore();
             _bestScore = _bestScoreStore.Load();
+            _scoreHistoryStore = new PlayerPrefsScoreHistoryStore();
+            _topScores = _scoreHistoryStore.Load();
+            SynchronizeBestScoreWithHistory();
             _playerStartPosition = player.position;
             _playerStartScale = player.localScale;
             _cameraStartPosition = gameplayCamera.transform.position;
@@ -134,9 +148,16 @@ namespace ColorGateRunner.Presentation
             }
             else if (outcome == GateOutcome.Mismatched)
             {
+                RecordCompletedScore();
                 UpdateBestScore();
-                SynchronizeViews();
                 TriggerFailureFeedback(gate);
+                SynchronizeViews();
+            }
+            else if (outcome == GateOutcome.Shielded)
+            {
+                SynchronizeViews();
+                TriggerShieldBreakFeedback(gate);
+                RecycleGate(gate);
             }
 
             return outcome;
@@ -173,6 +194,14 @@ namespace ColorGateRunner.Presentation
             SynchronizeViews();
         }
 
+        internal void SetScoreHistoryStoreForTests(IScoreHistoryStore store)
+        {
+            _scoreHistoryStore = store ?? throw new ArgumentNullException(nameof(store));
+            _topScores = _scoreHistoryStore.Load();
+            SynchronizeBestScoreWithHistory();
+            SynchronizeViews();
+        }
+
         internal bool HasRequiredReferences()
         {
             if (player == null ||
@@ -185,6 +214,7 @@ namespace ColorGateRunner.Presentation
                 scoreLabel == null ||
                 scoreText == null ||
                 scorePulseTarget == null ||
+                shieldText == null ||
                 readyOverlay == null ||
                 readyTitleText == null ||
                 readyInstructionText == null ||
@@ -192,6 +222,7 @@ namespace ColorGateRunner.Presentation
                 gameOverPanel == null ||
                 gameOverScoreText == null ||
                 bestScoreText == null ||
+                topScoresText == null ||
                 restartButton == null ||
                 gameplayTapSurface == null ||
                 successParticles == null ||
@@ -216,6 +247,8 @@ namespace ColorGateRunner.Presentation
         {
             _session.Restart();
             ResetPresentation();
+            _session.StartRun();
+            SynchronizeViews();
         }
 
         private void ResetPresentation()
@@ -223,12 +256,17 @@ namespace ColorGateRunner.Presentation
             _scorePulseRemaining = 0f;
             _successPulseRemaining = 0f;
             _failureShakeRemaining = 0f;
+            _failurePresentationRemaining = 0f;
+            _gameOverReady = false;
+            _readyPulseElapsed = 0f;
             player.position = _playerStartPosition;
             player.localScale = _playerStartScale;
+            player.localRotation = Quaternion.identity;
             gameplayCamera.transform.SetPositionAndRotation(
                 _cameraStartPosition,
                 _cameraStartRotation);
             scorePulseTarget.localScale = Vector3.one;
+            readyTapText.rectTransform.localScale = Vector3.one;
             successParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             _nextGateZ = _playerStartPosition.z;
@@ -265,10 +303,13 @@ namespace ColorGateRunner.Presentation
             }
 
             scoreText.text = _session.CurrentScore.ToString();
+            shieldText.text = _session.ShieldActive ? "SHIELD  READY" : "SHIELD  EMPTY";
             readyOverlay.SetActive(_session.CurrentState == RunState.Ready);
-            gameOverPanel.SetActive(_session.CurrentState == RunState.Dead);
+            gameOverPanel.SetActive(
+                _session.CurrentState == RunState.Dead && _gameOverReady);
             gameOverScoreText.text = $"SCORE  {_session.CurrentScore}";
             bestScoreText.text = $"BEST  {_bestScore}";
+            topScoresText.text = FormatTopScores();
         }
 
         private void TriggerSuccessFeedback(GateView gate)
@@ -286,12 +327,25 @@ namespace ColorGateRunner.Presentation
         {
             _successPulseRemaining = 0f;
             _failureShakeRemaining = FailureShakeDuration;
+            _failurePresentationRemaining = FailurePresentationDelay;
+            _gameOverReady = false;
             _failureCameraBasePosition = gameplayCamera.transform.position;
             gameplayCamera.transform.position =
                 _failureCameraBasePosition + (Vector3.right * FailureShakeAmplitude);
             player.localScale = _playerStartScale;
+            player.localRotation = Quaternion.Euler(0f, 0f, 68f);
             playerRenderer.sharedMaterial = failureMaterial;
             gate.ShowFailure(failureMaterial);
+        }
+
+        private void TriggerShieldBreakFeedback(GateView gate)
+        {
+            _successPulseRemaining = SuccessPulseDuration;
+            player.localScale = _playerStartScale * 1.2f;
+            gate.ShowFailure(failureMaterial);
+            successParticles.transform.position =
+                gate.transform.position + (Vector3.up * 1.5f);
+            successParticles.Emit(16);
         }
 
         private void UpdateBestScore()
@@ -305,8 +359,49 @@ namespace ColorGateRunner.Presentation
             _bestScoreStore.Save(_bestScore);
         }
 
+        private void RecordCompletedScore()
+        {
+            _topScores = ScoreHistory.Insert(_topScores, _session.CurrentScore);
+            _scoreHistoryStore.Save(_topScores);
+        }
+
+        private void SynchronizeBestScoreWithHistory()
+        {
+            if (_topScores != null && _topScores.Length > 0)
+            {
+                _bestScore = Mathf.Max(_bestScore, _topScores[0]);
+            }
+        }
+
+        private string FormatTopScores()
+        {
+            if (_topScores == null || _topScores.Length == 0)
+            {
+                return "TOP SCORES\n--";
+            }
+
+            string result = "TOP SCORES";
+            for (int index = 0; index < _topScores.Length; index++)
+            {
+                result += $"\n{index + 1}.  {_topScores[index]}";
+            }
+            return result;
+        }
+
         private void TickFeedback(float deltaTime)
         {
+            if (_session.CurrentState == RunState.Ready)
+            {
+                _readyPulseElapsed += deltaTime;
+                float pulse =
+                    1f + (Mathf.Sin(_readyPulseElapsed * ReadyPulseSpeed) * 0.035f);
+                readyTapText.rectTransform.localScale = Vector3.one * pulse;
+            }
+            else if (readyTapText.rectTransform.localScale != Vector3.one)
+            {
+                readyTapText.rectTransform.localScale = Vector3.one;
+            }
+
             if (_scorePulseRemaining > 0f)
             {
                 _scorePulseRemaining =
@@ -352,6 +447,17 @@ namespace ColorGateRunner.Presentation
                         (Vector3.right * (FailureShakeAmplitude * direction * phase));
                 }
             }
+
+            if (_failurePresentationRemaining > 0f)
+            {
+                _failurePresentationRemaining =
+                    Mathf.Max(0f, _failurePresentationRemaining - deltaTime);
+                if (_failurePresentationRemaining == 0f)
+                {
+                    _gameOverReady = true;
+                    SynchronizeViews();
+                }
+            }
         }
 
         private void ValidateRequiredReferences()
@@ -376,6 +482,7 @@ namespace ColorGateRunner.Presentation
             Text hudLabel,
             Text hudScore,
             RectTransform hudPulseTarget,
+            Text shieldIndicator,
             GameObject startOverlay,
             Text startTitle,
             Text startInstruction,
@@ -383,6 +490,7 @@ namespace ColorGateRunner.Presentation
             GameObject gameOverUi,
             Text gameOverScore,
             Text bestScore,
+            Text topScores,
             Button restartUi,
             GameplayTapSurface tapSurface,
             ParticleSystem particles,
@@ -399,6 +507,7 @@ namespace ColorGateRunner.Presentation
             scoreLabel = hudLabel;
             scoreText = hudScore;
             scorePulseTarget = hudPulseTarget;
+            shieldText = shieldIndicator;
             readyOverlay = startOverlay;
             readyTitleText = startTitle;
             readyInstructionText = startInstruction;
@@ -406,6 +515,7 @@ namespace ColorGateRunner.Presentation
             gameOverPanel = gameOverUi;
             gameOverScoreText = gameOverScore;
             bestScoreText = bestScore;
+            topScoresText = topScores;
             restartButton = restartUi;
             gameplayTapSurface = tapSurface;
             successParticles = particles;

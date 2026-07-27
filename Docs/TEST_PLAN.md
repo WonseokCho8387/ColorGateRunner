@@ -29,6 +29,8 @@
 - `Advance_WhileDead_DoesNotIncreaseElapsedTime`.
 - `Advance_NegativeDelta_IsRejected`.
 - `Speed_IncreasesWithElapsedTime`.
+- `NonlinearSpeed_HasMeasuredProgression`.
+- `NonlinearSpeed_EarlyAccelerationExceedsLateAcceleration`.
 - `Speed_IncreasesWithScore`.
 - `Speed_NeverExceedsTwelve`.
 - `SameAdvanceSequence_ProducesSameSpeed`.
@@ -38,9 +40,17 @@
 - Seed 12345 always creates the same sequence.
 - No sequence contains more than four identical colors in a row.
 - Restart with the same seed recreates the sequence.
-- `SpacingSequence_UsesOnlyAllowedValues`.
+- `SpacingSequence_AlwaysMeetsReactionTimeMinimum`.
 - `SpacingSequence_IsDeterministic`.
+- `SpacingSequence_DifferentSeedProducesDifferentSequence`.
+- `SpacingSequence_UsesThreeBandsWithoutThreeIdenticalGaps`.
 - `Restart_ReplaysColorAndSpacingSequence`.
+
+### Shield
+
+- `Shield_MilestoneActivatesAndProtectsExactlyOneMismatch`.
+- `Shield_MatchingWhileActiveDoesNotCreateASecondCharge`.
+- `Restart_ResetsShield`.
 
 ### State transitions
 
@@ -69,12 +79,21 @@
   `HigherScore_UpdatesBestScore`,
   `LowerScore_DoesNotReplaceBestScore`.
 - Retry:
+  `Retry_StartsPlayingImmediately`,
   `Retry_ClearsFailureFeedback`,
   `Retry_DoesNotAlsoStartGameplay`.
 - Deterministic layout:
-  `GateSpacing_UsesAllowedDistances`,
+  `GateSpacing_RespectsReactionTimeMinimum`,
   `Restart_ReplaysIdenticalGateLayout`,
   `GatePool_ObjectCountDoesNotGrow`.
+- Step 5 presentation and persistence:
+  `SafeArea_CalculatesNormalizedAnchors`,
+  `Shield_ProtectsOneMismatchThenNextMismatchFails`,
+  `ScoreHistory_SortsTruncatesAndAllowsDuplicates`,
+  `ScoreHistory_CorruptedDataFallsBackToEmpty`,
+  `ScoreHistory_RejectsZeroAndLowSixthScore`,
+  `GameOver_ShowsCompletedRunInTopScores`,
+  `BestScore_IsConsistentWithTopScoreRankOne`.
 
 - Ready and Red scene initialization:
   `Scene_StartsInReady`, `Scene_StartsWithRedPlayer`.
@@ -89,8 +108,8 @@
   `MismatchingTrigger_EndsRun`,
   `Death_StopsMovementImmediately`,
   `Death_ShowsGameOverPanel`.
-- Complete restart behavior:
-  `Restart_ReturnsStateToReady`,
+- Complete retry behavior:
+  `Retry_StartsPlayingImmediately`,
   `Restart_RestoresPlayerPosition`,
   `Restart_RestoresRedColor`,
   `Restart_ResetsHudScore`,
@@ -119,17 +138,22 @@
   `Scene_HasNoActivePostProcessingVolume`.
 - Camera post-processing disabled: `Camera_PostProcessingIsDisabled`.
 - Fixed pre-created gate pool: `Scene_HasFixedGatePool`.
-- Unique Step 4 UI and reusable feedback objects:
+- Unique Step 5 UI and reusable feedback objects:
   `Scene_HasNoDuplicateStep4PresentationObjects`.
 
 ## Manual mobile check
 
 - Tap works across the full playable screen.
-- UI is not clipped by notches or rounded corners.
+- Score and shield UI are not clipped by notches or rounded corners on at
+  least one Android device or simulator profile.
 - Text is readable.
 - Restart takes no more than two taps.
 - No visible stutter occurs during gate spawning.
 - Thirty consecutive restarts do not crash the app.
+- The 0.85-second failure reveal is long enough to identify the wrong gate but
+  does not feel sluggish.
+- Opening acceleration, spacing variation, shield-break readability, and
+  immediate Retry feel clear during a 30-second human playtest.
 
 ## Step 4 feedback status and deferred work
 

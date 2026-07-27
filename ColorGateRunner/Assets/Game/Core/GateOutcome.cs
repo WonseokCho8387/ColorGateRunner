@@ -4,6 +4,7 @@ namespace ColorGateRunner.Core
     {
         Ignored,
         Matched,
+        Shielded,
         Mismatched
     }
 }

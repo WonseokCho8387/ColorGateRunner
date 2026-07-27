@@ -128,16 +128,17 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void SpacingSequence_UsesOnlyAllowedValues()
+        public void SpacingSequence_AlwaysMeetsReactionTimeMinimum()
         {
             DeterministicGateSequence sequence =
                 new DeterministicGateSequence(TestSeed);
 
             for (int index = 0; index < 1000; index++)
             {
-                float spacing = sequence.GetNextSpacing();
-                Assert.That(GameRules.IsAllowedGateSpacing(spacing), Is.True);
-                Assert.That(spacing, Is.GreaterThanOrEqualTo(5.5f));
+                float spacing = sequence.GetNextSpacing(12f);
+                Assert.That(
+                    spacing,
+                    Is.GreaterThanOrEqualTo(GameRules.CalculateMinimumSafeSpacing(12f)));
             }
         }
 
@@ -152,9 +153,46 @@ namespace ColorGateRunner.Tests.EditMode
             for (int index = 0; index < 1000; index++)
             {
                 Assert.That(
-                    second.GetNextSpacing(),
-                    Is.EqualTo(first.GetNextSpacing()));
+                    second.GetNextSpacing(9f),
+                    Is.EqualTo(first.GetNextSpacing(9f)));
             }
+        }
+
+        [Test]
+        public void SpacingSequence_DifferentSeedProducesDifferentSequence()
+        {
+            var first = new DeterministicGateSequence(TestSeed);
+            var second = new DeterministicGateSequence(TestSeed + 1u);
+            bool differs = false;
+            for (int index = 0; index < 20; index++)
+            {
+                if (first.GetNextSpacing(9f) != second.GetNextSpacing(9f))
+                {
+                    differs = true;
+                }
+            }
+
+            Assert.That(differs, Is.True);
+        }
+
+        [Test]
+        public void SpacingSequence_UsesThreeBandsWithoutThreeIdenticalGaps()
+        {
+            var sequence = new DeterministicGateSequence(TestSeed);
+            var distinct = new System.Collections.Generic.HashSet<float>();
+            float previous = -1f;
+            int repeated = 0;
+
+            for (int index = 0; index < 100; index++)
+            {
+                float spacing = sequence.GetNextSpacing(9f);
+                distinct.Add(spacing);
+                repeated = spacing == previous ? repeated + 1 : 1;
+                previous = spacing;
+                Assert.That(repeated, Is.LessThanOrEqualTo(2));
+            }
+
+            Assert.That(distinct.Count, Is.GreaterThanOrEqualTo(3));
         }
 
         [Test]
