@@ -1,0 +1,21 @@
+{
+  "name": "ColorGateRunner.PlayModeTests",
+  "rootNamespace": "ColorGateRunner.Tests.PlayMode",
+  "references": [
+    "ColorGateRunner.Core",
+    "ColorGateRunner.Presentation",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "noEngineReferences": false
+}

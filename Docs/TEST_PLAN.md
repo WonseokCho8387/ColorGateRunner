@@ -42,26 +42,49 @@
 
 ## PlayMode automated
 
-- Matching player and gate does not trigger game over.
-- Mismatching player and gate triggers game over.
-- Restart returns the player to the starting position.
-- UI score equals gameplay score.
-- Game-over panel becomes visible after death.
-- Game-over panel becomes visible within 0.5 seconds of death.
-- Player movement stops in the same frame that death is resolved.
-- Input is accepted on the central screen area.
-- At a 9:16 aspect ratio, the player and next two gates are inside the camera viewport.
-- Camera rotation does not change during gameplay.
+- Ready and Red scene initialization:
+  `Scene_StartsInReady`, `Scene_StartsWithRedPlayer`.
+- First-tap behavior:
+  `FirstGameplayTap_StartsRun`,
+  `FirstGameplayTap_DoesNotTogglePlayerColor`.
+- Playing-tap behavior: `PlayingTap_TogglesPlayerColor`.
+- Matching gate behavior:
+  `MatchingTrigger_DoesNotEndRun`,
+  `MatchingTrigger_IncrementsHudScore`.
+- Mismatching gate behavior:
+  `MismatchingTrigger_EndsRun`,
+  `Death_StopsMovementImmediately`,
+  `Death_ShowsGameOverPanel`.
+- Complete restart behavior:
+  `Restart_ReturnsStateToReady`,
+  `Restart_RestoresPlayerPosition`,
+  `Restart_RestoresRedColor`,
+  `Restart_ResetsHudScore`,
+  `Restart_ReplaysGateSequence`.
+- Gate reuse behavior:
+  `Gate_ResolvesOnlyOncePerActivation`,
+  `GatePool_ObjectCountDoesNotGrow`.
+- UI input routing:
+  `CenterTap_IsAccepted`,
+  `RestartClick_DoesNotAlsoTriggerGameplayTap`.
+- Camera behavior:
+  `CameraRotation_DoesNotChangeDuringPlay`,
+  `PlayerAndNextTwoGates_AreInsideCameraViewportAtPortraitAspect`.
 
 ## Structural validation
 
-- Unity compiles without errors.
-- Core gameplay code does not reference UnityEngine.
-- EditMode and PlayMode test runs each execute at least one test.
-- The gameplay scene contains no Missing Script components.
-- Required serialized references in the gameplay scene are assigned.
-- The Android orientation is Portrait.
-- Post-processing is disabled in the Milestone 1 gameplay scene.
+- Unity compilation and non-zero test execution are enforced by
+  `Tools/Validate.ps1`.
+- Core's `noEngineReferences` assembly definition prevents UnityEngine
+  references.
+- Required scene references: `RequiredSerializedReferences_AreAssigned`.
+- Missing scripts: `Scene_HasNoMissingMonoBehaviours`.
+- Single generated root: `Scene_HasSingleGeneratedRoot`.
+- Portrait orientation: `Scene_UsesPortraitOrientation`.
+- No active post-processing volume:
+  `Scene_HasNoActivePostProcessingVolume`.
+- Camera post-processing disabled: `Camera_PostProcessingIsDisabled`.
+- Fixed pre-created gate pool: `Scene_HasFixedGatePool`.
 
 ## Manual mobile check
 
@@ -71,6 +94,12 @@
 - Restart takes no more than two taps.
 - No visible stutter occurs during gate spawning.
 - Thirty consecutive restarts do not crash the app.
+
+## Deferred beyond the Step 3 graybox
+
+The following existing acceptance ideas require cosmetic feedback explicitly
+excluded from Step 3. They are retained for a later milestone and are not part
+of the current graybox acceptance:
+
 - The correct-gate scale punch and particle burst are visible and finish within 0.35 seconds.
 - A wrong gate causes a brief camera shake and visibly desaturates the player.
-- Game-over UI appears within 0.5 seconds of a wrong gate.

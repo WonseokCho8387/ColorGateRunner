@@ -1,0 +1,2 @@
+# Unity serializes empty MonoBehaviour names with a trailing space.
+*.unity whitespace=-trailing-space

@@ -20,4 +20,19 @@ Status: Accepted
   `Red, Blue, Red, Red, Blue, Red, Red, Red, Red, Blue, Red, Blue, Red, Blue, Blue, Red, Blue, Red, Red, Red, Blue, Blue, Red, Blue, Blue, Blue, Blue, Red, Red, Blue, Blue, Blue`.
 - The endless run has no finish condition in Milestone 1.
 - Existing unused Unity packages remain unchanged during Milestone 1.
-- Post-processing will be disabled when the graybox scene is implemented.
+- The graybox Red is sRGB `#E63946` and Blue is sRGB `#2D7FF9`.
+- The player starts at world position `(0, 1, 0)`.
+- The camera starts at world position `(0, 8, -10)` with fixed Euler rotation
+  `(20, 0, 0)`.
+- Gates use fixed six-unit spacing and a five-object pre-created pool.
+- Movement translates the player and camera forward using the current Core
+  session speed. It does not use forces, smoothing, or camera rotation.
+- A gate resolves when the player's collider crosses that gate's one-shot
+  trigger plane. `GateView` forwards the assigned color to `GameSession` and
+  does not calculate the result.
+- The generated scene root is named `ColorGateRunner_Graybox`.
+- The scene-builder command is idempotent because it removes only the single
+  named generated root, recreates its fixed hierarchy, updates generated
+  materials at stable asset paths, and validates the rebuilt scene. Its batch
+  entry point builds twice before validation to detect duplicate output.
+- Post-processing is disabled in the graybox scene and on its camera.
