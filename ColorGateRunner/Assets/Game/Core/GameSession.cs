@@ -26,7 +26,14 @@ namespace ColorGateRunner.Core
 
         public RunState CurrentState { get; private set; }
         public bool ShieldActive { get; private set; }
+        public bool ShieldPickupCollected { get; private set; }
         public float ShieldRecoveryRemaining { get; private set; }
+        public int ActiveColorCount { get; private set; }
+        public bool ThirdColorIntroduced { get; private set; }
+        public int ThirdColorTutorialGatesRemaining { get; private set; }
+        public float TargetEncounterInterval =>
+            GameRules.CalculateTargetEncounterInterval(
+                ElapsedPlayingSeconds);
         public bool IsInvulnerable =>
             CurrentState == RunState.ShieldRecovery;
 
@@ -49,9 +56,20 @@ namespace ColorGateRunner.Core
                 return false;
             }
 
-            CurrentColor = CurrentColor == RunnerColor.Red
-                ? RunnerColor.Blue
-                : RunnerColor.Red;
+            if (CurrentColor == RunnerColor.Red)
+            {
+                CurrentColor = RunnerColor.Blue;
+            }
+            else if (CurrentColor == RunnerColor.Blue)
+            {
+                CurrentColor = ActiveColorCount == 3
+                    ? RunnerColor.Green
+                    : RunnerColor.Red;
+            }
+            else
+            {
+                CurrentColor = RunnerColor.Red;
+            }
             return true;
         }
 
@@ -85,12 +103,30 @@ namespace ColorGateRunner.Core
             }
 
             CurrentScore++;
-            if (CurrentScore == GameRules.ShieldScoreMilestone)
+            if (!ThirdColorIntroduced &&
+                CurrentScore >= GameRules.ThirdColorScoreMilestone)
             {
-                ShieldActive = true;
+                ThirdColorIntroduced = true;
+                ActiveColorCount = 3;
+                ThirdColorTutorialGatesRemaining =
+                    GameRules.ThirdColorTutorialGateCount;
             }
             UpdateSpeed();
             return GateOutcome.Matched;
+        }
+
+        public bool CollectShieldPickup()
+        {
+            if (CurrentState != RunState.Playing ||
+                ShieldActive ||
+                ShieldPickupCollected)
+            {
+                return false;
+            }
+
+            ShieldActive = true;
+            ShieldPickupCollected = true;
+            return true;
         }
 
         public void Advance(float deltaSeconds)
@@ -162,7 +198,20 @@ namespace ColorGateRunner.Core
 
         public GatePlan GetNextGatePlan()
         {
-            return _patternSequence.GetNext(CurrentSpeed);
+            int tutorialIndex = -1;
+            if (ThirdColorTutorialGatesRemaining > 0)
+            {
+                tutorialIndex =
+                    GameRules.ThirdColorTutorialGateCount -
+                    ThirdColorTutorialGatesRemaining;
+                ThirdColorTutorialGatesRemaining--;
+            }
+
+            return _patternSequence.GetNext(
+                CurrentSpeed,
+                TargetEncounterInterval,
+                ActiveColorCount,
+                tutorialIndex);
         }
 
         public SpeedPresentation GetSpeedPresentation()
@@ -180,7 +229,11 @@ namespace ColorGateRunner.Core
             ElapsedPlayingSeconds = 0f;
             CurrentState = RunState.Ready;
             ShieldActive = false;
+            ShieldPickupCollected = false;
             ShieldRecoveryRemaining = 0f;
+            ActiveColorCount = 2;
+            ThirdColorIntroduced = false;
+            ThirdColorTutorialGatesRemaining = 0;
         }
 
         private void UpdateSpeed()

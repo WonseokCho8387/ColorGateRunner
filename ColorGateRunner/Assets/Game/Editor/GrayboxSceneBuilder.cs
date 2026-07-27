@@ -22,6 +22,7 @@ namespace ColorGateRunner.Editor
 
         internal static readonly Color RedColor = FromHex(0xE63946);
         internal static readonly Color BlueColor = FromHex(0x2D7FF9);
+        internal static readonly Color GreenColor = FromHex(0x22C55E);
         internal static readonly Color NeutralColor = FromHex(0xD9D9D9);
         internal static readonly Color FailureColor = FromHex(0x6B7280);
 
@@ -41,6 +42,9 @@ namespace ColorGateRunner.Editor
             Material blueMaterial = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Blue.mat",
                 BlueColor);
+            Material greenMaterial = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Green.mat",
+                GreenColor);
             Material neutralMaterial = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Neutral.mat",
                 NeutralColor);
@@ -73,6 +77,10 @@ namespace ColorGateRunner.Editor
 
             GameSceneController controller =
                 generatedRoot.AddComponent<GameSceneController>();
+            ShieldPickupView shieldPickup = CreateShieldPickup(
+                generatedRoot.transform,
+                controller,
+                particleMaterial);
 
             GateView[] gates = CreateGatePool(
                 generatedRoot.transform,
@@ -98,6 +106,7 @@ namespace ColorGateRunner.Editor
             Text scoreLabel;
             Text scoreText;
             Text shieldText;
+            Text colorCycleText;
             Text speedStageText;
             RectTransform scorePulseTarget;
             CreateScoreHud(
@@ -106,9 +115,18 @@ namespace ColorGateRunner.Editor
                 out scoreLabel,
                 out scoreText,
                 out shieldText,
-                out speedStageText,
+                out colorCycleText,
                 out scorePulseTarget);
             Text shieldMessage = CreateShieldMessage(canvas.transform);
+            Text thirdColorMessage =
+                CreateThirdColorMessage(canvas.transform);
+            GameObject diagnosticsPanel;
+            Text diagnosticsText;
+            CreateDiagnosticsUi(
+                safeAreaRoot,
+                out diagnosticsPanel,
+                out diagnosticsText,
+                out speedStageText);
             GameObject countdownPanel;
             Text countdownText;
             CreateCountdownUi(
@@ -126,22 +144,34 @@ namespace ColorGateRunner.Editor
                 out readyInstruction,
                 out readyTap);
             GameObject gameOverPanel;
+            GameObject resultCard;
+            Text thisRunLabel;
             Text gameOverScore;
             Text bestScore;
             Text topScores;
             GameObject topScoresPanel;
             GameObject bestBadge;
             Text newBestText;
+            GameObject[] topScoreRows;
+            Text[] topScoreRankTexts;
+            Text[] topScoreValueTexts;
+            Text[] topScoreMarkerTexts;
             Button restartButton;
             CreateGameOverUi(
                 canvas.transform,
                 out gameOverPanel,
+                out resultCard,
+                out thisRunLabel,
                 out gameOverScore,
                 out bestScore,
                 out topScores,
                 out topScoresPanel,
                 out bestBadge,
                 out newBestText,
+                out topScoreRows,
+                out topScoreRankTexts,
+                out topScoreValueTexts,
+                out topScoreMarkerTexts,
                 out restartButton);
             CreateEventSystem(generatedRoot.transform);
 
@@ -153,12 +183,14 @@ namespace ColorGateRunner.Editor
                 gameplayCamera,
                 redMaterial,
                 blueMaterial,
+                greenMaterial,
                 failureMaterial,
                 scorePanel,
                 scoreLabel,
                 scoreText,
                 scorePulseTarget,
                 shieldText,
+                colorCycleText,
                 readyOverlay,
                 readyTitle,
                 readyInstruction,
@@ -174,14 +206,24 @@ namespace ColorGateRunner.Editor
                 shieldParticles,
                 playerTrail,
                 shieldVisual,
+                shieldPickup,
                 shieldMessage,
+                thirdColorMessage,
                 speedStageText,
+                diagnosticsPanel,
+                diagnosticsText,
                 trackPool,
                 countdownPanel,
                 countdownText,
+                resultCard,
+                thisRunLabel,
                 topScoresPanel,
                 bestBadge,
                 newBestText,
+                topScoreRows,
+                topScoreRankTexts,
+                topScoreValueTexts,
+                topScoreMarkerTexts,
                 gates);
 
             gameOverPanel.SetActive(false);
@@ -233,6 +275,8 @@ namespace ColorGateRunner.Editor
             GateView[] gates = generatedRoot.GetComponentsInChildren<GateView>(true);
             ParticleSystem[] particleSystems =
                 generatedRoot.GetComponentsInChildren<ParticleSystem>(true);
+            ShieldPickupView[] shieldPickups =
+                generatedRoot.GetComponentsInChildren<ShieldPickupView>(true);
             TrackPoolController[] trackPools =
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
             TrackSegmentView[] trackSegments =
@@ -266,6 +310,8 @@ namespace ColorGateRunner.Editor
             }
 
             if (particleSystems.Length != 3 ||
+                shieldPickups.Length != 1 ||
+                !shieldPickups[0].HasRequiredReferences() ||
                 CountNamedTransforms(generatedRoot, "Canvas") != 1 ||
                 CountNamedTransforms(generatedRoot, "TrackPool") != 1 ||
                 CountNamedTransforms(generatedRoot, "CurveSegmentExperiment") != 1 ||
@@ -278,12 +324,20 @@ namespace ColorGateRunner.Editor
                 CountNamedTransforms(generatedRoot, "ScoreLabel") != 1 ||
                 CountNamedTransforms(generatedRoot, "ScoreValue") != 1 ||
                 CountNamedTransforms(generatedRoot, "ShieldIndicator") != 1 ||
+                CountNamedTransforms(generatedRoot, "ColorCycleIndicator") != 1 ||
                 CountNamedTransforms(generatedRoot, "ShieldVisual") != 1 ||
+                CountNamedTransforms(generatedRoot, "ShieldPickup") != 1 ||
                 CountNamedTransforms(generatedRoot, "ShieldMessage") != 1 ||
+                CountNamedTransforms(generatedRoot, "ThirdColorMessage") != 1 ||
                 CountNamedTransforms(generatedRoot, "SpeedStage") != 1 ||
+                CountNamedTransforms(generatedRoot, "DiagnosticsPanel") != 1 ||
+                CountNamedTransforms(generatedRoot, "DiagnosticsText") != 1 ||
                 CountNamedTransforms(generatedRoot, "CountdownPanel") != 1 ||
                 CountNamedTransforms(generatedRoot, "CountdownText") != 1 ||
                 CountNamedTransforms(generatedRoot, "GameOverPanel") != 1 ||
+                CountNamedTransforms(generatedRoot, "ResultSafeArea") != 1 ||
+                CountNamedTransforms(generatedRoot, "ResultCard") != 1 ||
+                CountNamedTransforms(generatedRoot, "ThisRunLabel") != 1 ||
                 CountNamedTransforms(generatedRoot, "GameOverScore") != 1 ||
                 CountNamedTransforms(generatedRoot, "BestScore") != 1 ||
                 CountNamedTransforms(generatedRoot, "TopScores") != 1 ||
@@ -298,6 +352,17 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Generated feedback or UI objects are missing or duplicated.");
+            }
+
+            for (int rank = 1; rank <= ScoreHistory.Capacity; rank++)
+            {
+                if (CountNamedTransforms(
+                    generatedRoot,
+                    $"TopScoreRow_{rank:00}") != 1)
+                {
+                    throw new InvalidOperationException(
+                        "Generated result card must contain exactly five rank rows.");
+                }
             }
 
             Transform[] transforms = generatedRoot.GetComponentsInChildren<Transform>(true);
@@ -574,6 +639,46 @@ namespace ColorGateRunner.Editor
             return root;
         }
 
+        private static ShieldPickupView CreateShieldPickup(
+            Transform parent,
+            GameSceneController controller,
+            Material material)
+        {
+            GameObject root = new GameObject("ShieldPickup");
+            root.transform.SetParent(parent, false);
+            root.transform.position = new Vector3(0f, 1.35f, 0f);
+            BoxCollider trigger = root.AddComponent<BoxCollider>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector3(2.2f, 2.2f, 1.2f);
+
+            Renderer[] renderers = new Renderer[4];
+            for (int index = 0; index < renderers.Length; index++)
+            {
+                GameObject part =
+                    GameObject.CreatePrimitive(PrimitiveType.Cube);
+                part.name = $"PickupDiamond_{index:00}";
+                part.transform.SetParent(root.transform, false);
+                float angle = index * 90f;
+                part.transform.localPosition =
+                    Quaternion.Euler(0f, angle, 0f) *
+                    (Vector3.forward * 0.55f);
+                part.transform.localRotation =
+                    Quaternion.Euler(35f, angle + 45f, 35f);
+                part.transform.localScale =
+                    new Vector3(0.28f, 0.7f, 0.28f);
+                renderers[index] = part.GetComponent<Renderer>();
+                renderers[index].sharedMaterial = material;
+                UnityEngine.Object.DestroyImmediate(
+                    part.GetComponent<Collider>());
+            }
+
+            ShieldPickupView pickup =
+                root.AddComponent<ShieldPickupView>();
+            pickup.Configure(controller, renderers);
+            root.SetActive(false);
+            return pickup;
+        }
+
         private static GateView[] CreateGatePool(
             Transform parent,
             GameSceneController controller,
@@ -795,7 +900,7 @@ namespace ColorGateRunner.Editor
             out Text label,
             out Text value,
             out Text shield,
-            out Text speedStage,
+            out Text colorCycle,
             out RectTransform pulseTarget)
         {
             panel = CreateUiObject("ScorePanel", parent);
@@ -850,17 +955,17 @@ namespace ColorGateRunner.Editor
             shieldRect.offsetMin = Vector2.zero;
             shieldRect.offsetMax = Vector2.zero;
 
-            speedStage = CreateText(
-                "SpeedStage",
+            colorCycle = CreateText(
+                "ColorCycleIndicator",
                 parent,
-                "SPEED  I",
-                24,
+                "RED  >  BLUE",
+                22,
                 TextAnchor.MiddleCenter);
-            RectTransform speedRect = speedStage.rectTransform;
-            speedRect.anchorMin = new Vector2(0.7f, 0.87f);
-            speedRect.anchorMax = new Vector2(0.96f, 0.93f);
-            speedRect.offsetMin = Vector2.zero;
-            speedRect.offsetMax = Vector2.zero;
+            RectTransform cycleRect = colorCycle.rectTransform;
+            cycleRect.anchorMin = new Vector2(0.28f, 0.84f);
+            cycleRect.anchorMax = new Vector2(0.72f, 0.89f);
+            cycleRect.offsetMin = Vector2.zero;
+            cycleRect.offsetMax = Vector2.zero;
         }
 
         private static Text CreateShieldMessage(Transform parent)
@@ -881,6 +986,66 @@ namespace ColorGateRunner.Editor
             return message;
         }
 
+        private static Text CreateThirdColorMessage(Transform parent)
+        {
+            Text message = CreateText(
+                "ThirdColorMessage",
+                parent,
+                "NEW COLOR",
+                64,
+                TextAnchor.MiddleCenter);
+            RectTransform rect = message.rectTransform;
+            rect.anchorMin = new Vector2(0.08f, 0.5f);
+            rect.anchorMax = new Vector2(0.92f, 0.64f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            message.color = GreenColor;
+            message.gameObject.SetActive(false);
+            return message;
+        }
+
+        private static void CreateDiagnosticsUi(
+            Transform parent,
+            out GameObject panel,
+            out Text diagnostics,
+            out Text speedStage)
+        {
+            panel = CreateUiObject("DiagnosticsPanel", parent);
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.7f, 0.72f);
+            panelRect.anchorMax = new Vector2(0.98f, 0.93f);
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+            Image panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0f, 0f, 0f, 0.7f);
+            panelImage.raycastTarget = false;
+
+            speedStage = CreateText(
+                "SpeedStage",
+                panel.transform,
+                "SPEED  I",
+                22,
+                TextAnchor.UpperLeft);
+            RectTransform stageRect = speedStage.rectTransform;
+            stageRect.anchorMin = new Vector2(0.06f, 0.73f);
+            stageRect.anchorMax = new Vector2(0.94f, 0.96f);
+            stageRect.offsetMin = Vector2.zero;
+            stageRect.offsetMax = Vector2.zero;
+
+            diagnostics = CreateText(
+                "DiagnosticsText",
+                panel.transform,
+                string.Empty,
+                16,
+                TextAnchor.UpperLeft);
+            RectTransform diagnosticsRect = diagnostics.rectTransform;
+            diagnosticsRect.anchorMin = new Vector2(0.06f, 0.05f);
+            diagnosticsRect.anchorMax = new Vector2(0.94f, 0.75f);
+            diagnosticsRect.offsetMin = Vector2.zero;
+            diagnosticsRect.offsetMax = Vector2.zero;
+            panel.SetActive(false);
+        }
+
         private static void CreateCountdownUi(
             Transform parent,
             out GameObject panel,
@@ -894,7 +1059,7 @@ namespace ColorGateRunner.Editor
             value = CreateText(
                 "CountdownText",
                 panel.transform,
-                "5",
+                "3",
                 180,
                 TextAnchor.MiddleCenter);
             StretchToParent(value.rectTransform);
@@ -966,6 +1131,213 @@ namespace ColorGateRunner.Editor
         }
 
         private static void CreateGameOverUi(
+            Transform parent,
+            out GameObject panel,
+            out GameObject resultCard,
+            out Text thisRunLabel,
+            out Text currentScore,
+            out Text bestScore,
+            out Text topScores,
+            out GameObject topScoresPanel,
+            out GameObject bestBadge,
+            out Text newBestText,
+            out GameObject[] topScoreRows,
+            out Text[] topScoreRankTexts,
+            out Text[] topScoreValueTexts,
+            out Text[] topScoreMarkerTexts,
+            out Button restartButton)
+        {
+            panel = CreateUiObject("GameOverPanel", parent);
+            StretchToParent(panel.GetComponent<RectTransform>());
+            Image dimmer = panel.AddComponent<Image>();
+            dimmer.color = new Color(0f, 0f, 0f, 0.78f);
+            dimmer.raycastTarget = false;
+
+            GameObject resultSafeArea =
+                CreateUiObject("ResultSafeArea", panel.transform);
+            StretchToParent(resultSafeArea.GetComponent<RectTransform>());
+            resultSafeArea.AddComponent<SafeAreaLayout>();
+
+            resultCard = CreateUiObject(
+                "ResultCard",
+                resultSafeArea.transform);
+            RectTransform cardRect = resultCard.GetComponent<RectTransform>();
+            cardRect.anchorMin = new Vector2(0.08f, 0.06f);
+            cardRect.anchorMax = new Vector2(0.92f, 0.94f);
+            cardRect.offsetMin = Vector2.zero;
+            cardRect.offsetMax = Vector2.zero;
+            Image cardImage = resultCard.AddComponent<Image>();
+            cardImage.color = new Color(0.035f, 0.05f, 0.08f, 0.98f);
+            cardImage.raycastTarget = false;
+            Outline cardOutline = resultCard.AddComponent<Outline>();
+            cardOutline.effectColor = new Color(0.2f, 0.55f, 0.95f, 0.8f);
+            cardOutline.effectDistance = new Vector2(4f, -4f);
+
+            Text title = CreateText(
+                "GameOverText",
+                resultCard.transform,
+                "GAME OVER",
+                72,
+                TextAnchor.MiddleCenter);
+            SetAnchors(title.rectTransform, 0.08f, 0.86f, 0.92f, 0.97f);
+
+            thisRunLabel = CreateText(
+                "ThisRunLabel",
+                resultCard.transform,
+                "THIS RUN",
+                28,
+                TextAnchor.MiddleCenter);
+            thisRunLabel.color = new Color(0.65f, 0.78f, 0.95f, 1f);
+            SetAnchors(
+                thisRunLabel.rectTransform,
+                0.15f,
+                0.77f,
+                0.85f,
+                0.84f);
+
+            currentScore = CreateText(
+                "GameOverScore",
+                resultCard.transform,
+                "0",
+                112,
+                TextAnchor.MiddleCenter);
+            SetAnchors(
+                currentScore.rectTransform,
+                0.1f,
+                0.63f,
+                0.9f,
+                0.78f);
+
+            bestBadge = CreateUiObject("BestBadge", resultCard.transform);
+            RectTransform badgeRect = bestBadge.GetComponent<RectTransform>();
+            SetAnchors(badgeRect, 0.18f, 0.56f, 0.28f, 0.63f);
+            Image badgeImage = bestBadge.AddComponent<Image>();
+            badgeImage.color = new Color(1f, 0.72f, 0.15f, 1f);
+            badgeImage.raycastTarget = false;
+
+            bestScore = CreateText(
+                "BestScore",
+                resultCard.transform,
+                "BEST  0",
+                42,
+                TextAnchor.MiddleCenter);
+            bestScore.color = new Color(1f, 0.78f, 0.25f, 1f);
+            SetAnchors(
+                bestScore.rectTransform,
+                0.24f,
+                0.55f,
+                0.82f,
+                0.64f);
+
+            newBestText = CreateText(
+                "NewBestText",
+                resultCard.transform,
+                "NEW BEST!",
+                34,
+                TextAnchor.MiddleCenter);
+            newBestText.color = new Color(0.35f, 1f, 0.65f, 1f);
+            SetAnchors(
+                newBestText.rectTransform,
+                0.2f,
+                0.5f,
+                0.8f,
+                0.56f);
+
+            topScoresPanel =
+                CreateUiObject("TopScoresPanel", resultCard.transform);
+            RectTransform topPanelRect =
+                topScoresPanel.GetComponent<RectTransform>();
+            SetAnchors(topPanelRect, 0.1f, 0.2f, 0.9f, 0.5f);
+            Image topPanelImage = topScoresPanel.AddComponent<Image>();
+            topPanelImage.color = new Color(0.07f, 0.1f, 0.16f, 0.98f);
+            topPanelImage.raycastTarget = false;
+
+            Text topTitle = CreateText(
+                "TopScoresTitle",
+                topScoresPanel.transform,
+                "TOP 5",
+                34,
+                TextAnchor.MiddleCenter);
+            SetAnchors(topTitle.rectTransform, 0f, 0.82f, 1f, 1f);
+
+            topScores = CreateText(
+                "TopScores",
+                topScoresPanel.transform,
+                string.Empty,
+                1,
+                TextAnchor.MiddleCenter);
+            SetAnchors(topScores.rectTransform, 0f, 0f, 0.01f, 0.01f);
+
+            topScoreRows = new GameObject[ScoreHistory.Capacity];
+            topScoreRankTexts = new Text[ScoreHistory.Capacity];
+            topScoreValueTexts = new Text[ScoreHistory.Capacity];
+            topScoreMarkerTexts = new Text[ScoreHistory.Capacity];
+            for (int index = 0; index < ScoreHistory.Capacity; index++)
+            {
+                GameObject row = CreateUiObject(
+                    $"TopScoreRow_{index + 1:00}",
+                    topScoresPanel.transform);
+                RectTransform rowRect = row.GetComponent<RectTransform>();
+                float rowTop = 0.81f - (index * 0.16f);
+                SetAnchors(
+                    rowRect,
+                    0.05f,
+                    rowTop - 0.14f,
+                    0.95f,
+                    rowTop);
+                Image rowImage = row.AddComponent<Image>();
+                rowImage.color = new Color(1f, 1f, 1f, 0.055f);
+                rowImage.raycastTarget = false;
+
+                Text rank = CreateText(
+                    "Rank",
+                    row.transform,
+                    (index + 1).ToString(),
+                    28,
+                    TextAnchor.MiddleCenter);
+                SetAnchors(rank.rectTransform, 0f, 0f, 0.2f, 1f);
+                Text value = CreateText(
+                    "Score",
+                    row.transform,
+                    "--",
+                    32,
+                    TextAnchor.MiddleCenter);
+                SetAnchors(value.rectTransform, 0.2f, 0f, 0.75f, 1f);
+                Text marker = CreateText(
+                    "Marker",
+                    row.transform,
+                    string.Empty,
+                    24,
+                    TextAnchor.MiddleCenter);
+                marker.color = new Color(0.4f, 0.8f, 1f, 1f);
+                SetAnchors(marker.rectTransform, 0.75f, 0f, 1f, 1f);
+
+                topScoreRows[index] = row;
+                topScoreRankTexts[index] = rank;
+                topScoreValueTexts[index] = value;
+                topScoreMarkerTexts[index] = marker;
+            }
+
+            GameObject buttonObject =
+                CreateUiObject("RestartButton", resultCard.transform);
+            RectTransform buttonRect =
+                buttonObject.GetComponent<RectTransform>();
+            SetAnchors(buttonRect, 0.22f, 0.06f, 0.78f, 0.16f);
+            Image buttonImage = buttonObject.AddComponent<Image>();
+            buttonImage.color = new Color(0.92f, 0.95f, 1f, 1f);
+            restartButton = buttonObject.AddComponent<Button>();
+            restartButton.targetGraphic = buttonImage;
+            Text label = CreateText(
+                "Label",
+                buttonObject.transform,
+                "RETRY",
+                48,
+                TextAnchor.MiddleCenter);
+            label.color = new Color(0.05f, 0.08f, 0.12f, 1f);
+            StretchToParent(label.rectTransform);
+        }
+
+        private static void CreateGameOverUiLegacy(
             Transform parent,
             out GameObject panel,
             out Text currentScore,
@@ -1140,6 +1512,19 @@ namespace ColorGateRunner.Editor
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        private static void SetAnchors(
+            RectTransform rect,
+            float minX,
+            float minY,
+            float maxX,
+            float maxY)
+        {
+            rect.anchorMin = new Vector2(minX, minY);
+            rect.anchorMax = new Vector2(maxX, maxY);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
         }

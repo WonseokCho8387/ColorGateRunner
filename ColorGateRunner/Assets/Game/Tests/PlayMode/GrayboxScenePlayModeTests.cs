@@ -97,7 +97,9 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             SendGameplayTap();
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Countdown));
         }
 
         [Test]
@@ -111,7 +113,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void PlayingTap_TogglesPlayerColor()
         {
-            SendGameplayTap();
+            StartPlaying();
             SendGameplayTap();
 
             Assert.That(_controller.Session.CurrentColor, Is.EqualTo(RunnerColor.Blue));
@@ -238,7 +240,8 @@ namespace ColorGateRunner.Tests.PlayMode
             KillSessionFromPlaying();
             _controller.Tick(0.9f);
 
-            Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("CURRENT  1"));
+            Assert.That(_controller.ThisRunLabel.text, Is.EqualTo("THIS RUN"));
+            Assert.That(_controller.GameOverScoreText.text, Is.EqualTo("1"));
         }
 
         [Test]
@@ -255,7 +258,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void HigherScore_UpdatesBestScore()
         {
-            SendGameplayTap();
+            StartPlaying();
             ResolveGateAsMatch(_controller.GetGate(0));
             ResolveGateAsMatch(_controller.GetGate(1));
             KillSessionFromPlaying();
@@ -293,7 +296,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void Restart_RestoresPlayerPosition()
         {
             Vector3 initialPosition = _controller.PlayerTransform.position;
-            SendGameplayTap();
+            StartPlaying();
             _controller.TickMovement(1f);
             KillSessionFromPlaying();
 
@@ -305,7 +308,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Restart_RestoresRedColor()
         {
-            SendGameplayTap();
+            StartPlaying();
             SendGameplayTap();
             KillSessionFromPlaying();
 
@@ -334,7 +337,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void Restart_ReplaysGateSequence()
         {
             RunnerColor[] initialColors = CaptureGateColors();
-            SendGameplayTap();
+            StartPlaying();
             ResolveGateAsMatch(_controller.GetGate(0));
             KillSessionFromPlaying();
 
@@ -428,7 +431,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void GatePool_ObjectCountDoesNotGrow()
         {
             int initialCount = CountGateViews();
-            SendGameplayTap();
+            StartPlaying();
 
             for (int iteration = 0; iteration < 20; iteration++)
             {
@@ -456,7 +459,9 @@ namespace ColorGateRunner.Tests.PlayMode
             };
             _controller.TapSurface.OnPointerClick(pointer);
 
-            Assert.That(_controller.Session.CurrentState, Is.EqualTo(RunState.Playing));
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Countdown));
         }
 
         [Test]
@@ -464,9 +469,8 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             KillSession();
             _controller.Tick(0.9f);
-            Transform gameOverPanel = _controller.RestartButton.transform.parent;
             Assert.That(
-                gameOverPanel.GetSiblingIndex(),
+                _controller.GameOverPanel.transform.GetSiblingIndex(),
                 Is.GreaterThan(_controller.TapSurface.transform.GetSiblingIndex()));
             Assert.That(
                 _controller.RestartButton.targetGraphic.raycastTarget,
@@ -514,7 +518,7 @@ namespace ColorGateRunner.Tests.PlayMode
         public void CameraRotation_DoesNotChangeDuringPlay()
         {
             Quaternion initialRotation = _controller.GameplayCamera.transform.rotation;
-            SendGameplayTap();
+            StartPlaying();
 
             _controller.TickMovement(1f);
 
@@ -631,12 +635,20 @@ namespace ColorGateRunner.Tests.PlayMode
                 "ScoreLabel",
                 "ScoreValue",
                 "ShieldIndicator",
+                "ColorCycleIndicator",
                 "ShieldVisual",
+                "ShieldPickup",
                 "ShieldMessage",
+                "ThirdColorMessage",
                 "SpeedStage",
+                "DiagnosticsPanel",
+                "DiagnosticsText",
                 "CountdownPanel",
                 "CountdownText",
                 "GameOverPanel",
+                "ResultSafeArea",
+                "ResultCard",
+                "ThisRunLabel",
                 "GameOverScore",
                 "BestScore",
                 "TopScores",
@@ -678,12 +690,10 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Shield_ProtectsOneMismatchThenNextMismatchFails()
         {
-            SendGameplayTap();
-            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
-            {
-                ResolveGateAsMatch(_controller.GetGate(index));
-            }
+            StartPlaying();
+            CollectVisibleShieldPickup();
             Assert.That(_controller.Session.ShieldActive, Is.True);
+            int scoreBeforeBreak = _controller.Session.CurrentScore;
 
             GateView firstMismatch = _controller.GetGate(3);
             MismatchCurrentColorFrom(firstMismatch.AssignedColor);
@@ -692,7 +702,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.Session.CurrentState,
                 Is.EqualTo(RunState.ShieldRecovery));
             Assert.That(_controller.Session.ShieldActive, Is.False);
-            Assert.That(_controller.Session.CurrentScore, Is.EqualTo(3));
+            Assert.That(
+                _controller.Session.CurrentScore,
+                Is.EqualTo(scoreBeforeBreak));
 
             GateView secondMismatch = _controller.GetGate(4);
             MismatchCurrentColorFrom(secondMismatch.AssignedColor);
@@ -748,7 +760,10 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.TopScoresText.text, Does.Contain("1"));
             Assert.That(_controller.TopScoresText.text, Does.Contain("►"));
             Assert.That(_controller.CompletedRunRank, Is.Zero);
-            Assert.That(_controller.NewBestText.text, Does.Contain("RANK 1"));
+            Assert.That(_controller.NewBestText.text, Is.EqualTo("NEW BEST!"));
+            Assert.That(
+                _controller.GetTopScoreMarkerText(0).text,
+                Is.EqualTo("YOU"));
         }
 
         [Test]
@@ -817,11 +832,12 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void SpeedStages_ChangeFovTrailAndSpeedLines()
         {
-            SendGameplayTap();
+            StartPlaying();
+            _controller.SetDiagnosticsEnabledForTests(true);
             float startingFov = _controller.GameplayCamera.fieldOfView;
             float startingTrail = _controller.PlayerTrail.time;
 
-            _controller.Tick(13f);
+            _controller.Tick(16f);
             ParticleSystem.EmissionModule emission = _controller.SpeedLines.emission;
 
             Assert.That(_controller.GameplayCamera.fieldOfView, Is.GreaterThan(startingFov));
@@ -833,11 +849,8 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void ShieldAcquisition_ShowsPersistentPlayerAndHudFeedback()
         {
-            SendGameplayTap();
-            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
-            {
-                ResolveGateAsMatch(_controller.GetGate(index));
-            }
+            StartPlaying();
+            CollectVisibleShieldPickup();
 
             Assert.That(_controller.Session.ShieldActive, Is.True);
             Assert.That(_controller.ShieldVisual.activeSelf, Is.True);
@@ -850,11 +863,8 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void ShieldBreak_ShowsDistinctRecoveryFeedback()
         {
-            SendGameplayTap();
-            for (int index = 0; index < GameRules.ShieldScoreMilestone; index++)
-            {
-                ResolveGateAsMatch(_controller.GetGate(index));
-            }
+            StartPlaying();
+            CollectVisibleShieldPickup();
             GateView gate = _controller.GetGate(3);
             MismatchCurrentColorFrom(gate.AssignedColor);
 
@@ -883,6 +893,238 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.GameOverPanel.activeSelf, Is.False);
             _controller.Tick(0.46f);
             Assert.That(_controller.GameOverPanel.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void FirstStart_UsesUnifiedThreeSecondCountdown()
+        {
+            Assert.That(_controller.CountdownDuration, Is.EqualTo(3f));
+
+            SendGameplayTap();
+            _controller.Tick(0f);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("3"));
+            _controller.Tick(1.01f);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("2"));
+            _controller.Tick(1f);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("1"));
+            _controller.Tick(0.75f);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("GO"));
+            _controller.Tick(0.25f);
+
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Playing));
+        }
+
+        [Test]
+        public void Retry_UsesSameUnifiedThreeSecondCountdown()
+        {
+            KillSession();
+            _controller.Tick(0.91f);
+
+            _controller.RestartButton.onClick.Invoke();
+
+            Assert.That(_controller.CountdownDuration, Is.EqualTo(3f));
+            Assert.That(_controller.CountdownRemaining, Is.EqualTo(3f));
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Countdown));
+        }
+
+        [Test]
+        public void DeveloperDiagnostics_IsHiddenByDefaultAndReportsPacing()
+        {
+            Assert.That(_controller.DiagnosticsPanel.activeSelf, Is.False);
+
+            _controller.SetDiagnosticsEnabledForTests(true);
+            StartPlaying();
+            _controller.Tick(0f);
+
+            Assert.That(_controller.DiagnosticsPanel.activeSelf, Is.True);
+            Assert.That(_controller.DiagnosticsText.text, Does.Contain("MOVE"));
+            Assert.That(
+                _controller.DiagnosticsText.text,
+                Does.Contain("INTERVAL"));
+            Assert.That(
+                _controller.DiagnosticsText.text,
+                Does.Contain("PATTERN"));
+            Assert.That(
+                _controller.DiagnosticsText.text,
+                Does.Contain("COLORS"));
+        }
+
+        [Test]
+        public void ShieldPickup_IsVisiblePooledAndDoesNotGrow()
+        {
+            int initialCount =
+                Object.FindObjectsByType<ShieldPickupView>(
+                    FindObjectsInactive.Include).Length;
+            StartPlaying();
+
+            CollectVisibleShieldPickup();
+            int afterCollection =
+                Object.FindObjectsByType<ShieldPickupView>(
+                    FindObjectsInactive.Include).Length;
+
+            Assert.That(initialCount, Is.EqualTo(1));
+            Assert.That(afterCollection, Is.EqualTo(initialCount));
+            Assert.That(_controller.Session.ShieldActive, Is.True);
+            Assert.That(
+                _controller.Session.CollectShieldPickup(),
+                Is.False);
+        }
+
+        [Test]
+        public void ShieldRecovery_UsesOneSecondInvulnerability()
+        {
+            StartPlaying();
+            CollectVisibleShieldPickup();
+            GateView mismatch = _controller.GetGate(3);
+            MismatchCurrentColorFrom(mismatch.AssignedColor);
+            mismatch.TryResolveCrossing();
+
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.ShieldRecovery));
+            Assert.That(
+                _controller.Session.ShieldRecoveryRemaining,
+                Is.EqualTo(1f));
+            _controller.Tick(0.13f);
+            _controller.Tick(0.99f);
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.ShieldRecovery));
+            _controller.Tick(0.02f);
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Playing));
+        }
+
+        [Test]
+        public void ThirdColor_IntroducesAtMilestoneWithTutorialGate()
+        {
+            StartPlaying();
+
+            ResolveMatchingGateCount(
+                GameRules.ThirdColorScoreMilestone);
+
+            Assert.That(_controller.Session.ActiveColorCount, Is.EqualTo(3));
+            Assert.That(_controller.Session.ThirdColorIntroduced, Is.True);
+            Assert.That(
+                _controller.ColorCycleText.text,
+                Does.Contain("GREEN"));
+            Assert.That(
+                _controller.ThirdColorMessageText.gameObject.activeSelf,
+                Is.True);
+            Assert.That(
+                _controller.LastGatePlan.Pattern,
+                Is.EqualTo(GatePatternType.ThirdColorTutorial));
+            Assert.That(
+                _controller.LastGatePlan.Color,
+                Is.EqualTo(RunnerColor.Green));
+        }
+
+        [Test]
+        public void ThirdColor_IsAbsentBeforeMilestone()
+        {
+            StartPlaying();
+
+            ResolveMatchingGateCount(
+                GameRules.ThirdColorScoreMilestone - 1);
+
+            Assert.That(_controller.Session.ActiveColorCount, Is.EqualTo(2));
+            Assert.That(_controller.ColorCycleText.text, Does.Not.Contain("GREEN"));
+            for (int index = 0; index < _controller.GatePoolSize; index++)
+            {
+                Assert.That(
+                    _controller.GetGate(index).AssignedColor,
+                    Is.Not.EqualTo(RunnerColor.Green));
+            }
+        }
+
+        [Test]
+        public void Retry_ResetsThirdColorIntroduction()
+        {
+            StartPlaying();
+            ResolveMatchingGateCount(
+                GameRules.ThirdColorScoreMilestone);
+            KillSessionFromPlaying();
+            _controller.Tick(0.91f);
+
+            _controller.RestartButton.onClick.Invoke();
+
+            Assert.That(_controller.Session.ActiveColorCount, Is.EqualTo(2));
+            Assert.That(_controller.Session.ThirdColorIntroduced, Is.False);
+            Assert.That(_controller.ColorCycleText.text, Does.Not.Contain("GREEN"));
+        }
+
+        [Test]
+        public void ResultCard_HasFiveRowsAndStrongScoreHierarchy()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+            _controller.Tick(0.91f);
+
+            Assert.That(_controller.ResultCard.activeSelf, Is.True);
+            Assert.That(_controller.ThisRunLabel.text, Is.EqualTo("THIS RUN"));
+            Assert.That(_controller.TopScoreRowCount, Is.EqualTo(5));
+            Assert.That(
+                _controller.GameOverScoreText.fontSize,
+                Is.GreaterThan(_controller.BestScoreText.fontSize));
+            Assert.That(
+                _controller.GetTopScoreMarkerText(0).text,
+                Is.EqualTo("YOU"));
+        }
+
+        [Test]
+        public void ResultCard_CurrentScorePulsesWithoutPulsingWholeCard()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+            _controller.Tick(0.91f);
+            Vector3 cardScale = _controller.ResultCard.transform.localScale;
+            Vector3 scoreScale = _controller.GameOverScoreText.rectTransform.localScale;
+
+            _controller.Tick(0.2f);
+
+            Assert.That(
+                _controller.GameOverScoreText.rectTransform.localScale,
+                Is.Not.EqualTo(scoreScale));
+            Assert.That(
+                _controller.ResultCard.transform.localScale,
+                Is.EqualTo(cardScale));
+        }
+
+        [Test]
+        public void ResultCard_CurrentRunRowHasDistinctHighlight()
+        {
+            GateView gate = StartAndMatchFirstGate();
+            gate.TryResolveCrossing();
+            KillSessionFromPlaying();
+            _controller.Tick(0.91f);
+
+            Image current =
+                _controller.GetTopScoreRow(0).GetComponent<Image>();
+            Image other =
+                _controller.GetTopScoreRow(1).GetComponent<Image>();
+            Assert.That(current.color.a, Is.GreaterThan(other.color.a));
+            Assert.That(
+                _controller.GetTopScoreMarkerText(0).text,
+                Is.EqualTo("YOU"));
+        }
+
+        [Test]
+        public void ResultCard_IsContainedWithinPortraitSafeRegion()
+        {
+            RectTransform rect =
+                _controller.ResultCard.GetComponent<RectTransform>();
+
+            Assert.That(rect.anchorMin.x, Is.GreaterThan(0f));
+            Assert.That(rect.anchorMin.y, Is.GreaterThan(0f));
+            Assert.That(rect.anchorMax.x, Is.LessThan(1f));
+            Assert.That(rect.anchorMax.y, Is.LessThan(1f));
         }
 
         [Test]
@@ -1002,9 +1244,53 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.TapSurface.OnPointerClick(pointer);
         }
 
+        private void StartPlaying()
+        {
+            if (_controller.Session.CurrentState == RunState.Playing)
+            {
+                return;
+            }
+
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Ready));
+            SendGameplayTap();
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Countdown));
+            _controller.Tick(_controller.CountdownDuration + 0.01f);
+            Assert.That(
+                _controller.Session.CurrentState,
+                Is.EqualTo(RunState.Playing));
+        }
+
+        private void CollectVisibleShieldPickup()
+        {
+            for (int index = 0;
+                index < 10 && !_controller.ShieldPickup.IsAvailable;
+                index++)
+            {
+                ResolveGateAsMatch(
+                    _controller.GetGate(index % ExpectedGatePoolSize));
+            }
+
+            Assert.That(_controller.ShieldPickup.IsAvailable, Is.True);
+            Assert.That(_controller.ShieldPickup.TryCollect(), Is.True);
+            Assert.That(_controller.ShieldPickup.IsAvailable, Is.False);
+        }
+
+        private void ResolveMatchingGateCount(int count)
+        {
+            for (int index = 0; index < count; index++)
+            {
+                ResolveGateAsMatch(
+                    _controller.GetGate(index % ExpectedGatePoolSize));
+            }
+        }
+
         private GateView StartAndMatchFirstGate()
         {
-            SendGameplayTap();
+            StartPlaying();
             GateView gate = _controller.GetGate(0);
             MatchCurrentColorTo(gate.AssignedColor);
             return gate;
@@ -1012,7 +1298,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private GateView StartAndMismatchFirstGate()
         {
-            SendGameplayTap();
+            StartPlaying();
             GateView gate = _controller.GetGate(0);
             MismatchCurrentColorFrom(gate.AssignedColor);
             return gate;
@@ -1027,10 +1313,17 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void MatchCurrentColorTo(RunnerColor gateColor)
         {
-            if (_controller.Session.CurrentColor != gateColor)
+            for (int index = 0;
+                index < 3 &&
+                _controller.Session.CurrentColor != gateColor;
+                index++)
             {
                 SendGameplayTap();
             }
+
+            Assert.That(
+                _controller.Session.CurrentColor,
+                Is.EqualTo(gateColor));
         }
 
         private void MismatchCurrentColorFrom(RunnerColor gateColor)

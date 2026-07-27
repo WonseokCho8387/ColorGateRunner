@@ -3,6 +3,7 @@ namespace ColorGateRunner.Core
     public enum RunnerColor
     {
         Red,
-        Blue
+        Blue,
+        Green
     }
 }

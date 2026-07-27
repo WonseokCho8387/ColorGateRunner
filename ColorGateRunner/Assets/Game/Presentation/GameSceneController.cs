@@ -17,6 +17,9 @@ namespace ColorGateRunner.Presentation
         private const float ShieldMessageDuration = 1.1f;
         private const float CountdownGoWindow = 0.25f;
         private const float RankPulseDuration = 0.6f;
+        private const float ThirdColorMessageDuration = 1.4f;
+        private const float DiagnosticsRefreshInterval = 0.25f;
+        private const float ResultScorePulseSpeed = 3.5f;
 
         [SerializeField] private uint configuredSeed = GameRules.DefaultSeed;
         [SerializeField] private Transform player;
@@ -24,6 +27,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Material redMaterial;
         [SerializeField] private Material blueMaterial;
+        [SerializeField] private Material greenMaterial;
         [SerializeField] private Material failureMaterial;
         [SerializeField] private GameObject scorePanel;
         [SerializeField] private Text scoreLabel;
@@ -32,7 +36,13 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text shieldText;
         [SerializeField] private GameObject shieldVisual;
         [SerializeField] private Text shieldMessageText;
+        [SerializeField] private ShieldPickupView shieldPickup;
+        [SerializeField] private Text colorCycleText;
+        [SerializeField] private Text thirdColorMessageText;
         [SerializeField] private Text speedStageText;
+        [SerializeField] private GameObject diagnosticsPanel;
+        [SerializeField] private Text diagnosticsText;
+        [SerializeField] private bool diagnosticsEnabled;
         [SerializeField] private TrailRenderer playerTrail;
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private ParticleSystem shieldParticles;
@@ -42,12 +52,18 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text readyInstructionText;
         [SerializeField] private Text readyTapText;
         [SerializeField] private GameObject gameOverPanel;
+        [SerializeField] private GameObject resultCard;
+        [SerializeField] private Text thisRunLabel;
         [SerializeField] private Text gameOverScoreText;
         [SerializeField] private Text bestScoreText;
         [SerializeField] private Text topScoresText;
         [SerializeField] private GameObject topScoresPanel;
         [SerializeField] private GameObject bestBadge;
         [SerializeField] private Text newBestText;
+        [SerializeField] private GameObject[] topScoreRows;
+        [SerializeField] private Text[] topScoreRankTexts;
+        [SerializeField] private Text[] topScoreValueTexts;
+        [SerializeField] private Text[] topScoreMarkerTexts;
         [SerializeField] private Button restartButton;
         [SerializeField] private GameplayTapSurface gameplayTapSurface;
         [SerializeField] private ParticleSystem successParticles;
@@ -84,6 +100,10 @@ namespace ColorGateRunner.Presentation
         private bool _newBest;
         private SpeedStage _displayedSpeedStage;
         private float _rankPulseRemaining;
+        private float _thirdColorMessageRemaining;
+        private float _diagnosticsRefreshRemaining;
+        private float _resultPulseElapsed;
+        private GatePlan _lastGatePlan;
 
         internal GameSession Session => _session;
         internal Transform PlayerTransform => player;
@@ -104,7 +124,12 @@ namespace ColorGateRunner.Presentation
         internal Text ShieldText => shieldText;
         internal GameObject ShieldVisual => shieldVisual;
         internal Text ShieldMessageText => shieldMessageText;
+        internal ShieldPickupView ShieldPickup => shieldPickup;
+        internal Text ColorCycleText => colorCycleText;
+        internal Text ThirdColorMessageText => thirdColorMessageText;
         internal Text SpeedStageText => speedStageText;
+        internal GameObject DiagnosticsPanel => diagnosticsPanel;
+        internal Text DiagnosticsText => diagnosticsText;
         internal ParticleSystem SpeedLines => speedLines;
         internal ParticleSystem ShieldParticles => shieldParticles;
         internal TrailRenderer PlayerTrail => playerTrail;
@@ -112,6 +137,8 @@ namespace ColorGateRunner.Presentation
         internal GameObject CountdownPanel => countdownPanel;
         internal Text CountdownText => countdownText;
         internal GameObject TopScoresPanel => topScoresPanel;
+        internal GameObject ResultCard => resultCard;
+        internal Text ThisRunLabel => thisRunLabel;
         internal GameObject BestBadge => bestBadge;
         internal Text NewBestText => newBestText;
         internal Button RestartButton => restartButton;
@@ -126,6 +153,25 @@ namespace ColorGateRunner.Presentation
         internal float CountdownRemaining => _countdownRemaining;
         internal int CompletedRunRank => _completedRunRank;
         internal bool IsNewBest => _newBest;
+        internal int TopScoreRowCount =>
+            topScoreRows == null ? 0 : topScoreRows.Length;
+        internal bool DiagnosticsEnabled => diagnosticsPanel.activeSelf;
+        internal GatePlan LastGatePlan => _lastGatePlan;
+
+        internal GameObject GetTopScoreRow(int index)
+        {
+            return topScoreRows[index];
+        }
+
+        internal Text GetTopScoreValueText(int index)
+        {
+            return topScoreValueTexts[index];
+        }
+
+        internal Text GetTopScoreMarkerText(int index)
+        {
+            return topScoreMarkerTexts[index];
+        }
 
         private void Awake()
         {
@@ -188,7 +234,10 @@ namespace ColorGateRunner.Presentation
         {
             if (_session.CurrentState == RunState.Ready)
             {
-                _session.StartRun();
+                if (_session.BeginCountdown())
+                {
+                    _countdownRemaining = countdownDuration;
+                }
             }
             else if (_session.CurrentState == RunState.Playing)
             {
@@ -205,6 +254,7 @@ namespace ColorGateRunner.Presentation
         internal GateOutcome HandleGateCrossed(GateView gate)
         {
             bool hadShield = _session.ShieldActive;
+            bool hadThirdColor = _session.ThirdColorIntroduced;
             GateOutcome outcome = _session.ResolveGate(gate.AssignedColor);
 
             if (outcome == GateOutcome.Matched)
@@ -214,6 +264,10 @@ namespace ColorGateRunner.Presentation
                 if (!hadShield && _session.ShieldActive)
                 {
                     TriggerShieldAcquiredFeedback();
+                }
+                if (!hadThirdColor && _session.ThirdColorIntroduced)
+                {
+                    TriggerThirdColorIntroduction();
                 }
                 RecycleGate(gate);
             }
@@ -237,6 +291,19 @@ namespace ColorGateRunner.Presentation
             }
 
             return outcome;
+        }
+
+        internal bool HandleShieldPickupCollected(ShieldPickupView pickup)
+        {
+            if (pickup != shieldPickup || !_session.CollectShieldPickup())
+            {
+                return false;
+            }
+
+            pickup.Deactivate();
+            TriggerShieldAcquiredFeedback();
+            SynchronizeViews();
+            return true;
         }
 
         internal void TickMovement(float deltaTime)
@@ -280,6 +347,15 @@ namespace ColorGateRunner.Presentation
             SynchronizeViews();
         }
 
+        internal void SetDiagnosticsEnabledForTests(bool enabled)
+        {
+            diagnosticsEnabled = enabled;
+            diagnosticsPanel.SetActive(
+                enabled &&
+                (Application.isEditor || Debug.isDebugBuild));
+            _diagnosticsRefreshRemaining = 0f;
+        }
+
         internal bool HasRequiredReferences()
         {
             if (player == null ||
@@ -287,10 +363,17 @@ namespace ColorGateRunner.Presentation
                 gameplayCamera == null ||
                 redMaterial == null ||
                 blueMaterial == null ||
+                greenMaterial == null ||
                 failureMaterial == null ||
                 shieldVisual == null ||
                 shieldMessageText == null ||
+                shieldPickup == null ||
+                !shieldPickup.HasRequiredReferences() ||
+                colorCycleText == null ||
+                thirdColorMessageText == null ||
                 speedStageText == null ||
+                diagnosticsPanel == null ||
+                diagnosticsText == null ||
                 playerTrail == null ||
                 speedLines == null ||
                 shieldParticles == null ||
@@ -306,6 +389,8 @@ namespace ColorGateRunner.Presentation
                 readyInstructionText == null ||
                 readyTapText == null ||
                 gameOverPanel == null ||
+                resultCard == null ||
+                thisRunLabel == null ||
                 gameOverScoreText == null ||
                 bestScoreText == null ||
                 topScoresText == null ||
@@ -318,9 +403,28 @@ namespace ColorGateRunner.Presentation
                 countdownPanel == null ||
                 countdownText == null ||
                 gates == null ||
-                gates.Length < 3)
+                gates.Length < 3 ||
+                topScoreRows == null ||
+                topScoreRankTexts == null ||
+                topScoreValueTexts == null ||
+                topScoreMarkerTexts == null ||
+                topScoreRows.Length != ScoreHistory.Capacity ||
+                topScoreRankTexts.Length != ScoreHistory.Capacity ||
+                topScoreValueTexts.Length != ScoreHistory.Capacity ||
+                topScoreMarkerTexts.Length != ScoreHistory.Capacity)
             {
                 return false;
+            }
+
+            for (int index = 0; index < ScoreHistory.Capacity; index++)
+            {
+                if (topScoreRows[index] == null ||
+                    topScoreRankTexts[index] == null ||
+                    topScoreValueTexts[index] == null ||
+                    topScoreMarkerTexts[index] == null)
+                {
+                    return false;
+                }
             }
 
             for (int index = 0; index < gates.Length; index++)
@@ -362,6 +466,9 @@ namespace ColorGateRunner.Presentation
             _completedRunRank = -1;
             _newBest = false;
             _rankPulseRemaining = 0f;
+            _thirdColorMessageRemaining = 0f;
+            _diagnosticsRefreshRemaining = 0f;
+            _resultPulseElapsed = 0f;
             player.position = _playerStartPosition;
             player.localScale = _playerStartScale;
             player.localRotation = Quaternion.identity;
@@ -372,24 +479,27 @@ namespace ColorGateRunner.Presentation
             scorePulseTarget.localScale = Vector3.one;
             readyTapText.rectTransform.localScale = Vector3.one;
             topScoresText.rectTransform.localScale = Vector3.one;
+            gameOverScoreText.rectTransform.localScale = Vector3.one;
+            newBestText.rectTransform.localScale = Vector3.one;
             successParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             shieldParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             speedLines.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             playerRenderer.enabled = true;
             shieldVisual.SetActive(false);
             shieldMessageText.gameObject.SetActive(false);
+            thirdColorMessageText.gameObject.SetActive(false);
+            shieldPickup.Deactivate();
             countdownPanel.SetActive(false);
+            diagnosticsPanel.SetActive(
+                diagnosticsEnabled &&
+                (Application.isEditor || Debug.isDebugBuild));
             trackPool.ResetPool();
 
             _nextGateZ = _playerStartPosition.z;
             for (int index = 0; index < gates.Length; index++)
             {
                 GatePlan plan = _session.GetNextGatePlan();
-                _nextGateZ += plan.Spacing;
-                gates[index].Activate(
-                    plan.Color,
-                    GetMaterial(plan.Color),
-                    _nextGateZ);
+                ActivateGateFromPlan(gates[index], plan);
             }
 
             SynchronizeViews();
@@ -398,13 +508,35 @@ namespace ColorGateRunner.Presentation
         private void RecycleGate(GateView gate)
         {
             GatePlan plan = _session.GetNextGatePlan();
+            ActivateGateFromPlan(gate, plan);
+        }
+
+        private void ActivateGateFromPlan(GateView gate, GatePlan plan)
+        {
+            float previousGateZ = _nextGateZ;
             _nextGateZ += plan.Spacing;
+            if (plan.HasShieldPickupBefore &&
+                !_session.ShieldActive &&
+                !_session.ShieldPickupCollected)
+            {
+                shieldPickup.Activate(
+                    Mathf.Lerp(previousGateZ, _nextGateZ, 0.5f));
+            }
+
             gate.Activate(plan.Color, GetMaterial(plan.Color), _nextGateZ);
+            _lastGatePlan = plan;
         }
 
         private Material GetMaterial(RunnerColor color)
         {
-            return color == RunnerColor.Red ? redMaterial : blueMaterial;
+            if (color == RunnerColor.Red)
+            {
+                return redMaterial;
+            }
+
+            return color == RunnerColor.Blue
+                ? blueMaterial
+                : greenMaterial;
         }
 
         private void SynchronizeViews()
@@ -415,6 +547,9 @@ namespace ColorGateRunner.Presentation
             }
 
             scoreText.text = _session.CurrentScore.ToString();
+            bool showingGameOver =
+                _session.CurrentState == RunState.Dead && _gameOverReady;
+            scorePanel.SetActive(!showingGameOver);
             shieldText.text =
                 _session.CurrentState == RunState.ShieldRecovery
                     ? "SHIELD  BROKEN"
@@ -422,10 +557,13 @@ namespace ColorGateRunner.Presentation
                         ? "SHIELD  READY"
                         : "SHIELD  EMPTY";
             shieldVisual.SetActive(_session.ShieldActive);
+            colorCycleText.text = _session.ActiveColorCount == 3
+                ? "RED  >  BLUE  >  GREEN"
+                : "RED  >  BLUE";
             readyOverlay.SetActive(_session.CurrentState == RunState.Ready);
             countdownPanel.SetActive(_session.CurrentState == RunState.Countdown);
-            gameOverPanel.SetActive(
-                _session.CurrentState == RunState.Dead && _gameOverReady);
+            gameOverPanel.SetActive(showingGameOver);
+            resultCard.SetActive(showingGameOver);
             gameOverScoreText.text = $"CURRENT  {_session.CurrentScore}";
             bestScoreText.text = $"★  BEST  {_bestScore}";
             bestBadge.SetActive(_bestScore > 0);
@@ -437,6 +575,35 @@ namespace ColorGateRunner.Presentation
                     ? $"TOP 5  •  RANK {_completedRunRank + 1}"
                     : string.Empty;
             topScoresText.text = FormatTopScores();
+            gameOverScoreText.text = _session.CurrentScore.ToString();
+            bestScoreText.text = $"BEST  {_bestScore}";
+            newBestText.gameObject.SetActive(_newBest);
+            newBestText.text = _newBest ? "NEW BEST!" : string.Empty;
+            topScoresText.gameObject.SetActive(false);
+            SynchronizeTopScoreRows();
+        }
+
+        private void SynchronizeTopScoreRows()
+        {
+            for (int index = 0; index < ScoreHistory.Capacity; index++)
+            {
+                bool hasScore =
+                    _topScores != null && index < _topScores.Length;
+                topScoreRankTexts[index].text = (index + 1).ToString();
+                topScoreValueTexts[index].text =
+                    hasScore ? _topScores[index].ToString() : "--";
+                bool isCurrent = index == _completedRunRank;
+                topScoreMarkerTexts[index].text =
+                    isCurrent ? "YOU" : string.Empty;
+                Image rowBackground =
+                    topScoreRows[index].GetComponent<Image>();
+                if (rowBackground != null)
+                {
+                    rowBackground.color = isCurrent
+                        ? new Color(0.2f, 0.55f, 0.95f, 0.55f)
+                        : new Color(1f, 1f, 1f, 0.055f);
+                }
+            }
         }
 
         private void TriggerSuccessFeedback(GateView gate)
@@ -488,6 +655,19 @@ namespace ColorGateRunner.Presentation
                 player.position + (Vector3.up * 0.5f);
             shieldParticles.Emit(24);
             shieldText.rectTransform.localScale = Vector3.one * 1.25f;
+        }
+
+        private void TriggerThirdColorIntroduction()
+        {
+            _thirdColorMessageRemaining = ThirdColorMessageDuration;
+            thirdColorMessageText.text = "NEW COLOR";
+            thirdColorMessageText.color =
+                greenMaterial.HasProperty("_BaseColor")
+                    ? greenMaterial.GetColor("_BaseColor")
+                    : greenMaterial.color;
+            thirdColorMessageText.gameObject.SetActive(true);
+            thirdColorMessageText.rectTransform.localScale =
+                Vector3.one * 1.18f;
         }
 
         private void UpdateBestScore()
@@ -542,6 +722,63 @@ namespace ColorGateRunner.Presentation
 
         private void TickFeedback(float deltaTime)
         {
+            if (shieldPickup.IsAvailable)
+            {
+                shieldPickup.Tick(deltaTime);
+            }
+
+            if (_thirdColorMessageRemaining > 0f)
+            {
+                _thirdColorMessageRemaining = Mathf.Max(
+                    0f,
+                    _thirdColorMessageRemaining - deltaTime);
+                float progress =
+                    1f -
+                    (_thirdColorMessageRemaining /
+                    ThirdColorMessageDuration);
+                float scale =
+                    1f + (Mathf.Sin(progress * Mathf.PI) * 0.18f);
+                thirdColorMessageText.rectTransform.localScale =
+                    Vector3.one * scale;
+                if (_thirdColorMessageRemaining == 0f)
+                {
+                    thirdColorMessageText.gameObject.SetActive(false);
+                    thirdColorMessageText.rectTransform.localScale =
+                        Vector3.one;
+                }
+            }
+
+            if (_gameOverReady &&
+                _session.CurrentState == RunState.Dead)
+            {
+                _resultPulseElapsed += deltaTime;
+                float resultScale =
+                    1f +
+                    (Mathf.Sin(
+                        _resultPulseElapsed *
+                        ResultScorePulseSpeed) *
+                    0.035f);
+                gameOverScoreText.rectTransform.localScale =
+                    Vector3.one * resultScale;
+                if (_newBest)
+                {
+                    float bestScale =
+                        1f +
+                        (Mathf.Sin(
+                            _resultPulseElapsed *
+                            ResultScorePulseSpeed *
+                            1.4f) *
+                        0.08f);
+                    newBestText.rectTransform.localScale =
+                        Vector3.one * bestScale;
+                }
+            }
+            else
+            {
+                gameOverScoreText.rectTransform.localScale = Vector3.one;
+                newBestText.rectTransform.localScale = Vector3.one;
+            }
+
             if (shieldVisual.activeSelf)
             {
                 shieldVisual.transform.Rotate(
@@ -682,6 +919,31 @@ namespace ColorGateRunner.Presentation
                     SynchronizeViews();
                 }
             }
+
+            TickDiagnostics(deltaTime);
+        }
+
+        private void TickDiagnostics(float deltaTime)
+        {
+            if (!diagnosticsPanel.activeSelf)
+            {
+                return;
+            }
+
+            _diagnosticsRefreshRemaining -= deltaTime;
+            if (_diagnosticsRefreshRemaining > 0f)
+            {
+                return;
+            }
+
+            _diagnosticsRefreshRemaining = DiagnosticsRefreshInterval;
+            diagnosticsText.text =
+                $"MOVE {_session.CurrentSpeed:0.00}\n" +
+                $"INTERVAL {_session.TargetEncounterInterval:0.00}\n" +
+                $"STAGE {_session.GetSpeedPresentation().Stage}\n" +
+                $"PATTERN {_lastGatePlan.Pattern}\n" +
+                $"COLORS {_session.ActiveColorCount}\n" +
+                $"SHIELD {_session.CurrentState}";
         }
 
         private void TickCountdown(float deltaTime)
@@ -689,13 +951,17 @@ namespace ColorGateRunner.Presentation
             _countdownRemaining = Mathf.Max(0f, _countdownRemaining - deltaTime);
             if (_countdownRemaining <= CountdownGoWindow)
             {
-                countdownText.text = "GO";
+            countdownText.text = "GO";
             }
             else
             {
                 countdownText.text =
                     Mathf.CeilToInt(_countdownRemaining).ToString();
             }
+
+            float phase = _countdownRemaining - Mathf.Floor(_countdownRemaining);
+            countdownText.rectTransform.localScale =
+                Vector3.one * (1f + (phase * 0.12f));
 
             if (_countdownRemaining == 0f)
             {
@@ -762,12 +1028,14 @@ namespace ColorGateRunner.Presentation
             Camera sceneCamera,
             Material red,
             Material blue,
+            Material green,
             Material failure,
             GameObject hudPanel,
             Text hudLabel,
             Text hudScore,
             RectTransform hudPulseTarget,
             Text shieldIndicator,
+            Text colorCycleIndicator,
             GameObject startOverlay,
             Text startTitle,
             Text startInstruction,
@@ -783,14 +1051,24 @@ namespace ColorGateRunner.Presentation
             ParticleSystem shieldBurstParticles,
             TrailRenderer trail,
             GameObject activeShieldVisual,
+            ShieldPickupView pickup,
             Text shieldMessage,
+            Text thirdColorMessage,
             Text speedStage,
+            GameObject developerDiagnosticsPanel,
+            Text developerDiagnosticsText,
             TrackPoolController trackPoolController,
             GameObject countdownUi,
             Text countdownValue,
+            GameObject centralResultCard,
+            Text runLabel,
             GameObject topFivePanel,
             GameObject bestScoreBadge,
             Text newBestLabel,
+            GameObject[] rankRows,
+            Text[] rankTexts,
+            Text[] rankScoreTexts,
+            Text[] rankMarkerTexts,
             GateView[] gatePool)
         {
             configuredSeed = seed;
@@ -799,12 +1077,14 @@ namespace ColorGateRunner.Presentation
             gameplayCamera = sceneCamera;
             redMaterial = red;
             blueMaterial = blue;
+            greenMaterial = green;
             failureMaterial = failure;
             scorePanel = hudPanel;
             scoreLabel = hudLabel;
             scoreText = hudScore;
             scorePulseTarget = hudPulseTarget;
             shieldText = shieldIndicator;
+            colorCycleText = colorCycleIndicator;
             readyOverlay = startOverlay;
             readyTitleText = startTitle;
             readyInstructionText = startInstruction;
@@ -820,14 +1100,24 @@ namespace ColorGateRunner.Presentation
             shieldParticles = shieldBurstParticles;
             playerTrail = trail;
             shieldVisual = activeShieldVisual;
+            shieldPickup = pickup;
             shieldMessageText = shieldMessage;
+            thirdColorMessageText = thirdColorMessage;
             speedStageText = speedStage;
+            diagnosticsPanel = developerDiagnosticsPanel;
+            diagnosticsText = developerDiagnosticsText;
             trackPool = trackPoolController;
             countdownPanel = countdownUi;
             countdownText = countdownValue;
+            resultCard = centralResultCard;
+            thisRunLabel = runLabel;
             topScoresPanel = topFivePanel;
             bestBadge = bestScoreBadge;
             newBestText = newBestLabel;
+            topScoreRows = rankRows;
+            topScoreRankTexts = rankTexts;
+            topScoreValueTexts = rankScoreTexts;
+            topScoreMarkerTexts = rankMarkerTexts;
             gates = gatePool;
         }
     }

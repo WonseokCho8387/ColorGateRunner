@@ -31,8 +31,11 @@
 - `Speed_IncreasesWithElapsedTime`.
 - `NonlinearSpeed_HasMeasuredProgression`.
 - `NonlinearSpeed_EarlyAccelerationExceedsLateAcceleration`.
+- `MovementSpeed_ContinuesIncreasingAfterTenSeconds`.
+- `MaximumSpeed_IsReachedOnlyAtLateStage`.
+- `EncounterInterval_DecreasesAcrossProgression`.
 - `Speed_IncreasesWithScore`.
-- `Speed_NeverExceedsFourteen`.
+- `Speed_NeverExceedsFifteen`.
 - `SameAdvanceSequence_ProducesSameSpeed`.
 - `SpeedPresentation_StagesIncreaseVisualOutputs`.
 
@@ -47,9 +50,10 @@
 - `SpacingSequence_UsesThreeBandsWithoutThreeIdenticalGaps`.
 - `Restart_ReplaysColorAndSpacingSequence`.
 
-### Shield
+### Shield and pickup
 
-- `Shield_MilestoneActivatesAndProtectsExactlyOneMismatch`.
+- `Shield_AutomaticScoreGrantIsRemoved`.
+- `ShieldPickup_ActivatesAndProtectsExactlyOneMismatch`.
 - `Shield_MatchingWhileActiveDoesNotCreateASecondCharge`.
 - `Restart_ResetsShield`.
 - `ShieldBreak_EntersRecoveryAndReducesSpeed`.
@@ -69,6 +73,20 @@
 - `PatternSequence_ColorRunNeverExceedsFour`.
 - `SameColorBait_ContainsOneReadableException`.
 - `PatternSequence_DiagnosticReportsFirstThirtyAndDistribution`.
+- `PatternSequence_EncounterCadenceDecreasesFromEarlyToLate`.
+- `PatternSequence_DoesNotRepeatEitherRecentPattern`.
+- `PatternSequence_OnlyUsesActiveColors`.
+- `ThreeColorSequence_NeverRequiresMoreThanOneTap`.
+- `ShieldPickupPlan_IsDeterministicAndAppearsInEarlyRange`.
+- `PatternSequence_DiagnosticReportsFirstFortyCadenceValues`.
+
+### Third-color progression
+
+- `ThirdColor_IsInactiveBeforeMilestone`.
+- `ThirdColor_IntroducesExactlyOnceAtMilestone`.
+- `ThirdColor_TutorialGatesFollowIntroduction`.
+- `ThreeColorCycle_OrderIsStable`.
+- `Restart_ResetsThirdColorIntroduction`.
 
 ### State transitions
 
@@ -120,6 +138,19 @@
   `ShieldAcquisition_ShowsPersistentPlayerAndHudFeedback`,
   `ShieldBreak_ShowsDistinctRecoveryFeedback`,
   `Failure_AnimatesProgressivelyBeforeGameOver`.
+- Step 7 cadence, progression, and replay presentation:
+  `FirstStart_UsesUnifiedThreeSecondCountdown`,
+  `Retry_UsesSameUnifiedThreeSecondCountdown`,
+  `DeveloperDiagnostics_IsHiddenByDefaultAndReportsPacing`,
+  `ShieldPickup_IsVisiblePooledAndDoesNotGrow`,
+  `ShieldRecovery_UsesOneSecondInvulnerability`,
+  `ThirdColor_IntroducesAtMilestoneWithTutorialGate`,
+  `ThirdColor_IsAbsentBeforeMilestone`,
+  `Retry_ResetsThirdColorIntroduction`,
+  `ResultCard_HasFiveRowsAndStrongScoreHierarchy`,
+  `ResultCard_CurrentScorePulsesWithoutPulsingWholeCard`,
+  `ResultCard_CurrentRunRowHasDistinctHighlight`,
+  `ResultCard_IsContainedWithinPortraitSafeRegion`.
 - Infinite track and curve experiment:
   `TrackPool_LongRunRecyclesWithoutGapsOrGrowth`,
   `CurveExperiment_IsPresentButDisabledForLongRunSafety`.
@@ -174,6 +205,8 @@
   `TrackPool_LongRunRecyclesWithoutGapsOrGrowth`.
 - Unique Step 6 UI and reusable feedback objects:
   `Scene_HasNoDuplicateStep4PresentationObjects`.
+- Exactly one fixed `ShieldPickupView`, one diagnostics panel, one result card,
+  one result Safe Area, and exactly five rank-row containers are generated.
 
 ## Manual mobile check
 
@@ -192,9 +225,18 @@
   only numerically different.
 - Shield acquisition, persistent state, break, and recovery cannot be confused
   with a correct gate.
-- The five-second Retry countdown feels preparatory rather than frustrating.
-- The framed Top 5, current row marker, Best badge, and New Best message have a
-  clear visual hierarchy.
+- The unified three-second first-start and Retry countdown feels readable
+  without interrupting replay flow.
+- Movement speed still feels like it develops after 10 seconds, and encounter
+  decisions become perceptibly more frequent through 45 seconds.
+- Beat patterns feel intentional rather than random near/far spacing.
+- `NEW COLOR`, its two tutorial gates, and the three-color cycle indicator are
+  understandable without sustained explanatory text.
+- The pooled shield pickup is visible early enough to create anticipation.
+- The one-second shield recovery feels sharp rather than low-pressure.
+- The central result card makes THIS RUN dominant, Best distinct, the current
+  Top 5 row obvious, and Retry easy to reach.
+- The developer diagnostics panel is absent during normal player-facing play.
 
 ## Step 4 feedback status and deferred work
 
@@ -206,5 +248,5 @@ The Step 3 feedback ideas below are now active Step 4 automated acceptance:
 Still deferred:
 
 - BPM-based or music-synchronized gate placement.
-- Additional colors, obstacles, power-ups, combos, rating systems, missions,
-  and skins.
+- A fourth color, obstacles, additional power-ups, combos, rating systems,
+  missions, and skins.

@@ -8,6 +8,10 @@ namespace ColorGateRunner.Core
         Compression,
         Release,
         SameColorBait,
-        SingleColorBreak
+        SingleColorBreak,
+        Syncopation,
+        Burst,
+        ThreeColorFlow,
+        ThirdColorTutorial
     }
 }

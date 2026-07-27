@@ -122,7 +122,8 @@ Status: Accepted historical baseline. Replaced decisions are marked
 
 ## Step 6 perceptible game-feel and infinite-track iteration
 
-Status: Active
+Status: Accepted historical baseline. Replaced decisions are marked
+`Superseded`.
 
 - Step 5 human playtesting found that numerically valid acceleration and gap
   variance were not perceptible, shield state was effectively invisible,
@@ -130,13 +131,13 @@ Status: Active
   Retry lacked preparation, Top 5 lacked hierarchy, and the fixed 1000-unit
   floor disappeared during long runs. Same-color runs with one exception gate
   produced the strongest excitement.
-- Speed now uses
+- **Superseded by Step 7:** Speed uses
   `min(14, 6 + (14 - 6) * (1 - exp(-0.14 * elapsed)) + score * 0.02)`.
   Four perceptual stages begin at 0, 5, 12, and 25 seconds. They control
   movement, camera FOV (`60/65/70/74`), trail intensity
   (`0.1/0.35/0.7/1`), speed-line rate (`0/18/40/70`), and an explicit HUD
   stage label.
-- Gate generation uses a separate seeded pattern stream with authored
+- **Superseded by Step 7:** Gate generation uses a separate seeded pattern stream with authored
   `Steady`, `ShortShortLong`, `LongShortLong`, `Compression`, `Release`,
   `SameColorBait`, and `SingleColorBreak` patterns. The same pattern cannot be
   selected twice consecutively. Gaps are expressed as 0.9–1.9 seconds and
@@ -151,10 +152,10 @@ Status: Active
   `CurveSegmentExperiment`. It is intentionally isolated until path-following
   player, camera, and gate placement can be validated without weakening the
   infinite straight-track guarantee.
-- Score 3 still grants one non-stacking shield, now shown by a persistent
+- **Superseded by Step 7:** Score 3 grants one non-stacking shield, shown by a persistent
   rotating player ring, animated HUD state, centered `SHIELD` message, and
   reusable activation burst.
-- Shield absorption enters authoritative `ShieldRecovery` for 2 seconds:
+- **Superseded by Step 7:** Shield absorption enters authoritative `ShieldRecovery` for 2 seconds:
   0.12-second presentation hit-stop, 65% initial speed multiplier that
   recovers smoothly, blinking player, invulnerability, `SHIELD BREAK`
   messaging, distinct burst, and no score from protected mismatches.
@@ -162,13 +163,91 @@ Status: Active
   The player progressively moves, drops, tilts, shrinks, and neutralizes while
   the camera shake eases and the failed gate stays marked. Game Over appears
   after the readable animation point.
-- Retry performs Core Restart, enters a configurable five-second `Countdown`,
+- **Superseded by Step 7:** Retry performs Core Restart, enters a configurable five-second `Countdown`,
   displays `5–1` and `GO`, ignores gameplay input, and does not advance score,
   movement, or elapsed gameplay time. It transitions to Playing exactly once.
-- Game Over separates `CURRENT`, a starred `BEST`, `NEW BEST`, and a framed
+- **Superseded visually by Step 7:** Game Over separates `CURRENT`, a starred `BEST`, `NEW BEST`, and a framed
   `TOP 5`. Positive completed scores remain descending, capped at five, and
   duplicate scores rank after existing equal scores. The current row receives
   a visible marker, `RANK n` label, and a 0.6-second reusable pulse.
 - Fog, live-changing gate colors, reduced visibility, currencies, paid or
   ad-based Continue, ads, online leaderboards, additional power-up types,
   extra player colors, audio, haptics, and BPM synchronization remain deferred.
+
+## Step 7 cadence progression and replay motivation
+
+Status: Active
+
+- Step 6 human playtesting found that initial acceleration was perceptible,
+  but speed sensation fell after the opening camera movement. Speed-scaled
+  spacing cancelled encounter-cadence growth, two colors made patterns
+  repetitive, the visible shield state and break were clear but automatic
+  acquisition lacked anticipation, two-second recovery and five-second
+  countdowns were too long, and Game Over score hierarchy was unsuccessful.
+  Death timing and the infinite straight track were successful. Camera motion
+  communicated speed more strongly than track markers.
+- Movement and encounter progression are separate deterministic values.
+  Score-zero movement speeds at 0, 5, 10, 20, 30, and 45 seconds are
+  `6`, `9`, `10.5`, `12.5`, `14`, and `15`. Linear interpolation between
+  checkpoints keeps speed continuous, the score contribution is
+  `0.01 * score`, and the result is capped at 15.
+- Base target encounter intervals at the same checkpoints are `1.65`, `1.32`,
+  `1.15`, `1.0`, `0.87`, and `0.82` seconds. A pattern interval is
+  `max(0.75, targetInterval * beatMultiplier)`. Physical distance is that
+  interval multiplied by movement speed plus a 0.5-unit margin, rounded up to
+  0.5 units. The minimum guaranteed reaction time is therefore 0.75 seconds.
+- For a Steady beat, the measured rounded distances and actual reaction times
+  at 0/5/10/20/30/45 seconds are respectively
+  `10.5/1.667`, `12.5/1.333`, `13/1.190`, `13/1.000`,
+  `13/0.893`, and `13/0.833` (distance/time).
+- Authored beat multipliers are: Steady `1,1,1,1`; Compression
+  `1.35,1.15,0.95,0.75`; Release `0.75,0.95,1.15,1.35`; Syncopation
+  `1,0.65,1.35,1`; Burst `0.7,0.7,1.5`; SameColorBait
+  `1,1,1,0.8,1.2`; SingleColorBreak `0.9,0.9,0.9,0.9,1.3`; and late
+  ThreeColorFlow `0.9,0.9,0.9,1.15`.
+- Early play unlocks only Steady, Compression, and Release. Middle play adds
+  Syncopation, Burst, and SameColorBait. Late play adds SingleColorBreak and,
+  after Green is active, ThreeColorFlow. Neither of the two most recent named
+  patterns may be selected, repeated bait base colors are shifted, and global
+  same-color runs remain capped at four.
+- Normal three-color generation may keep the same color or advance by exactly
+  one position in the Red, Blue, Green cycle. It never requests a two-tap
+  transition at normal late-stage cadence. The slower first Green tutorial
+  gate is the only intentional introduction that may teach a two-tap change.
+- The Step 7 seed-12345 diagnostic first 40 generated colors are:
+  `Red, Red, Blue, Red, Red, Blue, Red, Blue, Blue, Red, Blue, Red, Red,
+  Red, Red, Blue, Green, Green, Red, Blue, Green, Red, Red, Blue, Green,
+  Green, Green, Green, Red, Blue, Green, Red, Red, Red, Blue, Green, Red,
+  Blue, Green, Red`. The associated pattern, beat multiplier, target interval,
+  rounded distance, and actual reaction time are emitted by
+  `PatternSequence_DiagnosticReportsFirstFortyCadenceValues`.
+- Green unlocks exactly once at score 15. Before then, generation and input use
+  only Red and Blue. The introduction shows `NEW COLOR`, changes the compact
+  cycle indicator to `RED > BLUE > GREEN`, and queues slower Green then Red
+  tutorial gates. Retry restores the two-color state.
+- Automatic score-based shield granting is removed. The first visible shield
+  pickup uses the configured seed to choose plan index 6 through 8, is placed
+  halfway between gate decisions, rotates and bobs, uses one fixed pooled
+  object, and cannot stack. Collection activates the existing shield effect.
+- Shield hit-stop remains 0.12 seconds. Authoritative invulnerability is
+  exactly 1 second and begins at 70% of the underlying movement speed before
+  restoring it continuously. The underlying elapsed progression remains
+  intact.
+- The first title tap and Retry both use one Core `Countdown` path with a
+  configurable default of 3 seconds and the visual sequence `3, 2, 1, GO`.
+  Countdown accepts no color input and advances no movement, elapsed gameplay,
+  score, cadence, or gate state.
+- Game Over uses one Safe-Area result card. `THIS RUN` is the largest number
+  and repeats a subtle independent pulse. Best uses a gold badge and accent,
+  `NEW BEST!` has a dedicated pulse, and five fixed rank rows use aligned
+  rank/score/marker columns. The current run has a blue row highlight and
+  `YOU`; the gameplay HUD is hidden while results are visible.
+- Developer pacing diagnostics are disabled by default. When explicitly
+  enabled in Editor or development builds, the panel refreshes at 0.25-second
+  intervals and shows movement speed, encounter interval, speed stage, active
+  pattern, active color count, and shield/recovery state. It is not part of
+  normal release presentation.
+- The curve-track experiment remains isolated and disabled. Live-changing
+  colors, fog, fake gates, currency, Continue, advertising, audio/BPM
+  synchronization, online leaderboards, skins, other power-ups, and a fourth
+  color remain deferred.

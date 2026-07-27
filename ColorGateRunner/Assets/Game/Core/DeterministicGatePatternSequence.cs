@@ -7,14 +7,18 @@ namespace ColorGateRunner.Core
         private uint _state;
         private GatePatternType _currentPattern;
         private GatePatternType _previousPattern;
+        private GatePatternType _patternBeforePrevious;
         private int _patternIndex;
         private int _patternLength;
         private int _generatedGateCount;
         private RunnerColor _baseColor;
+        private RunnerColor _previousPatternBaseColor;
         private RunnerColor _previousColor;
         private int _colorRunLength;
         private bool _hasPattern;
+        private bool _hasPreviousPatternBaseColor;
         private bool _hasPreviousColor;
+        private int _shieldPickupGateIndex;
 
         public DeterministicGatePatternSequence(uint seed)
         {
@@ -23,29 +27,65 @@ namespace ColorGateRunner.Core
 
         public GatePlan GetNext(float currentSpeed)
         {
-            if (currentSpeed < 0f)
+            return GetNext(
+                currentSpeed,
+                GameRules.CalculateTargetEncounterInterval(0f),
+                2,
+                -1);
+        }
+
+        public GatePlan GetNext(
+            float movementSpeed,
+            float targetEncounterInterval,
+            int activeColorCount,
+            int tutorialIndex)
+        {
+            if (movementSpeed < 0f)
             {
-                throw new ArgumentOutOfRangeException(nameof(currentSpeed));
+                throw new ArgumentOutOfRangeException(nameof(movementSpeed));
+            }
+
+            if (targetEncounterInterval < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(targetEncounterInterval));
+            }
+
+            if (activeColorCount < 2 || activeColorCount > 3)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activeColorCount));
+            }
+
+            if (tutorialIndex >= 0)
+            {
+                return CreateTutorialPlan(
+                    movementSpeed,
+                    targetEncounterInterval,
+                    tutorialIndex);
             }
 
             if (!_hasPattern || _patternIndex >= _patternLength)
             {
-                SelectNextPattern();
+                SelectNextPattern(activeColorCount, targetEncounterInterval);
             }
 
-            float timeToGate = GetTimeToGate(_currentPattern, _patternIndex);
-            RunnerColor color = GetPatternColor(_currentPattern, _patternIndex);
-            color = EnforceColorRunLimit(color);
-            float rawSpacing =
-                (currentSpeed * timeToGate) + GameRules.GateSafetyMargin;
-            float spacing = (float)Math.Ceiling(rawSpacing * 2f) * 0.5f;
-            GatePlan plan =
-                new GatePlan(
-                    color,
-                    spacing,
-                    timeToGate,
-                    _currentPattern,
-                    _patternIndex);
+            float beatMultiplier =
+                GetBeatMultiplier(_currentPattern, _patternIndex);
+            float timeToGate = GameRules.CalculatePatternEncounterInterval(
+                targetEncounterInterval,
+                beatMultiplier);
+            RunnerColor color = GetPatternColor(
+                _currentPattern,
+                _patternIndex,
+                activeColorCount);
+            color = EnforceColorRunLimit(color, activeColorCount);
+            GatePlan plan = CreatePlan(
+                color,
+                movementSpeed,
+                timeToGate,
+                beatMultiplier,
+                _currentPattern,
+                _patternIndex);
 
             _patternIndex++;
             _generatedGateCount++;
@@ -57,78 +97,159 @@ namespace ColorGateRunner.Core
             _state =
                 DeterministicGateSequence.NormalizeSeed(seed) ^ 0xA511E9B3u;
             _currentPattern = GatePatternType.Steady;
-            _previousPattern = GatePatternType.Steady;
+            _previousPattern = GatePatternType.ThirdColorTutorial;
+            _patternBeforePrevious = GatePatternType.ThirdColorTutorial;
             _patternIndex = 0;
             _patternLength = 0;
             _generatedGateCount = 0;
             _baseColor = RunnerColor.Red;
+            _previousPatternBaseColor = RunnerColor.Green;
             _previousColor = RunnerColor.Red;
             _colorRunLength = 0;
             _hasPattern = false;
+            _hasPreviousPatternBaseColor = false;
             _hasPreviousColor = false;
+            _shieldPickupGateIndex =
+                GameRules.CalculateFirstShieldPickupGateIndex(seed);
         }
 
-        private void SelectNextPattern()
+        private GatePlan CreateTutorialPlan(
+            float movementSpeed,
+            float targetEncounterInterval,
+            int tutorialIndex)
         {
-            _state = DeterministicGateSequence.AdvanceXorshift32(_state);
+            RunnerColor color =
+                tutorialIndex == 0 ? RunnerColor.Green : RunnerColor.Red;
+            float beatMultiplier = tutorialIndex == 0 ? 1.2f : 1.1f;
+            float timeToGate = Math.Max(
+                1.35f,
+                GameRules.CalculatePatternEncounterInterval(
+                    targetEncounterInterval,
+                    beatMultiplier));
+            color = EnforceColorRunLimit(color, 3, true);
+            GatePlan plan = CreatePlan(
+                color,
+                movementSpeed,
+                timeToGate,
+                beatMultiplier,
+                GatePatternType.ThirdColorTutorial,
+                tutorialIndex);
+            _generatedGateCount++;
+            return plan;
+        }
+
+        private GatePlan CreatePlan(
+            RunnerColor color,
+            float movementSpeed,
+            float timeToGate,
+            float beatMultiplier,
+            GatePatternType pattern,
+            int indexInPattern)
+        {
+            float rawSpacing =
+                (movementSpeed * timeToGate) + GameRules.GateSafetyMargin;
+            float spacing = (float)Math.Ceiling(rawSpacing * 2f) * 0.5f;
+            bool hasShieldPickupBefore =
+                _generatedGateCount == _shieldPickupGateIndex;
+            return new GatePlan(
+                color,
+                spacing,
+                timeToGate,
+                beatMultiplier,
+                pattern,
+                indexInPattern,
+                hasShieldPickupBefore);
+        }
+
+        private void SelectNextPattern(
+            int activeColorCount,
+            float targetEncounterInterval)
+        {
+            int stage = targetEncounterInterval > 1.15f
+                ? 0
+                : targetEncounterInterval > 0.9f ? 1 : 2;
+            int availablePatternCount =
+                stage == 0 ? 3 :
+                stage == 1 ? 6 :
+                activeColorCount == 3 ? 8 : 7;
+
             GatePatternType selected;
-            if (!_hasPattern)
+            do
             {
-                selected = GatePatternType.Steady;
+                _state = DeterministicGateSequence.AdvanceXorshift32(_state);
+                selected = GetAvailablePattern(
+                    stage,
+                    activeColorCount,
+                    (int)(_state % (uint)availablePatternCount));
             }
-            else
-            {
-                int availablePatternCount =
-                    _generatedGateCount < 8 ? 3 :
-                    _generatedGateCount < 20 ? 5 : 7;
-                selected = (GatePatternType)(_state % (uint)availablePatternCount);
-                if (selected == _previousPattern)
-                {
-                    selected =
-                        (GatePatternType)(((int)selected + 1) % availablePatternCount);
-                }
-            }
+            while (selected == _previousPattern ||
+                selected == _patternBeforePrevious);
 
             _state = DeterministicGateSequence.AdvanceXorshift32(_state);
-            _baseColor = (_state & 1u) == 0u
-                ? RunnerColor.Red
-                : RunnerColor.Blue;
-            _currentPattern = selected;
+            _baseColor = ColorFromIndex(
+                (int)(_state % (uint)activeColorCount));
+            if (selected == GatePatternType.SameColorBait &&
+                _hasPreviousPatternBaseColor &&
+                _baseColor == _previousPatternBaseColor)
+            {
+                _baseColor = NextColor(_baseColor, activeColorCount);
+            }
+
+            _patternBeforePrevious = _previousPattern;
             _previousPattern = selected;
+            _previousPatternBaseColor = _baseColor;
+            _hasPreviousPatternBaseColor = true;
+            _currentPattern = selected;
             _patternIndex = 0;
             _patternLength = GetPatternLength(selected);
             _hasPattern = true;
         }
 
-        private RunnerColor GetPatternColor(GatePatternType pattern, int index)
+        private RunnerColor GetPatternColor(
+            GatePatternType pattern,
+            int index,
+            int activeColorCount)
         {
-            bool opposite;
+            RunnerColor next = NextColor(_baseColor, activeColorCount);
+            RunnerColor third = NextColor(next, activeColorCount);
             switch (pattern)
             {
                 case GatePatternType.Release:
-                    opposite = index == 2;
-                    break;
+                    return index == 2 ? next : _baseColor;
                 case GatePatternType.SameColorBait:
-                    opposite = index == 3;
-                    break;
+                    return index == 3 ? next : _baseColor;
                 case GatePatternType.SingleColorBreak:
-                    opposite = index > 0 && index < 4;
-                    break;
+                    return index > 0 && index < 4 ? next : _baseColor;
+                case GatePatternType.Burst:
+                    return index == 2 ? _baseColor : next;
+                case GatePatternType.ThreeColorFlow:
+                    return index % 3 == 0
+                        ? _baseColor
+                        : index % 3 == 1 ? next : third;
                 default:
-                    opposite = (index & 1) == 1;
-                    break;
+                    return (index & 1) == 0 ? _baseColor : next;
             }
-
-            return opposite ? OppositeOf(_baseColor) : _baseColor;
         }
 
-        private RunnerColor EnforceColorRunLimit(RunnerColor color)
+        private RunnerColor EnforceColorRunLimit(
+            RunnerColor color,
+            int activeColorCount,
+            bool allowTwoStepTransition = false)
         {
+            if (_hasPreviousColor &&
+                activeColorCount == 3 &&
+                !allowTwoStepTransition &&
+                color != _previousColor &&
+                color != NextColor(_previousColor, activeColorCount))
+            {
+                color = NextColor(_previousColor, activeColorCount);
+            }
+
             if (_hasPreviousColor &&
                 color == _previousColor &&
                 _colorRunLength >= GameRules.MaximumConsecutiveGateColors)
             {
-                color = OppositeOf(color);
+                color = NextColor(color, activeColorCount);
             }
 
             if (_hasPreviousColor && color == _previousColor)
@@ -145,51 +266,119 @@ namespace ColorGateRunner.Core
             return color;
         }
 
+        private static GatePatternType GetAvailablePattern(
+            int stage,
+            int activeColorCount,
+            int index)
+        {
+            if (stage == 0)
+            {
+                return index == 0
+                    ? GatePatternType.Steady
+                    : index == 1
+                        ? GatePatternType.Compression
+                        : GatePatternType.Release;
+            }
+
+            if (stage == 1)
+            {
+                switch (index)
+                {
+                    case 0: return GatePatternType.Steady;
+                    case 1: return GatePatternType.Compression;
+                    case 2: return GatePatternType.Release;
+                    case 3: return GatePatternType.Syncopation;
+                    case 4: return GatePatternType.Burst;
+                    default: return GatePatternType.SameColorBait;
+                }
+            }
+
+            switch (index)
+            {
+                case 0: return GatePatternType.Steady;
+                case 1: return GatePatternType.Compression;
+                case 2: return GatePatternType.Release;
+                case 3: return GatePatternType.Syncopation;
+                case 4: return GatePatternType.Burst;
+                case 5: return GatePatternType.SameColorBait;
+                case 6: return GatePatternType.SingleColorBreak;
+                default:
+                    return activeColorCount == 3
+                        ? GatePatternType.ThreeColorFlow
+                        : GatePatternType.Steady;
+            }
+        }
+
         private static int GetPatternLength(GatePatternType pattern)
         {
             switch (pattern)
             {
-                case GatePatternType.Compression:
-                case GatePatternType.Release:
-                    return 4;
+                case GatePatternType.Burst:
+                    return 3;
                 case GatePatternType.SameColorBait:
                 case GatePatternType.SingleColorBreak:
                     return 5;
                 default:
-                    return 3;
+                    return 4;
             }
         }
 
-        private static float GetTimeToGate(GatePatternType pattern, int index)
+        private static float GetBeatMultiplier(
+            GatePatternType pattern,
+            int index)
         {
             switch (pattern)
             {
-                case GatePatternType.ShortShortLong:
-                    return index < 2 ? 0.9f : 1.9f;
-                case GatePatternType.LongShortLong:
-                    return index == 1 ? 0.9f : 1.9f;
                 case GatePatternType.Compression:
-                    return index == 0 ? 1.8f :
-                        index == 1 ? 1.45f :
-                        index == 2 ? 1.15f : 0.9f;
-                case GatePatternType.Release:
-                    return index == 0 ? 0.9f :
+                    return index == 0 ? 1.35f :
                         index == 1 ? 1.15f :
-                        index == 2 ? 1.45f : 1.9f;
+                        index == 2 ? 0.95f : 0.75f;
+                case GatePatternType.Release:
+                    return index == 0 ? 0.75f :
+                        index == 1 ? 0.95f :
+                        index == 2 ? 1.15f : 1.35f;
+                case GatePatternType.Syncopation:
+                    return index == 0 ? 1f :
+                        index == 1 ? 0.65f :
+                        index == 2 ? 1.35f : 1f;
+                case GatePatternType.Burst:
+                    return index < 2 ? 0.7f : 1.5f;
                 case GatePatternType.SameColorBait:
-                    return index == 3 ? 1.6f : 1.2f;
+                    return index == 3 ? 0.8f :
+                        index == 4 ? 1.2f : 1f;
                 case GatePatternType.SingleColorBreak:
-                    return index == 4 ? 1.8f : 1.15f;
+                    return index == 4 ? 1.3f : 0.9f;
+                case GatePatternType.ThreeColorFlow:
+                    return index == 3 ? 1.15f : 0.9f;
                 default:
-                    return 1.3f;
+                    return 1f;
             }
         }
 
-        private static RunnerColor OppositeOf(RunnerColor color)
+        private static RunnerColor ColorFromIndex(int index)
         {
-            return color == RunnerColor.Red
-                ? RunnerColor.Blue
-                : RunnerColor.Red;
+            return index == 0
+                ? RunnerColor.Red
+                : index == 1 ? RunnerColor.Blue : RunnerColor.Green;
+        }
+
+        private static RunnerColor NextColor(
+            RunnerColor color,
+            int activeColorCount)
+        {
+            if (color == RunnerColor.Red)
+            {
+                return RunnerColor.Blue;
+            }
+
+            if (color == RunnerColor.Blue)
+            {
+                return activeColorCount == 3
+                    ? RunnerColor.Green
+                    : RunnerColor.Red;
+            }
+
+            return RunnerColor.Red;
         }
     }
 }
