@@ -10,6 +10,7 @@ namespace ColorGateRunner.Presentation
 
         [SerializeField] private StageSceneController controller;
         [SerializeField] private Renderer[] gateRenderers;
+        [SerializeField] private TextMesh colorSymbol;
 
         private bool _resolved;
         private float _reactionRemaining;
@@ -75,6 +76,7 @@ namespace ColorGateRunner.Presentation
             transform.localScale = _baseScale;
             ResetParts();
             ApplyMaterial(material);
+            ApplyColorSymbol();
         }
 
         internal void ApplyTemporaryPlan(
@@ -85,6 +87,7 @@ namespace ColorGateRunner.Presentation
             AssignedColor = plan.Color;
             _assignedMaterial = material;
             ApplyMaterial(material);
+            ApplyColorSymbol();
         }
 
         internal Transform GetPartTransform(int index)
@@ -156,7 +159,8 @@ namespace ColorGateRunner.Presentation
 
         internal bool HasRequiredReferences()
         {
-            if (controller == null || gateRenderers == null || gateRenderers.Length == 0)
+            if (controller == null || colorSymbol == null ||
+                gateRenderers == null || gateRenderers.Length == 0)
             {
                 return false;
             }
@@ -175,10 +179,12 @@ namespace ColorGateRunner.Presentation
 
         internal void Configure(
             StageSceneController sceneController,
-            Renderer[] renderers)
+            Renderer[] renderers,
+            TextMesh symbol)
         {
             controller = sceneController;
             gateRenderers = renderers;
+            colorSymbol = symbol;
             CaptureParts();
         }
 
@@ -206,6 +212,15 @@ namespace ColorGateRunner.Presentation
             {
                 gateRenderers[index].sharedMaterial = material;
             }
+        }
+
+        private void ApplyColorSymbol()
+        {
+            RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(AssignedColor);
+            colorSymbol.text = symbol == RunnerColorSymbol.Circle
+                ? "●"
+                : symbol == RunnerColorSymbol.Square ? "■" : "▲";
+            colorSymbol.color = Color.white;
         }
 
         private void ResetParts()

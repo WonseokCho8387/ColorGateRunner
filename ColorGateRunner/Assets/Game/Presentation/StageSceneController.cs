@@ -32,9 +32,12 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private TrailRenderer playerTrail;
         [SerializeField] private bool developmentTelemetryEnabled;
+        [SerializeField] private GameObject[] uiFlowRoots;
 
         [SerializeField] private GameObject lobbyPanel;
         [SerializeField] private Text lobbyStageText;
+        [SerializeField] private Text lobbyStageTitleText;
+        [SerializeField] private Text lobbyStageDescriptionText;
         [SerializeField] private Text lobbyProgressText;
         [SerializeField] private Text lobbyTierText;
         [SerializeField] private Button lobbyPlayButton;
@@ -60,13 +63,15 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text stageHudText;
         [SerializeField] private Text progressText;
         [SerializeField] private Image progressFill;
-        [SerializeField] private Text shieldStatusText;
-        [SerializeField] private Text boosterStatusText;
-        [SerializeField] private Text currentColorText;
-        [SerializeField] private Text cycleOrderText;
-        [SerializeField] private Text nextColorText;
+        [SerializeField] private GameObject shieldIcon;
+        [SerializeField] private GameObject boosterMeterRoot;
         [SerializeField] private Image boosterMeterFill;
         [SerializeField] private GameObject boosterWarning;
+        [SerializeField] private GameObject colorHudPanel;
+        [SerializeField] private GameObject[] colorTiles;
+        [SerializeField] private Image[] colorTileImages;
+        [SerializeField] private Text[] colorTileSymbols;
+        [SerializeField] private GameObject[] nextColorMarkers;
 
         [SerializeField] private GameObject clearPanel;
         [SerializeField] private Text clearTitleText;
@@ -107,6 +112,7 @@ namespace ColorGateRunner.Presentation
         private bool _boosterExitOverridesApplied;
         private StageGateView _failedGate;
         private ContinueSnapshot _continueSnapshot;
+        private MobileUiFlow _uiFlow;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -124,11 +130,11 @@ namespace ColorGateRunner.Presentation
         internal GameObject Goal => goal;
         internal GameObject ShieldVisual => shieldVisual;
         internal GameObject BoosterWarning => boosterWarning;
+        internal GameObject BoosterMeterRoot => boosterMeterRoot;
         internal Image BoosterMeterFill => boosterMeterFill;
-        internal Text CurrentColorText => currentColorText;
-        internal Text CycleOrderText => cycleOrderText;
-        internal Text NextColorText => nextColorText;
         internal Text LobbyStageText => lobbyStageText;
+        internal Text LobbyStageTitleText => lobbyStageTitleText;
+        internal Text LobbyStageDescriptionText => lobbyStageDescriptionText;
         internal ParticleSystem SpeedLines => speedLines;
         internal TrailRenderer PlayerTrail => playerTrail;
         internal Text CountdownText => countdownText;
@@ -148,6 +154,26 @@ namespace ColorGateRunner.Presentation
         internal TrackPoolController TrackPool => trackPool;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
+        internal MobileUiFlow UiFlow => _uiFlow;
+        internal GameObject LobbyRoot => uiFlowRoots[0];
+        internal GameObject PreRunRoot => uiFlowRoots[1];
+        internal GameObject GameplayHudRoot => uiFlowRoots[2];
+        internal GameObject CountdownRoot => uiFlowRoots[3];
+        internal GameObject ClearResultRoot => uiFlowRoots[4];
+        internal GameObject FailedResultRoot => uiFlowRoots[5];
+        internal GameObject DevelopmentDebugRoot => uiFlowRoots[6];
+        internal int ActiveColorTileCount
+        {
+            get
+            {
+                int count = 0;
+                for (int index = 0; index < colorTiles.Length; index++)
+                {
+                    count += colorTiles[index].activeSelf ? 1 : 0;
+                }
+                return count;
+            }
+        }
 
         internal int ActiveGateCount
         {
@@ -167,6 +193,11 @@ namespace ColorGateRunner.Presentation
 
         internal StageGateView GetGate(int index) => gates[index];
         internal Button GetStageButton(int index) => stageButtons[index];
+        internal GameObject GetColorTile(int index) => colorTiles[index];
+        internal Image GetColorTileImage(int index) => colorTileImages[index];
+        internal Text GetColorTileSymbol(int index) => colorTileSymbols[index];
+        internal GameObject GetNextColorMarker(int index) =>
+            nextColorMarkers[index];
 
         internal bool IsPlayerCollider(Collider other)
         {
@@ -224,8 +255,7 @@ namespace ColorGateRunner.Presentation
                 {
                     bool continued = _session.ContinueUsed;
                     _session.CompleteCountdown();
-                    countdownPanel.SetActive(false);
-                    stageHud.SetActive(true);
+                    ApplyUiFlow(MobileUiFlow.Gameplay);
                     if (continued)
                     {
                         player.localRotation = Quaternion.identity;
@@ -328,9 +358,7 @@ namespace ColorGateRunner.Presentation
                 StageCatalog.GetByDisplayNumber(displayNumber));
             _shieldSelected = false;
             _boosterSelected = false;
-            lobbyPanel.SetActive(false);
-            stageSelectPanel.SetActive(false);
-            itemPanel.SetActive(true);
+            ApplyUiFlow(MobileUiFlow.PreRun);
             selectedStageText.text =
                 $"STAGE {displayNumber}\n{_session.Stage.Title}";
             SynchronizeItemSelection();
@@ -373,8 +401,7 @@ namespace ColorGateRunner.Presentation
             }
             ResetRunPresentation();
             BuildInitialGatePool();
-            itemPanel.SetActive(false);
-            countdownPanel.SetActive(true);
+            ApplyUiFlow(MobileUiFlow.Countdown);
             shieldVisual.SetActive(_shieldSelected);
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
@@ -438,7 +465,7 @@ namespace ColorGateRunner.Presentation
             failPanel.SetActive(false);
             _failureDelayRemaining = 0f;
             ApplySafeOverridesToActiveGates();
-            countdownPanel.SetActive(true);
+            ApplyUiFlow(MobileUiFlow.Countdown);
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
         }
@@ -453,7 +480,7 @@ namespace ColorGateRunner.Presentation
             ResetRunPresentation();
             failPanel.SetActive(false);
             clearPanel.SetActive(false);
-            itemPanel.SetActive(true);
+            ApplyUiFlow(MobileUiFlow.PreRun);
             selectedStageText.text =
                 $"STAGE {_selectedStageNumber}\n{_session.Stage.Title}";
             SynchronizeItemSelection();
@@ -472,9 +499,9 @@ namespace ColorGateRunner.Presentation
             ApplyLobbyTier();
             StageDefinition stage =
                 StageCatalog.GetByDisplayNumber(_selectedStageNumber);
-            lobbyStageText.text = LobbyProgression.IsPrototypeComplete(cleared)
-                ? $"PROTOTYPE COMPLETE\nSTAGE 5 · {stage.Title}"
-                : $"STAGE {_selectedStageNumber}\n{stage.Title}";
+            lobbyStageText.text = $"STAGE {_selectedStageNumber}";
+            lobbyStageTitleText.text = stage.Title;
+            lobbyStageDescriptionText.text = stage.Description;
             int clearedCount = 0;
             for (int index = 0; index < cleared.Length; index++)
             {
@@ -484,14 +511,8 @@ namespace ColorGateRunner.Presentation
                 }
             }
             lobbyProgressText.text = $"{clearedCount} / {StageCatalog.Count} CLEARED";
-            lobbyTierText.text = $"LOBBY TIER {_lobbyTier}";
-            lobbyPanel.SetActive(true);
-            stageSelectPanel.SetActive(false);
-            itemPanel.SetActive(false);
-            countdownPanel.SetActive(false);
-            stageHud.SetActive(false);
-            clearPanel.SetActive(false);
-            failPanel.SetActive(false);
+            lobbyTierText.text = $"LOBBY LEVEL {_lobbyTier}";
+            ApplyUiFlow(MobileUiFlow.Lobby);
             RefreshStageButtons();
         }
 
@@ -499,7 +520,7 @@ namespace ColorGateRunner.Presentation
         {
             ShowLobby();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            lobbyPanel.SetActive(false);
+            ApplyUiFlow(MobileUiFlow.Development);
             stageSelectPanel.SetActive(true);
 #endif
         }
@@ -536,8 +557,10 @@ namespace ColorGateRunner.Presentation
                 !trackPool.HasRequiredReferences() || gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 successParticles == null || speedLines == null ||
-                playerTrail == null || lobbyPanel == null ||
-                lobbyStageText == null || lobbyProgressText == null ||
+                playerTrail == null || uiFlowRoots == null ||
+                uiFlowRoots.Length != 7 || lobbyPanel == null ||
+                lobbyStageText == null || lobbyStageTitleText == null ||
+                lobbyStageDescriptionText == null || lobbyProgressText == null ||
                 lobbyTierText == null || lobbyPlayButton == null ||
                 lobbyTierRoots == null || lobbyTierRoots.Length != 4 ||
                 stageSelectPanel == null || stageButtons == null ||
@@ -551,10 +574,13 @@ namespace ColorGateRunner.Presentation
                 backButton == null || countdownPanel == null ||
                 countdownText == null || stageHud == null ||
                 stageHudText == null || progressText == null ||
-                progressFill == null || shieldStatusText == null ||
-                boosterStatusText == null || currentColorText == null ||
-                cycleOrderText == null || nextColorText == null ||
-                boosterMeterFill == null || boosterWarning == null ||
+                progressFill == null || shieldIcon == null ||
+                boosterMeterRoot == null || boosterMeterFill == null ||
+                boosterWarning == null || colorHudPanel == null ||
+                colorTiles == null || colorTiles.Length != 3 ||
+                colorTileImages == null || colorTileImages.Length != 3 ||
+                colorTileSymbols == null || colorTileSymbols.Length != 3 ||
+                nextColorMarkers == null || nextColorMarkers.Length != 3 ||
                 clearPanel == null || clearTitleText == null ||
                 clearDetailsText == null || clearContinueButton == null ||
                 replayButton == null || clearLobbyButton == null ||
@@ -590,8 +616,11 @@ namespace ColorGateRunner.Presentation
             ParticleSystem success,
             ParticleSystem boosterLines,
             TrailRenderer trail,
+            GameObject[] flowRoots,
             GameObject lobby,
             Text lobbyStage,
+            Text lobbyStageTitle,
+            Text lobbyStageDescription,
             Text lobbyProgress,
             Text lobbyTierLabel,
             Button lobbyPlay,
@@ -614,13 +643,15 @@ namespace ColorGateRunner.Presentation
             Text hudStage,
             Text hudProgress,
             Image hudProgressFill,
-            Text hudShield,
-            Text hudBooster,
-            Text hudCurrent,
-            Text hudCycle,
-            Text hudNext,
+            GameObject hudShieldIcon,
+            GameObject hudBoosterMeter,
             Image boosterFill,
             GameObject warning,
+            GameObject colorHud,
+            GameObject[] hudColorTiles,
+            Image[] hudColorTileImages,
+            Text[] hudColorTileSymbols,
+            GameObject[] hudNextMarkers,
             GameObject clear,
             Text clearTitle,
             Text clearDetails,
@@ -649,8 +680,11 @@ namespace ColorGateRunner.Presentation
             successParticles = success;
             speedLines = boosterLines;
             playerTrail = trail;
+            uiFlowRoots = flowRoots;
             lobbyPanel = lobby;
             lobbyStageText = lobbyStage;
+            lobbyStageTitleText = lobbyStageTitle;
+            lobbyStageDescriptionText = lobbyStageDescription;
             lobbyProgressText = lobbyProgress;
             lobbyTierText = lobbyTierLabel;
             lobbyPlayButton = lobbyPlay;
@@ -673,13 +707,15 @@ namespace ColorGateRunner.Presentation
             stageHudText = hudStage;
             progressText = hudProgress;
             progressFill = hudProgressFill;
-            shieldStatusText = hudShield;
-            boosterStatusText = hudBooster;
-            currentColorText = hudCurrent;
-            cycleOrderText = hudCycle;
-            nextColorText = hudNext;
+            shieldIcon = hudShieldIcon;
+            boosterMeterRoot = hudBoosterMeter;
             boosterMeterFill = boosterFill;
             boosterWarning = warning;
+            colorHudPanel = colorHud;
+            colorTiles = hudColorTiles;
+            colorTileImages = hudColorTileImages;
+            colorTileSymbols = hudColorTileSymbols;
+            nextColorMarkers = hudNextMarkers;
             clearPanel = clear;
             clearTitleText = clearTitle;
             clearDetailsText = clearDetails;
@@ -799,7 +835,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             RecordClear();
-            stageHud.SetActive(false);
+            ApplyUiFlow(MobileUiFlow.ClearResult);
             clearPanel.SetActive(false);
             _clearDelayRemaining = ClearPanelDelay;
             player.localScale = Vector3.one * 1.18f;
@@ -847,7 +883,7 @@ namespace ColorGateRunner.Presentation
             player.localScale = Vector3.one * 0.8f;
             shieldVisual.SetActive(false);
             ResetBoosterPresentation();
-            stageHud.SetActive(false);
+            ApplyUiFlow(MobileUiFlow.FailedResult);
             failPanel.SetActive(false);
             _telemetry.Record(
                 "run-end",
@@ -923,6 +959,8 @@ namespace ColorGateRunner.Presentation
                 ParticleSystemStopBehavior.StopEmittingAndClear);
             ResetBoosterPresentation();
             boosterMeterFill.fillAmount = 0f;
+            SetHorizontalFill(boosterMeterFill, 0f);
+            boosterMeterRoot.SetActive(false);
             boosterWarning.SetActive(false);
             for (int index = 0; index < gates.Length; index++)
             {
@@ -939,7 +977,7 @@ namespace ColorGateRunner.Presentation
                 _boosterLaunchPulse = 0.35f;
                 _cameraShakeRemaining = 0.25f;
                 speedLines.Play();
-                playerTrail.emitting = true;
+                playerTrail.emitting = false;
                 gameplayCamera.fieldOfView = BoosterFov;
                 player.localScale = Vector3.one * 1.18f;
             }
@@ -955,6 +993,7 @@ namespace ColorGateRunner.Presentation
             gameplayCamera.fieldOfView = NormalFov;
             boosterWarning.SetActive(false);
             boosterMeterFill.fillAmount = 0f;
+            SetHorizontalFill(boosterMeterFill, 0f);
         }
 
         private void SynchronizeViews()
@@ -975,23 +1014,24 @@ namespace ColorGateRunner.Presentation
             progressText.text =
                 $"{_session.GatesPassed} / {_session.Stage.TargetGateCount}";
             progressFill.fillAmount = _session.Progress;
-            shieldStatusText.text = _session.ShieldActive
-                ? "SHIELD READY"
-                : "SHIELD --";
-            currentColorText.text = $"CURRENT\n{_session.CurrentColor.ToString().ToUpperInvariant()}";
-            cycleOrderText.text = _session.Stage.AllowedColorCount == 3 &&
-                !(_session.Stage.DisplayNumber == 4 &&
-                _session.GatesPassed < _session.Stage.IntroGateCount)
-                ? "RED  >  BLUE  >  GREEN  >  RED"
-                : "RED  >  BLUE  >  RED";
-            nextColorText.text =
-                $"NEXT: {GetNextColor(_session).ToString().ToUpperInvariant()}";
+            SetHorizontalFill(progressFill, _session.Progress);
+            shieldIcon.SetActive(
+                MobileUiPolicy.IsItemIconVisible(
+                    _uiFlow,
+                    _session.ShieldActive ||
+                    (_shieldSelected && !_session.ContinueUsed)));
+            SynchronizeColorHud();
 
             float boosterNormalized = _session.Items.Booster
                 ? _session.BoosterDistanceRemaining /
                     _session.Stage.BoosterDistance
                 : 0f;
             boosterMeterFill.fillAmount = Mathf.Clamp01(boosterNormalized);
+            SetHorizontalFill(boosterMeterFill, boosterNormalized);
+            boosterMeterRoot.SetActive(
+                MobileUiPolicy.IsBoosterMeterVisible(
+                    _uiFlow,
+                    _session.BoosterActive));
             boosterWarning.SetActive(
                 _session.BoosterActive &&
                 boosterNormalized <= BoosterWarningThreshold);
@@ -1001,17 +1041,13 @@ namespace ColorGateRunner.Presentation
                 _boosterExitOverridesApplied = true;
                 ApplySafeOverridesToActiveGates();
             }
-            boosterStatusText.text = _session.BoosterActive
-                ? "BOOSTER"
-                : _session.BoosterExitActive ? "BOOST END" : string.Empty;
-
             if (_session.BoosterPresentationStrength > 0f)
             {
                 if (!speedLines.isPlaying)
                 {
                     speedLines.Play();
                 }
-                playerTrail.emitting = true;
+                playerTrail.emitting = false;
                 float strength = _session.BoosterPresentationStrength;
                 if (_session.BoosterActive &&
                     boosterNormalized <= BoosterWarningThreshold)
@@ -1248,7 +1284,7 @@ namespace ColorGateRunner.Presentation
         {
             for (int index = 0; index < lobbyTierRoots.Length; index++)
             {
-                lobbyTierRoots[index].SetActive(index <= _lobbyTier);
+                lobbyTierRoots[index].SetActive(index == _lobbyTier);
             }
         }
 
@@ -1275,20 +1311,89 @@ namespace ColorGateRunner.Presentation
             return redMaterial;
         }
 
-        private static RunnerColor GetNextColor(StageSession session)
+        private void ApplyUiFlow(MobileUiFlow flow)
         {
-            int count = session.Stage.DisplayNumber == 4 &&
-                session.GatesPassed < session.Stage.IntroGateCount
-                ? 2
-                : session.Stage.AllowedColorCount;
-            for (int index = 0; index < count; index++)
+            _uiFlow = flow;
+            MobileUiVisibility visibility = MobileUiPolicy.GetVisibility(flow);
+            uiFlowRoots[0].SetActive(visibility.Lobby);
+            uiFlowRoots[1].SetActive(visibility.PreRun);
+            uiFlowRoots[2].SetActive(visibility.GameplayHud);
+            uiFlowRoots[3].SetActive(visibility.Countdown);
+            uiFlowRoots[4].SetActive(visibility.ClearResult);
+            uiFlowRoots[5].SetActive(visibility.FailedResult);
+            uiFlowRoots[6].SetActive(visibility.Development);
+            lobbyPanel.SetActive(visibility.Lobby);
+            itemPanel.SetActive(visibility.PreRun);
+            stageHud.SetActive(visibility.GameplayHud);
+            countdownPanel.SetActive(visibility.Countdown);
+            stageSelectPanel.SetActive(visibility.Development);
+            if (!visibility.ClearResult)
             {
-                if (session.Stage.GetAllowedColor(index) == session.CurrentColor)
-                {
-                    return session.Stage.GetAllowedColor((index + 1) % count);
-                }
+                clearPanel.SetActive(false);
             }
-            return session.Stage.GetAllowedColor(0);
+            if (!visibility.FailedResult)
+            {
+                failPanel.SetActive(false);
+            }
+        }
+
+        private void SynchronizeColorHud()
+        {
+            int activeCount = MobileUiPolicy.GetActiveColorCount(
+                _session.Stage,
+                _session.GatesPassed);
+            RunnerColor next = MobileUiPolicy.GetNextColor(
+                _session.Stage,
+                _session.GatesPassed,
+                _session.CurrentColor);
+            for (int index = 0; index < colorTiles.Length; index++)
+            {
+                bool active = index < activeCount;
+                colorTiles[index].SetActive(active);
+                if (!active)
+                {
+                    nextColorMarkers[index].SetActive(false);
+                    continue;
+                }
+
+                RunnerColor color = MobileUiPolicy.GetColorAt(
+                    _session.Stage,
+                    _session.GatesPassed,
+                    index);
+                bool current = color == _session.CurrentColor;
+                bool isNext = color == next;
+                colorTileImages[index].color =
+                    GetMaterial(color).color;
+                colorTileImages[index].canvasRenderer.SetAlpha(
+                    current ? 1f : 0.72f);
+                colorTiles[index].transform.localScale =
+                    Vector3.one * (current ? 1.16f : 0.86f);
+                colorTileSymbols[index].text = GetColorSymbol(color);
+                nextColorMarkers[index].SetActive(isNext);
+            }
+        }
+
+        private static string GetColorSymbol(RunnerColor color)
+        {
+            RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(color);
+            if (symbol == RunnerColorSymbol.Circle)
+            {
+                return "●";
+            }
+            if (symbol == RunnerColorSymbol.Square)
+            {
+                return "■";
+            }
+            return "▲";
+        }
+
+        private static void SetHorizontalFill(Image image, float amount)
+        {
+            RectTransform rect = image.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = new Vector2(Mathf.Clamp01(amount), 1f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
         private static string FormatItems(StartItemSelection items)

@@ -99,3 +99,72 @@ The five-entry picker remains hidden for development.
   the same run resuming, never as a new scene or distant safe-section spawn.
 - The doubled movement scale does not add camera rotation, follow smoothing,
   post-processing, or new effect assets.
+
+## Information hierarchy
+
+The Step 9C player-facing implementation uses this strict order:
+
+1. Upcoming gate.
+2. Player current color.
+3. Next tap color.
+4. Stage progress.
+5. Relevant item status.
+6. Decorative information.
+
+The central recognition corridor is the middle 36% of the screen from the
+lower player-reading region through the upcoming-gate region. Normal gameplay
+UI and particles must not enter it. The compact color HUD sits at the upper
+left, while stage progress and conditional item status remain inside one top
+panel.
+
+## Forbidden player-facing presentation
+
+- Gameplay HUD visible in the Lobby.
+- Overlapping labels.
+- Unexplained horizontal bars.
+- Debug tier controls.
+- Full color-order sentences over gameplay.
+- Centered UI covering gates.
+- Permanent item status text.
+- Normal gameplay particles obscuring the recognition corridor.
+
+`BASE`, `UP 1`, `UP 2`, and `UP 3` are not player-facing controls or labels.
+Lobby progression changes one non-interactive environment treatment at a
+time. The hidden stage picker belongs only under `DevelopmentDebugRoot`.
+
+## Graybox quality rule
+
+A graybox may use primitive assets, but it must still provide:
+
+- Clear hierarchy.
+- Correct spacing.
+- No overlap.
+- Immediate function recognition.
+- Consistent margins.
+- Readable contrast.
+- Mobile Safe Area compliance.
+
+These rules are an implementation contract. The idempotent Scene Builder,
+structural checks, resolution tests, and visual evidence must enforce them;
+they are not advisory.
+
+## Step 9C mobile UI contract
+
+- The seven generated roots are `LobbyRoot`, `PreRunRoot`,
+  `GameplayHudRoot`, `CountdownRoot`, `ClearResultRoot`,
+  `FailedResultRoot`, and `DevelopmentDebugRoot`. Countdown is the only
+  normal overlay that accompanies the gameplay HUD.
+- Lobby contains a title, separate stage number/title/description, one
+  dominant Play button, compact progress, and exactly one active
+  non-interactive environment tier.
+- Color instructions use read-only tiles. Red uses a circle, Blue a square,
+  and Green a triangle. The current tile is largest, the next tile is marked,
+  and unavailable colors are hidden. Gates repeat the same symbol on their
+  visible top crossbar.
+- Shield is a small icon only while selected or active. Booster uses a
+  labeled `BOOST` bar only while active; it is inside the top panel and warns
+  during its final 20 percent.
+- Normal play has no speed-line emission. Booster uses pooled stretched
+  emitters at the left and right camera edges. The former central player
+  trail is disabled. Retry, Continue, failure, clear, and Booster exit clear
+  all pooled effects.

@@ -123,6 +123,26 @@ not exposed by the main scene. Optional Endless mode, direct color buttons,
 consumable economies, extra mechanics/colors, audio or BPM placement, ads,
 analytics, networking, and online ranking are deferred.
 
+## Step 9C player-facing presentation
+
+Presentation mirrors the existing controller and Core states without owning
+stage progress, color, item, Continue, or gate rules.
+
+- Lobby, PreRun, gameplay HUD, Countdown, clear, failure, and development
+  navigation have separate generated roots. Exactly one primary root is
+  visible; Countdown overlays the gameplay HUD.
+- The Lobby exposes only the current stage path. Its environment tier is
+  derived from persisted clears and is not selectable.
+- Gameplay color guidance is a two- or three-tile read-only cycle. The active
+  stage definition and Stage 4 introduction progress determine which colors
+  are available. Tap input and cycle behavior are unchanged.
+- The top HUD owns stage progress plus relevant Shield and Booster status.
+  Booster status is absent before activation and after its deterministic
+  distance completes.
+- UI, gate symbols, and edge-only Booster presentation improve recognition
+  without changing stage balance, cadence, speed, item power, Continue,
+  simulation, or sequence behavior.
+
 ## Simulation and telemetry
 
 Core simulation uses the same stage/session/gate/item/Continue rules as play.

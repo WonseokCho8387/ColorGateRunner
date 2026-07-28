@@ -492,3 +492,67 @@ emotional achievement, replay motivation, or perceived fairness.
   automated cadence preservation does not establish comfort or fairness.
 - Confirm the first three gates after Booster and Continue are readable, the
   camera return is continuous, and no Shield/Booster presentation reappears.
+
+## Step 9C mobile UI readability acceptance mapping
+
+### EditMode automated
+
+- Color tile policy: `TwoColorHud_UsesStageOrder`,
+  `ThreeColorHud_UsesStageOrderAfterIntroduction`,
+  `ThreeColorIntroduction_ShowsTwoTilesUntilIntroductionEnds`,
+  `CurrentColor_RemainsAnActiveTile`, and `NextColor_FollowsActiveCycle`.
+- Presentation policy: `PrimaryFlow_ActivatesExactlyOneRoot`,
+  `Countdown_UsesGameplayHudWithCountdownOverlay`,
+  `BoosterMeter_OnlyAppearsDuringActiveGameplay`,
+  `ItemIcon_OnlyAppearsWhenRelevant`, and
+  `ColorSymbolMapping_IsStable`.
+- Existing progression mapping remains covered by
+  `LobbyTierMapping_UsesExistingProgressionThresholds`.
+
+### PlayMode automated
+
+- Root and Lobby separation: `Lobby_ContainsNoGameplayHudElements`,
+  `Lobby_ContainsNoBaseOrUpgradeButtons`,
+  `Lobby_HasOneDominantPlayButton`, `Gameplay_HidesLobbyRoot`, and
+  `Gameplay_ShowsOneColorHud`.
+- Color HUD integration: `CurrentColorHud_UpdatesAfterTap`,
+  `TwoColorStage_ShowsExactlyTwoColorTiles`, and
+  `ThreeColorStage_ShowsExactlyThreeColorTiles`.
+- Conditional item presentation:
+  `BoosterBar_IsHiddenBeforeBooster`,
+  `BoosterBar_IsVisibleOnlyDuringBooster`,
+  `BlueHorizontalCenterBar_NoLongerExists`,
+  `NormalGameplay_HasNoCentralSpeedLineObstruction`,
+  `BoosterEffects_ClearAfterEnding`,
+  `Continue_RestoresCorrectHudState`, and
+  `Retry_RestoresCorrectHudState`.
+- Layout and reuse: `ReferenceResolutions_PassOverlapBounds`,
+  `PlayerUi_RemainsInsideSimulatedNotchSafeArea`, and
+  `SceneBuilderRerun_CreatesNoDuplicateRoots`.
+- `CaptureStep9CReferenceScreenshots` is opt-in visual evidence and executes
+  only when `COLOR_GATE_CAPTURE_VISUALS=1`; normal automated validation does
+  not claim pixel quality.
+
+### Structural validation
+
+- The builder runs twice, validates all seven unique flow roots, three unique
+  color tiles and markers, one top Booster meter, one Shield icon, one
+  EventSystem, six gates with left/right/top geometry and color symbols, six
+  track segments, assigned references, no missing scripts, Portrait
+  orientation, and no active post-processing.
+- Obsolete `CurrentColorText`, `ColorCycleOrderText`, `NextColorText`, and
+  Lobby tier-banner objects must be absent from the generated scene.
+
+### Manual mobile check
+
+- At each reference resolution and on one notched physical or simulated
+  device, verify text is not clipped, Play is dominant, Lobby and gameplay
+  HUD never leak into each other, and the upper-left color tile panel is
+  readable with one glance.
+- Verify the top gate crossbar and redundant symbols remain readable against
+  track, Shield, and Booster effects at real device brightness.
+- Verify Booster effects read as motion at screen edges without resembling UI
+  or entering the center recognition corridor, and that no particles remain
+  after exit, Retry, or Continue.
+- Human review must still judge hierarchy, contrast, comfort, and visual
+  quality; screenshots and bounds tests cannot establish those qualities.

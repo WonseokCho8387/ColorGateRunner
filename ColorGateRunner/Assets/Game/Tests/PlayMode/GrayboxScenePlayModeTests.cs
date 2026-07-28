@@ -51,11 +51,13 @@ namespace ColorGateRunner.Tests.PlayMode
         public void ColorHud_UpdatesCurrentAndNextAfterTap()
         {
             StartPlaying(false, false);
-            Assert.That(_controller.CurrentColorText.text, Does.Contain("RED"));
-            Assert.That(_controller.NextColorText.text, Does.Contain("BLUE"));
+            Assert.That(_controller.GetColorTile(0).transform.localScale.x,
+                Is.GreaterThan(_controller.GetColorTile(1).transform.localScale.x));
+            Assert.That(_controller.GetNextColorMarker(1).activeSelf, Is.True);
             _controller.HandleGameplayTap();
-            Assert.That(_controller.CurrentColorText.text, Does.Contain("BLUE"));
-            Assert.That(_controller.NextColorText.text, Does.Contain("RED"));
+            Assert.That(_controller.GetColorTile(1).transform.localScale.x,
+                Is.GreaterThan(_controller.GetColorTile(0).transform.localScale.x));
+            Assert.That(_controller.GetNextColorMarker(0).activeSelf, Is.True);
         }
 
         [Test]
@@ -66,7 +68,8 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SelectStage(5);
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
-            Assert.That(_controller.CycleOrderText.text, Does.Contain("GREEN"));
+            Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(3));
+            Assert.That(_controller.GetColorTileSymbol(2).text, Is.EqualTo("▲"));
         }
 
         [Test]
@@ -627,6 +630,254 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.StartSelectedStage();
         }
 
+        [Test]
+        public void Lobby_ContainsNoGameplayHudElements()
+        {
+            Assert.That(_controller.LobbyRoot.activeSelf, Is.True);
+            Assert.That(_controller.GameplayHudRoot.activeSelf, Is.False);
+            Assert.That(_controller.CountdownRoot.activeSelf, Is.False);
+            Assert.That(_controller.SpeedLines.isPlaying, Is.False);
+        }
+
+        [Test]
+        public void Lobby_ContainsNoBaseOrUpgradeButtons()
+        {
+            Assert.That(CountNamed("LobbyTierBanner_0"), Is.Zero);
+            Assert.That(CountNamed("LobbyTierBanner_1"), Is.Zero);
+            Assert.That(CountNamed("LobbyTierBanner_2"), Is.Zero);
+            Assert.That(CountNamed("LobbyTierBanner_3"), Is.Zero);
+        }
+
+        [Test]
+        public void Lobby_HasOneDominantPlayButton()
+        {
+            Assert.That(CountNamed("LobbyPlayButton"), Is.EqualTo(1));
+            RectTransform button = FindTransform("LobbyPlayButton")
+                .GetComponent<RectTransform>();
+            RectTransform lobby = _controller.LobbyPanel
+                .GetComponent<RectTransform>();
+            Assert.That(button.anchorMax.x - button.anchorMin.x,
+                Is.GreaterThan(0.6f));
+            Assert.That(lobby, Is.Not.Null);
+        }
+
+        [Test]
+        public void Gameplay_HidesLobbyRoot()
+        {
+            StartPlaying(false, false);
+
+            Assert.That(_controller.LobbyRoot.activeSelf, Is.False);
+            AssertPrimaryFlow(MobileUiFlow.Gameplay);
+        }
+
+        [Test]
+        public void Gameplay_ShowsOneColorHud()
+        {
+            StartPlaying(false, false);
+
+            Assert.That(CountNamed("ColorHudPanel"), Is.EqualTo(1));
+            Assert.That(FindTransform("ColorHudPanel").gameObject.activeInHierarchy,
+                Is.True);
+        }
+
+        [Test]
+        public void CurrentColorHud_UpdatesAfterTap()
+        {
+            StartPlaying(false, false);
+            float redScale = _controller.GetColorTile(0).transform.localScale.x;
+
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.GetColorTile(0).transform.localScale.x,
+                Is.LessThan(redScale));
+            Assert.That(_controller.GetColorTile(1).transform.localScale.x,
+                Is.GreaterThan(1f));
+        }
+
+        [Test]
+        public void TwoColorStage_ShowsExactlyTwoColorTiles()
+        {
+            StartPlaying(false, false);
+            Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ThreeColorStage_ShowsExactlyThreeColorTiles()
+        {
+            _store.HighestUnlocked = 5;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(5);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+
+            Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void BoosterBar_IsHiddenBeforeBooster()
+        {
+            StartPlaying(false, false);
+            Assert.That(_controller.BoosterMeterRoot.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void BoosterBar_IsVisibleOnlyDuringBooster()
+        {
+            StartPlaying(false, true);
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+            Assert.That(_controller.BoosterMeterRoot.activeSelf, Is.True);
+
+            _controller.Session.Advance(
+                0.1f,
+                _controller.Session.Stage.BoosterDistance + 1f);
+            _controller.Tick(0f);
+
+            Assert.That(_controller.Session.BoosterActive, Is.False);
+            Assert.That(_controller.BoosterMeterRoot.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void BlueHorizontalCenterBar_NoLongerExists()
+        {
+            Transform meter = FindTransform("BoosterMeter");
+            Assert.That(meter.IsChildOf(_controller.StageHud.transform), Is.True);
+            RectTransform rect = meter.GetComponent<RectTransform>();
+            Assert.That(rect.anchorMin.y, Is.GreaterThanOrEqualTo(0f));
+            Assert.That(CountNamed("CurrentColorText"), Is.Zero);
+            Assert.That(CountNamed("ColorCycleOrderText"), Is.Zero);
+            Assert.That(CountNamed("NextColorText"), Is.Zero);
+        }
+
+        [Test]
+        public void NormalGameplay_HasNoCentralSpeedLineObstruction()
+        {
+            StartPlaying(false, false);
+            ParticleSystem[] systems =
+                _controller.SpeedLines.GetComponentsInChildren<ParticleSystem>(true);
+
+            for (int index = 0; index < systems.Length; index++)
+            {
+                Assert.That(systems[index].isPlaying, Is.False);
+            }
+            Assert.That(
+                Mathf.Abs(FindTransform("BoosterSpeedLinesLeft").localPosition.x),
+                Is.GreaterThanOrEqualTo(3f));
+            Assert.That(
+                Mathf.Abs(FindTransform("BoosterSpeedLinesRight").localPosition.x),
+                Is.GreaterThanOrEqualTo(3f));
+        }
+
+        [Test]
+        public void BoosterEffects_ClearAfterEnding()
+        {
+            StartPlaying(false, true);
+            _controller.Session.Advance(
+                0.1f,
+                _controller.Session.Stage.BoosterDistance + 1f);
+            _controller.Tick(1f);
+
+            ParticleSystem[] systems =
+                _controller.SpeedLines.GetComponentsInChildren<ParticleSystem>(true);
+            for (int index = 0; index < systems.Length; index++)
+            {
+                Assert.That(systems[index].isPlaying, Is.False);
+                Assert.That(systems[index].particleCount, Is.Zero);
+            }
+        }
+
+        [Test]
+        public void Continue_RestoresCorrectHudState()
+        {
+            StartPlaying(false, false);
+            Fail();
+            _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
+
+            _controller.ContinueAfterFailure();
+
+            AssertPrimaryFlow(MobileUiFlow.Countdown);
+            Assert.That(_controller.GameplayHudRoot.activeSelf, Is.True);
+            Assert.That(_controller.CountdownRoot.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void Retry_RestoresCorrectHudState()
+        {
+            StartPlaying(false, false);
+            Fail();
+
+            _controller.RetryToItemSelection();
+
+            AssertPrimaryFlow(MobileUiFlow.PreRun);
+            Assert.That(_controller.GameplayHudRoot.activeSelf, Is.False);
+            Assert.That(_controller.BoosterMeterRoot.activeSelf, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator ReferenceResolutions_PassOverlapBounds()
+        {
+            Vector2Int[] resolutions =
+            {
+                new Vector2Int(1080, 1920),
+                new Vector2Int(1170, 2532),
+                new Vector2Int(1080, 2400),
+                new Vector2Int(1440, 3200)
+            };
+            for (int index = 0; index < resolutions.Length; index++)
+            {
+                Screen.SetResolution(
+                    resolutions[index].x,
+                    resolutions[index].y,
+                    false);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                AssertNoOverlap("LobbyTitle", "LobbyCurrentStage");
+                AssertNoOverlap("LobbyCurrentStage", "LobbyStageTitle");
+                AssertNoOverlap("LobbyStageTitle", "LobbyStageDescription");
+                AssertNoOverlap("LobbyStageDescription", "LobbyProgress");
+                AssertNoOverlap("LobbyProgress", "LobbyPlayButton");
+            }
+        }
+
+        [Test]
+        public void PlayerUi_RemainsInsideSimulatedNotchSafeArea()
+        {
+            SafeAreaLayout layout = FindTransform("SafeAreaRoot")
+                .GetComponent<SafeAreaLayout>();
+            layout.ApplyForTests(
+                new Rect(0f, 120f, 1080f, 2160f),
+                1080,
+                2400);
+            Canvas.ForceUpdateCanvases();
+
+            AssertInsideSafeArea(_controller.LobbyPanel.transform);
+            AssertInsideSafeArea(FindTransform("LobbyPlayButton"));
+            AssertInsideSafeArea(_controller.StageHud.transform);
+            AssertInsideSafeArea(FindTransform("ColorHudPanel"));
+            layout.ClearTestOverride();
+        }
+
+        [Test]
+        public void SceneBuilderRerun_CreatesNoDuplicateRoots()
+        {
+            string[] roots =
+            {
+                "LobbyRoot",
+                "PreRunRoot",
+                "GameplayHudRoot",
+                "CountdownRoot",
+                "ClearResultRoot",
+                "FailedResultRoot",
+                "DevelopmentDebugRoot"
+            };
+            for (int index = 0; index < roots.Length; index++)
+            {
+                Assert.That(CountNamed(roots[index]), Is.EqualTo(1));
+            }
+            Assert.That(CountNamed("EventSystem"), Is.EqualTo(1));
+            Assert.That(CountNamed("ColorHudPanel"), Is.EqualTo(1));
+            Assert.That(CountNamed("BoosterMeter"), Is.EqualTo(1));
+        }
+
         private void StartPlaying(bool shield, bool booster)
         {
             SelectItemsAndStart(shield, booster);
@@ -722,6 +973,69 @@ namespace ColorGateRunner.Tests.PlayMode
             Vector3 position = _controller.PlayerTransform.position;
             position.z = _controller.Goal.transform.position.z - 1f;
             _controller.PlayerTransform.position = position;
+        }
+
+        private void AssertPrimaryFlow(MobileUiFlow expected)
+        {
+            Assert.That(_controller.UiFlow, Is.EqualTo(expected));
+            int activePrimaryRoots = 0;
+            activePrimaryRoots += _controller.LobbyRoot.activeSelf ? 1 : 0;
+            activePrimaryRoots += _controller.PreRunRoot.activeSelf ? 1 : 0;
+            activePrimaryRoots += _controller.GameplayHudRoot.activeSelf ? 1 : 0;
+            activePrimaryRoots += _controller.ClearResultRoot.activeSelf ? 1 : 0;
+            activePrimaryRoots += _controller.FailedResultRoot.activeSelf ? 1 : 0;
+            activePrimaryRoots += _controller.DevelopmentDebugRoot.activeSelf ? 1 : 0;
+            Assert.That(activePrimaryRoots, Is.EqualTo(1));
+        }
+
+        private static Transform FindTransform(string value)
+        {
+            Transform[] transforms =
+                Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
+            for (int index = 0; index < transforms.Length; index++)
+            {
+                if (transforms[index].name == value)
+                {
+                    return transforms[index];
+                }
+            }
+            Assert.Fail($"Missing transform: {value}");
+            return null;
+        }
+
+        private static void AssertNoOverlap(string firstName, string secondName)
+        {
+            Rect first = GetWorldRect(
+                FindTransform(firstName).GetComponent<RectTransform>());
+            Rect second = GetWorldRect(
+                FindTransform(secondName).GetComponent<RectTransform>());
+            Assert.That(
+                first.Overlaps(second),
+                Is.False,
+                $"{firstName} overlaps {secondName}.");
+        }
+
+        private static void AssertInsideSafeArea(Transform child)
+        {
+            Rect safe = GetWorldRect(
+                FindTransform("SafeAreaRoot").GetComponent<RectTransform>());
+            Rect content = GetWorldRect(child.GetComponent<RectTransform>());
+            const float tolerance = 1f;
+            Assert.That(content.xMin, Is.GreaterThanOrEqualTo(safe.xMin - tolerance));
+            Assert.That(content.xMax, Is.LessThanOrEqualTo(safe.xMax + tolerance));
+            Assert.That(content.yMin, Is.GreaterThanOrEqualTo(safe.yMin - tolerance));
+            Assert.That(content.yMax, Is.LessThanOrEqualTo(safe.yMax + tolerance));
+        }
+
+        private static Rect GetWorldRect(RectTransform rect)
+        {
+            Vector3[] corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            return Rect.MinMaxRect(
+                corners[0].x,
+                corners[0].y,
+                corners[2].x,
+                corners[2].y);
         }
 
         private static int CountNamed(string value)

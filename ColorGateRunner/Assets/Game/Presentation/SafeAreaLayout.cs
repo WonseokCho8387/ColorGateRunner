@@ -8,6 +8,7 @@ namespace ColorGateRunner.Presentation
         private RectTransform _rectTransform;
         private Rect _lastSafeArea;
         private Vector2Int _lastScreenSize;
+        private bool _testOverrideActive;
 
         private void Awake()
         {
@@ -17,6 +18,25 @@ namespace ColorGateRunner.Presentation
 
         private void Update()
         {
+            if (!_testOverrideActive)
+            {
+                ApplyIfChanged();
+            }
+        }
+
+        internal void ApplyForTests(
+            Rect safeArea,
+            int screenWidth,
+            int screenHeight)
+        {
+            _testOverrideActive = true;
+            Apply(safeArea, screenWidth, screenHeight);
+        }
+
+        internal void ClearTestOverride()
+        {
+            _testOverrideActive = false;
+            _lastScreenSize = default;
             ApplyIfChanged();
         }
 
@@ -51,18 +71,23 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
+            Apply(safeArea, screenSize.x, screenSize.y);
+            _lastSafeArea = safeArea;
+            _lastScreenSize = screenSize;
+        }
+
+        private void Apply(Rect safeArea, int screenWidth, int screenHeight)
+        {
             CalculateAnchors(
                 safeArea,
-                screenSize.x,
-                screenSize.y,
+                screenWidth,
+                screenHeight,
                 out Vector2 anchorMin,
                 out Vector2 anchorMax);
             _rectTransform.anchorMin = anchorMin;
             _rectTransform.anchorMax = anchorMax;
             _rectTransform.offsetMin = Vector2.zero;
             _rectTransform.offsetMax = Vector2.zero;
-            _lastSafeArea = safeArea;
-            _lastScreenSize = screenSize;
         }
     }
 }

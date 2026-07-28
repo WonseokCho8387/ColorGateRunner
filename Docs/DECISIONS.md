@@ -412,3 +412,39 @@ Status: Active
   distances, transform displacement, index continuity, sequence cursors, and
   first-three-gate post-transition failure rates. These are mechanical
   continuity measurements and do not claim perceptual smoothness.
+
+## Step 9C mobile UI readability and art-direction integration
+
+Status: Active
+
+- The old player-facing UI hierarchy is Superseded. Generated UI now uses
+  seven explicit roots: `LobbyRoot`, `PreRunRoot`, `GameplayHudRoot`,
+  `CountdownRoot`, `ClearResultRoot`, `FailedResultRoot`, and
+  `DevelopmentDebugRoot`. Countdown deliberately overlays the gameplay HUD;
+  other player-facing flows show one primary root.
+- The unexplained blue horizontal bar was the Booster distance meter. It was
+  always present under `SafeAreaRoot` at near-full width. It now lives inside
+  the compact top HUD, is labeled `BOOST`, and is active only while Core says
+  Booster is active.
+- The Step 9A decision to show current color, full cycle order, and next color
+  as sentences is Superseded. `MobileUiPolicy` derives two or three ordered
+  read-only tiles from `StageDefinition` and stage progress. Red/circle,
+  Blue/square, and Green/triangle are fixed accessibility mappings. Current
+  is largest and next is marked.
+- Lobby tier thresholds remain unchanged. Only the derived active tier
+  environment is visible; the `BASE` and `UP 1` through `UP 3` labels are
+  removed. The development picker stays isolated and hidden.
+- The recognition corridor is reserved for the runner and upcoming gates.
+  Color tiles remain upper-left, stage/item information remains at the top,
+  normal speed-line emission and the former central player trail are
+  disabled. Booster uses two fixed pooled edge emitters and fully clears them
+  on exit and flow reset.
+- Gate logic is unchanged. A generated circle, square, or triangle repeats
+  the tile mapping on each pooled gate's top crossbar for redundant color
+  recognition.
+- Safe Area and layout evidence targets `1080x1920`, `1170x2532`,
+  `1080x2400`, and `1440x3200`, plus a simulated 1080x2400 top-notch inset.
+  Screenshots are evidence for human review, not proof of visual quality.
+- Stage definitions, movement scale, cadence, item powers, Continue behavior,
+  deterministic sequences, simulation profiles, packages, input, and
+  unrelated ProjectSettings remain unchanged.
