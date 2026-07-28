@@ -19,8 +19,11 @@ namespace ColorGateRunner.Presentation
         private Quaternion[] _partRotations;
         private Vector3[] _partScales;
         private bool _boosterDestroyed;
+        private int _planIndex = -1;
 
         internal RunnerColor AssignedColor { get; private set; }
+        internal GatePlan ActivePlan { get; private set; }
+        internal int PlanIndex => _planIndex;
         internal bool HasResolved => _resolved;
         internal bool ReactionActive => _reactionRemaining > 0f;
         internal bool BoosterDestroyed => _boosterDestroyed;
@@ -52,11 +55,14 @@ namespace ColorGateRunner.Presentation
         }
 
         internal void Activate(
-            RunnerColor color,
+            GatePlan plan,
+            int planIndex,
             Material material,
             float worldZ)
         {
-            AssignedColor = color;
+            ActivePlan = plan;
+            _planIndex = planIndex;
+            AssignedColor = plan.Color;
             _assignedMaterial = material;
             _resolved = false;
             _reactionRemaining = 0f;
@@ -69,6 +75,21 @@ namespace ColorGateRunner.Presentation
             transform.localScale = _baseScale;
             ResetParts();
             ApplyMaterial(material);
+        }
+
+        internal void ApplyTemporaryPlan(
+            GatePlan plan,
+            Material material)
+        {
+            ActivePlan = plan;
+            AssignedColor = plan.Color;
+            _assignedMaterial = material;
+            ApplyMaterial(material);
+        }
+
+        internal Transform GetPartTransform(int index)
+        {
+            return gateRenderers[index].transform;
         }
 
         internal void ShowSuccess()
@@ -126,6 +147,8 @@ namespace ColorGateRunner.Presentation
             _resolved = false;
             _reactionRemaining = 0f;
             _boosterDestroyed = false;
+            ActivePlan = default;
+            _planIndex = -1;
             transform.localScale = Vector3.one;
             ResetParts();
             gameObject.SetActive(false);

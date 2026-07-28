@@ -113,7 +113,6 @@ namespace ColorGateRunner.Tests.EditMode
 
             GatePlan first = session.GetNextGatePlan();
             Assert.That(first.Color, Is.EqualTo(color));
-            Assert.That(first.TimeToGate, Is.GreaterThanOrEqualTo(1.35f));
             Assert.That(session.ContinueProtectionActive, Is.True);
             Assert.That(session.SafeGateCountRemaining, Is.EqualTo(2));
         }
@@ -147,10 +146,12 @@ namespace ColorGateRunner.Tests.EditMode
 
             GatePlan first = session.GetNextGatePlan();
             Assert.That(first.Color, Is.EqualTo(session.CurrentColor));
-            Assert.That(first.TimeToGate, Is.GreaterThanOrEqualTo(1.35f));
             session.ResolveGate(first.Color);
             GatePlan second = session.GetNextGatePlan();
-            session.TryToggleColor();
+            if (session.CurrentColor != second.Color)
+            {
+                session.TryToggleColor();
+            }
             Assert.That(session.CurrentColor, Is.EqualTo(second.Color));
         }
 

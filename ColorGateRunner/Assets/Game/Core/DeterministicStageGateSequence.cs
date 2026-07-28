@@ -16,6 +16,8 @@ namespace ColorGateRunner.Core
             Reset();
         }
 
+        public int Cursor { get; private set; }
+
         public GatePlan GetPlan(int gateIndex)
         {
             if (gateIndex < 0)
@@ -42,6 +44,7 @@ namespace ColorGateRunner.Core
             }
             float speed = Lerp(_stage.StartingSpeed, _stage.MaximumSpeed, progress);
             float spacing = speed * cadence;
+            Cursor++;
 
             return new GatePlan(
                 color,
@@ -59,6 +62,7 @@ namespace ColorGateRunner.Core
             _previousColor = RunnerColor.Red;
             _colorRunLength = 0;
             _hasPreviousColor = false;
+            Cursor = 0;
         }
 
         private RunnerColor ChooseColor(int gateIndex, uint raw)

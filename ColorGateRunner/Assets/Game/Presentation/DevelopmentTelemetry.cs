@@ -26,7 +26,7 @@ namespace ColorGateRunner.Presentation
             if (_enabled)
             {
                 _rows.AppendLine(
-                    "event,stage,seed,shield,booster,continued,time,gate,pattern,requiredColor,playerColor,reactionMargin,outcome,shieldActive,boosterActive");
+                    "event,stage,seed,shield,booster,continued,time,gate,pattern,plannedColor,requiredColor,colorOverride,playerColor,reactionMargin,outcome,shieldActive,boosterActive");
             }
         }
 
@@ -56,7 +56,9 @@ namespace ColorGateRunner.Presentation
                     CultureInfo.InvariantCulture)).Append(',')
                 .Append(gateIndex).Append(',')
                 .Append(plan.Pattern).Append(',')
+                .Append(plan.PlannedColor).Append(',')
                 .Append(plan.Color).Append(',')
+                .Append(plan.HasTemporaryColorOverride).Append(',')
                 .Append(session.CurrentColor).Append(',')
                 .Append(reactionMargin.ToString(
                     "0.###",

@@ -8,7 +8,8 @@ namespace ColorGateRunner.Presentation
     public sealed class StageSceneController : MonoBehaviour
     {
         private const float CountdownDuration = 3f;
-        private const float GoalDistance = 10f;
+        private const float InitialGateLeadDistance = 24f;
+        private const float GoalDistance = 20f;
         private const float FailurePanelDelay = 1f;
         private const float ClearPanelDelay = 1.2f;
         private const float BoosterWarningThreshold = 0.2f;
@@ -85,7 +86,6 @@ namespace ColorGateRunner.Presentation
         private IStageProgressStore _progressStore;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
-        private DeterministicStageGateSequence _layoutSequence;
         private int _highestUnlocked;
         private int _selectedStageNumber = 1;
         private int _lobbyTier;
@@ -104,6 +104,9 @@ namespace ColorGateRunner.Presentation
         private Quaternion _cameraStartRotation;
         private Vector3 _cameraFollowOffset;
         private bool _clearRecorded;
+        private bool _boosterExitOverridesApplied;
+        private StageGateView _failedGate;
+        private ContinueSnapshot _continueSnapshot;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -139,6 +142,12 @@ namespace ColorGateRunner.Presentation
         internal int GatePoolSize => gates == null ? 0 : gates.Length;
         internal float FailurePanelDelaySeconds => FailurePanelDelay;
         internal float ClearPanelDelaySeconds => ClearPanelDelay;
+        internal int NextPlanIndex => _nextPlanIndex;
+        internal float NextGateZ => _nextGateZ;
+        internal ContinueSnapshot FailureSnapshot => _continueSnapshot;
+        internal TrackPoolController TrackPool => trackPool;
+        internal bool BoosterExitOverridesApplied =>
+            _boosterExitOverridesApplied;
 
         internal int ActiveGateCount
         {
@@ -213,10 +222,27 @@ namespace ColorGateRunner.Presentation
                     _session.ShieldActive);
                 if (_countdownRemaining <= 0f)
                 {
+                    bool continued = _session.ContinueUsed;
                     _session.CompleteCountdown();
                     countdownPanel.SetActive(false);
                     stageHud.SetActive(true);
-                    ApplyItemPresentation();
+                    if (continued)
+                    {
+                        player.localRotation = Quaternion.identity;
+                        player.localScale = Vector3.one;
+                        playerRenderer.sharedMaterial =
+                            GetMaterial(_session.CurrentColor);
+                        ApplySafeOverridesToActiveGates();
+                        if (_session.FlowState == StageFlowState.StageFinishing &&
+                            _failedGate != null)
+                        {
+                            ShowGoalAfter(_failedGate.transform.position.z);
+                        }
+                    }
+                    else
+                    {
+                        ApplyItemPresentation();
+                    }
                     SynchronizeViews();
                 }
                 return;
@@ -226,7 +252,8 @@ namespace ColorGateRunner.Presentation
             TickMovement(deltaTime);
             if (boosterBefore && !_session.BoosterActive)
             {
-                RebuildUpcomingGatesForSafeTransition();
+                _boosterExitOverridesApplied = true;
+                ApplySafeOverridesToActiveGates();
             }
             SynchronizeViews();
         }
@@ -255,6 +282,7 @@ namespace ColorGateRunner.Presentation
             gameplayCamera.transform.position =
                 player.position + _cameraFollowOffset;
             trackPool.Tick(player.position.z);
+            RecycleResolvedGatesBehindPlayer();
             if (_session.FlowState == StageFlowState.StageFinishing &&
                 goal.activeSelf &&
                 player.position.z >= goal.transform.position.z)
@@ -361,14 +389,8 @@ namespace ColorGateRunner.Presentation
 
         internal GateOutcome HandleGateCrossed(StageGateView gate)
         {
-            GatePlan plan = new GatePlan(
-                gate.AssignedColor,
-                0f,
-                0f,
-                1f,
-                GatePatternType.Steady,
-                _session.GatesPassed,
-                false);
+            GatePlan plan = gate.ActivePlan;
+            int gateIndex = gate.PlanIndex;
             GateOutcome outcome = _session.ResolveGate(gate.AssignedColor);
             if (outcome == GateOutcome.Matched ||
                 outcome == GateOutcome.Invulnerable)
@@ -390,7 +412,7 @@ namespace ColorGateRunner.Presentation
             else if (outcome == GateOutcome.Mismatched)
             {
                 gate.ShowFailure(failureMaterial);
-                TriggerFailure();
+                TriggerFailure(gate);
             }
             if (_session.FlowState == StageFlowState.StageFinishing)
             {
@@ -399,7 +421,7 @@ namespace ColorGateRunner.Presentation
             _telemetry.Record(
                 "gate",
                 _session,
-                _session.GatesPassed,
+                gateIndex,
                 plan,
                 outcome.ToString(),
                 0f);
@@ -415,12 +437,7 @@ namespace ColorGateRunner.Presentation
             }
             failPanel.SetActive(false);
             _failureDelayRemaining = 0f;
-            player.localRotation = Quaternion.identity;
-            player.localScale = Vector3.one;
-            playerRenderer.sharedMaterial = GetMaterial(_session.CurrentColor);
-            shieldVisual.SetActive(_session.ShieldActive);
-            ResetBoosterPresentation();
-            RebuildUpcomingGatesForSafeTransition();
+            ApplySafeOverridesToActiveGates();
             countdownPanel.SetActive(true);
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
@@ -731,24 +748,9 @@ namespace ColorGateRunner.Presentation
 
         private void BuildInitialGatePool()
         {
-            _layoutSequence = new DeterministicStageGateSequence(_session.Stage);
             _nextPlanIndex = 0;
-            _nextGateZ = player.position.z + 12f;
-            for (int index = 0; index < gates.Length; index++)
-            {
-                ActivateNextGate(gates[index]);
-            }
-        }
-
-        private void RebuildUpcomingGatesForSafeTransition()
-        {
-            _layoutSequence = new DeterministicStageGateSequence(_session.Stage);
-            for (int index = 0; index < _session.GatesPassed; index++)
-            {
-                _layoutSequence.GetPlan(index);
-            }
-            _nextPlanIndex = _session.GatesPassed;
-            _nextGateZ = player.position.z + 8f;
+            _nextGateZ =
+                player.position.z + InitialGateLeadDistance;
             for (int index = 0; index < gates.Length; index++)
             {
                 ActivateNextGate(gates[index]);
@@ -762,11 +764,13 @@ namespace ColorGateRunner.Presentation
                 gate.Deactivate();
                 return;
             }
-            GatePlan basePlan = _layoutSequence.GetPlan(_nextPlanIndex);
-            int ahead = _nextPlanIndex - _session.GatesPassed;
-            GatePlan plan = _session.AdjustForSafeTransition(basePlan, ahead);
+            GatePlan plan = _session.GetGatePlan(_nextPlanIndex);
             _nextGateZ += plan.Spacing;
-            gate.Activate(plan.Color, GetMaterial(plan.Color), _nextGateZ);
+            gate.Activate(
+                plan,
+                _nextPlanIndex,
+                GetMaterial(plan.Color),
+                _nextGateZ);
             _nextPlanIndex++;
         }
 
@@ -832,8 +836,10 @@ namespace ColorGateRunner.Presentation
             _progressStore.SaveHighestUnlocked(_highestUnlocked);
         }
 
-        private void TriggerFailure()
+        private void TriggerFailure(StageGateView failedGate)
         {
+            _failedGate = failedGate;
+            _continueSnapshot = CaptureContinueSnapshot(failedGate);
             _cameraShakeRemaining = 0.3f;
             _failureDelayRemaining = FailurePanelDelay;
             playerRenderer.sharedMaterial = failureMaterial;
@@ -898,6 +904,9 @@ namespace ColorGateRunner.Presentation
             _clearDelayRemaining = 0f;
             _boosterLaunchPulse = 0f;
             _wasBoosterActive = false;
+            _boosterExitOverridesApplied = false;
+            _failedGate = null;
+            _continueSnapshot = null;
             player.position = _playerStartPosition;
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
@@ -986,6 +995,12 @@ namespace ColorGateRunner.Presentation
             boosterWarning.SetActive(
                 _session.BoosterActive &&
                 boosterNormalized <= BoosterWarningThreshold);
+            if (_session.BoosterActive &&
+                boosterNormalized <= BoosterWarningThreshold)
+            {
+                _boosterExitOverridesApplied = true;
+                ApplySafeOverridesToActiveGates();
+            }
             boosterStatusText.text = _session.BoosterActive
                 ? "BOOSTER"
                 : _session.BoosterExitActive ? "BOOST END" : string.Empty;
@@ -1051,6 +1066,121 @@ namespace ColorGateRunner.Presentation
             }
             developerUnlockAllButton.gameObject.SetActive(false);
             stageSelectPanel.SetActive(false);
+        }
+
+        private ContinueSnapshot CaptureContinueSnapshot(
+            StageGateView failedGate)
+        {
+            ActiveGateSnapshot[] gateSnapshots =
+                new ActiveGateSnapshot[gates.Length];
+            for (int index = 0; index < gates.Length; index++)
+            {
+                StageGateView gate = gates[index];
+                Vector3[] partPositions =
+                    new Vector3[gate.PartCount];
+                Quaternion[] partRotations =
+                    new Quaternion[gate.PartCount];
+                for (int part = 0; part < gate.PartCount; part++)
+                {
+                    Transform partTransform = gate.GetPartTransform(part);
+                    partPositions[part] = partTransform.localPosition;
+                    partRotations[part] = partTransform.localRotation;
+                }
+                gateSnapshots[index] = new ActiveGateSnapshot(
+                    index,
+                    gate.gameObject.activeSelf,
+                    gate.HasResolved,
+                    gate.PlanIndex,
+                    gate.ActivePlan,
+                    gate.transform.position,
+                    gate.transform.rotation,
+                    partPositions,
+                    partRotations);
+            }
+
+            return new ContinueSnapshot(
+                _session.Stage.StageId,
+                _session.ElapsedPlayingSeconds,
+                _session.Progress,
+                player.position.z - _playerStartPosition.z,
+                _session.SpeedBeforeFailure,
+                _session.CurrentColor,
+                _session.SequenceCursor,
+                failedGate.PlanIndex,
+                _session.IsFinalSection,
+                goal.activeSelf,
+                _session.ContinueUsed,
+                _session.Items.Shield,
+                _session.Items.Shield && !_session.ShieldActive,
+                _session.Items.Booster,
+                _session.Items.Booster && !_session.BoosterActive,
+                player.position,
+                gameplayCamera.transform.position,
+                gameplayCamera.transform.rotation,
+                gateSnapshots);
+        }
+
+        private void ApplySafeOverridesToActiveGates()
+        {
+            if (_session == null)
+            {
+                return;
+            }
+
+            int firstUpcomingPlanIndex = _session.GatesPassed;
+            if (_session.FlowState == StageFlowState.Countdown &&
+                _session.FailedGatePendingForContinue)
+            {
+                firstUpcomingPlanIndex++;
+            }
+
+            for (int offset = 0; offset < 2; offset++)
+            {
+                int planIndex = firstUpcomingPlanIndex + offset;
+                StageGateView gate = FindActiveGate(planIndex);
+                if (gate == null)
+                {
+                    continue;
+                }
+
+                GatePlan plan = _session.CreateSafeTransitionOverride(
+                    gate.ActivePlan,
+                    offset);
+                gate.ApplyTemporaryPlan(
+                    plan,
+                    GetMaterial(plan.Color));
+            }
+        }
+
+        private StageGateView FindActiveGate(int planIndex)
+        {
+            for (int index = 0; index < gates.Length; index++)
+            {
+                StageGateView gate = gates[index];
+                if (gate.gameObject.activeSelf &&
+                    !gate.HasResolved &&
+                    gate.PlanIndex == planIndex)
+                {
+                    return gate;
+                }
+            }
+            return null;
+        }
+
+        private void RecycleResolvedGatesBehindPlayer()
+        {
+            for (int index = 0; index < gates.Length; index++)
+            {
+                StageGateView gate = gates[index];
+                if (gate.gameObject.activeSelf &&
+                    gate.HasResolved &&
+                    !gate.ReactionActive &&
+                    !gate.BoosterDestroyed &&
+                    gate.transform.position.z < player.position.z)
+                {
+                    RecycleOrDeactivate(gate);
+                }
+            }
         }
 
         private void TickGateReactions(float deltaTime)

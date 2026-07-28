@@ -131,3 +131,29 @@ profiles. Reports estimate mechanical duration, input pressure, failures, and
 item/Continue effects only. Local development telemetry may later calibrate
 profiles; it is disabled by default, contains no identifiers, and is never
 uploaded.
+
+## Step 9A.1 active continuity and movement overrides
+
+This section supersedes only the conflicting Step 9A transition and movement
+values above. All unrelated stage, item, input, persistence, and result rules
+remain active.
+
+- Continue overlays `3, 2, 1, GO` on the frozen failure scene. It preserves
+  elapsed time, progress, color, sequence cursor, camera, tracks, and the live
+  six-gate pool. The failed gate is resolved exactly once at GO; Shield and
+  Booster are not restored.
+- Booster exit never rebuilds or repositions the gate stream. The next two
+  already-positioned unresolved gates receive temporary color-only safety:
+  current color, then current or the next cycle color. The third gate returns
+  to its original authored plan.
+- Starting/maximum speeds for Stages 1–5 are respectively `14/20`, `16/22`,
+  `17/23`, `16/24`, and `18/27`. Booster speeds are `44`, `46`, `48`, `50`,
+  and `52`, with distances `160`, `180`, `200`, `210`, and `230`.
+- The initial gate lead is 24 units and the Goal is 20 units after the final
+  gate. Authored spacing already equals speed multiplied by cadence, so
+  doubling speed doubles spatial scale while preserving the existing
+  time-based decision cadence and approximate Booster duration.
+- Simulation and local development telemetry preserve planned pattern/color
+  metadata separately from temporary effective colors and report continuity
+  metrics. Mechanical continuity does not establish perceptual smoothness,
+  comfort, fairness, or fun.

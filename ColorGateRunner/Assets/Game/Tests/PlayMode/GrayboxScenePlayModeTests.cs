@@ -656,7 +656,9 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void Fail()
         {
-            StageGateView gate = _controller.GetGate(0);
+            StageGateView gate = FindGateByPlanIndex(
+                _controller.Session.GatesPassed);
+            Assert.That(gate, Is.Not.Null);
             if (_controller.Session.CurrentColor == gate.AssignedColor)
             {
                 _controller.HandleGameplayTap();
@@ -668,10 +670,11 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void ResolveSafeGates()
         {
-            int index = 0;
             while (_controller.Session.SafeGateCountRemaining > 0)
             {
-                StageGateView gate = _controller.GetGate(index++);
+                StageGateView gate = FindGateByPlanIndex(
+                    _controller.Session.GatesPassed);
+                Assert.That(gate, Is.Not.Null);
                 Match(gate.AssignedColor);
                 gate.TryResolveCrossing();
             }
@@ -740,6 +743,21 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             return Object.FindObjectsByType<StageGateView>(
                 FindObjectsInactive.Include).Length;
+        }
+
+        private StageGateView FindGateByPlanIndex(int planIndex)
+        {
+            for (int index = 0; index < _controller.GatePoolSize; index++)
+            {
+                StageGateView gate = _controller.GetGate(index);
+                if (gate.gameObject.activeSelf &&
+                    !gate.HasResolved &&
+                    gate.PlanIndex == planIndex)
+                {
+                    return gate;
+                }
+            }
+            return null;
         }
 
         private RunnerColor[] CaptureGateColors()

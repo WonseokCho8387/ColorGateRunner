@@ -87,3 +87,15 @@ The five-entry picker remains hidden for development.
 - No external assets, post-processing, audio, tween package, or runtime
   allocation-heavy effects
 - Maintain safe-area readability on a small portrait phone
+
+## Step 9A.1 transition presentation
+
+- Booster effects ease out while the world and existing gates continue
+  moving. There is no world freeze, gate jump, pool rebuild, or spawn gap.
+- Continue keeps the exact failure scene visible and frozen behind the
+  `3, 2, 1, GO` overlay. Camera position/rotation, tracks, and unaffected gate
+  transforms remain at the failure location.
+- Only the failed gate's harmful judgment is retired. Continue must read as
+  the same run resuming, never as a new scene or distant safe-section spawn.
+- The doubled movement scale does not add camera rotation, follow smoothing,
+  post-processing, or new effect assets.

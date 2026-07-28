@@ -122,7 +122,22 @@ namespace ColorGateRunner.Core
         public float BoosterBypassPercent;
         public float BoosterPrimaryPatternBypassPercent;
         public float PostBoosterFailureRate;
+        public float AverageBoosterNextGateDistanceBeforeExit;
+        public float AverageBoosterNextGateDistanceAfterExit;
+        public float MaximumBoosterActiveGateDisplacement;
+        public int BoosterGateIndexGapCount;
+        public int BoosterDuplicateGateIndexCount;
         public float ContinueSuccessRate;
+        public float AverageContinueNextGateDistanceAtFailure;
+        public float AverageContinueNextGateDistanceAfterResume;
+        public float MaximumContinueUnaffectedGateDisplacement;
+        public float AverageContinueSequenceCursorBeforeFailure;
+        public float AverageContinueSequenceCursorAfterResume;
+        public int ContinueSequenceCursorResetCount;
+        public int ContinueGateIndexGapCount;
+        public int ContinueDuplicateGateIndexCount;
+        public float PostContinueFailureRate;
+        public int FullPoolResetCount;
         public float EstimatedNoItemDuration;
         public int[] FailureByGate;
         public int[] FailureByPattern;
@@ -166,6 +181,18 @@ namespace ColorGateRunner.Core
             int boosterPrimaryBypassed = 0;
             int postBoosterFailures = 0;
             int postBoosterWindows = 0;
+            float boosterDistanceBefore = 0f;
+            float boosterDistanceAfter = 0f;
+            float maximumBoosterDisplacement = 0f;
+            int boosterContinuitySamples = 0;
+            float continueDistanceBefore = 0f;
+            float continueDistanceAfter = 0f;
+            float maximumContinueDisplacement = 0f;
+            float continueCursorBefore = 0f;
+            float continueCursorAfter = 0f;
+            int continueSamples = 0;
+            int postContinueFailures = 0;
+            int postContinueWindows = 0;
 
             for (int run = 0; run < settings.Runs; run++)
             {
@@ -174,8 +201,6 @@ namespace ColorGateRunner.Core
                 session.SelectItems(items);
                 session.BeginCountdown();
                 session.CompleteCountdown();
-                DeterministicStageGateSequence sequence =
-                    new DeterministicStageGateSequence(stage);
                 bool firstAttempt = true;
                 bool shieldWasConsumed = false;
                 int taps = 0;
@@ -183,6 +208,10 @@ namespace ColorGateRunner.Core
                 float runTime = 0f;
                 bool wasBooster = session.BoosterActive;
                 int postBoosterRemaining = 0;
+                int postContinueRemaining = 0;
+                int previousGateIndex = -1;
+                GatePlan pendingPlan = default;
+                int pendingPlanIndex = -1;
 
                 while (session.FlowState != StageFlowState.StageCleared &&
                     session.FlowState != StageFlowState.Failed)
@@ -194,8 +223,31 @@ namespace ColorGateRunner.Core
                     }
 
                     int gateIndex = session.GatesPassed;
-                    GatePlan plan = session.AdjustForSafeTransition(
-                        sequence.GetPlan(gateIndex));
+                    if (previousGateIndex >= 0)
+                    {
+                        if (gateIndex > previousGateIndex + 1)
+                        {
+                            result.ContinueGateIndexGapCount++;
+                        }
+                        else if (gateIndex <= previousGateIndex)
+                        {
+                            result.ContinueDuplicateGateIndexCount++;
+                        }
+                    }
+                    previousGateIndex = gateIndex;
+
+                    GatePlan plan;
+                    if (pendingPlanIndex == gateIndex)
+                    {
+                        plan = session.AdjustForSafeTransition(
+                            pendingPlan,
+                            0);
+                        pendingPlanIndex = -1;
+                    }
+                    else
+                    {
+                        plan = session.GetGatePlan(gateIndex);
+                    }
                     float travelTime = plan.Spacing /
                         Math.Max(0.01f, session.CurrentSpeed);
                     float reaction = profile.ReactionSeconds +
@@ -266,8 +318,36 @@ namespace ColorGateRunner.Core
                     runTime += travelTime;
                     if (wasBooster && !session.BoosterActive)
                     {
-                        postBoosterRemaining = 3;
+                        // This gate was still Booster-bypassed. Count it down
+                        // here, leaving exactly the next three judged gates.
+                        postBoosterRemaining = 4;
                         postBoosterWindows++;
+                        if (session.GatesPassed < stage.TargetGateCount)
+                        {
+                            int nextIndex = session.GatesPassed;
+                            int cursorBeforePlan = session.SequenceCursor;
+                            GatePlan originalNext =
+                                session.GetGatePlan(nextIndex);
+                            int cursorAfterPlan = session.SequenceCursor;
+                            GatePlan safeNext =
+                                session.CreateSafeTransitionOverride(
+                                    originalNext,
+                                    0);
+                            pendingPlan = originalNext;
+                            pendingPlanIndex = nextIndex;
+                            boosterDistanceBefore += originalNext.Spacing;
+                            boosterDistanceAfter += safeNext.Spacing;
+                            maximumBoosterDisplacement = Math.Max(
+                                maximumBoosterDisplacement,
+                                Math.Abs(
+                                    originalNext.Spacing -
+                                    safeNext.Spacing));
+                            boosterContinuitySamples++;
+                            if (cursorAfterPlan != cursorBeforePlan + 1)
+                            {
+                                result.BoosterGateIndexGapCount++;
+                            }
+                        }
                     }
                     wasBooster = session.BoosterActive;
                     if (postBoosterRemaining > 0)
@@ -277,6 +357,14 @@ namespace ColorGateRunner.Core
                             postBoosterFailures++;
                         }
                         postBoosterRemaining--;
+                    }
+                    if (postContinueRemaining > 0)
+                    {
+                        if (outcome == GateOutcome.Mismatched)
+                        {
+                            postContinueFailures++;
+                        }
+                        postContinueRemaining--;
                     }
 
                     if (session.FlowState == StageFlowState.Failed)
@@ -290,10 +378,63 @@ namespace ColorGateRunner.Core
                             failureProgress.Add(session.Progress);
                         }
                         if (settings.AllowContinue &&
-                            session.ContinueAfterFailure())
+                            session.ContinueAvailable)
                         {
+                            int nextIndex = gateIndex + 1;
+                            GatePlan originalNext =
+                                session.GetGatePlan(nextIndex);
+                            int cursorAtFailure = session.SequenceCursor;
+                            float elapsedAtFailure =
+                                session.ElapsedPlayingSeconds;
+                            float progressAtFailure = session.Progress;
+                            float speedAtFailure =
+                                session.SpeedBeforeFailure;
+                            RunnerColor colorAtFailure =
+                                session.CurrentColor;
+                            if (!session.ContinueAfterFailure())
+                            {
+                                break;
+                            }
                             firstAttempt = false;
+                            if (session.SequenceCursor != cursorAtFailure ||
+                                session.ElapsedPlayingSeconds !=
+                                    elapsedAtFailure ||
+                                session.Progress != progressAtFailure ||
+                                session.CurrentSpeed != speedAtFailure ||
+                                session.CurrentColor != colorAtFailure)
+                            {
+                                result.ContinueSequenceCursorResetCount++;
+                            }
+                            GatePlan safeNext =
+                                session.CreateSafeTransitionOverride(
+                                    originalNext,
+                                    0);
+                            pendingPlan = originalNext;
+                            pendingPlanIndex = nextIndex;
+                            continueDistanceBefore += originalNext.Spacing;
+                            continueDistanceAfter += safeNext.Spacing;
+                            maximumContinueDisplacement = Math.Max(
+                                maximumContinueDisplacement,
+                                Math.Abs(
+                                    originalNext.Spacing -
+                                    safeNext.Spacing));
+                            continueCursorBefore += cursorAtFailure;
                             session.CompleteCountdown();
+                            continueCursorAfter += session.SequenceCursor;
+                            continueSamples++;
+                            postContinueRemaining = 3;
+                            postContinueWindows++;
+                            if (session.SequenceCursor != cursorAtFailure)
+                            {
+                                result.ContinueSequenceCursorResetCount++;
+                            }
+                            if (session.ElapsedPlayingSeconds !=
+                                    elapsedAtFailure ||
+                                session.GatesPassed != nextIndex ||
+                                session.CurrentColor != colorAtFailure)
+                            {
+                                result.ContinueGateIndexGapCount++;
+                            }
                             continue;
                         }
                     }
@@ -360,12 +501,44 @@ namespace ColorGateRunner.Core
                 postBoosterWindows == 0
                 ? 0f
                 : (float)postBoosterFailures / postBoosterWindows;
+            result.AverageBoosterNextGateDistanceBeforeExit =
+                boosterContinuitySamples == 0
+                ? 0f
+                : boosterDistanceBefore / boosterContinuitySamples;
+            result.AverageBoosterNextGateDistanceAfterExit =
+                boosterContinuitySamples == 0
+                ? 0f
+                : boosterDistanceAfter / boosterContinuitySamples;
+            result.MaximumBoosterActiveGateDisplacement =
+                maximumBoosterDisplacement;
             result.ContinueSuccessRate =
                 result.ClearWithContinueCount == result.FirstAttemptClearCount
                 ? 0f
                 : (float)(result.ClearWithContinueCount -
                     result.FirstAttemptClearCount) /
                     Math.Max(1, settings.Runs - result.FirstAttemptClearCount);
+            result.AverageContinueNextGateDistanceAtFailure =
+                continueSamples == 0
+                ? 0f
+                : continueDistanceBefore / continueSamples;
+            result.AverageContinueNextGateDistanceAfterResume =
+                continueSamples == 0
+                ? 0f
+                : continueDistanceAfter / continueSamples;
+            result.MaximumContinueUnaffectedGateDisplacement =
+                maximumContinueDisplacement;
+            result.AverageContinueSequenceCursorBeforeFailure =
+                continueSamples == 0
+                ? 0f
+                : continueCursorBefore / continueSamples;
+            result.AverageContinueSequenceCursorAfterResume =
+                continueSamples == 0
+                ? 0f
+                : continueCursorAfter / continueSamples;
+            result.PostContinueFailureRate =
+                postContinueWindows == 0
+                ? 0f
+                : (float)postContinueFailures / postContinueWindows;
             return result;
         }
 
@@ -520,7 +693,7 @@ namespace ColorGateRunner.Core
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine(
-                "stage,profile,shield,booster,runs,firstClearRate,continueClearRate,medianTime,p10Time,p90Time,medianFailureProgress,failureByGate,failureByPattern,finalReachRate,finalCompletionRate,avgRequiredTaps,avgSuccessfulTaps,missed,wrong,avgInputsPerSecond,peakInputsPerSecond,minMargin,p10Margin,avgMargin,shieldConsumed,shieldSurvival,avgBoosterBypassed,boosterBypassPercent,primaryPatternBypassPercent,postBoosterFailureRate,continueSuccessRate,estimatedNoItemDuration");
+                "stage,profile,shield,booster,runs,firstClearRate,continueClearRate,medianTime,p10Time,p90Time,medianFailureProgress,failureByGate,failureByPattern,finalReachRate,finalCompletionRate,avgRequiredTaps,avgSuccessfulTaps,missed,wrong,avgInputsPerSecond,peakInputsPerSecond,minMargin,p10Margin,avgMargin,shieldConsumed,shieldSurvival,avgBoosterBypassed,boosterBypassPercent,primaryPatternBypassPercent,postBoosterFailureRate,boosterNextDistanceBefore,boosterNextDistanceAfter,maxBoosterDisplacement,boosterIndexGaps,boosterDuplicateIndices,continueSuccessRate,continueNextDistanceAtFailure,continueNextDistanceAfterResume,maxContinueDisplacement,continueCursorBefore,continueCursorAfter,continueCursorResets,continueIndexGaps,continueDuplicateIndices,postContinueFailureRate,fullPoolResets,estimatedNoItemDuration");
             for (int index = 0; index < batch.Results.Count; index++)
             {
                 StageSimulationResult value = batch.Results[index];
@@ -554,7 +727,22 @@ namespace ColorGateRunner.Core
                     .Append(F(value.BoosterBypassPercent)).Append(',')
                     .Append(F(value.BoosterPrimaryPatternBypassPercent)).Append(',')
                     .Append(F(value.PostBoosterFailureRate)).Append(',')
+                    .Append(F(value.AverageBoosterNextGateDistanceBeforeExit)).Append(',')
+                    .Append(F(value.AverageBoosterNextGateDistanceAfterExit)).Append(',')
+                    .Append(F(value.MaximumBoosterActiveGateDisplacement)).Append(',')
+                    .Append(value.BoosterGateIndexGapCount).Append(',')
+                    .Append(value.BoosterDuplicateGateIndexCount).Append(',')
                     .Append(F(value.ContinueSuccessRate)).Append(',')
+                    .Append(F(value.AverageContinueNextGateDistanceAtFailure)).Append(',')
+                    .Append(F(value.AverageContinueNextGateDistanceAfterResume)).Append(',')
+                    .Append(F(value.MaximumContinueUnaffectedGateDisplacement)).Append(',')
+                    .Append(F(value.AverageContinueSequenceCursorBeforeFailure)).Append(',')
+                    .Append(F(value.AverageContinueSequenceCursorAfterResume)).Append(',')
+                    .Append(value.ContinueSequenceCursorResetCount).Append(',')
+                    .Append(value.ContinueGateIndexGapCount).Append(',')
+                    .Append(value.ContinueDuplicateGateIndexCount).Append(',')
+                    .Append(F(value.PostContinueFailureRate)).Append(',')
+                    .Append(value.FullPoolResetCount).Append(',')
                     .AppendLine(F(value.EstimatedNoItemDuration));
             }
             return builder.ToString();
@@ -603,7 +791,22 @@ namespace ColorGateRunner.Core
                     .Append(",\"boosterBypassPercent\":").Append(F(value.BoosterBypassPercent))
                     .Append(",\"boosterPrimaryPatternBypassPercent\":").Append(F(value.BoosterPrimaryPatternBypassPercent))
                     .Append(",\"postBoosterFailureRate\":").Append(F(value.PostBoosterFailureRate))
+                    .Append(",\"boosterNextGateDistanceBeforeExit\":").Append(F(value.AverageBoosterNextGateDistanceBeforeExit))
+                    .Append(",\"boosterNextGateDistanceAfterExit\":").Append(F(value.AverageBoosterNextGateDistanceAfterExit))
+                    .Append(",\"maximumBoosterActiveGateDisplacement\":").Append(F(value.MaximumBoosterActiveGateDisplacement))
+                    .Append(",\"boosterGateIndexGapCount\":").Append(value.BoosterGateIndexGapCount)
+                    .Append(",\"boosterDuplicateGateIndexCount\":").Append(value.BoosterDuplicateGateIndexCount)
                     .Append(",\"continueSuccessRate\":").Append(F(value.ContinueSuccessRate))
+                    .Append(",\"continueNextGateDistanceAtFailure\":").Append(F(value.AverageContinueNextGateDistanceAtFailure))
+                    .Append(",\"continueNextGateDistanceAfterResume\":").Append(F(value.AverageContinueNextGateDistanceAfterResume))
+                    .Append(",\"maximumContinueUnaffectedGateDisplacement\":").Append(F(value.MaximumContinueUnaffectedGateDisplacement))
+                    .Append(",\"continueSequenceCursorBeforeFailure\":").Append(F(value.AverageContinueSequenceCursorBeforeFailure))
+                    .Append(",\"continueSequenceCursorAfterResume\":").Append(F(value.AverageContinueSequenceCursorAfterResume))
+                    .Append(",\"continueSequenceCursorResetCount\":").Append(value.ContinueSequenceCursorResetCount)
+                    .Append(",\"continueGateIndexGapCount\":").Append(value.ContinueGateIndexGapCount)
+                    .Append(",\"continueDuplicateGateIndexCount\":").Append(value.ContinueDuplicateGateIndexCount)
+                    .Append(",\"postContinueFailureRate\":").Append(F(value.PostContinueFailureRate))
+                    .Append(",\"fullPoolResetCount\":").Append(value.FullPoolResetCount)
                     .Append(",\"estimatedNoItemDuration\":").Append(F(value.EstimatedNoItemDuration))
                     .Append('}');
             }
@@ -721,7 +924,46 @@ namespace ColorGateRunner.Core
                 .AppendLine()
                 .AppendLine("## Booster exit analysis")
                 .AppendLine()
-                .AppendLine("Two gates are reserved for deterministic exit recovery. The first matches current color; the second requires at most one tap and both use at least 1.35 seconds.")
+                .AppendLine("Two already-positioned gates receive temporary color-only recovery overrides. Their authored spacing, pattern metadata, indices, and sequence cursor are preserved.")
+                .AppendLine()
+                .AppendLine("## Transition continuity")
+                .AppendLine()
+                .AppendLine("| Stage | Items | Booster distance before/after | Booster displacement | Continue distance before/after | Continue displacement | Cursor before/after | Cursor resets |")
+                .AppendLine("|---:|---|---:|---:|---:|---:|---:|---:|");
+            for (int stage = 1; stage <= StageCatalog.Count; stage++)
+            {
+                StageSimulationResult value = Find(
+                    batch,
+                    stage,
+                    SimulatedPlayerKind.Average,
+                    false,
+                    true);
+                if (value == null)
+                {
+                    continue;
+                }
+                builder.Append("| ").Append(stage)
+                    .Append(" | Booster | ")
+                    .Append(F(value.AverageBoosterNextGateDistanceBeforeExit))
+                    .Append(" / ")
+                    .Append(F(value.AverageBoosterNextGateDistanceAfterExit))
+                    .Append(" | ")
+                    .Append(F(value.MaximumBoosterActiveGateDisplacement))
+                    .Append(" | ")
+                    .Append(F(value.AverageContinueNextGateDistanceAtFailure))
+                    .Append(" / ")
+                    .Append(F(value.AverageContinueNextGateDistanceAfterResume))
+                    .Append(" | ")
+                    .Append(F(value.MaximumContinueUnaffectedGateDisplacement))
+                    .Append(" | ")
+                    .Append(F(value.AverageContinueSequenceCursorBeforeFailure))
+                    .Append(" / ")
+                    .Append(F(value.AverageContinueSequenceCursorAfterResume))
+                    .Append(" | ")
+                    .Append(value.ContinueSequenceCursorResetCount)
+                    .AppendLine(" |");
+            }
+            builder.AppendLine()
                 .AppendLine()
                 .AppendLine("## Relative difficulty")
                 .AppendLine()

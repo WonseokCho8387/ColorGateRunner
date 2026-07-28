@@ -14,6 +14,8 @@ namespace ColorGateRunner.Core
         private int _safeGateCountRemaining;
         private bool _continueCountdown;
         private bool _clearResolved;
+        private bool _failedGatePendingForContinue;
+        private float _speedBeforeFailure;
 
         public StageSession(StageDefinition stage)
         {
@@ -27,6 +29,7 @@ namespace ColorGateRunner.Core
             FlowState = StageFlowState.PreRunSelection;
             CurrentColor = RunnerColor.Red;
             CurrentSpeed = stage.StartingSpeed;
+            _speedBeforeFailure = CurrentSpeed;
         }
 
         public StageDefinition Stage { get; }
@@ -66,6 +69,11 @@ namespace ColorGateRunner.Core
         public bool ContinueProtectionActive =>
             _continueProtectionRemaining > 0f;
         public int SafeGateCountRemaining => _safeGateCountRemaining;
+        public int SequenceCursor => _sequence.Cursor;
+        public bool FailedGatePendingForContinue =>
+            _failedGatePendingForContinue;
+        public int ContinuedFailedGateResolutionCount { get; private set; }
+        public float SpeedBeforeFailure => _speedBeforeFailure;
 
         public void SelectItems(StartItemSelection items)
         {
@@ -110,6 +118,7 @@ namespace ColorGateRunner.Core
                 BoosterDistanceRemaining = 0f;
                 _continueProtectionRemaining = 1f;
                 _safeGateCountRemaining = 2;
+                ResolveFailedGateForContinue();
             }
             BoosterDistanceRemaining = BoosterActive
                 ? Stage.BoosterDistance
@@ -196,7 +205,14 @@ namespace ColorGateRunner.Core
 
         public GatePlan GetNextGatePlan()
         {
-            return AdjustForSafeTransition(_sequence.GetPlan(GatesPassed));
+            return GetGatePlan(GatesPassed);
+        }
+
+        public GatePlan GetGatePlan(int gateIndex)
+        {
+            return AdjustForSafeTransition(
+                _sequence.GetPlan(gateIndex),
+                gateIndex - GatesPassed);
         }
 
         public GatePlan AdjustForSafeTransition(GatePlan plan)
@@ -211,19 +227,18 @@ namespace ColorGateRunner.Core
                 return plan;
             }
 
+            return CreateSafeTransitionOverride(plan, aheadOffset);
+        }
+
+        public GatePlan CreateSafeTransitionOverride(
+            GatePlan plan,
+            int aheadOffset)
+        {
             RunnerColor color =
-                _safeGateCountRemaining == 2 && aheadOffset == 0
+                aheadOffset == 0
                 ? CurrentColor
                 : GetNextAllowedColor(CurrentColor);
-            float time = Math.Max(1.35f, plan.TimeToGate);
-            return new GatePlan(
-                color,
-                Math.Max(plan.Spacing, CurrentSpeed * time),
-                time,
-                1f,
-                GatePatternType.Steady,
-                plan.IndexInPattern,
-                false);
+            return plan.WithTemporaryColorOverride(color);
         }
 
         public GateOutcome ResolveGate(RunnerColor gateColor)
@@ -275,6 +290,8 @@ namespace ColorGateRunner.Core
             }
 
             FlowState = StageFlowState.Failed;
+            _failedGatePendingForContinue = true;
+            _speedBeforeFailure = CurrentSpeed;
             CurrentSpeed = 0f;
             return GateOutcome.Mismatched;
         }
@@ -294,8 +311,7 @@ namespace ColorGateRunner.Core
             _continueProtectionRemaining = 0f;
             _safeGateCountRemaining = 2;
             FlowState = StageFlowState.Countdown;
-            CurrentSpeed = Stage.StartingSpeed +
-                ((Stage.MaximumSpeed - Stage.StartingSpeed) * Progress);
+            CurrentSpeed = _speedBeforeFailure;
             return true;
         }
 
@@ -328,9 +344,26 @@ namespace ColorGateRunner.Core
             _safeGateCountRemaining = 0;
             _continueCountdown = false;
             ContinueUsed = false;
+            ContinuedFailedGateResolutionCount = 0;
+            _failedGatePendingForContinue = false;
             _shieldRecoveryRemaining = 0f;
             _clearResolved = false;
+            _speedBeforeFailure = Stage.StartingSpeed;
             _sequence.Reset();
+        }
+
+        private void ResolveFailedGateForContinue()
+        {
+            if (!_failedGatePendingForContinue ||
+                GatesPassed >= Stage.TargetGateCount)
+            {
+                return;
+            }
+
+            _failedGatePendingForContinue = false;
+            GatesPassed++;
+            ContinuedFailedGateResolutionCount++;
+            EnterFinishingIfFinalGate();
         }
 
         private int GetCurrentAllowedColorCount()

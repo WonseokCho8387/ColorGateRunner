@@ -317,7 +317,9 @@ items remain the foundation.
 
 ## Step 9A lobby, Continue, readability, and simulation
 
-Status: Active
+Status: Superseded in part by Step 9A.1 for Booster/Continue transition
+continuity and movement-scale tuning. Unrelated Step 9A decisions remain
+active.
 
 - Tap-to-cycle remains the active core input method. Direct color buttons
   remain deferred and require new evidence before reconsideration.
@@ -364,3 +366,49 @@ Status: Active
   currency/item quantities, hidden adaptive difficulty, Assist activation,
   online analytics, additional power-ups/stages, and Endless release remain
   deferred.
+
+## Step 9A.1 Booster exit and Continue continuity hotfix
+
+Status: Active
+
+- Playtesting exposed a visible empty interval after Booster and a scene-like
+  restart after Continue. Both were caused by rebuilding the deterministic
+  sequence and reactivating the complete six-gate pool at a new lead
+  position.
+- The previous Step 9A rule that forced both safe gates to at least 1.35
+  seconds by changing their spacing is Superseded. Booster exit and Continue
+  now preserve every active gate transform, global gate index, authored
+  spacing, pattern metadata, stage timer, progress, and sequence cursor.
+- One `StageSession` gate sequence is authoritative. Presentation consumes
+  plans from that sequence for its fixed pool; Booster exit, Continue, Shield
+  recovery, and protection never create or rewind a replacement sequence.
+- During the Booster final-20% warning and after Continue selection, only the
+  next two unresolved, already-positioned gates may receive temporary color
+  overrides. The first uses the current player color, the second uses either
+  that color or the next cycle color and therefore needs at most one tap, and
+  the third retains its original authored plan. `GatePlan.PlannedColor` and
+  `HasTemporaryColorOverride` preserve telemetry distinction.
+- Failure captures an authoritative in-memory snapshot containing stage ID,
+  elapsed play time, normalized progress, traveled distance, normal speed,
+  player color, sequence cursor, failed global gate index, final/Goal state,
+  Continue state, selected/consumed Shield state, selected/completed Booster
+  state, player and camera transforms, and every gate plan, transform,
+  resolved state, part transform, and pool identity.
+- Continue overlays `3, 2, 1, GO` on the frozen failure scene. It does not
+  rebuild gates or tracks, reset the camera, reopen item selection, restore
+  Shield, or restart Booster. At GO, the failed gate is counted/resolved
+  exactly once, one second of protection begins, and normal recycling alone
+  may later move that gate behind the player.
+- Stage movement values are doubled at the user's direction. Starting/maximum
+  speeds are `14/20`, `16/22`, `17/23`, `16/24`, and `18/27`; Booster speeds
+  are `44`, `46`, `48`, `50`, and `52`. Booster distances are also doubled to
+  `160`, `180`, `200`, `210`, and `230`, the initial lead becomes 24 units,
+  and Goal distance becomes 20 units. Because authored spacing is computed
+  from speed multiplied by cadence, this doubles spatial scale while
+  preserving the existing time-based decision cadence and approximate
+  Booster duration.
+- Local development telemetry records both planned and effective colors plus
+  the temporary-override flag. Simulation reports before/after next-gate
+  distances, transform displacement, index continuity, sequence cursors, and
+  first-three-gate post-transition failure rates. These are mechanical
+  continuity measurements and do not claim perceptual smoothness.

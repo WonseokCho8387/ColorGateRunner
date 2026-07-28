@@ -420,3 +420,75 @@ automatic or hidden Assist activation is allowed.
 
 Automated validation must not claim fun, excitement, visual satisfaction,
 emotional achievement, replay motivation, or perceived fairness.
+
+## Step 9A.1 continuity hotfix acceptance mapping
+
+### EditMode automated
+
+- Doubled movement scale:
+  `StageCatalog_AllMovementSpeedsAreDoubled`.
+- Booster continuity:
+  `BoosterExit_PreservesSequenceCursor`,
+  `BoosterExit_PreservesGateIndices`,
+  `BoosterExit_OverridesColorWithoutChangingPlannedPosition`,
+  `BoosterExit_FirstGateMatchesCurrentColor`,
+  `BoosterExit_SecondGateRequiresAtMostOneTap`,
+  `BoosterExit_ThirdGateReturnsToAuthoredSequence`.
+- Continue state continuity:
+  `ContinueSnapshot_PreservesExactStageState`,
+  `Continue_PreservesElapsedTime`,
+  `Continue_PreservesNormalizedProgress`,
+  `Continue_PreservesCurrentSpeed`,
+  `Continue_PreservesCurrentColor`,
+  `Continue_PreservesPendingSequenceCursor`,
+  `Continue_FailedGateIsResolvedExactlyOnce`,
+  `Continue_DoesNotRestoreShield`,
+  `Continue_DoesNotRestartBooster`,
+  `Continue_FinalSectionStateSurvives`.
+- Simulation continuity:
+  `Simulation_ContinuityMetricsReportNoReset` requires zero active-gate
+  displacement, cursor resets, unexpected gate-index gaps/duplicates, and
+  full-pool resets.
+
+### PlayMode automated
+
+- Booster live-stream integration:
+  `BoosterExit_ActiveGatePositionsDoNotJump`,
+  `BoosterExit_DoesNotIntroduceEmptyGateInterval`,
+  `BoosterExit_FirstGateUsesCurrentPlayerColor`,
+  `BoosterExit_OriginalPatternResumesAfterShortOverride`.
+- Continue live-scene integration:
+  `Continue_FreezesExistingScene`,
+  `Continue_CountdownUsesSameGateLayout`,
+  `Continue_UnaffectedGateTransformsRemainUnchanged`,
+  `Continue_FailedGateCannotImmediatelyFailAgain`,
+  `Continue_ResumesSameTimerProgressSpeedColorAndCursor`,
+  `Continue_ResumesSameActiveSequence`,
+  `Continue_DoesNotResetCameraOrShowItemSelection`,
+  `Continue_DoesNotRestoreShieldOrBooster`,
+  `Continue_GateAndTrackPoolsDoNotResetOrGrow`.
+- Repetition:
+  `ThirtyRepeatedBoosterContinueTransitions_HaveNoTransformDrift` checks the
+  fixed gate and track counts plus gate root rotation/scale after 30 complete
+  transition cycles.
+
+### Structural validation
+
+- The existing idempotent scene builder must still report one generated root,
+  one Stage controller, six gates, six track segments, one EventSystem,
+  assigned references, no missing scripts, Portrait orientation, no active
+  post-processing, and no package or unrelated ProjectSettings change.
+- Both test result XML files must contain nonzero executed tests. Simulation
+  JSON/CSV/Markdown must expose Booster/Continue distance, displacement,
+  index, cursor, pool-reset, and post-transition failure metrics.
+
+### Manual mobile check
+
+- Confirm Booster effects ease out with no visible world freeze, gate jump, or
+  empty interval.
+- Confirm Continue visually resumes the exact failed location under the
+  countdown overlay and that the failed gate cannot immediately fail again.
+- Confirm the doubled world speed reads as intended on a portrait device;
+  automated cadence preservation does not establish comfort or fairness.
+- Confirm the first three gates after Booster and Continue are readable, the
+  camera return is continuous, and no Shield/Booster presentation reappears.
