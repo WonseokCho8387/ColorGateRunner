@@ -91,6 +91,21 @@ namespace ColorGateRunner.Editor
                 CreateTapSurface(canvas.transform);
             Transform safeArea = CreateSafeArea(canvas.transform);
 
+            GameObject lobbyPanel;
+            Text lobbyStageText;
+            Text lobbyProgressText;
+            Text lobbyTierText;
+            Button lobbyPlayButton;
+            GameObject[] lobbyTierRoots;
+            CreateLobbyUi(
+                safeArea,
+                out lobbyPanel,
+                out lobbyStageText,
+                out lobbyProgressText,
+                out lobbyTierText,
+                out lobbyPlayButton,
+                out lobbyTierRoots);
+
             GameObject stageSelectPanel;
             Button[] stageButtons;
             Text[] stageSummaries;
@@ -134,6 +149,11 @@ namespace ColorGateRunner.Editor
             Image progressFill;
             Text hudShield;
             Text hudBooster;
+            Text hudCurrent;
+            Text hudCycle;
+            Text hudNext;
+            Image boosterMeter;
+            GameObject boosterWarning;
             CreateHud(
                 safeArea,
                 out hud,
@@ -141,14 +161,19 @@ namespace ColorGateRunner.Editor
                 out hudProgress,
                 out progressFill,
                 out hudShield,
-                out hudBooster);
+                out hudBooster,
+                out hudCurrent,
+                out hudCycle,
+                out hudNext,
+                out boosterMeter,
+                out boosterWarning);
 
             GameObject clearPanel;
             Text clearTitle;
             Text clearDetails;
-            Button nextButton;
+            Button clearContinueButton;
             Button replayButton;
-            Button clearSelectButton;
+            Button clearLobbyButton;
             CreateResultUi(
                 "StageClearPanel",
                 "STAGE CLEAR",
@@ -157,22 +182,24 @@ namespace ColorGateRunner.Editor
                 out clearPanel,
                 out clearTitle,
                 out clearDetails,
-                out nextButton,
+                out clearContinueButton,
                 out replayButton,
-                out clearSelectButton);
+                out clearLobbyButton);
 
             GameObject failPanel;
             Text failTitle;
             Text failDetails;
+            Button continueButton;
             Button retryButton;
-            Button failSelectButton;
+            Button failLobbyButton;
             CreateFailureUi(
                 safeArea,
                 out failPanel,
                 out failTitle,
                 out failDetails,
+                out continueButton,
                 out retryButton,
-                out failSelectButton);
+                out failLobbyButton);
 
             CreateEventSystem(root.transform);
             tapSurface.Configure(controller);
@@ -192,6 +219,12 @@ namespace ColorGateRunner.Editor
                 successParticles,
                 speedLines,
                 trail,
+                lobbyPanel,
+                lobbyStageText,
+                lobbyProgressText,
+                lobbyTierText,
+                lobbyPlayButton,
+                lobbyTierRoots,
                 stageSelectPanel,
                 stageButtons,
                 stageSummaries,
@@ -212,19 +245,26 @@ namespace ColorGateRunner.Editor
                 progressFill,
                 hudShield,
                 hudBooster,
+                hudCurrent,
+                hudCycle,
+                hudNext,
+                boosterMeter,
+                boosterWarning,
                 clearPanel,
                 clearTitle,
                 clearDetails,
-                nextButton,
+                clearContinueButton,
                 replayButton,
-                clearSelectButton,
+                clearLobbyButton,
                 failPanel,
                 failTitle,
                 failDetails,
+                continueButton,
                 retryButton,
-                failSelectButton);
+                failLobbyButton);
 
-            stageSelectPanel.SetActive(true);
+            lobbyPanel.SetActive(true);
+            stageSelectPanel.SetActive(false);
             itemPanel.SetActive(false);
             countdownPanel.SetActive(false);
             hud.SetActive(false);
@@ -318,6 +358,9 @@ namespace ColorGateRunner.Editor
                 "Canvas",
                 "SafeAreaRoot",
                 "GameplayTapSurface",
+                "LobbyPanel",
+                "LobbyCurrentStage",
+                "LobbyPlayButton",
                 "StageSelectPanel",
                 "StageSelectTitle",
                 "DeveloperUnlockAllButton",
@@ -330,10 +373,18 @@ namespace ColorGateRunner.Editor
                 "CountdownText",
                 "StageHud",
                 "StageProgressFill",
+                "CurrentColorText",
+                "ColorCycleOrderText",
+                "NextColorText",
+                "BoosterMeter",
+                "BoosterMeterFill",
+                "BoosterEndWarning",
+                "ShieldVisual",
                 "Goal",
                 "StageClearPanel",
                 "StageFailedPanel",
-                "NextStageButton",
+                "ClearContinueButton",
+                "ContinueButton",
                 "ReplayButton",
                 "RetryButton",
                 "SuccessParticles",
@@ -356,6 +407,17 @@ namespace ColorGateRunner.Editor
                 {
                     throw new InvalidOperationException(
                         "Exactly five stage buttons are required.");
+                }
+            }
+            for (int gateIndex = 0; gateIndex < gates.Length; gateIndex++)
+            {
+                if (gates[gateIndex].PartCount != 3 ||
+                    gates[gateIndex].transform.Find("Left") == null ||
+                    gates[gateIndex].transform.Find("Right") == null ||
+                    gates[gateIndex].transform.Find("Top") == null)
+                {
+                    throw new InvalidOperationException(
+                        "Every gate requires left, right, and top geometry.");
                 }
             }
 
@@ -510,13 +572,27 @@ namespace ColorGateRunner.Editor
             Transform player,
             Material material)
         {
-            GameObject shield =
-                GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            shield.name = "ShieldVisual";
+            GameObject shield = new GameObject("ShieldVisual");
             shield.transform.SetParent(player, false);
-            shield.transform.localScale = Vector3.one * 1.8f;
-            shield.GetComponent<Renderer>().sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(shield.GetComponent<Collider>());
+            for (int index = 0; index < 6; index++)
+            {
+                GameObject segment =
+                    GameObject.CreatePrimitive(PrimitiveType.Cube);
+                segment.name = $"ShieldArc_{index:00}";
+                segment.transform.SetParent(shield.transform, false);
+                float angle = index * 60f * Mathf.Deg2Rad;
+                segment.transform.localPosition = new Vector3(
+                    Mathf.Cos(angle) * 1.15f,
+                    Mathf.Sin(angle) * 1.15f,
+                    0f);
+                segment.transform.localRotation =
+                    Quaternion.Euler(0f, 0f, index * 60f);
+                segment.transform.localScale =
+                    new Vector3(0.7f, 0.12f, 0.12f);
+                segment.GetComponent<Renderer>().sharedMaterial = material;
+                UnityEngine.Object.DestroyImmediate(
+                    segment.GetComponent<Collider>());
+            }
             return shield;
         }
 
@@ -550,7 +626,7 @@ namespace ColorGateRunner.Editor
                 trigger.isTrigger = true;
                 trigger.size = new Vector3(6f, 4f, 0.5f);
 
-                Renderer[] renderers = new Renderer[2];
+                Renderer[] renderers = new Renderer[3];
                 renderers[0] = CreateGatePart(
                     "Left",
                     gateObject.transform,
@@ -561,6 +637,13 @@ namespace ColorGateRunner.Editor
                     gateObject.transform,
                     new Vector3(2.5f, 1.5f, 0f),
                     material);
+                renderers[2] = CreateGatePart(
+                    "Top",
+                    gateObject.transform,
+                    new Vector3(0f, 3f, 0f),
+                    material);
+                renderers[2].transform.localScale =
+                    new Vector3(5.65f, 0.65f, 0.65f);
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
                 view.Configure(controller, renderers);
@@ -647,6 +730,84 @@ namespace ColorGateRunner.Editor
             Stretch(safe.GetComponent<RectTransform>());
             safe.AddComponent<SafeAreaLayout>();
             return safe.transform;
+        }
+
+        private static void CreateLobbyUi(
+            Transform parent,
+            out GameObject panel,
+            out Text stage,
+            out Text progress,
+            out Text tier,
+            out Button play,
+            out GameObject[] tierRoots)
+        {
+            panel = CreatePanel(
+                "LobbyPanel",
+                parent,
+                new Color(0.035f, 0.055f, 0.09f, 0.97f));
+            CreateText(
+                "LobbyTitle",
+                panel.transform,
+                "COLOR GATE",
+                64,
+                new Vector2(0.1f, 0.84f),
+                new Vector2(0.9f, 0.95f));
+            stage = CreateText(
+                "LobbyCurrentStage",
+                panel.transform,
+                "STAGE 1",
+                42,
+                new Vector2(0.1f, 0.58f),
+                new Vector2(0.9f, 0.76f));
+            progress = CreateText(
+                "LobbyProgress",
+                panel.transform,
+                "0 / 5 CLEARED",
+                28,
+                new Vector2(0.15f, 0.49f),
+                new Vector2(0.85f, 0.57f));
+            tier = CreateText(
+                "LobbyTierLabel",
+                panel.transform,
+                "LOBBY TIER 0",
+                24,
+                new Vector2(0.2f, 0.40f),
+                new Vector2(0.8f, 0.48f));
+            Text playLabel;
+            play = CreateButton(
+                "LobbyPlayButton",
+                panel.transform,
+                "PLAY",
+                new Vector2(0.18f, 0.14f),
+                new Vector2(0.82f, 0.28f),
+                out playLabel);
+            tierRoots = new GameObject[4];
+            Color[] colors =
+            {
+                new Color(0.15f, 0.18f, 0.26f, 1f),
+                new Color(0.20f, 0.32f, 0.48f, 1f),
+                new Color(0.22f, 0.48f, 0.38f, 1f),
+                new Color(0.52f, 0.38f, 0.18f, 1f)
+            };
+            for (int index = 0; index < tierRoots.Length; index++)
+            {
+                GameObject decoration = CreatePanel(
+                    $"LobbyTier_{index}",
+                    panel.transform,
+                    colors[index]);
+                SetAnchors(
+                    decoration.GetComponent<RectTransform>(),
+                    new Vector2(0.08f + (index * 0.21f), 0.31f),
+                    new Vector2(0.23f + (index * 0.21f), 0.37f));
+                CreateText(
+                    $"LobbyTierBanner_{index}",
+                    decoration.transform,
+                    index == 0 ? "BASE" : $"UP {index}",
+                    18,
+                    Vector2.zero,
+                    Vector2.one);
+                tierRoots[index] = decoration;
+            }
         }
 
         private static void CreateStageSelectUi(
@@ -781,7 +942,12 @@ namespace ColorGateRunner.Editor
             out Text progress,
             out Image fill,
             out Text shield,
-            out Text booster)
+            out Text booster,
+            out Text current,
+            out Text cycle,
+            out Text next,
+            out Image boosterMeter,
+            out GameObject boosterWarning)
         {
             panel = CreatePanel(
                 "StageHud",
@@ -836,6 +1002,50 @@ namespace ColorGateRunner.Editor
                 20,
                 new Vector2(0.55f, 0.02f),
                 new Vector2(0.96f, 0.27f));
+            current = CreateText(
+                "CurrentColorText",
+                parent,
+                "CURRENT\nRED",
+                30,
+                new Vector2(0.08f, 0.68f),
+                new Vector2(0.38f, 0.82f));
+            cycle = CreateText(
+                "ColorCycleOrderText",
+                parent,
+                "RED  >  BLUE  >  RED",
+                22,
+                new Vector2(0.38f, 0.72f),
+                new Vector2(0.92f, 0.80f));
+            next = CreateText(
+                "NextColorText",
+                parent,
+                "NEXT: BLUE",
+                24,
+                new Vector2(0.50f, 0.66f),
+                new Vector2(0.88f, 0.73f));
+            GameObject meterRoot = CreatePanel(
+                "BoosterMeter",
+                parent,
+                new Color(1f, 1f, 1f, 0.15f));
+            SetAnchors(
+                meterRoot.GetComponent<RectTransform>(),
+                new Vector2(0.12f, 0.62f),
+                new Vector2(0.88f, 0.65f));
+            GameObject meterFill = CreatePanel(
+                "BoosterMeterFill",
+                meterRoot.transform,
+                BlueColor);
+            boosterMeter = meterFill.GetComponent<Image>();
+            boosterMeter.type = Image.Type.Filled;
+            boosterMeter.fillMethod = Image.FillMethod.Horizontal;
+            boosterMeter.fillAmount = 0f;
+            boosterWarning = CreateText(
+                "BoosterEndWarning",
+                parent,
+                "BOOST ENDING",
+                28,
+                new Vector2(0.25f, 0.57f),
+                new Vector2(0.75f, 0.62f)).gameObject;
         }
 
         private static void CreateResultUi(
@@ -870,9 +1080,9 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.9f, 0.74f));
             Text nextLabel;
             next = CreateButton(
-                "NextStageButton",
+                "ClearContinueButton",
                 panel.transform,
-                "NEXT STAGE",
+                "CONTINUE",
                 new Vector2(0.16f, 0.31f),
                 new Vector2(0.84f, 0.41f),
                 out nextLabel);
@@ -886,9 +1096,9 @@ namespace ColorGateRunner.Editor
                 out replayLabel);
             Text selectLabel;
             select = CreateButton(
-                "ClearStageSelectButton",
+                "ClearLobbyButton",
                 panel.transform,
-                "STAGE SELECT",
+                "LOBBY",
                 new Vector2(0.16f, 0.07f),
                 new Vector2(0.84f, 0.17f),
                 out selectLabel);
@@ -899,6 +1109,7 @@ namespace ColorGateRunner.Editor
             out GameObject panel,
             out Text title,
             out Text details,
+            out Button continueButton,
             out Button retry,
             out Button select)
         {
@@ -920,21 +1131,29 @@ namespace ColorGateRunner.Editor
                 32,
                 new Vector2(0.1f, 0.46f),
                 new Vector2(0.9f, 0.70f));
+            Text continueLabel;
+            continueButton = CreateButton(
+                "ContinueButton",
+                panel.transform,
+                "CONTINUE",
+                new Vector2(0.16f, 0.37f),
+                new Vector2(0.84f, 0.49f),
+                out continueLabel);
             Text retryLabel;
             retry = CreateButton(
                 "RetryButton",
                 panel.transform,
                 "RETRY",
-                new Vector2(0.16f, 0.25f),
-                new Vector2(0.84f, 0.37f),
+                new Vector2(0.16f, 0.23f),
+                new Vector2(0.84f, 0.35f),
                 out retryLabel);
             Text selectLabel;
             select = CreateButton(
-                "FailStageSelectButton",
+                "FailLobbyButton",
                 panel.transform,
-                "STAGE SELECT",
-                new Vector2(0.16f, 0.11f),
-                new Vector2(0.84f, 0.23f),
+                "LOBBY",
+                new Vector2(0.16f, 0.09f),
+                new Vector2(0.84f, 0.21f),
                 out selectLabel);
         }
 

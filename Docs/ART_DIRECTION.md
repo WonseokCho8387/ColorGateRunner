@@ -10,7 +10,7 @@ selected items, gate judgment, progress, and Goal state readable immediately.
 - Portrait 9:16
 - Position `(0, 8, -10)`, rotation `(20, 0, 0)`
 - Fixed rotation throughout all states
-- Normal FOV 60; Booster-only FOV 70
+- Normal FOV 60; Booster-only FOV 74
 - Player and upcoming gates remain readable without follow smoothing
 
 ## Palette
@@ -27,10 +27,14 @@ colors are reserved for the runner, gates, item accents, and progress fill.
 
 ## Stage-select and item presentation
 
-- Stage Select contains five large portrait-safe entries with OPEN, LOCKED, or
-  CLEARED plus best-time summary.
-- The development unlock-all control exists for testing but is hidden by
-  default.
+Step 9A replaces player-facing Stage Select with a single-current-stage Lobby.
+The five-entry picker remains hidden for development.
+
+- Lobby tiers add generated palette/banner/floor accents after Stages 2, 4,
+  and 5.
+
+- The hidden development Stage Select retains five entries and unlock-all
+  controls for test setup, but is not part of player-facing navigation.
 - PreRun shows the selected stage and two large toggle cards for Shield and
   Booster, followed by Start and Back.
 - The toggles communicate free selection rather than an inventory balance.
@@ -51,12 +55,16 @@ colors are reserved for the runner, gates, item accents, and progress fill.
 
 ### Shield
 
-- A visible shell surrounds the player only while the selected Shield remains.
+- Six thin segmented arcs surround the player while leaving the central
+  gameplay material unobscured.
+- Selected Shield is visible during countdown; protection remains Core-owned.
 - No collectible or runtime pickup is present in the stage scene.
 
 ### Booster
 
-- Booster alone enables stronger speed lines, player trail, and 70-degree FOV.
+- Booster alone enables stronger speed lines, player trail, launch
+  shake/pulse, and 74-degree FOV.
+- A draining bar and final-20% warning communicate the exit.
 - Normal play returns to restrained effects and 60-degree FOV immediately
   after its deterministic distance.
 - No screen-space distortion, post-processing, or new external effect asset is
@@ -68,6 +76,9 @@ colors are reserved for the runner, gates, item accents, and progress fill.
 - Clear and failure use separate full-screen panels.
 - Clear prioritizes STAGE CLEAR, time, items, and best time.
 - Failure prioritizes STAGE FAILED, progress, items, and Retry.
+- Clear waits 1.2 seconds and uses bright positive effects; failure waits 1.0
+  second and uses a darker hierarchy. The character animation remains visible
+  before either panel.
 - Buttons remain above the gameplay tap surface.
 
 ## Constraints

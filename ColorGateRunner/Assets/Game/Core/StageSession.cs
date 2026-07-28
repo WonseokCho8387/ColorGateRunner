@@ -10,6 +10,9 @@ namespace ColorGateRunner.Core
         private StartItemSelection _items;
         private float _shieldRecoveryRemaining;
         private float _boosterExitRemaining;
+        private float _continueProtectionRemaining;
+        private int _safeGateCountRemaining;
+        private bool _continueCountdown;
         private bool _clearResolved;
 
         public StageSession(StageDefinition stage)
@@ -57,6 +60,12 @@ namespace ColorGateRunner.Core
             }
         }
         public StartItemSelection Items => _items;
+        public bool ContinueUsed { get; private set; }
+        public bool ContinueAvailable =>
+            FlowState == StageFlowState.Failed && !ContinueUsed;
+        public bool ContinueProtectionActive =>
+            _continueProtectionRemaining > 0f;
+        public int SafeGateCountRemaining => _safeGateCountRemaining;
 
         public void SelectItems(StartItemSelection items)
         {
@@ -77,6 +86,7 @@ namespace ColorGateRunner.Core
                 return false;
             }
 
+            _continueCountdown = false;
             FlowState = StageFlowState.Countdown;
             return true;
         }
@@ -89,8 +99,18 @@ namespace ColorGateRunner.Core
             }
 
             FlowState = StageFlowState.Playing;
-            ShieldActive = _items.Shield;
-            BoosterActive = _items.Booster;
+            if (!_continueCountdown)
+            {
+                ShieldActive = _items.Shield;
+                BoosterActive = _items.Booster;
+            }
+            else
+            {
+                BoosterActive = false;
+                BoosterDistanceRemaining = 0f;
+                _continueProtectionRemaining = 1f;
+                _safeGateCountRemaining = 2;
+            }
             BoosterDistanceRemaining = BoosterActive
                 ? Stage.BoosterDistance
                 : 0f;
@@ -144,6 +164,7 @@ namespace ColorGateRunner.Core
                 {
                     BoosterActive = false;
                     _boosterExitRemaining = BoosterExitDuration;
+                    _safeGateCountRemaining = 2;
                     boosterEndedThisAdvance = true;
                 }
             }
@@ -152,6 +173,12 @@ namespace ColorGateRunner.Core
                 _boosterExitRemaining = Math.Max(
                     0f,
                     _boosterExitRemaining - deltaSeconds);
+            }
+            if (_continueProtectionRemaining > 0f)
+            {
+                _continueProtectionRemaining = Math.Max(
+                    0f,
+                    _continueProtectionRemaining - deltaSeconds);
             }
 
             if (FlowState == StageFlowState.ShieldRecovery)
@@ -169,7 +196,34 @@ namespace ColorGateRunner.Core
 
         public GatePlan GetNextGatePlan()
         {
-            return _sequence.GetPlan(GatesPassed);
+            return AdjustForSafeTransition(_sequence.GetPlan(GatesPassed));
+        }
+
+        public GatePlan AdjustForSafeTransition(GatePlan plan)
+        {
+            return AdjustForSafeTransition(plan, 0);
+        }
+
+        public GatePlan AdjustForSafeTransition(GatePlan plan, int aheadOffset)
+        {
+            if (_safeGateCountRemaining <= aheadOffset)
+            {
+                return plan;
+            }
+
+            RunnerColor color =
+                _safeGateCountRemaining == 2 && aheadOffset == 0
+                ? CurrentColor
+                : GetNextAllowedColor(CurrentColor);
+            float time = Math.Max(1.35f, plan.TimeToGate);
+            return new GatePlan(
+                color,
+                Math.Max(plan.Spacing, CurrentSpeed * time),
+                time,
+                1f,
+                GatePatternType.Steady,
+                plan.IndexInPattern,
+                false);
         }
 
         public GateOutcome ResolveGate(RunnerColor gateColor)
@@ -184,6 +238,7 @@ namespace ColorGateRunner.Core
             if (BoosterActive)
             {
                 GatesPassed++;
+                ConsumeSafeGate();
                 EnterFinishingIfFinalGate();
                 UpdateSpeed();
                 return GateOutcome.Boosted;
@@ -192,6 +247,7 @@ namespace ColorGateRunner.Core
             if (CurrentColor == gateColor)
             {
                 GatesPassed++;
+                ConsumeSafeGate();
                 EnterFinishingIfFinalGate();
                 UpdateSpeed();
                 return GateOutcome.Matched;
@@ -201,6 +257,7 @@ namespace ColorGateRunner.Core
             {
                 ShieldActive = false;
                 GatesPassed++;
+                ConsumeSafeGate();
                 FlowState = StageFlowState.ShieldRecovery;
                 _shieldRecoveryRemaining = GameRules.ShieldRecoveryDuration;
                 EnterFinishingIfFinalGate();
@@ -208,9 +265,38 @@ namespace ColorGateRunner.Core
                 return GateOutcome.Shielded;
             }
 
+            if (_continueProtectionRemaining > 0f)
+            {
+                GatesPassed++;
+                ConsumeSafeGate();
+                EnterFinishingIfFinalGate();
+                UpdateSpeed();
+                return GateOutcome.Invulnerable;
+            }
+
             FlowState = StageFlowState.Failed;
             CurrentSpeed = 0f;
             return GateOutcome.Mismatched;
+        }
+
+        public bool ContinueAfterFailure()
+        {
+            if (!ContinueAvailable)
+            {
+                return false;
+            }
+
+            ContinueUsed = true;
+            _continueCountdown = true;
+            BoosterActive = false;
+            BoosterDistanceRemaining = 0f;
+            _boosterExitRemaining = 0f;
+            _continueProtectionRemaining = 0f;
+            _safeGateCountRemaining = 2;
+            FlowState = StageFlowState.Countdown;
+            CurrentSpeed = Stage.StartingSpeed +
+                ((Stage.MaximumSpeed - Stage.StartingSpeed) * Progress);
+            return true;
         }
 
         public bool ReachGoal()
@@ -238,6 +324,10 @@ namespace ColorGateRunner.Core
             BoosterActive = false;
             BoosterDistanceRemaining = 0f;
             _boosterExitRemaining = 0f;
+            _continueProtectionRemaining = 0f;
+            _safeGateCountRemaining = 0;
+            _continueCountdown = false;
+            ContinueUsed = false;
             _shieldRecoveryRemaining = 0f;
             _clearResolved = false;
             _sequence.Reset();
@@ -264,6 +354,28 @@ namespace ColorGateRunner.Core
                 BoosterDistanceRemaining = 0f;
                 _boosterExitRemaining = 0f;
             }
+        }
+
+        private void ConsumeSafeGate()
+        {
+            if (_safeGateCountRemaining > 0)
+            {
+                _safeGateCountRemaining--;
+            }
+        }
+
+        private RunnerColor GetNextAllowedColor(RunnerColor color)
+        {
+            int count = GetCurrentAllowedColorCount();
+            for (int index = 0; index < count; index++)
+            {
+                if (Stage.GetAllowedColor(index) == color)
+                {
+                    return Stage.GetAllowedColor((index + 1) % count);
+                }
+            }
+
+            return Stage.GetAllowedColor(0);
         }
 
         private void UpdateSpeed()

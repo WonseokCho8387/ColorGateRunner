@@ -31,6 +31,15 @@ namespace ColorGateRunner.Core
                 ? 1f
                 : (float)gateIndex / (_stage.TargetGateCount - 1);
             float cadence = Lerp(_stage.CadenceStart, _stage.CadenceEnd, progress);
+            StageSectionInfo section =
+                StageSectionCatalog.FindSection(_stage.DisplayNumber, gateIndex);
+            if (!string.IsNullOrEmpty(section.Name))
+            {
+                pattern = section.Pattern;
+                cadence = Math.Max(
+                    GameRules.MinimumReactionTime,
+                    cadence * section.CadenceMultiplier);
+            }
             float speed = Lerp(_stage.StartingSpeed, _stage.MaximumSpeed, progress);
             float spacing = speed * cadence;
 
@@ -54,6 +63,11 @@ namespace ColorGateRunner.Core
 
         private RunnerColor ChooseColor(int gateIndex, uint raw)
         {
+            if (_stage.DisplayNumber == 3)
+            {
+                return RecordColor(ChooseStageThreeColor(gateIndex));
+            }
+
             int colorCount = _stage.AllowedColorCount;
             if (_stage.DisplayNumber == 4 && gateIndex < _stage.IntroGateCount)
             {
@@ -80,6 +94,22 @@ namespace ColorGateRunner.Core
             }
 
             return RecordColor(color);
+        }
+
+        private static RunnerColor ChooseStageThreeColor(int gateIndex)
+        {
+            RunnerColor[] authored =
+            {
+                RunnerColor.Red, RunnerColor.Red, RunnerColor.Red, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Red, RunnerColor.Red, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Blue,
+                RunnerColor.Red, RunnerColor.Red, RunnerColor.Red, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Red, RunnerColor.Red, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Red,
+                RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Red, RunnerColor.Blue
+            };
+            return authored[gateIndex % authored.Length];
         }
 
         private RunnerColor RecordColor(RunnerColor color)

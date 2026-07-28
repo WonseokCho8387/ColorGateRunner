@@ -40,6 +40,16 @@ For every gameplay change:
 6. Run PlayMode tests when scene behavior changes.
 7. Report test results and remaining risks.
 
+For every gameplay-affecting change:
+
+- Run and compare baseline and final deterministic/stochastic simulations.
+- Run every documented player profile and start-item combination.
+- Adjust only values explicitly listed as balance-tunable in
+  `Docs/TEST_PLAN.md`.
+- Never claim fun, excitement, fairness, satisfaction, or motivation from
+  automated results. Detailed simulation requirements live in
+  `Docs/TEST_PLAN.md`.
+
 ## Definition of done
 
 A task is complete only when:

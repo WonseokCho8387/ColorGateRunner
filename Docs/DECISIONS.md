@@ -256,7 +256,9 @@ future optional Endless mode, but is not exposed by the Step 8 scene.
 
 ## Step 8 stage progression and start-item loop
 
-Status: Active
+Status: Superseded by Step 9A for the player-facing navigation, Continue,
+readability, and simulation workflow. The five-stage definitions and start
+items remain the foundation.
 
 - Human review of Step 7 established that a score-only endless terminal did
   not provide a clear short-term objective or replay route. The main mode is
@@ -312,3 +314,53 @@ Status: Active
   retained only as non-exposed reusable legacy code. An optional Endless mode,
   direct color buttons, economies/consumables, additional colors, new
   mechanics, audio/BPM placement, ads, and online features are deferred.
+
+## Step 9A lobby, Continue, readability, and simulation
+
+Status: Active
+
+- Tap-to-cycle remains the active core input method. Direct color buttons
+  remain deferred and require new evidence before reconsideration.
+- Normal progression uses one current-stage Lobby rather than a player-facing
+  stage browser. It selects the lowest unlocked uncleared stage, or Stage 5
+  when all prototype stages are cleared. The old picker is Editor/development
+  only and hidden by default.
+- Lobby visual tiers are data-derived: Tier 0 initially, Tier 1 after Stage 2,
+  Tier 2 after Stage 4, and Tier 3 after Stage 5. No currency, placement, or
+  decoration economy is introduced.
+- The gameplay HUD explicitly displays current color, active cycle order, and
+  the next tap color. It is read-only and never resembles input buttons.
+- Shield is visible during the initial countdown but protection begins only
+  when Core completes it. Six thin generated ring segments replace the
+  color-obscuring sphere. Continue never restores a consumed Shield; Retry
+  reapplies retained selection.
+- Booster uses exclusive 74-degree FOV, launch shake/pulse, speed lines,
+  trail, and a platform-safe haptic request. A distance meter warns during the
+  final 20%. Two post-Booster gates are reserved: current color, then at most
+  one tap, each with at least 1.35 seconds. Normal FOV remains 60.
+- Gates contain Left, Right, and Top parts. Booster impact separates/rotates
+  the pooled parts and every transform/material resets before reuse.
+- One free Continue is available per attempt. It preserves stage progress and
+  color, bypasses item selection, starts one countdown, grants one second of
+  post-GO protection, and uses the same two-gate safe sequence. Booster and
+  start items are not restored. A second failure has only Retry and Lobby.
+- Continued clears may unlock progression and increment clear count but never
+  update overall or no-item Best. Continued clears are counted explicitly.
+- Failure UI waits 1.0 seconds for the failure animation. Clear UI waits 1.2
+  seconds for the finish animation and positive particles. Clear and Failed
+  have different roots, hierarchy, palette, and primary actions.
+- Stage 2 uses five authored sections: Steady, Compression, Release,
+  Syncopation, Mixed Final. Stage 3 uses alternating Red/Blue-led exception
+  sections and a Release/Burst finish.
+- Gameplay-affecting development requires Core simulation using the same
+  StageSession, stage definitions, gate plans, items, Continue, and completion
+  rules. Perfect, Expert, Average, Novice, and Stress profiles are provisional
+  mechanical models, not representations of real players.
+- Development telemetry is local CSV, disabled by default outside explicit
+  Editor/development use, contains no identifiers, and performs no upload.
+- Adaptive Assist activation remains disabled. Only an eligibility snapshot
+  is retained for future visible, optional assistance after calibration.
+- Direct color buttons, player-facing stage browser, decoration economy,
+  currency/item quantities, hidden adaptive difficulty, Assist activation,
+  online analytics, additional power-ups/stages, and Endless release remain
+  deferred.

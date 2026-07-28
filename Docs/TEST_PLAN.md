@@ -352,3 +352,71 @@ stage-specific acceptance criteria.
   duplicates, gaps, or lingering camera/effect state.
 - Direct color buttons and optional Endless access remain deferred and require
   later human validation if introduced.
+
+## Step 9A mandatory simulation methodology
+
+### Profiles
+
+- Perfect: reaction `0`, variance `0`, no error.
+- Expert: reaction `0.24s`, variance `0.05`, miss `0.004`, wrong `0.003`,
+  density `0.01`, Green `0.005`, fatigue `0.002`.
+- Average: reaction `0.42s`, variance `0.12`, miss `0.018`, wrong `0.012`,
+  density `0.035`, Green `0.025`, fatigue `0.008`.
+- Novice: reaction `0.62s`, variance `0.20`, miss `0.045`, wrong `0.03`,
+  density `0.07`, Green `0.06`, fatigue `0.015`.
+- Stress: reaction `0.46s`, variance `0.24`, miss `0.02`, wrong `0.018`,
+  density `0.08`, Green `0.04`, fatigue `0.025`.
+
+All values are provisional and live separately from stage balance. They do
+not represent real players until local human telemetry calibrates them.
+
+### Matrix and reproducibility
+
+- Every Stage 1–5 × None/Shield/Booster/Both combination runs once with
+  Perfect and 1,000 seeded runs for each other profile.
+- Every stochastic case includes first-attempt and one-Continue outcomes.
+- The simulator must use `StageSession`, `StageCatalog`,
+  `DeterministicStageGateSequence`, item rules, Continue rules, and Goal
+  completion rather than a second approximate gameplay implementation.
+- Same simulation seed must reproduce results.
+
+### Metrics and reports
+
+Record run counts, first/Continue clear rates, P10/median/P90 completion time,
+median failure progress, failure by gate/pattern, final reach/completion,
+required/successful taps, missed/wrong inputs, average/peak input rate,
+minimum/P10/average reaction margin, Shield consumption/survival, Booster
+bypass count/percentage/primary-pattern percentage, first-three post-Booster
+failure rate, Continue success, and estimated no-item duration.
+
+Write untracked artifacts to `Artifacts/Simulation/`:
+
+- `Step9A-SimulationSummary.md`
+- `Step9A-SimulationResults.json`
+- `Step9A-SimulationResults.csv`
+
+The Markdown comparison includes duration, relative difficulty, profiles,
+items, Continue, failure hotspots, Stage 2/3 before-after notes, Booster exit,
+the provisional-model warning, and human-only criteria.
+
+### Relative difficulty and adjustment boundary
+
+Report whether the provisional model orders Stage 1 easiest, Stage 2 with
+greater rhythm pressure, Stage 3 with more attention failures, Stage 4 with a
+Green increase, and Stage 5 hardest. Contradictions trigger model inspection,
+not forced tuning.
+
+Only Stage 2 section length/cadence within reaction limits, Stage 3 pattern/run
+values, Booster distance in its safe range, exit spacing, and result delay in
+the documented range may be tuned automatically. Tap input, item purpose,
+Lobby, failure rules, currency, hidden Assist, monetization, colors, and major
+mechanics require human direction.
+
+Telemetry is local CSV, development-only, disabled by default, identifier-free,
+and never uploaded. Track stage/seed/items/Continue/time, gate/pattern/colors,
+taps, margin/outcome, Shield/Booster, failure, completion, and final outcome.
+Assist eligibility may track failures/progress/pattern/Continue, but no
+automatic or hidden Assist activation is allowed.
+
+Automated validation must not claim fun, excitement, visual satisfaction,
+emotional achievement, replay motivation, or perceived fairness.

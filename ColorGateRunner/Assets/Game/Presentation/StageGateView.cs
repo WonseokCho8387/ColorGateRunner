@@ -15,10 +15,21 @@ namespace ColorGateRunner.Presentation
         private float _reactionRemaining;
         private Vector3 _baseScale;
         private Material _assignedMaterial;
+        private Vector3[] _partPositions;
+        private Quaternion[] _partRotations;
+        private Vector3[] _partScales;
+        private bool _boosterDestroyed;
 
         internal RunnerColor AssignedColor { get; private set; }
         internal bool HasResolved => _resolved;
         internal bool ReactionActive => _reactionRemaining > 0f;
+        internal bool BoosterDestroyed => _boosterDestroyed;
+        internal int PartCount => gateRenderers == null ? 0 : gateRenderers.Length;
+
+        private void Awake()
+        {
+            CaptureParts();
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -49,12 +60,14 @@ namespace ColorGateRunner.Presentation
             _assignedMaterial = material;
             _resolved = false;
             _reactionRemaining = 0f;
+            _boosterDestroyed = false;
             gameObject.SetActive(true);
             Vector3 position = transform.position;
             position.z = worldZ;
             transform.position = position;
             _baseScale = Vector3.one;
             transform.localScale = _baseScale;
+            ResetParts();
             ApplyMaterial(material);
         }
 
@@ -67,6 +80,28 @@ namespace ColorGateRunner.Presentation
         {
             _reactionRemaining = ReactionDuration;
             ApplyMaterial(failureMaterial);
+        }
+
+        internal void ShowBoosterImpact(Material flashMaterial)
+        {
+            _boosterDestroyed = true;
+            _reactionRemaining = ReactionDuration;
+            ApplyMaterial(flashMaterial);
+            if (gateRenderers.Length >= 3)
+            {
+                gateRenderers[0].transform.localPosition +=
+                    new Vector3(-1.1f, 0.35f, 0f);
+                gateRenderers[0].transform.localRotation =
+                    Quaternion.Euler(0f, 0f, 22f);
+                gateRenderers[1].transform.localPosition +=
+                    new Vector3(1.1f, 0.35f, 0f);
+                gateRenderers[1].transform.localRotation =
+                    Quaternion.Euler(0f, 0f, -22f);
+                gateRenderers[2].transform.localPosition +=
+                    new Vector3(0f, 1f, 0.5f);
+                gateRenderers[2].transform.localRotation =
+                    Quaternion.Euler(25f, 0f, 12f);
+            }
         }
 
         internal void Tick(float deltaTime)
@@ -90,7 +125,9 @@ namespace ColorGateRunner.Presentation
         {
             _resolved = false;
             _reactionRemaining = 0f;
+            _boosterDestroyed = false;
             transform.localScale = Vector3.one;
+            ResetParts();
             gameObject.SetActive(false);
         }
 
@@ -119,6 +156,25 @@ namespace ColorGateRunner.Presentation
         {
             controller = sceneController;
             gateRenderers = renderers;
+            CaptureParts();
+        }
+
+        private void CaptureParts()
+        {
+            if (gateRenderers == null)
+            {
+                return;
+            }
+            _partPositions = new Vector3[gateRenderers.Length];
+            _partRotations = new Quaternion[gateRenderers.Length];
+            _partScales = new Vector3[gateRenderers.Length];
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                Transform part = gateRenderers[index].transform;
+                _partPositions[index] = part.localPosition;
+                _partRotations[index] = part.localRotation;
+                _partScales[index] = part.localScale;
+            }
         }
 
         private void ApplyMaterial(Material material)
@@ -126,6 +182,22 @@ namespace ColorGateRunner.Presentation
             for (int index = 0; index < gateRenderers.Length; index++)
             {
                 gateRenderers[index].sharedMaterial = material;
+            }
+        }
+
+        private void ResetParts()
+        {
+            if (_partPositions == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                Transform part = gateRenderers[index].transform;
+                part.localPosition = _partPositions[index];
+                part.localRotation = _partRotations[index];
+                part.localScale = _partScales[index];
             }
         }
     }

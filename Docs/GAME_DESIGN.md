@@ -12,10 +12,10 @@ stage by matching every gate before crossing the Goal.
 - Approximately 25–40 seconds for a no-item prototype-stage clear
 - Deterministic, immediately retryable runs
 
-## Main flow
+## Main flow (Step 9A)
 
-1. Stage Select shows five sequentially unlocked stages.
-2. Selecting an unlocked stage opens PreRun Item Selection.
+1. Lobby shows the lowest unlocked uncleared stage and current visual tier.
+2. Play opens PreRun Item Selection for that single current stage.
 3. Shield and Booster are independent free toggles.
 4. Start enters one `3, 2, 1, GO` countdown.
 5. Items activate after `GO`, then the runner moves automatically.
@@ -23,8 +23,9 @@ stage by matching every gate before crossing the Goal.
 7. A matching gate advances progress. A mismatch fails unless Shield absorbs
    it or Booster is active.
 8. The final gate reveals a Goal. Crossing it clears the stage.
-9. Clear offers Next Stage, Replay, and Stage Select. Failure offers Retry and
-   Stage Select. Retry returns to item selection with toggles retained.
+9. Clear waits for a finish animation, then Continue returns to the updated
+   Lobby. Failure waits for its animation, then offers one Continue, Retry,
+   and Lobby. Retry returns to item selection with toggles retained.
 
 ## Authoritative flow states
 
@@ -36,6 +37,20 @@ stage by matching every gate before crossing the Goal.
 - StageFinishing
 - StageCleared
 - Failed
+
+Lobby is controller-level navigation outside a live StageSession. The
+development stage picker is hidden from the normal flow.
+
+## Continue
+
+- One free Continue is available per attempt.
+- It keeps stage, passed-gate progress, current color, and remaining Shield
+  state.
+- It never restores Shield or Booster and never opens item selection.
+- It uses `3, 2, 1, GO`, one second of recovery protection, then two safe
+  gates: current color and at most one tap.
+- A continued clear unlocks the next stage and increments clear count, but
+  cannot update Best or no-item Best.
 
 UI visibility follows these states and does not own gameplay state.
 
@@ -96,7 +111,9 @@ no-item best. Corrupt values fall back to safe empty records.
 
 - Six pre-created 40-unit straight track segments recycle behind the player.
 - Normal camera rotation and 60-degree FOV remain fixed.
-- Booster alone temporarily uses 70-degree FOV, pooled speed lines, and trail.
+- Booster alone temporarily uses 74-degree FOV, pooled speed lines, and trail.
+- Step 9A Booster presentation adds a distance meter, final-20%
+  warning, launch pulse/shake/haptic request, and two safe exit gates.
 - No post-processing or normal-speed camera escalation is used.
 
 ## Legacy and deferred
@@ -105,3 +122,12 @@ The previous deterministic Endless implementation remains reusable code but is
 not exposed by the main scene. Optional Endless mode, direct color buttons,
 consumable economies, extra mechanics/colors, audio or BPM placement, ads,
 analytics, networking, and online ranking are deferred.
+
+## Simulation and telemetry
+
+Core simulation uses the same stage/session/gate/item/Continue rules as play.
+Perfect, Expert, Average, Novice, and Stress are configurable provisional
+profiles. Reports estimate mechanical duration, input pressure, failures, and
+item/Continue effects only. Local development telemetry may later calibrate
+profiles; it is disabled by default, contains no identifiers, and is never
+uploaded.
