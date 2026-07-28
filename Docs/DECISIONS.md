@@ -176,7 +176,9 @@ Status: Accepted historical baseline. Replaced decisions are marked
 
 ## Step 7 cadence progression and replay motivation
 
-Status: Active
+Status: Superseded by Step 8 for the main player-facing mode. The deterministic
+cadence, pattern, shield, and infinite-track code remains available for a
+future optional Endless mode, but is not exposed by the Step 8 scene.
 
 - Step 6 human playtesting found that initial acceleration was perceptible,
   but speed sensation fell after the opening camera movement. Speed-scaled
@@ -251,3 +253,62 @@ Status: Active
   colors, fog, fake gates, currency, Continue, advertising, audio/BPM
   synchronization, online leaderboards, skins, other power-ups, and a fourth
   color remain deferred.
+
+## Step 8 stage progression and start-item loop
+
+Status: Active
+
+- Human review of Step 7 established that a score-only endless terminal did
+  not provide a clear short-term objective or replay route. The main mode is
+  now five finite stages with an explicit Stage Select, free start-item
+  selection, one countdown, a visible Goal, and distinct clear/fail results.
+- `StageCatalog` is the authoritative data source for five prototype stages.
+  IDs are `stage-01` through `stage-05`; display numbers are sequential.
+  Targets are 24, 28, 30, 32, and 36 gates. Final-pressure sections contain
+  4, 5, 6, 6, and 8 gates.
+- Stage 1 uses Steady/Release, Stage 2 adds cadence contrast, Stage 3 uses
+  conservative bait/break patterns, Stage 4 safely introduces Green after
+  eight two-color gates, and Stage 5 uses all three colors from the start.
+  Stages 1–3 never generate Green and score 15 no longer changes their colors.
+- Stage movement is deterministic and progress-based. Starting/maximum speeds
+  are `7/10`, `8/11`, `8.5/11.5`, `8/12`, and `9/13.5`. Start/end target
+  cadences are `1.55/1.25`, `1.45/1.10`, `1.40/1.00`, `1.45/1.00`, and
+  `1.25/0.85` seconds. All remain above the 0.75-second reaction floor.
+- Explicit active flow states are `StageSelect`, `PreRunSelection`,
+  `Countdown`, `Playing`, `ShieldRecovery`, `StageFinishing`,
+  `StageCleared`, and `Failed`. Panels mirror these states; panels are not the
+  source of truth.
+- Shield and Booster are free, unlimited start toggles. They activate only
+  after `GO`. Retry returns to PreRun selection and retains both toggles.
+  Runtime shield pickup is removed from the generated main scene.
+- A selected Shield absorbs one mismatch, counts that gate as stage progress,
+  and provides exactly one second of recovery. It cannot stack.
+- A selected Booster uses stage speeds `22`, `23`, `24`, `25`, and `26` for
+  deterministic distances `80`, `90`, `100`, `105`, and `115` units.
+  During Booster, gate crossings advance stage progress without accuracy
+  judgment and do not consume Shield. When its distance ends, speed returns
+  over a deterministic 0.35-second ease to the normal value at current stage
+  progress.
+- Booster alone raises camera FOV from 60 to 70 and enables pooled speed lines
+  and the existing player trail. Normal play keeps FOV at 60. Camera rotation
+  is fixed. Booster and gate reactions are reset when the run or pooled gate
+  is reused.
+- The final gate enters `StageFinishing`; failure judgments are ignored from
+  that point. A visible Goal is placed ten units after the final gate.
+  Crossing it resolves clear exactly once.
+- Per-stage persistence owns highest unlocked stage, cleared state, best time,
+  best no-item time, and clear count. Lower time is better. Item-assisted
+  clears may update overall best but never no-item best. Invalid serialized
+  data safely becomes an empty record. Core contains only record policy;
+  PlayerPrefs is isolated behind `IStageProgressStore`.
+- Clear unlocks at most the next stage. Clear results show stage, time, used
+  items, best time, Next Stage, Replay, and Stage Select. Failure results show
+  progress, used items, Retry, and Stage Select.
+- The generated root remains `ColorGateRunner_Graybox`. The builder destroys
+  only the previous generated root and known default scene roots, then
+  recreates fixed arrays and serialized references. Running it twice is the
+  idempotency check.
+- The Step 7 `GameSession`, score milestone, Top 5, and runtime pickup code is
+  retained only as non-exposed reusable legacy code. An optional Endless mode,
+  direct color buttons, economies/consumables, additional colors, new
+  mechanics, audio/BPM placement, ads, and online features are deferred.

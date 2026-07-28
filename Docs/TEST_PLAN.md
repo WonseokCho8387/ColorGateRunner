@@ -250,3 +250,105 @@ Still deferred:
 - BPM-based or music-synchronized gate placement.
 - A fourth color, obstacles, additional power-ups, combos, rating systems,
   missions, and skins.
+
+## Step 8 active acceptance mapping
+
+The Step 7 main-flow checks above are historical. Their deterministic Endless
+fixtures remain useful, but the generated SampleScene now uses the following
+stage-specific acceptance criteria.
+
+### EditMode automated
+
+- Catalog validity and ordering:
+  `StageCatalog_ContainsFiveValidStages`, `StageIds_AreUnique`,
+  `StageNumbers_AreSequential`,
+  `EveryStage_HasPositiveTargetAndFinalSection`.
+- Color onboarding:
+  `StagesOneToThree_DoNotAllowGreen`, `StagesFourAndFive_AllowGreen`,
+  `StageFour_IntroducesGreenAtConfiguredGate`.
+- Deterministic layout and pacing:
+  `StageSequence_IsDeterministic`,
+  `Booster_IsShorterThanEstimatedStageDistance`,
+  `Retry_RetainsSelectedItemsAndReplaysLayout`,
+  `NegativeAdvance_IsRejected`,
+  `Countdown_DoesNotAdvanceElapsedTime`.
+- Start items:
+  `NoSelection_InitializesWithoutItems`,
+  `ShieldSelection_ActivatesAfterCountdown`,
+  `BoosterSelection_ActivatesAfterCountdown`,
+  `BoosterBypass_DoesNotConsumeShield`,
+  `BoosterEnd_UsesSpeedAtCurrentStageProgress`.
+- Goal and terminal state:
+  `FinalGate_EntersStageFinishing`, `Goal_ClearsOnlyOnce`,
+  `StageFinishing_IgnoresFailureJudgment`.
+- Progress storage:
+  `Clear_UnlocksOnlyNextStage`, `BetterLowerTime_ReplacesBestTime`,
+  `BoosterClear_DoesNotOverwriteNoItemBest`,
+  `CorruptPersistence_FallsBackSafely`, `Persistence_RoundTrips`.
+
+### PlayMode automated
+
+- Stage and item flow:
+  `StageSelect_ShowsFiveEntries`, `LockedStage_CannotStart`,
+  `SelectedStage_OpensItemScreen`,
+  `FourItemCombinations_StartCountdown`,
+  `Start_CreatesExactlyOneCountdown`,
+  `Failure_RetryReturnsToItemSelection`, `Retry_RetainsItemSelection`,
+  `NextStage_OpensNextItemSelection`.
+- Item activation and Booster boundary:
+  `ShieldSelected_ActivatesAfterGo`,
+  `ShieldUnselected_RemainsInactive`,
+  `BoosterSelected_ActivatesAfterGo`,
+  `Booster_BypassesMismatchedGate`,
+  `Booster_DoesNotConsumeShield`,
+  `Booster_CameraEffectsReturnToNormal`,
+  `ItemButtons_AreNotRuntimeConsumables`.
+- Stage resolution:
+  `FinalGate_RevealsGoal`, `GoalCrossing_ClearsStage`,
+  `NoFailureAfterGoalBecomesAvailable`, `Clear_ShowsOneResultPanel`,
+  `Failure_StopsMovementImmediately`,
+  `FailurePanel_ShowsProgressAndItems`,
+  `StageClear_PersistsPerStageRecordAndUnlock`.
+- Main-flow removals and onboarding:
+  `RuntimeShieldPickup_IsNotExposed`,
+  `StageOneToThree_DoNotUnlockGreenByProgress`,
+  `StageFour_IntroducesGreen`.
+- Reuse and repeatability:
+  `GateReaction_ResetsWhenRecycled`,
+  `GatePool_ObjectCountDoesNotGrow`,
+  `TrackPool_ObjectCountDoesNotGrow`,
+  `Restart_ReplaysIdenticalGateLayout`,
+  `EveryStage_AllItemCombinationsCanInitialize`.
+
+### Structural validation
+
+- `GrayboxSceneBuilder.BuildGrayboxSceneFromCommandLine` runs the builder
+  twice and then checks one generated root, one Stage controller, zero exposed
+  legacy controllers, five stage buttons, one item screen, one countdown, one
+  HUD, one Goal, one clear panel, one fail panel, one EventSystem, six pooled
+  gates, six track segments, zero runtime Shield pickups, assigned references,
+  no missing scripts, Portrait orientation, no Volume, and camera
+  post-processing disabled.
+- PlayMode mirrors the key checks in
+  `RequiredSerializedReferences_AreAssigned`,
+  `Scene_HasNoMissingMonoBehaviours`, and
+  `GeneratedUi_HasNoDuplicateRoots`.
+
+### Manual mobile check
+
+- Confirm all five stage entries and both item toggles are comfortably
+  reachable within the physical device safe area.
+- Time no-item clears for all five stages and verify the intended 25–40 second
+  range; automated tests validate rules but do not claim the pacing is fun.
+- Confirm the 3/2/1/GO transition communicates exactly when selected items
+  activate.
+- Confirm Booster feels substantially faster without making its gate bypass or
+  retained Shield ambiguous.
+- Confirm Goal arrival, Stage Clear, Next Stage, Retry-to-selection, and
+  retained toggles are understandable without developer explanation.
+- Confirm Stage 4 Green onboarding is readable and Stages 1–3 never imply a
+  score-based color unlock.
+- Confirm thirty retries and long pooled-track movement show no stutter,
+  duplicates, gaps, or lingering camera/effect state.
+- Direct color buttons and optional Endless access remain deferred and require
+  later human validation if introduced.

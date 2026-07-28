@@ -15,8 +15,9 @@ namespace ColorGateRunner.Editor
     {
         internal const string ScenePath = "Assets/Scenes/SampleScene.unity";
         internal const string GeneratedRootName = "ColorGateRunner_Graybox";
-        internal const string GeneratedMaterialsFolder = "Assets/Game/Generated/Materials";
-        internal const int GatePoolSize = 5;
+        internal const string GeneratedMaterialsFolder =
+            "Assets/Game/Generated/Materials";
+        internal const int GatePoolSize = 6;
         internal const int TrackPoolSize = 6;
         internal const float TrackSegmentLength = 40f;
 
@@ -26,212 +27,218 @@ namespace ColorGateRunner.Editor
         internal static readonly Color NeutralColor = FromHex(0xD9D9D9);
         internal static readonly Color FailureColor = FromHex(0x6B7280);
 
-        private static readonly Vector3 PlayerStartPosition = new Vector3(0f, 1f, 0f);
-        private static readonly Vector3 CameraPosition = new Vector3(0f, 8f, -10f);
-        private static readonly Vector3 CameraRotation = new Vector3(20f, 0f, 0f);
+        private static readonly Vector3 PlayerStartPosition =
+            new Vector3(0f, 1f, 0f);
+        private static readonly Vector3 CameraPosition =
+            new Vector3(0f, 8f, -10f);
+        private static readonly Vector3 CameraRotation =
+            new Vector3(20f, 0f, 0f);
 
         [MenuItem("Tools/Color Gate Runner/Build Graybox Scene")]
         public static void BuildGrayboxScene()
         {
-            EnsureAssetFolder("Assets/Game/Generated");
             EnsureAssetFolder(GeneratedMaterialsFolder);
-
-            Material redMaterial = CreateOrUpdateMaterial(
+            Material red = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Red.mat",
                 RedColor);
-            Material blueMaterial = CreateOrUpdateMaterial(
+            Material blue = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Blue.mat",
                 BlueColor);
-            Material greenMaterial = CreateOrUpdateMaterial(
+            Material green = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Green.mat",
                 GreenColor);
-            Material neutralMaterial = CreateOrUpdateMaterial(
+            Material neutral = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Neutral.mat",
                 NeutralColor);
-            Material failureMaterial = CreateOrUpdateMaterial(
+            Material failure = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Failure.mat",
                 FailureColor);
-            Material particleMaterial = CreateOrUpdateParticleMaterial(
-                GeneratedMaterialsFolder + "/SuccessParticle.mat");
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             RemovePreviousSceneObjects(scene);
 
-            GameObject generatedRoot = new GameObject(GeneratedRootName);
-            SceneManager.MoveGameObjectToScene(generatedRoot, scene);
-
-            Camera gameplayCamera = CreateCamera(generatedRoot.transform);
-            CreateDirectionalLight(generatedRoot.transform);
+            GameObject root = new GameObject(GeneratedRootName);
+            StageSceneController controller =
+                root.AddComponent<StageSceneController>();
+            Camera camera = CreateCamera(root.transform);
+            CreateDirectionalLight(root.transform);
             TrackPoolController trackPool =
-                CreateTrackPool(
-                    generatedRoot.transform,
-                    neutralMaterial,
-                    failureMaterial);
-
-            GameObject playerObject = CreatePlayer(generatedRoot.transform, redMaterial);
+                CreateTrackPool(root.transform, neutral);
+            GameObject playerObject =
+                CreatePlayer(root.transform, red);
             Renderer playerRenderer = playerObject.GetComponent<Renderer>();
-            TrailRenderer playerTrail =
-                CreatePlayerTrail(playerObject, particleMaterial);
+            TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             GameObject shieldVisual =
-                CreateShieldVisual(playerObject.transform, particleMaterial);
+                CreateShieldVisual(playerObject.transform, blue);
+            GameObject goal = CreateGoal(root.transform, neutral);
+            StageGateView[] gates =
+                CreateGatePool(root.transform, controller, neutral);
+            ParticleSystem successParticles =
+                CreateParticleSystem(
+                    "SuccessParticles",
+                    root.transform,
+                    green,
+                    false);
+            ParticleSystem speedLines =
+                CreateParticleSystem(
+                    "BoosterSpeedLines",
+                    camera.transform,
+                    blue,
+                    true);
 
-            GameSceneController controller =
-                generatedRoot.AddComponent<GameSceneController>();
-            ShieldPickupView shieldPickup = CreateShieldPickup(
-                generatedRoot.transform,
-                controller,
-                particleMaterial);
+            Canvas canvas = CreateCanvas(root.transform);
+            GameplayTapSurface tapSurface =
+                CreateTapSurface(canvas.transform);
+            Transform safeArea = CreateSafeArea(canvas.transform);
 
-            GateView[] gates = CreateGatePool(
-                generatedRoot.transform,
-                controller,
-                redMaterial,
-                blueMaterial);
-            ParticleSystem successParticles = CreateSuccessParticles(
-                generatedRoot.transform,
-                particleMaterial);
-            ParticleSystem shieldParticles = CreateBurstParticles(
-                "ShieldParticles",
-                generatedRoot.transform,
-                particleMaterial,
-                64);
-            ParticleSystem speedLines = CreateSpeedLines(
-                playerObject.transform,
-                particleMaterial);
+            GameObject stageSelectPanel;
+            Button[] stageButtons;
+            Text[] stageSummaries;
+            Button unlockAllButton;
+            CreateStageSelectUi(
+                safeArea,
+                out stageSelectPanel,
+                out stageButtons,
+                out stageSummaries,
+                out unlockAllButton);
 
-            Canvas canvas = CreateCanvas(generatedRoot.transform);
-            GameplayTapSurface tapSurface = CreateTapSurface(canvas.transform);
-            Transform safeAreaRoot = CreateSafeAreaRoot(canvas.transform);
-            GameObject scorePanel;
-            Text scoreLabel;
-            Text scoreText;
-            Text shieldText;
-            Text colorCycleText;
-            Text speedStageText;
-            RectTransform scorePulseTarget;
-            CreateScoreHud(
-                safeAreaRoot,
-                out scorePanel,
-                out scoreLabel,
-                out scoreText,
-                out shieldText,
-                out colorCycleText,
-                out scorePulseTarget);
-            Text shieldMessage = CreateShieldMessage(canvas.transform);
-            Text thirdColorMessage =
-                CreateThirdColorMessage(canvas.transform);
-            GameObject diagnosticsPanel;
-            Text diagnosticsText;
-            CreateDiagnosticsUi(
-                safeAreaRoot,
-                out diagnosticsPanel,
-                out diagnosticsText,
-                out speedStageText);
+            GameObject itemPanel;
+            Text selectedStageText;
+            Button shieldButton;
+            Text shieldButtonText;
+            Button boosterButton;
+            Text boosterButtonText;
+            Button startButton;
+            Button backButton;
+            CreateItemUi(
+                safeArea,
+                out itemPanel,
+                out selectedStageText,
+                out shieldButton,
+                out shieldButtonText,
+                out boosterButton,
+                out boosterButtonText,
+                out startButton,
+                out backButton);
+
             GameObject countdownPanel;
             Text countdownText;
             CreateCountdownUi(
-                canvas.transform,
+                safeArea,
                 out countdownPanel,
                 out countdownText);
-            GameObject readyOverlay;
-            Text readyTitle;
-            Text readyInstruction;
-            Text readyTap;
-            CreateReadyOverlay(
-                canvas.transform,
-                out readyOverlay,
-                out readyTitle,
-                out readyInstruction,
-                out readyTap);
-            GameObject gameOverPanel;
-            GameObject resultCard;
-            Text thisRunLabel;
-            Text gameOverScore;
-            Text bestScore;
-            Text topScores;
-            GameObject topScoresPanel;
-            GameObject bestBadge;
-            Text newBestText;
-            GameObject[] topScoreRows;
-            Text[] topScoreRankTexts;
-            Text[] topScoreValueTexts;
-            Text[] topScoreMarkerTexts;
-            Button restartButton;
-            CreateGameOverUi(
-                canvas.transform,
-                out gameOverPanel,
-                out resultCard,
-                out thisRunLabel,
-                out gameOverScore,
-                out bestScore,
-                out topScores,
-                out topScoresPanel,
-                out bestBadge,
-                out newBestText,
-                out topScoreRows,
-                out topScoreRankTexts,
-                out topScoreValueTexts,
-                out topScoreMarkerTexts,
-                out restartButton);
-            CreateEventSystem(generatedRoot.transform);
 
+            GameObject hud;
+            Text hudStage;
+            Text hudProgress;
+            Image progressFill;
+            Text hudShield;
+            Text hudBooster;
+            CreateHud(
+                safeArea,
+                out hud,
+                out hudStage,
+                out hudProgress,
+                out progressFill,
+                out hudShield,
+                out hudBooster);
+
+            GameObject clearPanel;
+            Text clearTitle;
+            Text clearDetails;
+            Button nextButton;
+            Button replayButton;
+            Button clearSelectButton;
+            CreateResultUi(
+                "StageClearPanel",
+                "STAGE CLEAR",
+                safeArea,
+                true,
+                out clearPanel,
+                out clearTitle,
+                out clearDetails,
+                out nextButton,
+                out replayButton,
+                out clearSelectButton);
+
+            GameObject failPanel;
+            Text failTitle;
+            Text failDetails;
+            Button retryButton;
+            Button failSelectButton;
+            CreateFailureUi(
+                safeArea,
+                out failPanel,
+                out failTitle,
+                out failDetails,
+                out retryButton,
+                out failSelectButton);
+
+            CreateEventSystem(root.transform);
             tapSurface.Configure(controller);
             controller.Configure(
-                GameRules.DefaultSeed,
                 playerObject.transform,
                 playerRenderer,
-                gameplayCamera,
-                redMaterial,
-                blueMaterial,
-                greenMaterial,
-                failureMaterial,
-                scorePanel,
-                scoreLabel,
-                scoreText,
-                scorePulseTarget,
-                shieldText,
-                colorCycleText,
-                readyOverlay,
-                readyTitle,
-                readyInstruction,
-                readyTap,
-                gameOverPanel,
-                gameOverScore,
-                bestScore,
-                topScores,
-                restartButton,
+                camera,
+                red,
+                blue,
+                green,
+                failure,
                 tapSurface,
+                trackPool,
+                gates,
+                goal,
+                shieldVisual,
                 successParticles,
                 speedLines,
-                shieldParticles,
-                playerTrail,
-                shieldVisual,
-                shieldPickup,
-                shieldMessage,
-                thirdColorMessage,
-                speedStageText,
-                diagnosticsPanel,
-                diagnosticsText,
-                trackPool,
+                trail,
+                stageSelectPanel,
+                stageButtons,
+                stageSummaries,
+                unlockAllButton,
+                itemPanel,
+                selectedStageText,
+                shieldButton,
+                shieldButtonText,
+                boosterButton,
+                boosterButtonText,
+                startButton,
+                backButton,
                 countdownPanel,
                 countdownText,
-                resultCard,
-                thisRunLabel,
-                topScoresPanel,
-                bestBadge,
-                newBestText,
-                topScoreRows,
-                topScoreRankTexts,
-                topScoreValueTexts,
-                topScoreMarkerTexts,
-                gates);
+                hud,
+                hudStage,
+                hudProgress,
+                progressFill,
+                hudShield,
+                hudBooster,
+                clearPanel,
+                clearTitle,
+                clearDetails,
+                nextButton,
+                replayButton,
+                clearSelectButton,
+                failPanel,
+                failTitle,
+                failDetails,
+                retryButton,
+                failSelectButton);
 
-            gameOverPanel.SetActive(false);
-            readyOverlay.SetActive(true);
+            stageSelectPanel.SetActive(true);
+            itemPanel.SetActive(false);
             countdownPanel.SetActive(false);
+            hud.SetActive(false);
+            clearPanel.SetActive(false);
+            failPanel.SetActive(false);
+            goal.SetActive(false);
+            shieldVisual.SetActive(false);
+            unlockAllButton.gameObject.SetActive(false);
+            speedLines.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            successParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            trail.emitting = false;
 
-            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
-
+            PlayerSettings.defaultInterfaceOrientation =
+                UIOrientation.Portrait;
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
@@ -247,148 +254,134 @@ namespace ColorGateRunner.Editor
 
         public static void ValidateGeneratedScene()
         {
-            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            GameObject[] roots = scene.GetRootGameObjects();
-            int generatedRootCount = 0;
+            Scene scene =
+                EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             GameObject generatedRoot = null;
-
+            int generatedRootCount = 0;
+            GameObject[] roots = scene.GetRootGameObjects();
             for (int index = 0; index < roots.Length; index++)
             {
                 if (roots[index].name == GeneratedRootName)
                 {
-                    generatedRootCount++;
                     generatedRoot = roots[index];
+                    generatedRootCount++;
                 }
             }
 
             if (generatedRootCount != 1 || generatedRoot == null)
             {
                 throw new InvalidOperationException(
-                    $"Expected exactly one {GeneratedRootName} root, found {generatedRootCount}.");
+                    $"Expected one {GeneratedRootName} root.");
             }
 
-            GameSceneController[] controllers =
+            StageSceneController[] controllers =
+                generatedRoot.GetComponentsInChildren<StageSceneController>(true);
+            GameSceneController[] legacyControllers =
                 generatedRoot.GetComponentsInChildren<GameSceneController>(true);
-            Camera[] cameras = generatedRoot.GetComponentsInChildren<Camera>(true);
+            Camera[] cameras =
+                generatedRoot.GetComponentsInChildren<Camera>(true);
             EventSystem[] eventSystems =
                 generatedRoot.GetComponentsInChildren<EventSystem>(true);
-            GateView[] gates = generatedRoot.GetComponentsInChildren<GateView>(true);
-            ParticleSystem[] particleSystems =
-                generatedRoot.GetComponentsInChildren<ParticleSystem>(true);
-            ShieldPickupView[] shieldPickups =
+            StageGateView[] gates =
+                generatedRoot.GetComponentsInChildren<StageGateView>(true);
+            ShieldPickupView[] pickups =
                 generatedRoot.GetComponentsInChildren<ShieldPickupView>(true);
             TrackPoolController[] trackPools =
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
-            TrackSegmentView[] trackSegments =
-                generatedRoot.GetComponentsInChildren<TrackSegmentView>(true);
 
-            if (controllers.Length != 1 || !controllers[0].HasRequiredReferences())
+            if (controllers.Length != 1 ||
+                !controllers[0].HasRequiredReferences() ||
+                legacyControllers.Length != 0)
             {
                 throw new InvalidOperationException(
-                    "Generated scene controller is duplicated or has missing references.");
+                    "Stage controller is duplicated, incomplete, or legacy mode is exposed.");
             }
-
             if (cameras.Length != 1 || eventSystems.Length != 1)
             {
                 throw new InvalidOperationException(
-                    "Generated scene must contain exactly one camera and one EventSystem.");
+                    "Expected one camera and one EventSystem.");
             }
-
-            if (gates.Length != GatePoolSize)
+            if (gates.Length != GatePoolSize || pickups.Length != 0)
             {
                 throw new InvalidOperationException(
-                    $"Expected {GatePoolSize} pre-created gates, found {gates.Length}.");
+                    "Fixed stage gate pool is invalid or runtime pickup remains.");
             }
-
             if (trackPools.Length != 1 ||
                 !trackPools[0].HasRequiredReferences() ||
-                trackPools[0].SegmentCount != TrackPoolSize ||
-                trackSegments.Length != TrackPoolSize + 1)
+                trackPools[0].SegmentCount != TrackPoolSize)
             {
-                throw new InvalidOperationException(
-                    "Generated infinite track pool or curve experiment is invalid.");
+                throw new InvalidOperationException("Track pool is invalid.");
             }
 
-            if (particleSystems.Length != 3 ||
-                shieldPickups.Length != 1 ||
-                !shieldPickups[0].HasRequiredReferences() ||
-                CountNamedTransforms(generatedRoot, "Canvas") != 1 ||
-                CountNamedTransforms(generatedRoot, "TrackPool") != 1 ||
-                CountNamedTransforms(generatedRoot, "CurveSegmentExperiment") != 1 ||
-                CountNamedTransforms(generatedRoot, "SafeAreaRoot") != 1 ||
-                CountNamedTransforms(generatedRoot, "ReadyOverlay") != 1 ||
-                CountNamedTransforms(generatedRoot, "ReadyTitle") != 1 ||
-                CountNamedTransforms(generatedRoot, "ReadyInstruction") != 1 ||
-                CountNamedTransforms(generatedRoot, "TapToStartVisual") != 1 ||
-                CountNamedTransforms(generatedRoot, "ScorePanel") != 1 ||
-                CountNamedTransforms(generatedRoot, "ScoreLabel") != 1 ||
-                CountNamedTransforms(generatedRoot, "ScoreValue") != 1 ||
-                CountNamedTransforms(generatedRoot, "ShieldIndicator") != 1 ||
-                CountNamedTransforms(generatedRoot, "ColorCycleIndicator") != 1 ||
-                CountNamedTransforms(generatedRoot, "ShieldVisual") != 1 ||
-                CountNamedTransforms(generatedRoot, "ShieldPickup") != 1 ||
-                CountNamedTransforms(generatedRoot, "ShieldMessage") != 1 ||
-                CountNamedTransforms(generatedRoot, "ThirdColorMessage") != 1 ||
-                CountNamedTransforms(generatedRoot, "SpeedStage") != 1 ||
-                CountNamedTransforms(generatedRoot, "DiagnosticsPanel") != 1 ||
-                CountNamedTransforms(generatedRoot, "DiagnosticsText") != 1 ||
-                CountNamedTransforms(generatedRoot, "CountdownPanel") != 1 ||
-                CountNamedTransforms(generatedRoot, "CountdownText") != 1 ||
-                CountNamedTransforms(generatedRoot, "GameOverPanel") != 1 ||
-                CountNamedTransforms(generatedRoot, "ResultSafeArea") != 1 ||
-                CountNamedTransforms(generatedRoot, "ResultCard") != 1 ||
-                CountNamedTransforms(generatedRoot, "ThisRunLabel") != 1 ||
-                CountNamedTransforms(generatedRoot, "GameOverScore") != 1 ||
-                CountNamedTransforms(generatedRoot, "BestScore") != 1 ||
-                CountNamedTransforms(generatedRoot, "TopScores") != 1 ||
-                CountNamedTransforms(generatedRoot, "TopScoresPanel") != 1 ||
-                CountNamedTransforms(generatedRoot, "BestBadge") != 1 ||
-                CountNamedTransforms(generatedRoot, "NewBestText") != 1 ||
-                CountNamedTransforms(generatedRoot, "RestartButton") != 1 ||
-                CountNamedTransforms(generatedRoot, "SuccessParticles") != 1 ||
-                CountNamedTransforms(generatedRoot, "ShieldParticles") != 1 ||
-                CountNamedTransforms(generatedRoot, "SpeedLines") != 1 ||
-                CountNamedTransforms(generatedRoot, "EventSystem") != 1)
+            string[] uniqueNames =
             {
-                throw new InvalidOperationException(
-                    "Generated feedback or UI objects are missing or duplicated.");
+                "Canvas",
+                "SafeAreaRoot",
+                "GameplayTapSurface",
+                "StageSelectPanel",
+                "StageSelectTitle",
+                "DeveloperUnlockAllButton",
+                "PreRunItemPanel",
+                "ShieldItemButton",
+                "BoosterItemButton",
+                "StartStageButton",
+                "BackButton",
+                "CountdownPanel",
+                "CountdownText",
+                "StageHud",
+                "StageProgressFill",
+                "Goal",
+                "StageClearPanel",
+                "StageFailedPanel",
+                "NextStageButton",
+                "ReplayButton",
+                "RetryButton",
+                "SuccessParticles",
+                "BoosterSpeedLines",
+                "EventSystem"
+            };
+            for (int index = 0; index < uniqueNames.Length; index++)
+            {
+                if (CountNamedTransforms(generatedRoot, uniqueNames[index]) != 1)
+                {
+                    throw new InvalidOperationException(
+                        $"{uniqueNames[index]} is missing or duplicated.");
+                }
             }
-
-            for (int rank = 1; rank <= ScoreHistory.Capacity; rank++)
+            for (int stage = 1; stage <= StageCatalog.Count; stage++)
             {
                 if (CountNamedTransforms(
                     generatedRoot,
-                    $"TopScoreRow_{rank:00}") != 1)
+                    $"StageButton_{stage:00}") != 1)
                 {
                     throw new InvalidOperationException(
-                        "Generated result card must contain exactly five rank rows.");
+                        "Exactly five stage buttons are required.");
                 }
             }
 
-            Transform[] transforms = generatedRoot.GetComponentsInChildren<Transform>(true);
+            Transform[] transforms =
+                generatedRoot.GetComponentsInChildren<Transform>(true);
             for (int index = 0; index < transforms.Length; index++)
             {
-                int missingCount =
-                    GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(
-                        transforms[index].gameObject);
-                if (missingCount > 0)
+                if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(
+                    transforms[index].gameObject) > 0)
                 {
                     throw new InvalidOperationException(
-                        $"Missing MonoBehaviour found on {transforms[index].name}.");
+                        $"Missing script on {transforms[index].name}.");
                 }
             }
 
-            if (PlayerSettings.defaultInterfaceOrientation != UIOrientation.Portrait)
+            if (PlayerSettings.defaultInterfaceOrientation !=
+                UIOrientation.Portrait)
             {
-                throw new InvalidOperationException("Default orientation is not Portrait.");
+                throw new InvalidOperationException(
+                    "Default orientation is not Portrait.");
             }
-
             if (HasActiveVolume(generatedRoot))
             {
                 throw new InvalidOperationException(
-                    "An active post-processing Volume remains in the generated scene.");
+                    "An active post-processing volume remains.");
             }
-
             if (IsCameraPostProcessingEnabled(cameras[0]))
             {
                 throw new InvalidOperationException(
@@ -416,195 +409,100 @@ namespace ColorGateRunner.Editor
         private static Camera CreateCamera(Transform parent)
         {
             GameObject cameraObject = new GameObject(
-                "Main Camera",
+                "GameplayCamera",
                 typeof(Camera),
                 typeof(AudioListener));
-            cameraObject.tag = "MainCamera";
             cameraObject.transform.SetParent(parent, false);
             cameraObject.transform.SetPositionAndRotation(
                 CameraPosition,
                 Quaternion.Euler(CameraRotation));
-
             Camera camera = cameraObject.GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.12f, 0.14f, 0.16f, 1f);
+            camera.backgroundColor = new Color(0.08f, 0.09f, 0.12f);
             camera.fieldOfView = 60f;
             camera.nearClipPlane = 0.1f;
-            camera.farClipPlane = 1000f;
-            camera.allowHDR = false;
-
-            Type additionalCameraDataType = Type.GetType(
-                "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
-            if (additionalCameraDataType != null)
-            {
-                Component cameraData = cameraObject.AddComponent(additionalCameraDataType);
-                SerializedObject serializedCameraData = new SerializedObject(cameraData);
-                SerializedProperty postProcessing =
-                    serializedCameraData.FindProperty("m_RenderPostProcessing");
-                if (postProcessing != null)
-                {
-                    postProcessing.boolValue = false;
-                    serializedCameraData.ApplyModifiedPropertiesWithoutUndo();
-                }
-            }
-
+            camera.farClipPlane = 500f;
+            camera.tag = "MainCamera";
             return camera;
         }
 
         private static void CreateDirectionalLight(Transform parent)
         {
             GameObject lightObject = new GameObject(
-                "Directional Light",
+                "DirectionalLight",
                 typeof(Light));
             lightObject.transform.SetParent(parent, false);
-            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
-
+            lightObject.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
             Light light = lightObject.GetComponent<Light>();
             light.type = LightType.Directional;
             light.intensity = 1.2f;
-            light.shadows = LightShadows.Soft;
         }
 
         private static TrackPoolController CreateTrackPool(
             Transform parent,
-            Material groundMaterial,
-            Material markerMaterial)
+            Material material)
         {
-            GameObject poolObject = new GameObject("TrackPool");
+            GameObject poolObject = new GameObject(
+                "TrackPool",
+                typeof(TrackPoolController));
             poolObject.transform.SetParent(parent, false);
-            TrackPoolController pool =
-                poolObject.AddComponent<TrackPoolController>();
-            var segments = new TrackSegmentView[TrackPoolSize];
-
+            TrackSegmentView[] segments =
+                new TrackSegmentView[TrackPoolSize];
             for (int index = 0; index < segments.Length; index++)
             {
-                segments[index] = CreateTrackSegment(
-                    $"TrackSegment_{index:00}",
-                    poolObject.transform,
-                    groundMaterial,
-                    markerMaterial,
-                    false);
+                GameObject segment = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                segment.name = $"TrackSegment_{index:00}";
+                segment.transform.SetParent(poolObject.transform, false);
+                segment.transform.localScale =
+                    new Vector3(7f, 0.2f, TrackSegmentLength);
+                segment.GetComponent<Renderer>().sharedMaterial = material;
+                UnityEngine.Object.DestroyImmediate(segment.GetComponent<Collider>());
+
+                Transform start = new GameObject("StartAnchor").transform;
+                start.SetParent(segment.transform, false);
+                start.localPosition = new Vector3(0f, 0f, -0.5f);
+                Transform end = new GameObject("EndAnchor").transform;
+                end.SetParent(segment.transform, false);
+                end.localPosition = new Vector3(0f, 0f, 0.5f);
+                TrackSegmentView view =
+                    segment.AddComponent<TrackSegmentView>();
+                view.Configure(start, end, false);
+                segments[index] = view;
             }
 
+            TrackPoolController pool =
+                poolObject.GetComponent<TrackPoolController>();
             pool.Configure(segments, TrackSegmentLength, -20f, 20f);
             pool.ResetPool();
-
-            TrackSegmentView curveExperiment = CreateTrackSegment(
-                "CurveSegmentExperiment",
-                parent,
-                groundMaterial,
-                markerMaterial,
-                true);
-            BuildCurveExperimentGeometry(
-                curveExperiment.transform,
-                groundMaterial);
-            curveExperiment.gameObject.SetActive(false);
             return pool;
         }
 
-        private static TrackSegmentView CreateTrackSegment(
-            string name,
-            Transform parent,
-            Material groundMaterial,
-            Material markerMaterial,
-            bool curveExperiment)
-        {
-            GameObject root = new GameObject(name);
-            root.transform.SetParent(parent, false);
-
-            Transform start = new GameObject("StartAnchor").transform;
-            start.SetParent(root.transform, false);
-            Transform end = new GameObject("EndAnchor").transform;
-            end.SetParent(root.transform, false);
-            end.localPosition = new Vector3(0f, 0f, TrackSegmentLength);
-
-            GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            ground.name = "Ground";
-            ground.transform.SetParent(root.transform, false);
-            ground.transform.localPosition =
-                new Vector3(0f, -0.1f, TrackSegmentLength * 0.5f);
-            ground.transform.localScale =
-                new Vector3(8f, 0.2f, TrackSegmentLength);
-            ground.GetComponent<Renderer>().sharedMaterial = groundMaterial;
-
-            for (int markerIndex = 0; markerIndex < 8; markerIndex++)
-            {
-                GameObject marker =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                marker.name = $"LaneMarker_{markerIndex:00}";
-                marker.transform.SetParent(root.transform, false);
-                marker.transform.localPosition =
-                    new Vector3(
-                        0f,
-                        0.03f,
-                        2.5f + (markerIndex * 5f));
-                marker.transform.localScale =
-                    new Vector3(0.18f, 0.03f, 2.2f);
-                marker.GetComponent<Renderer>().sharedMaterial = markerMaterial;
-                UnityEngine.Object.DestroyImmediate(marker.GetComponent<Collider>());
-            }
-
-            TrackSegmentView segment = root.AddComponent<TrackSegmentView>();
-            segment.Configure(start, end, curveExperiment);
-            return segment;
-        }
-
-        private static void BuildCurveExperimentGeometry(
+        private static GameObject CreatePlayer(
             Transform parent,
             Material material)
-        {
-            const int PieceCount = 8;
-            const float TotalYaw = 16f;
-            float pieceLength = TrackSegmentLength / PieceCount;
-            Vector3 position = Vector3.zero;
-            float yaw = 0f;
-            for (int index = 0; index < PieceCount; index++)
-            {
-                GameObject piece =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                piece.name = $"CurvePiece_{index:00}";
-                piece.transform.SetParent(parent, false);
-                piece.transform.localPosition = position;
-                piece.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
-                piece.transform.localScale =
-                    new Vector3(8f, 0.2f, pieceLength + 0.15f);
-                piece.GetComponent<Renderer>().sharedMaterial = material;
-
-                Vector3 forward =
-                    Quaternion.Euler(0f, yaw, 0f) *
-                    Vector3.forward;
-                position += forward * pieceLength;
-                yaw += TotalYaw / PieceCount;
-            }
-        }
-
-        private static GameObject CreatePlayer(Transform parent, Material material)
         {
             GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player.name = "Player";
             player.transform.SetParent(parent, false);
             player.transform.position = PlayerStartPosition;
+            player.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
             player.GetComponent<Renderer>().sharedMaterial = material;
-
-            Rigidbody rigidbody = player.AddComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
-            rigidbody.useGravity = false;
-            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-
+            Rigidbody body = player.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
             return player;
         }
 
         private static TrailRenderer CreatePlayerTrail(
-            GameObject player,
+            Transform player,
             Material material)
         {
-            TrailRenderer trail = player.AddComponent<TrailRenderer>();
-            trail.sharedMaterial = material;
-            trail.time = 0.08f;
-            trail.startWidth = 0.3f;
+            TrailRenderer trail = player.gameObject.AddComponent<TrailRenderer>();
+            trail.time = 0.3f;
+            trail.startWidth = 0.35f;
             trail.endWidth = 0f;
-            trail.minVertexDistance = 0.12f;
-            trail.emitting = true;
+            trail.sharedMaterial = material;
+            trail.emitting = false;
             return trail;
         }
 
@@ -612,122 +510,61 @@ namespace ColorGateRunner.Editor
             Transform player,
             Material material)
         {
-            GameObject root = new GameObject("ShieldVisual");
-            root.transform.SetParent(player, false);
-            root.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-
-            for (int index = 0; index < 4; index++)
-            {
-                GameObject arc =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                arc.name = $"ShieldArc_{index:00}";
-                arc.transform.SetParent(root.transform, false);
-                float angle = index * 90f;
-                Vector3 radial =
-                    Quaternion.Euler(0f, angle, 0f) *
-                    (Vector3.forward * 0.95f);
-                arc.transform.localPosition = radial;
-                arc.transform.localRotation =
-                    Quaternion.Euler(0f, angle, 0f);
-                arc.transform.localScale =
-                    new Vector3(0.55f, 0.08f, 0.12f);
-                arc.GetComponent<Renderer>().sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(arc.GetComponent<Collider>());
-            }
-
-            root.SetActive(false);
-            return root;
+            GameObject shield =
+                GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            shield.name = "ShieldVisual";
+            shield.transform.SetParent(player, false);
+            shield.transform.localScale = Vector3.one * 1.8f;
+            shield.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(shield.GetComponent<Collider>());
+            return shield;
         }
 
-        private static ShieldPickupView CreateShieldPickup(
+        private static GameObject CreateGoal(Transform parent, Material material)
+        {
+            GameObject goal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            goal.name = "Goal";
+            goal.transform.SetParent(parent, false);
+            goal.transform.localScale = new Vector3(6f, 3f, 0.35f);
+            goal.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(goal.GetComponent<Collider>());
+            return goal;
+        }
+
+        private static StageGateView[] CreateGatePool(
             Transform parent,
-            GameSceneController controller,
+            StageSceneController controller,
             Material material)
         {
-            GameObject root = new GameObject("ShieldPickup");
-            root.transform.SetParent(parent, false);
-            root.transform.position = new Vector3(0f, 1.35f, 0f);
-            BoxCollider trigger = root.AddComponent<BoxCollider>();
-            trigger.isTrigger = true;
-            trigger.size = new Vector3(2.2f, 2.2f, 1.2f);
-
-            Renderer[] renderers = new Renderer[4];
-            for (int index = 0; index < renderers.Length; index++)
+            GameObject pool = new GameObject("StageGatePool");
+            pool.transform.SetParent(parent, false);
+            StageGateView[] gates = new StageGateView[GatePoolSize];
+            for (int index = 0; index < gates.Length; index++)
             {
-                GameObject part =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                part.name = $"PickupDiamond_{index:00}";
-                part.transform.SetParent(root.transform, false);
-                float angle = index * 90f;
-                part.transform.localPosition =
-                    Quaternion.Euler(0f, angle, 0f) *
-                    (Vector3.forward * 0.55f);
-                part.transform.localRotation =
-                    Quaternion.Euler(35f, angle + 45f, 35f);
-                part.transform.localScale =
-                    new Vector3(0.28f, 0.7f, 0.28f);
-                renderers[index] = part.GetComponent<Renderer>();
-                renderers[index].sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(
-                    part.GetComponent<Collider>());
-            }
-
-            ShieldPickupView pickup =
-                root.AddComponent<ShieldPickupView>();
-            pickup.Configure(controller, renderers);
-            root.SetActive(false);
-            return pickup;
-        }
-
-        private static GateView[] CreateGatePool(
-            Transform parent,
-            GameSceneController controller,
-            Material redMaterial,
-            Material blueMaterial)
-        {
-            GateView[] gates = new GateView[GatePoolSize];
-            GameSession previewSession = new GameSession(GameRules.DefaultSeed);
-            float gateZ = PlayerStartPosition.z;
-
-            for (int index = 0; index < GatePoolSize; index++)
-            {
-                GameObject gateObject = new GameObject($"Gate_{index:00}");
-                gateObject.transform.SetParent(parent, false);
-
-                BoxCollider trigger = gateObject.AddComponent<BoxCollider>();
+                GameObject gateObject = new GameObject(
+                    $"StageGate_{index:00}",
+                    typeof(BoxCollider),
+                    typeof(StageGateView));
+                gateObject.transform.SetParent(pool.transform, false);
+                BoxCollider trigger = gateObject.GetComponent<BoxCollider>();
                 trigger.isTrigger = true;
-                trigger.center = new Vector3(0f, 1.5f, 0f);
-                trigger.size = new Vector3(4.2f, 3f, 0.5f);
+                trigger.size = new Vector3(6f, 4f, 0.5f);
 
-                Renderer[] renderers =
-                {
-                    CreateGatePart(
-                        "Left",
-                        gateObject.transform,
-                        new Vector3(-1.8f, 1.5f, 0f),
-                        new Vector3(0.35f, 3f, 0.35f)),
-                    CreateGatePart(
-                        "Right",
-                        gateObject.transform,
-                        new Vector3(1.8f, 1.5f, 0f),
-                        new Vector3(0.35f, 3f, 0.35f)),
-                    CreateGatePart(
-                        "Top",
-                        gateObject.transform,
-                        new Vector3(0f, 2.85f, 0f),
-                        new Vector3(4f, 0.3f, 0.35f))
-                };
-
-                GateView gate = gateObject.AddComponent<GateView>();
-                gate.Configure(controller, renderers);
-
-                GatePlan plan = previewSession.GetNextGatePlan();
-                RunnerColor color = plan.Color;
-                Material material =
-                    color == RunnerColor.Red ? redMaterial : blueMaterial;
-                gateZ += plan.Spacing;
-                gate.Activate(color, material, gateZ);
-                gates[index] = gate;
+                Renderer[] renderers = new Renderer[2];
+                renderers[0] = CreateGatePart(
+                    "Left",
+                    gateObject.transform,
+                    new Vector3(-2.5f, 1.5f, 0f),
+                    material);
+                renderers[1] = CreateGatePart(
+                    "Right",
+                    gateObject.transform,
+                    new Vector3(2.5f, 1.5f, 0f),
+                    material);
+                StageGateView view =
+                    gateObject.GetComponent<StageGateView>();
+                view.Configure(controller, renderers);
+                gates[index] = view;
             }
 
             return gates;
@@ -737,119 +574,43 @@ namespace ColorGateRunner.Editor
             string name,
             Transform parent,
             Vector3 localPosition,
-            Vector3 localScale)
+            Material material)
         {
             GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
             part.name = name;
             part.transform.SetParent(parent, false);
             part.transform.localPosition = localPosition;
-            part.transform.localScale = localScale;
-
-            Collider collider = part.GetComponent<Collider>();
-            if (collider != null)
-            {
-                UnityEngine.Object.DestroyImmediate(collider);
-            }
-
+            part.transform.localScale = new Vector3(0.65f, 3f, 0.65f);
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
             return part.GetComponent<Renderer>();
         }
 
-        private static ParticleSystem CreateSuccessParticles(
-            Transform parent,
-            Material material)
-        {
-            GameObject particleObject = new GameObject(
-                "SuccessParticles",
-                typeof(ParticleSystem));
-            particleObject.transform.SetParent(parent, false);
-
-            ParticleSystem particles = particleObject.GetComponent<ParticleSystem>();
-            ParticleSystem.MainModule main = particles.main;
-            main.playOnAwake = false;
-            main.loop = false;
-            main.duration = 0.3f;
-            main.startLifetime = 0.28f;
-            main.startSpeed = 1.8f;
-            main.startSize = 0.14f;
-            main.startColor = Color.white;
-            main.maxParticles = 32;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            ParticleSystem.EmissionModule emission = particles.emission;
-            emission.enabled = false;
-
-            ParticleSystem.ShapeModule shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.15f;
-
-            ParticleSystemRenderer renderer =
-                particleObject.GetComponent<ParticleSystemRenderer>();
-            renderer.sharedMaterial = material;
-            return particles;
-        }
-
-        private static ParticleSystem CreateBurstParticles(
+        private static ParticleSystem CreateParticleSystem(
             string name,
             Transform parent,
             Material material,
-            int maximumParticles)
+            bool looping)
         {
-            GameObject particleObject = new GameObject(
-                name,
-                typeof(ParticleSystem));
-            particleObject.transform.SetParent(parent, false);
-            ParticleSystem particles =
-                particleObject.GetComponent<ParticleSystem>();
+            GameObject effect = new GameObject(name, typeof(ParticleSystem));
+            effect.transform.SetParent(parent, false);
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule main = particles.main;
+            main.loop = looping;
             main.playOnAwake = false;
-            main.loop = false;
-            main.duration = 0.45f;
-            main.startLifetime = 0.4f;
-            main.startSpeed = 3.2f;
-            main.startSize = 0.2f;
-            main.startColor = new Color(0.55f, 0.9f, 1f, 1f);
-            main.maxParticles = maximumParticles;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.duration = 0.4f;
+            main.startLifetime = looping ? 0.35f : 0.25f;
+            main.startSpeed = looping ? 12f : 4f;
+            main.startSize = looping ? 0.08f : 0.18f;
             ParticleSystem.EmissionModule emission = particles.emission;
-            emission.enabled = false;
-            ParticleSystem.ShapeModule shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.45f;
-            particleObject.GetComponent<ParticleSystemRenderer>().sharedMaterial =
-                material;
-            return particles;
-        }
-
-        private static ParticleSystem CreateSpeedLines(
-            Transform player,
-            Material material)
-        {
-            GameObject particleObject = new GameObject(
-                "SpeedLines",
-                typeof(ParticleSystem));
-            particleObject.transform.SetParent(player, false);
-            particleObject.transform.localPosition = new Vector3(0f, 1f, 5f);
-            ParticleSystem particles =
-                particleObject.GetComponent<ParticleSystem>();
-            ParticleSystem.MainModule main = particles.main;
-            main.playOnAwake = false;
-            main.loop = true;
-            main.startLifetime = 0.55f;
-            main.startSpeed = -18f;
-            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.07f);
-            main.startColor = new Color(1f, 1f, 1f, 0.45f);
-            main.maxParticles = 128;
-            main.simulationSpace = ParticleSystemSimulationSpace.Local;
-            ParticleSystem.EmissionModule emission = particles.emission;
-            emission.enabled = true;
-            emission.rateOverTime = 0f;
-            ParticleSystem.ShapeModule shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(7f, 4f, 1f);
+            emission.rateOverTime = looping ? 45f : 0f;
+            if (!looping)
+            {
+                emission.SetBursts(
+                    new[] { new ParticleSystem.Burst(0f, 12) });
+            }
             ParticleSystemRenderer renderer =
-                particleObject.GetComponent<ParticleSystemRenderer>();
-            renderer.renderMode = ParticleSystemRenderMode.Stretch;
-            renderer.lengthScale = 8f;
+                effect.GetComponent<ParticleSystemRenderer>();
             renderer.sharedMaterial = material;
             return particles;
         }
@@ -858,636 +619,344 @@ namespace ColorGateRunner.Editor
         {
             GameObject canvasObject = new GameObject(
                 "Canvas",
-                typeof(RectTransform),
                 typeof(Canvas),
                 typeof(CanvasScaler),
                 typeof(GraphicRaycaster));
             canvasObject.transform.SetParent(parent, false);
-
             Canvas canvas = canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
             CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             scaler.matchWidthOrHeight = 0.5f;
-
             return canvas;
         }
 
         private static GameplayTapSurface CreateTapSurface(Transform parent)
         {
-            GameObject tapObject = CreateUiObject("GameplayTapSurface", parent);
-            StretchToParent(tapObject.GetComponent<RectTransform>());
-
-            Image image = tapObject.AddComponent<Image>();
-            image.color = Color.clear;
-            image.raycastTarget = true;
-            return tapObject.AddComponent<GameplayTapSurface>();
+            GameObject surface = CreateUiObject("GameplayTapSurface", parent);
+            Stretch(surface.GetComponent<RectTransform>());
+            Image image = surface.AddComponent<Image>();
+            image.color = new Color(0f, 0f, 0f, 0f);
+            return surface.AddComponent<GameplayTapSurface>();
         }
 
-        private static Transform CreateSafeAreaRoot(Transform parent)
+        private static Transform CreateSafeArea(Transform parent)
         {
-            GameObject root = CreateUiObject("SafeAreaRoot", parent);
-            StretchToParent(root.GetComponent<RectTransform>());
-            root.AddComponent<SafeAreaLayout>();
-            return root.transform;
+            GameObject safe = CreateUiObject("SafeAreaRoot", parent);
+            Stretch(safe.GetComponent<RectTransform>());
+            safe.AddComponent<SafeAreaLayout>();
+            return safe.transform;
         }
 
-        private static void CreateScoreHud(
+        private static void CreateStageSelectUi(
             Transform parent,
             out GameObject panel,
-            out Text label,
-            out Text value,
-            out Text shield,
-            out Text colorCycle,
-            out RectTransform pulseTarget)
+            out Button[] buttons,
+            out Text[] summaries,
+            out Button unlockAll)
         {
-            panel = CreateUiObject("ScorePanel", parent);
-            RectTransform panelRect = panel.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0.5f, 1f);
-            panelRect.anchorMax = new Vector2(0.5f, 1f);
-            panelRect.pivot = new Vector2(0.5f, 1f);
-            panelRect.anchoredPosition = new Vector2(0f, -64f);
-            panelRect.sizeDelta = new Vector2(300f, 190f);
-
-            Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0.06f, 0.08f, 0.1f, 0.82f);
-            panelImage.raycastTarget = false;
-            Outline outline = panel.AddComponent<Outline>();
-            outline.effectColor = new Color(1f, 1f, 1f, 0.65f);
-            outline.effectDistance = new Vector2(3f, -3f);
-
-            label = CreateText(
-                "ScoreLabel",
-                panel.transform,
-                "SCORE",
-                28,
-                TextAnchor.MiddleCenter);
-            RectTransform labelRect = label.rectTransform;
-            labelRect.anchorMin = new Vector2(0f, 0.72f);
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-
-            value = CreateText(
-                "ScoreValue",
-                panel.transform,
-                "0",
-                72,
-                TextAnchor.MiddleCenter);
-            RectTransform valueRect = value.rectTransform;
-            valueRect.anchorMin = new Vector2(0f, 0.2f);
-            valueRect.anchorMax = new Vector2(1f, 0.76f);
-            valueRect.offsetMin = Vector2.zero;
-            valueRect.offsetMax = Vector2.zero;
-            pulseTarget = valueRect;
-
-            shield = CreateText(
-                "ShieldIndicator",
-                panel.transform,
-                "SHIELD  EMPTY",
-                22,
-                TextAnchor.MiddleCenter);
-            RectTransform shieldRect = shield.rectTransform;
-            shieldRect.anchorMin = Vector2.zero;
-            shieldRect.anchorMax = new Vector2(1f, 0.22f);
-            shieldRect.offsetMin = Vector2.zero;
-            shieldRect.offsetMax = Vector2.zero;
-
-            colorCycle = CreateText(
-                "ColorCycleIndicator",
+            panel = CreatePanel(
+                "StageSelectPanel",
                 parent,
-                "RED  >  BLUE",
-                22,
-                TextAnchor.MiddleCenter);
-            RectTransform cycleRect = colorCycle.rectTransform;
-            cycleRect.anchorMin = new Vector2(0.28f, 0.84f);
-            cycleRect.anchorMax = new Vector2(0.72f, 0.89f);
-            cycleRect.offsetMin = Vector2.zero;
-            cycleRect.offsetMax = Vector2.zero;
-        }
-
-        private static Text CreateShieldMessage(Transform parent)
-        {
-            Text message = CreateText(
-                "ShieldMessage",
-                parent,
-                "SHIELD",
+                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+            CreateText(
+                "StageSelectTitle",
+                panel.transform,
+                "SELECT STAGE",
                 58,
-                TextAnchor.MiddleCenter);
-            RectTransform rect = message.rectTransform;
-            rect.anchorMin = new Vector2(0.1f, 0.56f);
-            rect.anchorMax = new Vector2(0.9f, 0.68f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            message.color = new Color(0.55f, 0.9f, 1f, 1f);
-            message.gameObject.SetActive(false);
-            return message;
+                new Vector2(0.1f, 0.86f),
+                new Vector2(0.9f, 0.96f));
+            buttons = new Button[StageCatalog.Count];
+            summaries = new Text[StageCatalog.Count];
+            for (int index = 0; index < StageCatalog.Count; index++)
+            {
+                float top = 0.79f - (index * 0.14f);
+                Text label;
+                buttons[index] = CreateButton(
+                    $"StageButton_{index + 1:00}",
+                    panel.transform,
+                    $"STAGE {index + 1}",
+                    new Vector2(0.12f, top - 0.10f),
+                    new Vector2(0.88f, top),
+                    out label);
+                label.alignment = TextAnchor.MiddleLeft;
+                label.fontSize = 28;
+                summaries[index] = label;
+            }
+
+            Text unlockLabel;
+            unlockAll = CreateButton(
+                "DeveloperUnlockAllButton",
+                panel.transform,
+                "DEV UNLOCK ALL",
+                new Vector2(0.28f, 0.03f),
+                new Vector2(0.72f, 0.08f),
+                out unlockLabel);
         }
 
-        private static Text CreateThirdColorMessage(Transform parent)
-        {
-            Text message = CreateText(
-                "ThirdColorMessage",
-                parent,
-                "NEW COLOR",
-                64,
-                TextAnchor.MiddleCenter);
-            RectTransform rect = message.rectTransform;
-            rect.anchorMin = new Vector2(0.08f, 0.5f);
-            rect.anchorMax = new Vector2(0.92f, 0.64f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            message.color = GreenColor;
-            message.gameObject.SetActive(false);
-            return message;
-        }
-
-        private static void CreateDiagnosticsUi(
+        private static void CreateItemUi(
             Transform parent,
             out GameObject panel,
-            out Text diagnostics,
-            out Text speedStage)
+            out Text selectedStage,
+            out Button shieldButton,
+            out Text shieldText,
+            out Button boosterButton,
+            out Text boosterText,
+            out Button startButton,
+            out Button backButton)
         {
-            panel = CreateUiObject("DiagnosticsPanel", parent);
-            RectTransform panelRect = panel.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0.7f, 0.72f);
-            panelRect.anchorMax = new Vector2(0.98f, 0.93f);
-            panelRect.offsetMin = Vector2.zero;
-            panelRect.offsetMax = Vector2.zero;
-            Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0f, 0f, 0f, 0.7f);
-            panelImage.raycastTarget = false;
-
-            speedStage = CreateText(
-                "SpeedStage",
+            panel = CreatePanel(
+                "PreRunItemPanel",
+                parent,
+                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+            selectedStage = CreateText(
+                "SelectedStageText",
                 panel.transform,
-                "SPEED  I",
-                22,
-                TextAnchor.UpperLeft);
-            RectTransform stageRect = speedStage.rectTransform;
-            stageRect.anchorMin = new Vector2(0.06f, 0.73f);
-            stageRect.anchorMax = new Vector2(0.94f, 0.96f);
-            stageRect.offsetMin = Vector2.zero;
-            stageRect.offsetMax = Vector2.zero;
-
-            diagnostics = CreateText(
-                "DiagnosticsText",
+                "STAGE 1",
+                44,
+                new Vector2(0.1f, 0.80f),
+                new Vector2(0.9f, 0.94f));
+            CreateText(
+                "ChooseItemsText",
                 panel.transform,
-                string.Empty,
-                16,
-                TextAnchor.UpperLeft);
-            RectTransform diagnosticsRect = diagnostics.rectTransform;
-            diagnosticsRect.anchorMin = new Vector2(0.06f, 0.05f);
-            diagnosticsRect.anchorMax = new Vector2(0.94f, 0.75f);
-            diagnosticsRect.offsetMin = Vector2.zero;
-            diagnosticsRect.offsetMax = Vector2.zero;
-            panel.SetActive(false);
+                "CHOOSE START ITEMS\nFREE / UNLIMITED",
+                27,
+                new Vector2(0.1f, 0.68f),
+                new Vector2(0.9f, 0.78f));
+            shieldButton = CreateButton(
+                "ShieldItemButton",
+                panel.transform,
+                "SHIELD: OFF",
+                new Vector2(0.12f, 0.50f),
+                new Vector2(0.88f, 0.64f),
+                out shieldText);
+            boosterButton = CreateButton(
+                "BoosterItemButton",
+                panel.transform,
+                "BOOSTER: OFF",
+                new Vector2(0.12f, 0.34f),
+                new Vector2(0.88f, 0.48f),
+                out boosterText);
+            Text startLabel;
+            startButton = CreateButton(
+                "StartStageButton",
+                panel.transform,
+                "START",
+                new Vector2(0.18f, 0.16f),
+                new Vector2(0.82f, 0.27f),
+                out startLabel);
+            Text backLabel;
+            backButton = CreateButton(
+                "BackButton",
+                panel.transform,
+                "BACK",
+                new Vector2(0.35f, 0.06f),
+                new Vector2(0.65f, 0.12f),
+                out backLabel);
         }
 
         private static void CreateCountdownUi(
             Transform parent,
             out GameObject panel,
-            out Text value)
+            out Text text)
         {
-            panel = CreateUiObject("CountdownPanel", parent);
-            StretchToParent(panel.GetComponent<RectTransform>());
-            Image dimmer = panel.AddComponent<Image>();
-            dimmer.color = new Color(0f, 0f, 0f, 0.28f);
-            dimmer.raycastTarget = false;
-            value = CreateText(
+            panel = CreatePanel(
+                "CountdownPanel",
+                parent,
+                new Color(0f, 0f, 0f, 0.35f));
+            text = CreateText(
                 "CountdownText",
                 panel.transform,
                 "3",
-                180,
-                TextAnchor.MiddleCenter);
-            StretchToParent(value.rectTransform);
-            panel.SetActive(false);
+                120,
+                new Vector2(0.15f, 0.35f),
+                new Vector2(0.85f, 0.65f));
         }
 
-        private static void CreateReadyOverlay(
-            Transform parent,
-            out GameObject overlay,
-            out Text title,
-            out Text instruction,
-            out Text tapText)
-        {
-            overlay = CreateUiObject("ReadyOverlay", parent);
-            StretchToParent(overlay.GetComponent<RectTransform>());
-
-            Image dimmer = overlay.AddComponent<Image>();
-            dimmer.color = new Color(0.02f, 0.03f, 0.05f, 0.68f);
-            dimmer.raycastTarget = false;
-
-            title = CreateText(
-                "ReadyTitle",
-                overlay.transform,
-                "COLOR GATE",
-                88,
-                TextAnchor.MiddleCenter);
-            RectTransform titleRect = title.rectTransform;
-            titleRect.anchorMin = new Vector2(0.08f, 0.62f);
-            titleRect.anchorMax = new Vector2(0.92f, 0.78f);
-            titleRect.offsetMin = Vector2.zero;
-            titleRect.offsetMax = Vector2.zero;
-
-            instruction = CreateText(
-                "ReadyInstruction",
-                overlay.transform,
-                "MATCH YOUR COLOR TO EACH GATE",
-                34,
-                TextAnchor.MiddleCenter);
-            RectTransform instructionRect = instruction.rectTransform;
-            instructionRect.anchorMin = new Vector2(0.08f, 0.48f);
-            instructionRect.anchorMax = new Vector2(0.92f, 0.58f);
-            instructionRect.offsetMin = Vector2.zero;
-            instructionRect.offsetMax = Vector2.zero;
-
-            GameObject startButton = CreateUiObject(
-                "TapToStartVisual",
-                overlay.transform);
-            RectTransform buttonRect = startButton.GetComponent<RectTransform>();
-            buttonRect.anchorMin = new Vector2(0.2f, 0.3f);
-            buttonRect.anchorMax = new Vector2(0.8f, 0.4f);
-            buttonRect.offsetMin = Vector2.zero;
-            buttonRect.offsetMax = Vector2.zero;
-
-            Image buttonImage = startButton.AddComponent<Image>();
-            buttonImage.color = new Color(1f, 1f, 1f, 0.94f);
-            buttonImage.raycastTarget = false;
-            Outline outline = startButton.AddComponent<Outline>();
-            outline.effectColor = new Color(0f, 0f, 0f, 0.45f);
-            outline.effectDistance = new Vector2(4f, -4f);
-
-            tapText = CreateText(
-                "ReadyTapText",
-                startButton.transform,
-                "TAP TO START",
-                44,
-                TextAnchor.MiddleCenter);
-            tapText.color = new Color(0.07f, 0.09f, 0.12f, 1f);
-            StretchToParent(tapText.rectTransform);
-        }
-
-        private static void CreateGameOverUi(
+        private static void CreateHud(
             Transform parent,
             out GameObject panel,
-            out GameObject resultCard,
-            out Text thisRunLabel,
-            out Text currentScore,
-            out Text bestScore,
-            out Text topScores,
-            out GameObject topScoresPanel,
-            out GameObject bestBadge,
-            out Text newBestText,
-            out GameObject[] topScoreRows,
-            out Text[] topScoreRankTexts,
-            out Text[] topScoreValueTexts,
-            out Text[] topScoreMarkerTexts,
-            out Button restartButton)
+            out Text stage,
+            out Text progress,
+            out Image fill,
+            out Text shield,
+            out Text booster)
         {
-            panel = CreateUiObject("GameOverPanel", parent);
-            StretchToParent(panel.GetComponent<RectTransform>());
-            Image dimmer = panel.AddComponent<Image>();
-            dimmer.color = new Color(0f, 0f, 0f, 0.78f);
-            dimmer.raycastTarget = false;
-
-            GameObject resultSafeArea =
-                CreateUiObject("ResultSafeArea", panel.transform);
-            StretchToParent(resultSafeArea.GetComponent<RectTransform>());
-            resultSafeArea.AddComponent<SafeAreaLayout>();
-
-            resultCard = CreateUiObject(
-                "ResultCard",
-                resultSafeArea.transform);
-            RectTransform cardRect = resultCard.GetComponent<RectTransform>();
-            cardRect.anchorMin = new Vector2(0.08f, 0.06f);
-            cardRect.anchorMax = new Vector2(0.92f, 0.94f);
-            cardRect.offsetMin = Vector2.zero;
-            cardRect.offsetMax = Vector2.zero;
-            Image cardImage = resultCard.AddComponent<Image>();
-            cardImage.color = new Color(0.035f, 0.05f, 0.08f, 0.98f);
-            cardImage.raycastTarget = false;
-            Outline cardOutline = resultCard.AddComponent<Outline>();
-            cardOutline.effectColor = new Color(0.2f, 0.55f, 0.95f, 0.8f);
-            cardOutline.effectDistance = new Vector2(4f, -4f);
-
-            Text title = CreateText(
-                "GameOverText",
-                resultCard.transform,
-                "GAME OVER",
-                72,
-                TextAnchor.MiddleCenter);
-            SetAnchors(title.rectTransform, 0.08f, 0.86f, 0.92f, 0.97f);
-
-            thisRunLabel = CreateText(
-                "ThisRunLabel",
-                resultCard.transform,
-                "THIS RUN",
+            panel = CreatePanel(
+                "StageHud",
+                parent,
+                new Color(0.02f, 0.03f, 0.05f, 0.72f));
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            SetAnchors(
+                panelRect,
+                new Vector2(0.08f, 0.84f),
+                new Vector2(0.92f, 0.97f));
+            stage = CreateText(
+                "StageHudTitle",
+                panel.transform,
+                "STAGE 1",
                 28,
-                TextAnchor.MiddleCenter);
-            thisRunLabel.color = new Color(0.65f, 0.78f, 0.95f, 1f);
-            SetAnchors(
-                thisRunLabel.rectTransform,
-                0.15f,
-                0.77f,
-                0.85f,
-                0.84f);
-
-            currentScore = CreateText(
-                "GameOverScore",
-                resultCard.transform,
-                "0",
-                112,
-                TextAnchor.MiddleCenter);
-            SetAnchors(
-                currentScore.rectTransform,
-                0.1f,
-                0.63f,
-                0.9f,
-                0.78f);
-
-            bestBadge = CreateUiObject("BestBadge", resultCard.transform);
-            RectTransform badgeRect = bestBadge.GetComponent<RectTransform>();
-            SetAnchors(badgeRect, 0.18f, 0.56f, 0.28f, 0.63f);
-            Image badgeImage = bestBadge.AddComponent<Image>();
-            badgeImage.color = new Color(1f, 0.72f, 0.15f, 1f);
-            badgeImage.raycastTarget = false;
-
-            bestScore = CreateText(
-                "BestScore",
-                resultCard.transform,
-                "BEST  0",
-                42,
-                TextAnchor.MiddleCenter);
-            bestScore.color = new Color(1f, 0.78f, 0.25f, 1f);
-            SetAnchors(
-                bestScore.rectTransform,
-                0.24f,
-                0.55f,
-                0.82f,
-                0.64f);
-
-            newBestText = CreateText(
-                "NewBestText",
-                resultCard.transform,
-                "NEW BEST!",
-                34,
-                TextAnchor.MiddleCenter);
-            newBestText.color = new Color(0.35f, 1f, 0.65f, 1f);
-            SetAnchors(
-                newBestText.rectTransform,
-                0.2f,
-                0.5f,
-                0.8f,
-                0.56f);
-
-            topScoresPanel =
-                CreateUiObject("TopScoresPanel", resultCard.transform);
-            RectTransform topPanelRect =
-                topScoresPanel.GetComponent<RectTransform>();
-            SetAnchors(topPanelRect, 0.1f, 0.2f, 0.9f, 0.5f);
-            Image topPanelImage = topScoresPanel.AddComponent<Image>();
-            topPanelImage.color = new Color(0.07f, 0.1f, 0.16f, 0.98f);
-            topPanelImage.raycastTarget = false;
-
-            Text topTitle = CreateText(
-                "TopScoresTitle",
-                topScoresPanel.transform,
-                "TOP 5",
-                34,
-                TextAnchor.MiddleCenter);
-            SetAnchors(topTitle.rectTransform, 0f, 0.82f, 1f, 1f);
-
-            topScores = CreateText(
-                "TopScores",
-                topScoresPanel.transform,
-                string.Empty,
-                1,
-                TextAnchor.MiddleCenter);
-            SetAnchors(topScores.rectTransform, 0f, 0f, 0.01f, 0.01f);
-
-            topScoreRows = new GameObject[ScoreHistory.Capacity];
-            topScoreRankTexts = new Text[ScoreHistory.Capacity];
-            topScoreValueTexts = new Text[ScoreHistory.Capacity];
-            topScoreMarkerTexts = new Text[ScoreHistory.Capacity];
-            for (int index = 0; index < ScoreHistory.Capacity; index++)
-            {
-                GameObject row = CreateUiObject(
-                    $"TopScoreRow_{index + 1:00}",
-                    topScoresPanel.transform);
-                RectTransform rowRect = row.GetComponent<RectTransform>();
-                float rowTop = 0.81f - (index * 0.16f);
-                SetAnchors(
-                    rowRect,
-                    0.05f,
-                    rowTop - 0.14f,
-                    0.95f,
-                    rowTop);
-                Image rowImage = row.AddComponent<Image>();
-                rowImage.color = new Color(1f, 1f, 1f, 0.055f);
-                rowImage.raycastTarget = false;
-
-                Text rank = CreateText(
-                    "Rank",
-                    row.transform,
-                    (index + 1).ToString(),
-                    28,
-                    TextAnchor.MiddleCenter);
-                SetAnchors(rank.rectTransform, 0f, 0f, 0.2f, 1f);
-                Text value = CreateText(
-                    "Score",
-                    row.transform,
-                    "--",
-                    32,
-                    TextAnchor.MiddleCenter);
-                SetAnchors(value.rectTransform, 0.2f, 0f, 0.75f, 1f);
-                Text marker = CreateText(
-                    "Marker",
-                    row.transform,
-                    string.Empty,
-                    24,
-                    TextAnchor.MiddleCenter);
-                marker.color = new Color(0.4f, 0.8f, 1f, 1f);
-                SetAnchors(marker.rectTransform, 0.75f, 0f, 1f, 1f);
-
-                topScoreRows[index] = row;
-                topScoreRankTexts[index] = rank;
-                topScoreValueTexts[index] = value;
-                topScoreMarkerTexts[index] = marker;
-            }
-
-            GameObject buttonObject =
-                CreateUiObject("RestartButton", resultCard.transform);
-            RectTransform buttonRect =
-                buttonObject.GetComponent<RectTransform>();
-            SetAnchors(buttonRect, 0.22f, 0.06f, 0.78f, 0.16f);
-            Image buttonImage = buttonObject.AddComponent<Image>();
-            buttonImage.color = new Color(0.92f, 0.95f, 1f, 1f);
-            restartButton = buttonObject.AddComponent<Button>();
-            restartButton.targetGraphic = buttonImage;
-            Text label = CreateText(
-                "Label",
-                buttonObject.transform,
-                "RETRY",
-                48,
-                TextAnchor.MiddleCenter);
-            label.color = new Color(0.05f, 0.08f, 0.12f, 1f);
-            StretchToParent(label.rectTransform);
-        }
-
-        private static void CreateGameOverUiLegacy(
-            Transform parent,
-            out GameObject panel,
-            out Text currentScore,
-            out Text bestScore,
-            out Text topScores,
-            out GameObject topScoresPanel,
-            out GameObject bestBadge,
-            out Text newBestText,
-            out Button restartButton)
-        {
-            panel = CreateUiObject("GameOverPanel", parent);
-            StretchToParent(panel.GetComponent<RectTransform>());
-
-            Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0f, 0f, 0f, 0.65f);
-            panelImage.raycastTarget = false;
-
-            Text title = CreateText(
-                "GameOverText",
+                new Vector2(0.04f, 0.50f),
+                new Vector2(0.35f, 0.96f));
+            progress = CreateText(
+                "StageProgressText",
                 panel.transform,
-                "GAME OVER",
-                76,
-                TextAnchor.MiddleCenter);
-            RectTransform titleRect = title.rectTransform;
-            titleRect.anchorMin = new Vector2(0.1f, 0.55f);
-            titleRect.anchorMax = new Vector2(0.9f, 0.7f);
-            titleRect.offsetMin = Vector2.zero;
-            titleRect.offsetMax = Vector2.zero;
-
-            currentScore = CreateText(
-                "GameOverScore",
-                panel.transform,
-                "CURRENT  0",
-                56,
-                TextAnchor.MiddleCenter);
-            RectTransform currentScoreRect = currentScore.rectTransform;
-            currentScoreRect.anchorMin = new Vector2(0.1f, 0.47f);
-            currentScoreRect.anchorMax = new Vector2(0.9f, 0.57f);
-            currentScoreRect.offsetMin = Vector2.zero;
-            currentScoreRect.offsetMax = Vector2.zero;
-
-            bestScore = CreateText(
-                "BestScore",
-                panel.transform,
-                "★  BEST  0",
-                44,
-                TextAnchor.MiddleCenter);
-            RectTransform bestScoreRect = bestScore.rectTransform;
-            bestScoreRect.anchorMin = new Vector2(0.1f, 0.39f);
-            bestScoreRect.anchorMax = new Vector2(0.9f, 0.48f);
-            bestScoreRect.offsetMin = Vector2.zero;
-            bestScoreRect.offsetMax = Vector2.zero;
-
-            bestBadge = CreateUiObject("BestBadge", panel.transform);
-            RectTransform badgeRect = bestBadge.GetComponent<RectTransform>();
-            badgeRect.anchorMin = new Vector2(0.16f, 0.405f);
-            badgeRect.anchorMax = new Vector2(0.25f, 0.47f);
-            badgeRect.offsetMin = Vector2.zero;
-            badgeRect.offsetMax = Vector2.zero;
-            Image badgeImage = bestBadge.AddComponent<Image>();
-            badgeImage.color = new Color(1f, 0.78f, 0.2f, 0.95f);
-            badgeImage.raycastTarget = false;
-
-            newBestText = CreateText(
-                "NewBestText",
-                panel.transform,
-                "NEW BEST!",
+                "0 / 24",
                 30,
-                TextAnchor.MiddleCenter);
-            RectTransform newBestRect = newBestText.rectTransform;
-            newBestRect.anchorMin = new Vector2(0.3f, 0.35f);
-            newBestRect.anchorMax = new Vector2(0.7f, 0.41f);
-            newBestRect.offsetMin = Vector2.zero;
-            newBestRect.offsetMax = Vector2.zero;
-            newBestText.color = new Color(1f, 0.78f, 0.2f, 1f);
+                new Vector2(0.62f, 0.50f),
+                new Vector2(0.96f, 0.96f));
+            GameObject bar = CreatePanel(
+                "StageProgressBar",
+                panel.transform,
+                new Color(1f, 1f, 1f, 0.18f));
+            SetAnchors(
+                bar.GetComponent<RectTransform>(),
+                new Vector2(0.04f, 0.30f),
+                new Vector2(0.96f, 0.45f));
+            GameObject fillObject = CreatePanel(
+                "StageProgressFill",
+                bar.transform,
+                GreenColor);
+            fill = fillObject.GetComponent<Image>();
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillAmount = 0f;
+            shield = CreateText(
+                "ShieldStatusText",
+                panel.transform,
+                "SHIELD --",
+                20,
+                new Vector2(0.04f, 0.02f),
+                new Vector2(0.45f, 0.27f));
+            booster = CreateText(
+                "BoosterStatusText",
+                panel.transform,
+                string.Empty,
+                20,
+                new Vector2(0.55f, 0.02f),
+                new Vector2(0.96f, 0.27f));
+        }
 
-            topScoresPanel = CreateUiObject("TopScoresPanel", panel.transform);
-            RectTransform topPanelRect =
-                topScoresPanel.GetComponent<RectTransform>();
-            topPanelRect.anchorMin = new Vector2(0.16f, 0.14f);
-            topPanelRect.anchorMax = new Vector2(0.84f, 0.36f);
-            topPanelRect.offsetMin = Vector2.zero;
-            topPanelRect.offsetMax = Vector2.zero;
-            Image topPanelImage = topScoresPanel.AddComponent<Image>();
-            topPanelImage.color = new Color(0.06f, 0.08f, 0.12f, 0.94f);
-            topPanelImage.raycastTarget = false;
-            Outline topOutline = topScoresPanel.AddComponent<Outline>();
-            topOutline.effectColor = new Color(1f, 1f, 1f, 0.45f);
-            topOutline.effectDistance = new Vector2(2f, -2f);
+        private static void CreateResultUi(
+            string name,
+            string title,
+            Transform parent,
+            bool includeNext,
+            out GameObject panel,
+            out Text titleText,
+            out Text details,
+            out Button next,
+            out Button replay,
+            out Button select)
+        {
+            panel = CreatePanel(
+                name,
+                parent,
+                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+            titleText = CreateText(
+                "StageClearTitle",
+                panel.transform,
+                title,
+                58,
+                new Vector2(0.1f, 0.76f),
+                new Vector2(0.9f, 0.90f));
+            details = CreateText(
+                "StageClearDetails",
+                panel.transform,
+                string.Empty,
+                32,
+                new Vector2(0.1f, 0.46f),
+                new Vector2(0.9f, 0.74f));
+            Text nextLabel;
+            next = CreateButton(
+                "NextStageButton",
+                panel.transform,
+                "NEXT STAGE",
+                new Vector2(0.16f, 0.31f),
+                new Vector2(0.84f, 0.41f),
+                out nextLabel);
+            Text replayLabel;
+            replay = CreateButton(
+                "ReplayButton",
+                panel.transform,
+                "REPLAY",
+                new Vector2(0.16f, 0.19f),
+                new Vector2(0.84f, 0.29f),
+                out replayLabel);
+            Text selectLabel;
+            select = CreateButton(
+                "ClearStageSelectButton",
+                panel.transform,
+                "STAGE SELECT",
+                new Vector2(0.16f, 0.07f),
+                new Vector2(0.84f, 0.17f),
+                out selectLabel);
+        }
 
-            Text topTitle = CreateText(
-                "TopScoresTitle",
-                topScoresPanel.transform,
-                "TOP 5",
-                34,
-                TextAnchor.MiddleCenter);
-            RectTransform topTitleRect = topTitle.rectTransform;
-            topTitleRect.anchorMin = new Vector2(0f, 0.78f);
-            topTitleRect.anchorMax = Vector2.one;
-            topTitleRect.offsetMin = Vector2.zero;
-            topTitleRect.offsetMax = Vector2.zero;
-
-            topScores = CreateText(
-                "TopScores",
-                topScoresPanel.transform,
-                "--",
-                28,
-                TextAnchor.UpperLeft);
-            RectTransform topScoresRect = topScores.rectTransform;
-            topScoresRect.anchorMin = new Vector2(0.1f, 0.05f);
-            topScoresRect.anchorMax = new Vector2(0.9f, 0.78f);
-            topScoresRect.offsetMin = Vector2.zero;
-            topScoresRect.offsetMax = Vector2.zero;
-
-            GameObject buttonObject = CreateUiObject("RestartButton", panel.transform);
-            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
-            buttonRect.anchorMin = new Vector2(0.25f, 0.05f);
-            buttonRect.anchorMax = new Vector2(0.75f, 0.14f);
-            buttonRect.offsetMin = Vector2.zero;
-            buttonRect.offsetMax = Vector2.zero;
-
-            Image buttonImage = buttonObject.AddComponent<Image>();
-            buttonImage.color = new Color(0.92f, 0.92f, 0.92f, 1f);
-            restartButton = buttonObject.AddComponent<Button>();
-            restartButton.targetGraphic = buttonImage;
-
-            Text label = CreateText(
-                "Label",
-                buttonObject.transform,
+        private static void CreateFailureUi(
+            Transform parent,
+            out GameObject panel,
+            out Text title,
+            out Text details,
+            out Button retry,
+            out Button select)
+        {
+            panel = CreatePanel(
+                "StageFailedPanel",
+                parent,
+                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+            title = CreateText(
+                "StageFailedTitle",
+                panel.transform,
+                "STAGE FAILED",
+                58,
+                new Vector2(0.1f, 0.72f),
+                new Vector2(0.9f, 0.88f));
+            details = CreateText(
+                "StageFailedDetails",
+                panel.transform,
+                string.Empty,
+                32,
+                new Vector2(0.1f, 0.46f),
+                new Vector2(0.9f, 0.70f));
+            Text retryLabel;
+            retry = CreateButton(
+                "RetryButton",
+                panel.transform,
                 "RETRY",
-                48,
-                TextAnchor.MiddleCenter);
-            label.color = new Color(0.1f, 0.1f, 0.1f, 1f);
-            StretchToParent(label.rectTransform);
+                new Vector2(0.16f, 0.25f),
+                new Vector2(0.84f, 0.37f),
+                out retryLabel);
+            Text selectLabel;
+            select = CreateButton(
+                "FailStageSelectButton",
+                panel.transform,
+                "STAGE SELECT",
+                new Vector2(0.16f, 0.11f),
+                new Vector2(0.84f, 0.23f),
+                out selectLabel);
         }
 
         private static void CreateEventSystem(Transform parent)
         {
-            GameObject eventSystemObject = new GameObject(
+            GameObject eventSystem = new GameObject(
                 "EventSystem",
                 typeof(EventSystem),
                 typeof(InputSystemUIInputModule));
-            eventSystemObject.transform.SetParent(parent, false);
+            eventSystem.transform.SetParent(parent, false);
         }
 
-        private static GameObject CreateUiObject(string name, Transform parent)
+        private static GameObject CreatePanel(
+            string name,
+            Transform parent,
+            Color color)
         {
-            GameObject uiObject = new GameObject(name, typeof(RectTransform));
-            uiObject.transform.SetParent(parent, false);
-            return uiObject;
+            GameObject panel = CreateUiObject(name, parent);
+            Stretch(panel.GetComponent<RectTransform>());
+            Image image = panel.AddComponent<Image>();
+            image.color = color;
+            return panel;
         }
 
         private static Text CreateText(
@@ -1495,36 +964,67 @@ namespace ColorGateRunner.Editor
             Transform parent,
             string value,
             int fontSize,
-            TextAnchor alignment)
+            Vector2 anchorMin,
+            Vector2 anchorMax)
         {
             GameObject textObject = CreateUiObject(name, parent);
             Text text = textObject.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.text = value;
             text.fontSize = fontSize;
-            text.alignment = alignment;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
+            SetAnchors(text.rectTransform, anchorMin, anchorMax);
             return text;
         }
 
-        private static void StretchToParent(RectTransform rect)
+        private static Button CreateButton(
+            string name,
+            Transform parent,
+            string labelValue,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            out Text label)
         {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            GameObject buttonObject = CreateUiObject(name, parent);
+            Image image = buttonObject.AddComponent<Image>();
+            image.color = new Color(0.16f, 0.22f, 0.34f, 1f);
+            Button button = buttonObject.AddComponent<Button>();
+            SetAnchors(
+                buttonObject.GetComponent<RectTransform>(),
+                anchorMin,
+                anchorMax);
+            label = CreateText(
+                name + "Label",
+                buttonObject.transform,
+                labelValue,
+                34,
+                Vector2.zero,
+                Vector2.one);
+            return button;
+        }
+
+        private static GameObject CreateUiObject(string name, Transform parent)
+        {
+            GameObject result = new GameObject(name, typeof(RectTransform));
+            result.transform.SetParent(parent, false);
+            return result;
+        }
+
+        private static void Stretch(RectTransform rect)
+        {
+            SetAnchors(rect, Vector2.zero, Vector2.one);
         }
 
         private static void SetAnchors(
             RectTransform rect,
-            float minX,
-            float minY,
-            float maxX,
-            float maxY)
+            Vector2 minimum,
+            Vector2 maximum)
         {
-            rect.anchorMin = new Vector2(minX, minY);
-            rect.anchorMax = new Vector2(maxX, maxY);
+            rect.anchorMin = minimum;
+            rect.anchorMax = maximum;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
         }
@@ -1532,67 +1032,36 @@ namespace ColorGateRunner.Editor
         private static Material CreateOrUpdateMaterial(string path, Color color)
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ??
+                Shader.Find("Standard");
             if (material == null)
             {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-                if (shader == null)
-                {
-                    shader = Shader.Find("Standard");
-                }
-
                 material = new Material(shader);
                 AssetDatabase.CreateAsset(material, path);
             }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
 
             material.color = color;
-            if (material.HasProperty("_BaseColor"))
-            {
-                material.SetColor("_BaseColor", color);
-            }
-
-            EditorUtility.SetDirty(material);
-            return material;
-        }
-
-        private static Material CreateOrUpdateParticleMaterial(string path)
-        {
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material == null)
-            {
-                Shader shader = Shader.Find(
-                    "Universal Render Pipeline/Particles/Unlit");
-                if (shader == null)
-                {
-                    shader = Shader.Find("Particles/Standard Unlit");
-                }
-
-                material = new Material(shader);
-                AssetDatabase.CreateAsset(material, path);
-            }
-
-            Color color = new Color(0.96f, 0.98f, 1f, 1f);
-            material.color = color;
-            if (material.HasProperty("_BaseColor"))
-            {
-                material.SetColor("_BaseColor", color);
-            }
-
             EditorUtility.SetDirty(material);
             return material;
         }
 
         private static void EnsureAssetFolder(string path)
         {
-            if (AssetDatabase.IsValidFolder(path))
+            string[] parts = path.Split('/');
+            string current = parts[0];
+            for (int index = 1; index < parts.Length; index++)
             {
-                return;
+                string next = current + "/" + parts[index];
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(current, parts[index]);
+                }
+                current = next;
             }
-
-            int separator = path.LastIndexOf('/');
-            string parent = path.Substring(0, separator);
-            string folderName = path.Substring(separator + 1);
-            EnsureAssetFolder(parent);
-            AssetDatabase.CreateFolder(parent, folderName);
         }
 
         private static bool HasActiveVolume(GameObject root)
@@ -1601,19 +1070,13 @@ namespace ColorGateRunner.Editor
             for (int index = 0; index < components.Length; index++)
             {
                 Component component = components[index];
-                if (component == null ||
-                    component.GetType().FullName != "UnityEngine.Rendering.Volume")
+                if (component is Behaviour behaviour &&
+                    behaviour.enabled &&
+                    component.GetType().Name == "Volume")
                 {
-                    continue;
-                }
-
-                Behaviour behaviour = component as Behaviour;
-                if (behaviour == null || behaviour.enabled)
-                {
-                    return component.gameObject.activeInHierarchy;
+                    return true;
                 }
             }
-
             return false;
         }
 
@@ -1628,39 +1091,41 @@ namespace ColorGateRunner.Editor
                     count++;
                 }
             }
-
             return count;
         }
 
         internal static bool IsCameraPostProcessingEnabled(Camera camera)
         {
-            MonoBehaviour[] behaviours = camera.GetComponents<MonoBehaviour>();
-            for (int index = 0; index < behaviours.Length; index++)
+            Component[] components = camera.GetComponents<Component>();
+            for (int index = 0; index < components.Length; index++)
             {
-                MonoBehaviour behaviour = behaviours[index];
-                if (behaviour == null ||
-                    behaviour.GetType().FullName !=
-                    "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData")
+                Component component = components[index];
+                if (component == null)
                 {
                     continue;
                 }
-
-                SerializedObject serializedCameraData =
-                    new SerializedObject(behaviour);
-                SerializedProperty postProcessing =
-                    serializedCameraData.FindProperty("m_RenderPostProcessing");
-                return postProcessing != null && postProcessing.boolValue;
+                Type type = component.GetType();
+                if (type.Name == "UniversalAdditionalCameraData")
+                {
+                    var property = type.GetProperty("renderPostProcessing");
+                    if (property != null &&
+                        property.PropertyType == typeof(bool) &&
+                        (bool)property.GetValue(component))
+                    {
+                        return true;
+                    }
+                }
             }
-
             return false;
         }
 
         private static Color FromHex(int rgb)
         {
-            float red = ((rgb >> 16) & 0xFF) / 255f;
-            float green = ((rgb >> 8) & 0xFF) / 255f;
-            float blue = (rgb & 0xFF) / 255f;
-            return new Color(red, green, blue, 1f);
+            return new Color(
+                ((rgb >> 16) & 0xFF) / 255f,
+                ((rgb >> 8) & 0xFF) / 255f,
+                (rgb & 0xFF) / 255f,
+                1f);
         }
     }
 }
