@@ -168,3 +168,24 @@ they are not advisory.
   emitters at the left and right camera edges. The former central player
   trail is disabled. Retry, Continue, failure, clear, and Booster exit clear
   all pooled effects.
+
+## Step 10 experiment presentation
+
+- Lobby tier backgrounds are subtle full-screen palette treatments behind
+  content. The former tall side accent blocks are removed.
+- The active color stack is upper-left and outside the central recognition
+  corridor. Its top tile is largest, the next tile is medium and marked
+  `NEXT`, and later tiles compact progressively so all six fit.
+- Experimental accessibility mapping appends Yellow/star `#F4C430`,
+  Purple/diamond `#9B5DE5`, and Cyan/hexagon `#00B8D9`.
+- Normal camera starts at `(0, 8, -10)`, rotation `(20, 0, 0)`, FOV 60.
+  Booster blends in 0.22 seconds toward player-relative offset
+  `(0, 5.4, -7.4)`, rotation `(14, 0, 0)`, FOV 78, then returns exactly in
+  0.35 seconds. Position shake is layered on the blended pose and never
+  accumulates.
+- Camouflage and distant Fog gates use the existing neutral silhouette
+  material and hide the symbol. Reveal restores both without moving the gate.
+- Ice uses the Cyan generated material on the fixed track pool during the
+  development preview. Entry and exit never create or rebuild track objects.
+- The Reset Progress confirmation and experiment launcher are development
+  controls. They are absent from the normal release flow.

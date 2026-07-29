@@ -9,6 +9,7 @@ namespace ColorGateRunner.Presentation
         StageRecord LoadRecord(int stageNumber);
         void SaveHighestUnlocked(int stageNumber);
         void SaveRecord(int stageNumber, StageRecord record);
+        void ClearGameplayProgress();
     }
 
     internal sealed class PlayerPrefsStageProgressStore : IStageProgressStore
@@ -40,6 +41,18 @@ namespace ColorGateRunner.Presentation
             PlayerPrefs.SetString(
                 RecordPrefix + stageNumber,
                 StageProgress.Serialize(record));
+            PlayerPrefs.Save();
+        }
+
+        public void ClearGameplayProgress()
+        {
+            PlayerPrefs.DeleteKey(UnlockKey);
+            for (int stageNumber = 1;
+                stageNumber <= StageCatalog.Count;
+                stageNumber++)
+            {
+                PlayerPrefs.DeleteKey(RecordPrefix + stageNumber);
+            }
             PlayerPrefs.Save();
         }
     }

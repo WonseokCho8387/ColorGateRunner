@@ -34,6 +34,43 @@ namespace ColorGateRunner.Core
             DensityPenalty = densityPenalty;
             GreenPenalty = greenPenalty;
             FatiguePenalty = fatiguePenalty;
+            FirstTapReactionTimeMean = reactionSeconds;
+            FirstTapReactionTimeVariance = reactionVariance;
+            RepeatedTapIntervalMean = kind == SimulatedPlayerKind.Perfect
+                ? 0f
+                : kind == SimulatedPlayerKind.Expert ? 0.11f
+                : kind == SimulatedPlayerKind.Average ? 0.16f
+                : kind == SimulatedPlayerKind.Novice ? 0.22f
+                : 0.18f;
+            RepeatedTapIntervalVariance = kind == SimulatedPlayerKind.Perfect
+                ? 0f
+                : kind == SimulatedPlayerKind.Expert ? 0.02f
+                : kind == SimulatedPlayerKind.Average ? 0.04f
+                : kind == SimulatedPlayerKind.Novice ? 0.07f
+                : 0.08f;
+            MaximumComfortableTapBurst = kind == SimulatedPlayerKind.Perfect
+                ? 6
+                : kind == SimulatedPlayerKind.Expert ? 4
+                : kind == SimulatedPlayerKind.Average ? 3
+                : 2;
+            BurstErrorGrowth = kind == SimulatedPlayerKind.Perfect
+                ? 0f
+                : kind == SimulatedPlayerKind.Expert ? 0.015f
+                : kind == SimulatedPlayerKind.Average ? 0.045f
+                : kind == SimulatedPlayerKind.Novice ? 0.08f
+                : 0.1f;
+            PostTapConfirmationTime = kind == SimulatedPlayerKind.Perfect
+                ? 0f
+                : kind == SimulatedPlayerKind.Expert ? 0.06f
+                : kind == SimulatedPlayerKind.Average ? 0.10f
+                : kind == SimulatedPlayerKind.Novice ? 0.14f
+                : 0.12f;
+            AnimationOrFeedbackDependency = kind == SimulatedPlayerKind.Perfect
+                ? 0f
+                : kind == SimulatedPlayerKind.Expert ? 0.05f
+                : kind == SimulatedPlayerKind.Average ? 0.15f
+                : kind == SimulatedPlayerKind.Novice ? 0.3f
+                : 0.25f;
         }
 
         public SimulatedPlayerKind Kind { get; }
@@ -44,6 +81,14 @@ namespace ColorGateRunner.Core
         public float DensityPenalty { get; }
         public float GreenPenalty { get; }
         public float FatiguePenalty { get; }
+        public float FirstTapReactionTimeMean { get; }
+        public float FirstTapReactionTimeVariance { get; }
+        public float RepeatedTapIntervalMean { get; }
+        public float RepeatedTapIntervalVariance { get; }
+        public int MaximumComfortableTapBurst { get; }
+        public float BurstErrorGrowth { get; }
+        public float PostTapConfirmationTime { get; }
+        public float AnimationOrFeedbackDependency { get; }
 
         public static SimulatedPlayerProfile Get(SimulatedPlayerKind kind)
         {
@@ -70,7 +115,15 @@ namespace ColorGateRunner.Core
                 WrongInputChance >= 0f &&
                 DensityPenalty >= 0f &&
                 GreenPenalty >= 0f &&
-                FatiguePenalty >= 0f;
+                FatiguePenalty >= 0f &&
+                FirstTapReactionTimeMean >= 0f &&
+                FirstTapReactionTimeVariance >= 0f &&
+                RepeatedTapIntervalMean >= 0f &&
+                RepeatedTapIntervalVariance >= 0f &&
+                MaximumComfortableTapBurst >= 1 &&
+                BurstErrorGrowth >= 0f &&
+                PostTapConfirmationTime >= 0f &&
+                AnimationOrFeedbackDependency >= 0f;
         }
     }
 

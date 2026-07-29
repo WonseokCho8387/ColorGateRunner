@@ -17,7 +17,10 @@ namespace ColorGateRunner.Core
     {
         Circle,
         Square,
-        Triangle
+        Triangle,
+        Star,
+        Diamond,
+        Hexagon
     }
 
     public readonly struct MobileUiVisibility
@@ -149,6 +152,62 @@ namespace ColorGateRunner.Core
             return stage.GetAllowedColor(0);
         }
 
+        public static int GetStackSlot(
+            StageDefinition stage,
+            int resolvedGateCount,
+            RunnerColor currentColor,
+            RunnerColor color)
+        {
+            int activeCount = GetActiveColorCount(stage, resolvedGateCount);
+            int currentIndex = -1;
+            int colorIndex = -1;
+            for (int index = 0; index < activeCount; index++)
+            {
+                RunnerColor candidate = stage.GetAllowedColor(index);
+                if (candidate == currentColor)
+                {
+                    currentIndex = index;
+                }
+                if (candidate == color)
+                {
+                    colorIndex = index;
+                }
+            }
+
+            if (currentIndex < 0 || colorIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(color),
+                    "Both colors must be active in the current cycle.");
+            }
+
+            return (colorIndex - currentIndex + activeCount) % activeCount;
+        }
+
+        public static int GetRequiredTapCount(
+            RunnerColor[] cycle,
+            RunnerColor currentColor,
+            RunnerColor targetColor)
+        {
+            if (cycle == null || cycle.Length < 2)
+            {
+                throw new ArgumentException(
+                    "A color cycle requires at least two entries.",
+                    nameof(cycle));
+            }
+
+            int currentIndex = Array.IndexOf(cycle, currentColor);
+            int targetIndex = Array.IndexOf(cycle, targetColor);
+            if (currentIndex < 0 || targetIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(targetColor),
+                    "Both colors must exist in the cycle.");
+            }
+
+            return (targetIndex - currentIndex + cycle.Length) % cycle.Length;
+        }
+
         public static RunnerColorSymbol GetSymbol(RunnerColor color)
         {
             switch (color)
@@ -159,6 +218,12 @@ namespace ColorGateRunner.Core
                     return RunnerColorSymbol.Square;
                 case RunnerColor.Green:
                     return RunnerColorSymbol.Triangle;
+                case RunnerColor.Yellow:
+                    return RunnerColorSymbol.Star;
+                case RunnerColor.Purple:
+                    return RunnerColorSymbol.Diamond;
+                case RunnerColor.Cyan:
+                    return RunnerColorSymbol.Hexagon;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(color));
             }

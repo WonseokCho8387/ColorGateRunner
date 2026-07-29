@@ -4,6 +4,9 @@ namespace ColorGateRunner.Core
     {
         Red,
         Blue,
-        Green
+        Green,
+        Yellow,
+        Purple,
+        Cyan
     }
 }

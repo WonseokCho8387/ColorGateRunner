@@ -448,3 +448,43 @@ Status: Active
 - Stage definitions, movement scale, cadence, item powers, Continue behavior,
   deterministic sequences, simulation profiles, packages, input, and
   unrelated ProjectSettings remain unchanged.
+
+## Step 10 color capacity and gate mechanic lab
+
+Status: Active development-only experiment policy.
+
+- Tap-to-cycle remains active through six-color experiments.
+- Three through six colors are development experiments. Yellow, Purple, and
+  Cyan are appended to the stable enum and are not normal Stage 1–5 content.
+- The Step 9C fixed color-row presentation is Superseded. The active HUD is a
+  current-first vertical stack with fixed tile identities. Rapid taps interrupt
+  and retarget all tiles from their current visual transforms; the Core color
+  changes immediately and no input queue delays it.
+- Lobby progression keeps its data-derived palette tier, but the unexplained
+  tall gray side blocks are removed. Only a quiet background treatment remains.
+- Booster presentation uses normal `(0,8,-10)/(20,0,0)/60` and a chase target
+  relative offset `(0,5.4,-7.4)`, rotation `(14,0,0)`, FOV `78`, with
+  `0.22s` blend in and `0.35s` blend out. Retry, Continue, exit, and failure
+  converge on the exact baseline without cumulative drift.
+- Development Reset Progress requires confirmation. It deletes only the
+  highest-unlocked key and the five stage-record keys, returns the Lobby to
+  Stage 1, and preserves unrelated PlayerPrefs. Cancel performs no write.
+- Camouflage reveals when one unpassed gate remains before it. The sequence
+  index, spacing, and transform are unchanged.
+- Fog fully reveals the nearest two unpassed gates. Farther gates are neutral
+  silhouettes; their plans remain unchanged.
+- Ice increases speed while retaining color judgment. Initial experimental
+  values are speed `1.45x`, spacing `1.30x`, entry `0.30s`, exit `0.35s`,
+  gates `12–19`.
+- The 16-condition matrix pairs the same seed and planned sequence. Perfect
+  runs once and Expert/Average/Novice/Stress run 1,000 seeds each, for 64,016
+  first-pass runs.
+- Repeated-tap profile fields are explicit and provisional. Risk labels use
+  the documented interval, tap-burst, completion, and failure-share thresholds.
+  Simulation shortlists human-test candidates but cannot determine fun.
+- Experiment play and reset testing are separately controlled. Creating or
+  leaving an experiment session does not read or modify normal progression.
+
+Deferred: Flicker Gate, Clone Gate, permanent four-through-six-color
+progression, reverse-cycle input, swipe-to-previous-color input, combined
+mechanics, and production adaptive difficulty.

@@ -72,6 +72,44 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(RunnerColor.Red));
         }
 
+        [TestCase(RunnerColor.Red, RunnerColor.Red, 0)]
+        [TestCase(RunnerColor.Red, RunnerColor.Blue, 1)]
+        [TestCase(RunnerColor.Red, RunnerColor.Green, 2)]
+        [TestCase(RunnerColor.Green, RunnerColor.Green, 0)]
+        [TestCase(RunnerColor.Green, RunnerColor.Red, 1)]
+        [TestCase(RunnerColor.Green, RunnerColor.Blue, 2)]
+        public void VerticalStack_OrderStartsWithCurrentColor(
+            RunnerColor current,
+            RunnerColor color,
+            int expectedSlot)
+        {
+            StageDefinition stage = StageCatalog.GetByDisplayNumber(5);
+
+            Assert.That(
+                MobileUiPolicy.GetStackSlot(stage, 0, current, color),
+                Is.EqualTo(expectedSlot));
+        }
+
+        [TestCase(RunnerColor.Red, RunnerColor.Red, 0)]
+        [TestCase(RunnerColor.Red, RunnerColor.Green, 2)]
+        [TestCase(RunnerColor.Green, RunnerColor.Blue, 2)]
+        public void RequiredTapCount_UsesForwardCycle(
+            RunnerColor current,
+            RunnerColor target,
+            int expected)
+        {
+            RunnerColor[] cycle =
+            {
+                RunnerColor.Red,
+                RunnerColor.Blue,
+                RunnerColor.Green
+            };
+
+            Assert.That(
+                MobileUiPolicy.GetRequiredTapCount(cycle, current, target),
+                Is.EqualTo(expected));
+        }
+
         [Test]
         public void LobbyTierMapping_UsesExistingProgressionThresholds()
         {

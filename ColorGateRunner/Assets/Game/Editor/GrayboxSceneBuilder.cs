@@ -24,6 +24,9 @@ namespace ColorGateRunner.Editor
         internal static readonly Color RedColor = FromHex(0xE63946);
         internal static readonly Color BlueColor = FromHex(0x2D7FF9);
         internal static readonly Color GreenColor = FromHex(0x22C55E);
+        internal static readonly Color YellowColor = FromHex(0xF4C430);
+        internal static readonly Color PurpleColor = FromHex(0x9B5DE5);
+        internal static readonly Color CyanColor = FromHex(0x00B8D9);
         internal static readonly Color NeutralColor = FromHex(0xD9D9D9);
         internal static readonly Color FailureColor = FromHex(0x6B7280);
 
@@ -47,6 +50,15 @@ namespace ColorGateRunner.Editor
             Material green = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Green.mat",
                 GreenColor);
+            Material yellow = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Yellow.mat",
+                YellowColor);
+            Material purple = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Purple.mat",
+                PurpleColor);
+            Material cyan = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Cyan.mat",
+                CyanColor);
             Material neutral = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Neutral.mat",
                 NeutralColor);
@@ -105,6 +117,10 @@ namespace ColorGateRunner.Editor
             Text lobbyTierText;
             Button lobbyPlayButton;
             GameObject[] lobbyTierRoots;
+            Button resetProgressButton;
+            GameObject resetProgressConfirmation;
+            Button confirmResetProgressButton;
+            Button cancelResetProgressButton;
             CreateLobbyUi(
                 flowRoots[0].transform,
                 out lobbyPanel,
@@ -114,7 +130,11 @@ namespace ColorGateRunner.Editor
                 out lobbyProgressText,
                 out lobbyTierText,
                 out lobbyPlayButton,
-                out lobbyTierRoots);
+                out lobbyTierRoots,
+                out resetProgressButton,
+                out resetProgressConfirmation,
+                out confirmResetProgressButton,
+                out cancelResetProgressButton);
 
             GameObject stageSelectPanel;
             Button[] stageButtons;
@@ -126,6 +146,7 @@ namespace ColorGateRunner.Editor
                 out stageButtons,
                 out stageSummaries,
                 out unlockAllButton);
+            CreateExperimentLauncherUi(flowRoots[6].transform, controller);
 
             GameObject itemPanel;
             Text selectedStageText;
@@ -224,6 +245,9 @@ namespace ColorGateRunner.Editor
                 red,
                 blue,
                 green,
+                yellow,
+                purple,
+                cyan,
                 failure,
                 tapSurface,
                 trackPool,
@@ -242,6 +266,10 @@ namespace ColorGateRunner.Editor
                 lobbyTierText,
                 lobbyPlayButton,
                 lobbyTierRoots,
+                resetProgressButton,
+                resetProgressConfirmation,
+                confirmResetProgressButton,
+                cancelResetProgressButton,
                 stageSelectPanel,
                 stageButtons,
                 stageSummaries,
@@ -351,6 +379,8 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<ShieldPickupView>(true);
             TrackPoolController[] trackPools =
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
+            ExperimentLauncher[] experimentLaunchers =
+                generatedRoot.GetComponentsInChildren<ExperimentLauncher>(true);
 
             if (controllers.Length != 1 ||
                 !controllers[0].HasRequiredReferences() ||
@@ -375,6 +405,12 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException("Track pool is invalid.");
             }
+            if (experimentLaunchers.Length != 1 ||
+                !experimentLaunchers[0].HasRequiredReferences())
+            {
+                throw new InvalidOperationException(
+                    "Development experiment launcher is missing or incomplete.");
+            }
 
             string[] uniqueNames =
             {
@@ -393,9 +429,17 @@ namespace ColorGateRunner.Editor
                 "LobbyStageTitle",
                 "LobbyStageDescription",
                 "LobbyPlayButton",
+                "ResetProgressButton",
+                "ResetProgressConfirmation",
+                "ConfirmResetProgressButton",
+                "CancelResetProgressButton",
                 "StageSelectPanel",
                 "StageSelectTitle",
                 "DeveloperUnlockAllButton",
+                "ExperimentLauncherPanel",
+                "ExperimentLauncherLabel",
+                "ExperimentStartButton",
+                "ExperimentLeaveButton",
                 "PreRunItemPanel",
                 "ShieldItemButton",
                 "BoosterItemButton",
@@ -434,7 +478,7 @@ namespace ColorGateRunner.Editor
                         $"{uniqueNames[index]} is missing or duplicated.");
                 }
             }
-            for (int tileIndex = 0; tileIndex < 3; tileIndex++)
+            for (int tileIndex = 0; tileIndex < 6; tileIndex++)
             {
                 if (CountNamedTransforms(
                     generatedRoot,
@@ -449,6 +493,13 @@ namespace ColorGateRunner.Editor
                     throw new InvalidOperationException(
                         "Color HUD tile set is missing or duplicated.");
                 }
+            }
+            if (CountNamedTransforms(
+                generatedRoot,
+                "LobbyTier_0_Accent_0") != 0)
+            {
+                throw new InvalidOperationException(
+                    "Meaningless Lobby accent blocks must not be generated.");
             }
             for (int stage = 1; stage <= StageCatalog.Count; stage++)
             {
@@ -873,7 +924,11 @@ namespace ColorGateRunner.Editor
             out Text progress,
             out Text tier,
             out Button play,
-            out GameObject[] tierRoots)
+            out GameObject[] tierRoots,
+            out Button resetProgress,
+            out GameObject resetConfirmation,
+            out Button confirmReset,
+            out Button cancelReset)
         {
             panel = CreatePanel(
                 "LobbyPanel",
@@ -930,6 +985,15 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.86f, 0.23f),
                 out playLabel);
             playLabel.fontSize = 46;
+            Text resetLabel;
+            resetProgress = CreateButton(
+                "ResetProgressButton",
+                panel.transform,
+                "RESET PROGRESS",
+                new Vector2(0.36f, 0.035f),
+                new Vector2(0.64f, 0.075f),
+                out resetLabel);
+            resetLabel.fontSize = 16;
             tierRoots = new GameObject[4];
             Color[] colors =
             {
@@ -950,32 +1014,47 @@ namespace ColorGateRunner.Editor
                     Vector2.one);
                 decoration.transform.SetAsFirstSibling();
                 Image decorationImage = decoration.GetComponent<Image>();
-                decorationImage.color = Color.clear;
+                decorationImage.color = new Color(
+                    colors[index].r,
+                    colors[index].g,
+                    colors[index].b,
+                    0.16f);
                 decorationImage.raycastTarget = false;
-                for (int accentIndex = 0;
-                    accentIndex <= index;
-                    accentIndex++)
-                {
-                    GameObject accent = CreatePanel(
-                        $"LobbyTier_{index}_Accent_{accentIndex}",
-                        decoration.transform,
-                        new Color(1f, 1f, 1f, 0.14f));
-                    SetAnchors(
-                        accent.GetComponent<RectTransform>(),
-                        new Vector2(
-                            accentIndex % 2 == 0
-                                ? 0.05f + (accentIndex * 0.04f)
-                                : 0.79f - (accentIndex * 0.04f),
-                            0.36f + (accentIndex * 0.025f)),
-                        new Vector2(
-                            accentIndex % 2 == 0
-                                ? 0.14f + (accentIndex * 0.04f)
-                                : 0.88f - (accentIndex * 0.04f),
-                            0.56f + (accentIndex * 0.035f)));
-                    accent.GetComponent<Image>().raycastTarget = false;
-                }
                 tierRoots[index] = decoration;
             }
+
+            resetConfirmation = CreatePanel(
+                "ResetProgressConfirmation",
+                panel.transform,
+                new Color(0.02f, 0.03f, 0.05f, 0.98f));
+            SetAnchors(
+                resetConfirmation.GetComponent<RectTransform>(),
+                new Vector2(0.12f, 0.31f),
+                new Vector2(0.88f, 0.63f));
+            CreateText(
+                "ResetProgressConfirmationText",
+                resetConfirmation.transform,
+                "RESET ALL STAGE PROGRESS?",
+                28,
+                new Vector2(0.08f, 0.62f),
+                new Vector2(0.92f, 0.90f));
+            Text confirmLabel;
+            confirmReset = CreateButton(
+                "ConfirmResetProgressButton",
+                resetConfirmation.transform,
+                "RESET",
+                new Vector2(0.08f, 0.14f),
+                new Vector2(0.47f, 0.48f),
+                out confirmLabel);
+            Text cancelLabel;
+            cancelReset = CreateButton(
+                "CancelResetProgressButton",
+                resetConfirmation.transform,
+                "CANCEL",
+                new Vector2(0.53f, 0.14f),
+                new Vector2(0.92f, 0.48f),
+                out cancelLabel);
+            resetConfirmation.SetActive(false);
         }
 
         private static void CreateStageSelectUi(
@@ -1083,6 +1162,105 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.35f, 0.06f),
                 new Vector2(0.65f, 0.12f),
                 out backLabel);
+        }
+
+        private static void CreateExperimentLauncherUi(
+            Transform parent,
+            StageSceneController controller)
+        {
+            GameObject panel = CreatePanel(
+                "ExperimentLauncherPanel",
+                parent,
+                new Color(0.025f, 0.04f, 0.07f, 0.98f));
+            SetAnchors(
+                panel.GetComponent<RectTransform>(),
+                new Vector2(0.08f, 0.08f),
+                new Vector2(0.92f, 0.48f));
+            ExperimentLauncher launcher =
+                panel.AddComponent<ExperimentLauncher>();
+            Text label = CreateText(
+                "ExperimentLauncherLabel",
+                panel.transform,
+                "3 COLORS · NONE · SEED 12345",
+                24,
+                new Vector2(0.06f, 0.78f),
+                new Vector2(0.94f, 0.96f));
+            Text unused;
+            Button previousColors = CreateButton(
+                "ExperimentPreviousColorsButton",
+                panel.transform,
+                "COLORS -",
+                new Vector2(0.06f, 0.58f),
+                new Vector2(0.29f, 0.74f),
+                out unused);
+            Button nextColors = CreateButton(
+                "ExperimentNextColorsButton",
+                panel.transform,
+                "COLORS +",
+                new Vector2(0.31f, 0.58f),
+                new Vector2(0.54f, 0.74f),
+                out unused);
+            Button mechanic = CreateButton(
+                "ExperimentMechanicButton",
+                panel.transform,
+                "MECHANIC",
+                new Vector2(0.56f, 0.58f),
+                new Vector2(0.94f, 0.74f),
+                out unused);
+            Button seedDown = CreateButton(
+                "ExperimentSeedDownButton",
+                panel.transform,
+                "SEED -",
+                new Vector2(0.06f, 0.39f),
+                new Vector2(0.29f, 0.54f),
+                out unused);
+            Button seedUp = CreateButton(
+                "ExperimentSeedUpButton",
+                panel.transform,
+                "SEED +",
+                new Vector2(0.31f, 0.39f),
+                new Vector2(0.54f, 0.54f),
+                out unused);
+            Button shield = CreateButton(
+                "ExperimentShieldButton",
+                panel.transform,
+                "SHIELD",
+                new Vector2(0.56f, 0.39f),
+                new Vector2(0.74f, 0.54f),
+                out unused);
+            Button booster = CreateButton(
+                "ExperimentBoosterButton",
+                panel.transform,
+                "BOOST",
+                new Vector2(0.76f, 0.39f),
+                new Vector2(0.94f, 0.54f),
+                out unused);
+            Button start = CreateButton(
+                "ExperimentStartButton",
+                panel.transform,
+                "START EXPERIMENT",
+                new Vector2(0.06f, 0.12f),
+                new Vector2(0.68f, 0.31f),
+                out unused);
+            Button leave = CreateButton(
+                "ExperimentLeaveButton",
+                panel.transform,
+                "LEAVE",
+                new Vector2(0.72f, 0.12f),
+                new Vector2(0.94f, 0.31f),
+                out unused);
+            launcher.Configure(
+                controller,
+                label,
+                previousColors,
+                nextColors,
+                mechanic,
+                seedDown,
+                seedUp,
+                shield,
+                booster,
+                start,
+                leave);
         }
 
         private static void CreateCountdownUi(
@@ -1222,25 +1400,31 @@ namespace ColorGateRunner.Editor
             colorHudPanel.GetComponent<Image>().raycastTarget = false;
             SetAnchors(
                 colorHudPanel.GetComponent<RectTransform>(),
-                new Vector2(0.035f, 0.67f),
+                new Vector2(0.035f, 0.55f),
                 new Vector2(0.30f, 0.83f));
-            colorTiles = new GameObject[3];
-            colorTileImages = new Image[3];
-            colorTileSymbols = new Text[3];
-            nextColorMarkers = new GameObject[3];
-            Color[] tileColors = { RedColor, BlueColor, GreenColor };
-            string[] symbols = { "●", "■", "▲" };
+            colorTiles = new GameObject[6];
+            colorTileImages = new Image[6];
+            colorTileSymbols = new Text[6];
+            nextColorMarkers = new GameObject[6];
+            Color[] tileColors =
+            {
+                RedColor, BlueColor, GreenColor,
+                NeutralColor, NeutralColor, NeutralColor
+            };
+            string[] symbols = { "●", "■", "▲", "★", "◆", "HEX" };
             for (int index = 0; index < colorTiles.Length; index++)
             {
-                float minY = 0.10f + (index * 0.30f);
                 GameObject tile = CreatePanel(
                     $"ColorTile_{index}",
                     colorHudPanel.transform,
                     tileColors[index]);
-                SetAnchors(
-                    tile.GetComponent<RectTransform>(),
-                    new Vector2(0.12f, minY),
-                    new Vector2(0.62f, minY + 0.24f));
+                RectTransform tileRect = tile.GetComponent<RectTransform>();
+                tileRect.anchorMin = new Vector2(0.33f, 1f);
+                tileRect.anchorMax = new Vector2(0.33f, 1f);
+                tileRect.pivot = new Vector2(0.5f, 0.5f);
+                tileRect.sizeDelta = new Vector2(92f, 52f);
+                tileRect.anchoredPosition =
+                    new Vector2(0f, -34f - (index * 42f));
                 colorTiles[index] = tile;
                 colorTileImages[index] = tile.GetComponent<Image>();
                 colorTileImages[index].raycastTarget = false;
@@ -1248,17 +1432,17 @@ namespace ColorGateRunner.Editor
                     $"ColorTileSymbol_{index}",
                     tile.transform,
                     symbols[index],
-                    38,
+                    index == 5 ? 24 : 38,
                     Vector2.zero,
                     Vector2.one);
                 Text nextLabel = CreateText(
                     $"ColorTileNextMarker_{index}",
-                    colorHudPanel.transform,
-                    "NEXT ›",
+                    tile.transform,
+                    "NEXT",
                     17,
-                    new Vector2(0.66f, minY),
-                    new Vector2(0.98f, minY + 0.24f));
-                nextLabel.alignment = TextAnchor.MiddleLeft;
+                    new Vector2(1.02f, 0f),
+                    new Vector2(1.75f, 1f));
+                nextLabel.alignment = TextAnchor.MiddleCenter;
                 nextColorMarkers[index] = nextLabel.gameObject;
             }
 

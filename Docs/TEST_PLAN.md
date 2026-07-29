@@ -556,3 +556,98 @@ emotional achievement, replay motivation, or perceived fairness.
   after exit, Retry, or Continue.
 - Human review must still judge hierarchy, contrast, comfort, and visual
   quality; screenshots and bounds tests cannot establish those qualities.
+
+## Step 10 experiment-lab acceptance mapping
+
+### EditMode automated
+
+- Stable identity and cycling:
+  `SixColorIdentityAndSymbolMapping_IsStable`,
+  `ColorCycle_IsCorrectForTwoThroughSixColors`,
+  `VerticalStack_OrderStartsWithCurrentColor`, and
+  `RequiredTapCount_UsesForwardCycle`.
+- Determinism:
+  `ExperimentDefinitions_RemainDeterministic`,
+  `ExperimentRestart_ReplaysPlansAndColor`, and
+  `ShortlistGeneration_IsDeterministic`.
+- Mechanics:
+  `Camouflage_RevealsAfterOneInterveningGate`,
+  `Fog_ExposesExactlyTwoNearestUnpassedGates`,
+  `Fog_DoesNotChangeGatePlans`,
+  `Ice_ChangesSpeedButPreservesColorJudgment`, and
+  `Ice_ExitRestoresCorrectNormalSpeed`.
+- Repeated-tap model:
+  `RepeatedTapPlayerProfiles_AreValid`,
+  `TapWindowMetrics_HandleZeroAndRepeatedTaps`, and
+  `RiskClassification_AppliesDocumentedThresholds`,
+  `ConditionRisk_CombinesAverageAndExpertHardExclusions`, and
+  `SixColorBoundary_IsHighRiskAndBoundaryOnly`.
+
+Each non-Perfect profile explicitly owns first-tap mean/variance, repeated-tap
+mean/variance, comfortable burst, burst error growth, confirmation time, and
+feedback dependency. Perfect performs the exact required tap count.
+
+### Simulation matrix
+
+- Conditions are color counts `3/4/5/6` crossed with
+  `None/Camouflage/Fog/Ice`.
+- First pass uses no items: one Perfect run and 1,000 deterministic runs for
+  Expert, Average, Novice, and Stress per condition: 64,016 total.
+- Mechanic isolation pairs the same seed, planned colors, required tap counts,
+  gate count, cadence, and section order.
+- Report run count, completion, median time, 0/1/2/3/4+ tap distribution,
+  average/min/P10 required interval, peak taps/s, longest burst, failure
+  categories, final reach, and mechanic-specific margins.
+- Risk flags are: P10 interval `<0.14s`; 3+ tap gates `>20%`; Average
+  completion `<20%`; burst failures `>50%` of failures; Expert completion
+  `<50%`. Average completion below 20% or Expert completion below 50% is a
+  hard exclusion and always classifies the condition as High Risk. Otherwise
+  one caution flag is Caution and two or more are High Risk. A Boundary Only
+  diagnostic remains High Risk and is explicitly ineligible as a normal-stage
+  candidate.
+- Shortlist selection is deterministic and yields one informative condition
+  from each mechanic family for human review. It does not declare a winner.
+- Only the five shortlisted conditions run Shield, Booster, and Both across
+  the same five profiles (60,015 additional model runs). Item protection uses
+  the same `ExperimentItemRules` as the development runtime.
+- One allowed tuning iteration introduced explicit 4+ tap pressure gates only
+  in the final section for five- and six-color conditions. No input direction,
+  normal-stage rule, or fixed mechanic rule was tuned.
+
+### PlayMode automated
+
+- Phase A:
+  `Lobby_VerticalDecorationsAreAbsent`,
+  `VerticalStack_CurrentColorStaysAtTop`,
+  `VerticalStack_RapidTapsRetargetToAuthoritativeColor`,
+  `VerticalStack_HasSixReusableSlots`,
+  `BoosterCamera_LowersAndMovesCloserBehindPlayer`,
+  `Booster_CameraReturnsToExactBaseline`,
+  `ResetProgress_CancellationChangesNothing`, and
+  `ResetProgress_ConfirmationReturnsLobbyToStageOne`.
+- Development integration:
+  `ExperimentLauncher_IsHiddenFromNormalFlow`,
+  `ExperimentPlay_DoesNotChangeNormalProgression`,
+  `Camouflage_RemainsNeutralThenRevealsWithoutMoving`,
+  `Fog_KeepsExactlyTwoGatesFullyReadableWithoutPoolGrowth`,
+  `Ice_ChangesFloorPresentationAndKeepsColorJudgment`, and
+  `RepeatedExperimentStarts_CreateNoDuplicates`.
+
+### Structural and visual validation
+
+- The builder runs twice and requires one Experiment launcher, six fixed color
+  tiles, six generated color materials, one Reset confirmation, one gate pool,
+  and one track pool. Lobby accent-block names must be absent.
+- `CaptureStep10ReferenceScreenshots` is opt-in with
+  `COLOR_GATE_CAPTURE_STEP10=1` and writes the 16 requested captures under
+  `Artifacts/VisualValidation/Step10/`.
+
+### Manual evaluation
+
+- At 1080x1920, 1170x2532, 1080x2400, 1440x3200, a notched Safe Area, and at
+  least one physical phone, evaluate six-tile readability, rapid-tap comfort,
+  Booster gate readability, Camouflage comprehension, Fog planning horizon,
+  and Ice entry/exit continuity.
+- Human review must decide whether any candidate is understandable, visually
+  satisfying, comfortable, fair, fun, or replayable. Automated evidence must
+  not make those claims.

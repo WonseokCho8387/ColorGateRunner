@@ -177,3 +177,32 @@ remain active.
   metadata separately from temporary effective colors and report continuity
   metrics. Mechanical continuity does not establish perceptual smoothness,
   comfort, fairness, or fun.
+
+## Step 10 development experiment lab
+
+The normal Lobby and Stages 1–5 remain unchanged. Editor and development
+builds contain a separately controlled experiment catalog for three through
+six colors crossed with None, Camouflage, Fog, and Ice.
+
+- Tap-to-cycle remains the input. Experimental order is Red, Blue, Green,
+  Yellow, Purple, Cyan, truncated to the selected capacity.
+- The current-first vertical HUD stack shows every active color in forward tap
+  order. Logical state changes immediately; a 0.12-second interrupt-and-retarget
+  transition moves the fixed tiles without queue buildup.
+- Camouflage keeps its geometry visible and neutral, then reveals color and
+  symbol when exactly one unpassed gate remains before it.
+- Fog keeps the nearest two unpassed gates fully readable. Farther experiment
+  gates remain neutral silhouettes; plans and transforms do not change.
+- Ice gates keep color judgment active. The experiment uses a 1.45 speed
+  multiplier, 1.30 spacing multiplier, 0.30-second entry, and 0.35-second
+  exit model across gates 12–19.
+- Experiment sessions and reports never load or save normal stage progress.
+  Launcher item toggles use the shared experiment item rules for manual tests;
+  items remain outside the controlled first pass and run only for shortlisted
+  conditions.
+- The first-pass matrix contains 64,016 deterministic model runs. Its risk
+  labels and shortlist are provisional mechanical evidence, not claims about
+  fun, fairness, comfort, or replay motivation.
+
+Flicker, Clone, combined mechanics, reverse cycling, swipe-back input, and
+permanent four-through-six-color progression remain deferred.

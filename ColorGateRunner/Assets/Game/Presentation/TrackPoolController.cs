@@ -48,6 +48,14 @@ namespace ColorGateRunner.Presentation
             }
         }
 
+        internal void SetSurfaceMaterial(Material material)
+        {
+            for (int index = 0; index < segments.Length; index++)
+            {
+                segments[index].SetSurfaceMaterial(material);
+            }
+        }
+
         internal bool HasRequiredReferences()
         {
             if (segments == null || segments.Length < 3 || segmentLength <= 0f)

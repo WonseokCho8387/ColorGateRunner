@@ -411,6 +411,11 @@ namespace ColorGateRunner.Tests.PlayMode
             }
             public void SaveRecord(int stageNumber, StageRecord record) =>
                 _records[stageNumber - 1] = record;
+
+            public void ClearGameplayProgress()
+            {
+                System.Array.Clear(_records, 0, _records.Length);
+            }
         }
     }
 }

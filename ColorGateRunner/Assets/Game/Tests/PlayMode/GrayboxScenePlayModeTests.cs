@@ -55,6 +55,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThan(_controller.GetColorTile(1).transform.localScale.x));
             Assert.That(_controller.GetNextColorMarker(1).activeSelf, Is.True);
             _controller.HandleGameplayTap();
+            _controller.Tick(0.13f);
             Assert.That(_controller.GetColorTile(1).transform.localScale.x,
                 Is.GreaterThan(_controller.GetColorTile(0).transform.localScale.x));
             Assert.That(_controller.GetNextColorMarker(0).activeSelf, Is.True);
@@ -168,19 +169,371 @@ namespace ColorGateRunner.Tests.PlayMode
         public void Booster_CameraReturnsToExactBaseline()
         {
             StartPlaying(false, true);
-            Quaternion rotation = _controller.GameplayCamera.transform.rotation;
+            Vector3 baselineOffset =
+                _controller.NormalCameraPosition -
+                new Vector3(0f, 1f, 0f);
             _controller.Session.Advance(
                 1f,
                 _controller.Session.Stage.BoosterDistance + 1f);
             _controller.Session.Advance(StageSession.BoosterExitDuration, 0f);
-            _controller.Tick(0f);
+            _controller.Tick(0.36f);
             Assert.That(_controller.GameplayCamera.fieldOfView,
                 Is.EqualTo(60f).Within(0.001f));
             Assert.That(
                 Quaternion.Angle(
-                    rotation,
+                    _controller.NormalCameraRotation,
                     _controller.GameplayCamera.transform.rotation),
                 Is.LessThan(0.001f));
+            Assert.That(
+                Vector3.Distance(
+                    _controller.GameplayCamera.transform.position -
+                    _controller.PlayerTransform.position,
+                    baselineOffset),
+                Is.LessThan(0.001f));
+        }
+
+        [Test]
+        public void Lobby_VerticalDecorationsAreAbsent()
+        {
+            Assert.That(CountNamed("LobbyTier_0_Accent_0"), Is.Zero);
+        }
+
+        [Test]
+        public void VerticalStack_CurrentColorStaysAtTop()
+        {
+            StartPlaying(false, false);
+            float redY = ((RectTransform)_controller.GetColorTile(0).transform)
+                .anchoredPosition.y;
+            float blueY = ((RectTransform)_controller.GetColorTile(1).transform)
+                .anchoredPosition.y;
+            Assert.That(redY, Is.GreaterThan(blueY));
+
+            _controller.HandleGameplayTap();
+            _controller.Tick(0.13f);
+            redY = ((RectTransform)_controller.GetColorTile(0).transform)
+                .anchoredPosition.y;
+            blueY = ((RectTransform)_controller.GetColorTile(1).transform)
+                .anchoredPosition.y;
+            Assert.That(blueY, Is.GreaterThan(redY));
+        }
+
+        [Test]
+        public void VerticalStack_RapidTapsRetargetToAuthoritativeColor()
+        {
+            StartPlaying(false, false);
+            _controller.HandleGameplayTap();
+            _controller.Tick(0.03f);
+            _controller.HandleGameplayTap();
+            _controller.Tick(0.03f);
+            _controller.HandleGameplayTap();
+            _controller.Tick(0.13f);
+
+            Assert.That(_controller.Session.CurrentColor,
+                Is.EqualTo(RunnerColor.Blue));
+            Assert.That(
+                ((RectTransform)_controller.GetColorTile(1).transform)
+                    .anchoredPosition.y,
+                Is.GreaterThan(
+                    ((RectTransform)_controller.GetColorTile(0).transform)
+                        .anchoredPosition.y));
+        }
+
+        [Test]
+        public void BoosterCamera_LowersAndMovesCloserBehindPlayer()
+        {
+            StartPlaying(false, true);
+            Vector3 offset =
+                _controller.GameplayCamera.transform.position -
+                _controller.PlayerTransform.position;
+
+            Assert.That(offset.y, Is.LessThan(7f));
+            Assert.That(offset.z, Is.GreaterThan(-10f));
+            Assert.That(_controller.GameplayCamera.fieldOfView,
+                Is.GreaterThan(60f));
+        }
+
+        [Test]
+        public void ResetProgress_CancellationChangesNothing()
+        {
+            _store.HighestUnlocked = 4;
+            _store.Records[1] = new StageRecord(true, 12f, 13f, 2);
+            _controller.SetProgressStoreForTests(_store);
+
+            _controller.RequestProgressReset();
+            _controller.CancelProgressReset();
+
+            Assert.That(_store.HighestUnlocked, Is.EqualTo(4));
+            Assert.That(_store.Records[1].Cleared, Is.True);
+            Assert.That(_controller.ResetProgressConfirmation.activeSelf,
+                Is.False);
+        }
+
+        [Test]
+        public void ResetProgress_ConfirmationReturnsLobbyToStageOne()
+        {
+            _store.HighestUnlocked = 5;
+            _store.Records[0] = new StageRecord(true, 12f, 13f, 2);
+            _store.Records[1] = new StageRecord(true, 12f, 13f, 2);
+            _controller.SetProgressStoreForTests(_store);
+
+            _controller.RequestProgressReset();
+            _controller.ConfirmProgressReset();
+
+            Assert.That(_store.HighestUnlocked, Is.EqualTo(1));
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(1));
+            Assert.That(_controller.LobbyTier, Is.Zero);
+            Assert.That(_store.Records[0].Cleared, Is.False);
+            Assert.That(_store.UnrelatedSetting, Is.EqualTo(37));
+        }
+
+        [Test]
+        public void VerticalStack_HasSixReusableSlots()
+        {
+            for (int index = 0; index < 6; index++)
+            {
+                Assert.That(_controller.GetColorTile(index), Is.Not.Null);
+                Assert.That(_controller.GetColorTileSymbol(index), Is.Not.Null);
+            }
+        }
+
+        [Test]
+        public void ExperimentLauncher_IsHiddenFromNormalFlow()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+
+            Assert.That(launcher, Is.Not.Null);
+            Assert.That(launcher.gameObject.activeInHierarchy, Is.False);
+            Assert.That(_controller.DevelopmentDebugRoot.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void ExperimentPlay_DoesNotChangeNormalProgression()
+        {
+            _store.HighestUnlocked = 4;
+            _store.Records[1] = new StageRecord(true, 15f, 16f, 2);
+            _controller.SetProgressStoreForTests(_store);
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            launcher.NextColorCount();
+            launcher.NextMechanic();
+            launcher.StartExperiment();
+
+            Assert.That(launcher.Session, Is.Not.Null);
+            Assert.That(launcher.ColorCount, Is.EqualTo(4));
+            Assert.That(launcher.Mechanic,
+                Is.EqualTo(MechanicExperimentType.Camouflage));
+            Assert.That(_store.HighestUnlocked, Is.EqualTo(4));
+            Assert.That(_store.Records[1].ClearCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ExperimentLauncher_StartsPlayableFixedPoolSession()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            launcher.StartExperiment();
+
+            Assert.That(_controller.ExperimentActive, Is.True);
+            Assert.That(_controller.ExperimentSession, Is.Not.Null);
+            Assert.That(_controller.GameplayHudRoot.activeSelf, Is.True);
+            Assert.That(_controller.ActiveGateCount, Is.EqualTo(6));
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
+            Assert.That(_controller.TrackPool.SegmentCount, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void ExperimentColorStack_SupportsThreeThroughSixColors()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            for (int count = 3; count <= 6; count++)
+            {
+                launcher.StartExperiment();
+                Assert.That(_controller.ActiveColorTileCount,
+                    Is.EqualTo(count));
+                launcher.LeaveExperiment();
+                if (count < 6)
+                {
+                    launcher.NextColorCount();
+                }
+            }
+        }
+
+        [Test]
+        public void ExperimentRapidTaps_EndAtCorrectCurrentTile()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            launcher.PreviousColorCount();
+            launcher.StartExperiment();
+            for (int index = 0; index < 5; index++)
+            {
+                _controller.HandleGameplayTap();
+                _controller.Tick(0.02f);
+            }
+            _controller.Tick(0.13f);
+
+            Assert.That(_controller.ExperimentSession.CurrentColor,
+                Is.EqualTo(RunnerColor.Cyan));
+            Assert.That(
+                ((RectTransform)_controller.GetColorTile(5).transform)
+                    .anchoredPosition.y,
+                Is.GreaterThan(
+                    ((RectTransform)_controller.GetColorTile(0).transform)
+                        .anchoredPosition.y));
+        }
+
+        [Test]
+        public void IceGatePositions_RemainContinuousDuringMovement()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            launcher.NextColorCount();
+            launcher.NextMechanic();
+            launcher.NextMechanic();
+            launcher.NextMechanic();
+            launcher.StartExperiment();
+            Vector3[] positions = new Vector3[_controller.GatePoolSize];
+            for (int index = 0; index < positions.Length; index++)
+            {
+                positions[index] = _controller.GetGate(index).transform.position;
+            }
+
+            _controller.Tick(0.1f);
+
+            for (int index = 0; index < positions.Length; index++)
+            {
+                Assert.That(_controller.GetGate(index).transform.position,
+                    Is.EqualTo(positions[index]));
+            }
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void Camouflage_RemainsNeutralThenRevealsWithoutMoving()
+        {
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Camouflage);
+            DeterministicExperimentGateSequence sequence =
+                new DeterministicExperimentGateSequence(definition);
+            ExperimentGatePlan plan = default;
+            for (int index = 0; index < definition.GateCount; index++)
+            {
+                plan = sequence.GetPlan(index);
+                if (plan.IsCamouflage)
+                {
+                    break;
+                }
+            }
+            StageGateView gate = _controller.GetGate(0);
+            Vector3 position = new Vector3(0f, 1f, 50f);
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            gate.ActivateExperiment(
+                plan,
+                _controller.GetPresentationMaterial(plan.Color),
+                neutral,
+                position.z,
+                plan.GateIndex - 2);
+            Vector3 before = gate.transform.position;
+            Assert.That(gate.SymbolVisible, Is.False);
+
+            gate.UpdateExperimentVisibility(plan.GateIndex - 1, neutral);
+
+            Assert.That(gate.SymbolVisible, Is.True);
+            Assert.That(gate.transform.position, Is.EqualTo(before));
+            Assert.That(gate.ReactionActive, Is.True);
+        }
+
+        [Test]
+        public void Fog_KeepsExactlyTwoGatesFullyReadableWithoutPoolGrowth()
+        {
+            int originalCount = _controller.GatePoolSize;
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Fog);
+            DeterministicExperimentGateSequence sequence =
+                new DeterministicExperimentGateSequence(definition);
+            ExperimentGatePlan[] plans =
+                new ExperimentGatePlan[definition.FogStartGate + 4];
+            for (int index = 0; index < plans.Length; index++)
+            {
+                plans[index] = sequence.GetPlan(index);
+            }
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            int visible = 0;
+            for (int offset = 0; offset < 4; offset++)
+            {
+                ExperimentGatePlan plan =
+                    plans[definition.FogStartGate + offset];
+                StageGateView gate = _controller.GetGate(offset);
+                gate.ActivateExperiment(
+                    plan,
+                    _controller.GetPresentationMaterial(plan.Color),
+                    neutral,
+                    50f + offset * 20f,
+                    definition.FogStartGate);
+                visible += gate.SymbolVisible ? 1 : 0;
+            }
+
+            Assert.That(visible, Is.EqualTo(2));
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(originalCount));
+        }
+
+        [Test]
+        public void Ice_ChangesFloorPresentationAndKeepsColorJudgment()
+        {
+            Material normal =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            Material ice =
+                _controller.GetPresentationMaterial(RunnerColor.Cyan);
+            _controller.TrackPool.SetSurfaceMaterial(ice);
+            for (int index = 0;
+                index < _controller.TrackPool.SegmentCount;
+                index++)
+            {
+                Assert.That(
+                    _controller.TrackPool.GetSegment(index).SurfaceMaterial,
+                    Is.SameAs(ice));
+            }
+
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                3,
+                MechanicExperimentType.Ice);
+            ExperimentSession session = new ExperimentSession(definition);
+            ExperimentGatePlan plan = default;
+            for (int index = 0; index <= definition.IceStartGate; index++)
+            {
+                plan = session.GetNextPlan();
+                while (session.CurrentColor != plan.Color)
+                {
+                    session.TryCycleColor();
+                }
+                if (index < definition.IceStartGate)
+                {
+                    session.Resolve(plan);
+                }
+            }
+            Assert.That(session.GetSpeedForPlan(plan),
+                Is.GreaterThan(session.CurrentSpeed));
+            session.TryCycleColor();
+            Assert.That(session.Resolve(plan), Is.False);
+            _controller.TrackPool.SetSurfaceMaterial(normal);
+        }
+
+        [Test]
+        public void RepeatedExperimentStarts_CreateNoDuplicates()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            for (int index = 0; index < 30; index++)
+            {
+                launcher.StartExperiment();
+                launcher.LeaveExperiment();
+            }
+
+            Assert.That(
+                Object.FindObjectsByType<ExperimentLauncher>(
+                    FindObjectsInactive.Include).Length,
+                Is.EqualTo(1));
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
+            Assert.That(_controller.TrackPool.SegmentCount, Is.EqualTo(6));
         }
 
         [Test]
@@ -687,11 +1040,13 @@ namespace ColorGateRunner.Tests.PlayMode
             float redScale = _controller.GetColorTile(0).transform.localScale.x;
 
             _controller.HandleGameplayTap();
+            _controller.Tick(0.13f);
 
             Assert.That(_controller.GetColorTile(0).transform.localScale.x,
                 Is.LessThan(redScale));
             Assert.That(_controller.GetColorTile(1).transform.localScale.x,
-                Is.GreaterThan(1f));
+                Is.GreaterThan(
+                    _controller.GetColorTile(0).transform.localScale.x));
         }
 
         [Test]
@@ -884,6 +1239,14 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(3.1f);
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
+        }
+
+        private static ExperimentLauncher FindExperimentLauncher()
+        {
+            ExperimentLauncher[] launchers =
+                Object.FindObjectsByType<ExperimentLauncher>(
+                    FindObjectsInactive.Include);
+            return launchers.Length == 0 ? null : launchers[0];
         }
 
         private void Match(RunnerColor color)
@@ -1109,6 +1472,7 @@ namespace ColorGateRunner.Tests.PlayMode
             internal int HighestUnlocked { get; set; } = 1;
             internal StageRecord[] Records { get; } =
                 new StageRecord[StageCatalog.Count];
+            internal int UnrelatedSetting { get; set; } = 37;
 
             public int LoadHighestUnlocked() => HighestUnlocked;
             public StageRecord LoadRecord(int stageNumber) =>
@@ -1117,6 +1481,12 @@ namespace ColorGateRunner.Tests.PlayMode
                 HighestUnlocked = stageNumber;
             public void SaveRecord(int stageNumber, StageRecord record) =>
                 Records[stageNumber - 1] = record;
+
+            public void ClearGameplayProgress()
+            {
+                HighestUnlocked = 1;
+                System.Array.Clear(Records, 0, Records.Length);
+            }
         }
     }
 }

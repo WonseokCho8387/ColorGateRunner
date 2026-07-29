@@ -21,6 +21,9 @@ namespace ColorGateRunner.Presentation
         private Vector3[] _partScales;
         private bool _boosterDestroyed;
         private int _planIndex = -1;
+        private ExperimentGatePlan _experimentPlan;
+        private bool _hasExperimentPlan;
+        private bool _experimentWasHidden;
 
         internal RunnerColor AssignedColor { get; private set; }
         internal GatePlan ActivePlan { get; private set; }
@@ -29,6 +32,9 @@ namespace ColorGateRunner.Presentation
         internal bool ReactionActive => _reactionRemaining > 0f;
         internal bool BoosterDestroyed => _boosterDestroyed;
         internal int PartCount => gateRenderers == null ? 0 : gateRenderers.Length;
+        internal bool HasExperimentPlan => _hasExperimentPlan;
+        internal ExperimentGatePlan ActiveExperimentPlan => _experimentPlan;
+        internal bool SymbolVisible => colorSymbol.gameObject.activeSelf;
 
         private void Awake()
         {
@@ -88,6 +94,53 @@ namespace ColorGateRunner.Presentation
             _assignedMaterial = material;
             ApplyMaterial(material);
             ApplyColorSymbol();
+        }
+
+        internal void ActivateExperiment(
+            ExperimentGatePlan plan,
+            Material colorMaterial,
+            Material neutralMaterial,
+            float worldZ,
+            int passedGateCount)
+        {
+            _experimentPlan = plan;
+            _hasExperimentPlan = true;
+            _experimentWasHidden = false;
+            Activate(
+                new GatePlan(
+                    plan.Color,
+                    plan.Spacing,
+                    plan.Cadence,
+                    1f,
+                    GatePatternType.Steady,
+                    plan.GateIndex,
+                    false),
+                plan.GateIndex,
+                colorMaterial,
+                worldZ);
+            UpdateExperimentVisibility(passedGateCount, neutralMaterial);
+        }
+
+        internal void UpdateExperimentVisibility(
+            int passedGateCount,
+            Material neutralMaterial)
+        {
+            if (!_hasExperimentPlan)
+            {
+                return;
+            }
+            bool camouflageHidden =
+                !_experimentPlan.IsCamouflageRevealed(passedGateCount);
+            bool fogObscured =
+                !_experimentPlan.IsFullyVisibleInFog(passedGateCount);
+            bool hidden = camouflageHidden || fogObscured;
+            ApplyMaterial(hidden ? neutralMaterial : _assignedMaterial);
+            colorSymbol.gameObject.SetActive(!hidden);
+            if (_experimentWasHidden && !hidden)
+            {
+                _reactionRemaining = ReactionDuration;
+            }
+            _experimentWasHidden = hidden;
         }
 
         internal Transform GetPartTransform(int index)
@@ -152,8 +205,11 @@ namespace ColorGateRunner.Presentation
             _boosterDestroyed = false;
             ActivePlan = default;
             _planIndex = -1;
+            _hasExperimentPlan = false;
+            _experimentWasHidden = false;
             transform.localScale = Vector3.one;
             ResetParts();
+            colorSymbol.gameObject.SetActive(true);
             gameObject.SetActive(false);
         }
 
@@ -217,10 +273,27 @@ namespace ColorGateRunner.Presentation
         private void ApplyColorSymbol()
         {
             RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(AssignedColor);
-            colorSymbol.text = symbol == RunnerColorSymbol.Circle
-                ? "●"
-                : symbol == RunnerColorSymbol.Square ? "■" : "▲";
+            colorSymbol.text = GetSymbolText(symbol);
             colorSymbol.color = Color.white;
+        }
+
+        private static string GetSymbolText(RunnerColorSymbol symbol)
+        {
+            switch (symbol)
+            {
+                case RunnerColorSymbol.Circle:
+                    return "●";
+                case RunnerColorSymbol.Square:
+                    return "■";
+                case RunnerColorSymbol.Triangle:
+                    return "▲";
+                case RunnerColorSymbol.Star:
+                    return "★";
+                case RunnerColorSymbol.Diamond:
+                    return "◆";
+                default:
+                    return "HEX";
+            }
         }
 
         private void ResetParts()

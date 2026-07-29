@@ -13,6 +13,10 @@ namespace ColorGateRunner.Presentation
         internal bool IsCurveExperiment => curveExperiment;
         internal bool HasRequiredReferences =>
             startAnchor != null && endAnchor != null;
+        internal Material SurfaceMaterial =>
+            GetComponent<Renderer>() == null
+                ? null
+                : GetComponent<Renderer>().sharedMaterial;
 
         internal void PlaceAt(Vector3 worldStart, Quaternion worldRotation)
         {
@@ -27,6 +31,15 @@ namespace ColorGateRunner.Presentation
             startAnchor = start;
             endAnchor = end;
             curveExperiment = isCurveExperiment;
+        }
+
+        internal void SetSurfaceMaterial(Material material)
+        {
+            Renderer surface = GetComponent<Renderer>();
+            if (surface != null)
+            {
+                surface.sharedMaterial = material;
+            }
         }
     }
 }

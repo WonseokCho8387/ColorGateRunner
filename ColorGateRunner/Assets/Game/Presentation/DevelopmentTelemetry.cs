@@ -26,7 +26,7 @@ namespace ColorGateRunner.Presentation
             if (_enabled)
             {
                 _rows.AppendLine(
-                    "event,stage,seed,shield,booster,continued,time,gate,pattern,plannedColor,requiredColor,colorOverride,playerColor,reactionMargin,outcome,shieldActive,boosterActive");
+                    "event,stage,seed,shield,booster,continued,time,gate,pattern,plannedColor,requiredColor,colorOverride,playerColor,reactionMargin,outcome,shieldActive,boosterActive,experimentId,colorCount,activeColors,mechanic,requiredTapCount,firstTapLatency,repeatedTapInterval,finalTapTime,revealTime,visibleGateCount,iceState,iceSpeedMultiplier,failureCategory,humanOutcome");
             }
         }
 
@@ -68,12 +68,62 @@ namespace ColorGateRunner.Presentation
                 .Append(session.BoosterActive).AppendLine();
         }
 
+        internal void RecordExperiment(
+            ExperimentDefinition definition,
+            ExperimentGatePlan plan,
+            TapWindowMetrics tapMetrics,
+            int visibleGateCount,
+            ExperimentFailureCategory failure,
+            string humanOutcome)
+        {
+            if (!_enabled || definition == null)
+            {
+                return;
+            }
+
+            _rows.Append("experiment-gate,,,,,,,,,,,,,,,,,")
+                .Append(definition.Id).Append(',')
+                .Append(definition.ColorCount).Append(',')
+                .Append(FormatColors(definition)).Append(',')
+                .Append(definition.Mechanic).Append(',')
+                .Append(plan.RequiredTapCount).Append(',')
+                .Append(F(tapMetrics.FirstTapAvailableTime -
+                    tapMetrics.RecognitionStartTime)).Append(',')
+                .Append(F(tapMetrics.RequiredTapInterval)).Append(',')
+                .Append(F(tapMetrics.FinalTapCompletionTime)).Append(',')
+                .Append(F(tapMetrics.RecognitionStartTime)).Append(',')
+                .Append(visibleGateCount).Append(',')
+                .Append(plan.IsIce).Append(',')
+                .Append(F(definition.IceSpeedMultiplier)).Append(',')
+                .Append(failure).Append(',')
+                .Append(humanOutcome ?? string.Empty).AppendLine();
+        }
+
         internal void Flush()
         {
             if (_enabled)
             {
                 File.WriteAllText(_path, _rows.ToString());
             }
+        }
+
+        private static string FormatColors(ExperimentDefinition definition)
+        {
+            StringBuilder value = new StringBuilder();
+            for (int index = 0; index < definition.ColorCount; index++)
+            {
+                if (index > 0)
+                {
+                    value.Append('+');
+                }
+                value.Append(definition.GetColor(index));
+            }
+            return value.ToString();
+        }
+
+        private static string F(float value)
+        {
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
         }
     }
 }

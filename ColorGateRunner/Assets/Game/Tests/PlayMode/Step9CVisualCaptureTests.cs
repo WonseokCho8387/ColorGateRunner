@@ -85,6 +85,90 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return Capture("10-Continue-Countdown.png");
         }
 
+        [UnityTest]
+        public IEnumerator CaptureStep10ReferenceScreenshots()
+        {
+            if (Environment.GetEnvironmentVariable(
+                "COLOR_GATE_CAPTURE_STEP10") != "1")
+            {
+                yield break;
+            }
+
+            _outputPath = Path.GetFullPath(Path.Combine(
+                Application.dataPath,
+                "..",
+                "..",
+                "Artifacts",
+                "VisualValidation",
+                "Step10"));
+            Directory.CreateDirectory(_outputPath);
+            Screen.SetResolution(1080, 1920, false);
+
+            yield return LoadCleanScene();
+            yield return Capture("01-Clean-Lobby.png");
+
+            StartWithoutItems();
+            ConfigureStackPreview(2);
+            yield return Capture("02-Color-Stack-2.png");
+            ConfigureStackPreview(3);
+            yield return Capture("03-Color-Stack-3.png");
+            ConfigureStackPreview(4);
+            yield return Capture("04-Color-Stack-4.png");
+            ConfigureStackPreview(5);
+            yield return Capture("05-Color-Stack-5.png");
+            ConfigureStackPreview(6);
+            yield return Capture("06-Color-Stack-6.png");
+
+            yield return LoadCleanScene();
+            StartWithBooster();
+            yield return Capture("07-Booster-Chase-Camera.png");
+
+            yield return LoadCleanScene();
+            _controller.RequestProgressReset();
+            yield return Capture("08-Reset-Confirmation.png");
+
+            yield return LoadCleanScene();
+            StartWithoutItems();
+            ExperimentGatePlan camouflage = FindExperimentPlan(
+                4,
+                MechanicExperimentType.Camouflage,
+                true);
+            StageGateView camouflageGate = _controller.GetGate(0);
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            camouflageGate.ActivateExperiment(
+                camouflage,
+                _controller.GetPresentationMaterial(camouflage.Color),
+                neutral,
+                35f,
+                camouflage.GateIndex - 2);
+            yield return Capture("09-Camouflage-Hidden.png");
+            camouflageGate.UpdateExperimentVisibility(
+                camouflage.GateIndex - 1,
+                neutral);
+            yield return Capture("10-Camouflage-Reveal.png");
+
+            ConfigureFogPreview(false);
+            yield return Capture("11-Fog-Active.png");
+            ConfigureFogPreview(true);
+            yield return Capture("12-Fog-Transition.png");
+
+            Material normal =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            Material ice =
+                _controller.GetPresentationMaterial(RunnerColor.Cyan);
+            yield return Capture("13-Ice-Entry.png");
+            _controller.TrackPool.SetSurfaceMaterial(ice);
+            yield return Capture("14-Ice-Active.png");
+            _controller.TrackPool.SetSurfaceMaterial(normal);
+            yield return Capture("15-Ice-Exit.png");
+
+            yield return LoadCleanScene();
+            _controller.ShowStageSelect();
+            _controller.StageSelectPanel.SetActive(false);
+            yield return Capture("16-Experiment-Launcher.png");
+        }
+
         private IEnumerator LoadCleanScene()
         {
             SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
@@ -203,6 +287,98 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return null;
         }
 
+        private void ConfigureStackPreview(int count)
+        {
+            _controller.enabled = false;
+            for (int index = 0; index < 6; index++)
+            {
+                GameObject tile = _controller.GetColorTile(index);
+                tile.SetActive(index < count);
+                if (index >= count)
+                {
+                    continue;
+                }
+                RunnerColor color = (RunnerColor)index;
+                _controller.GetColorTileImage(index).color =
+                    _controller.GetPresentationMaterial(color).color;
+                _controller.GetColorTileSymbol(index).text =
+                    SymbolFor(color);
+                ((RectTransform)tile.transform).anchoredPosition =
+                    new Vector2(0f, -34f - index * 42f);
+                tile.transform.localScale = Vector3.one *
+                    (index == 0 ? 1f : index == 1 ? 0.82f : 0.62f);
+                _controller.GetNextColorMarker(index)
+                    .SetActive(index == 1);
+            }
+        }
+
+        private void ConfigureFogPreview(bool transition)
+        {
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Fog);
+            DeterministicExperimentGateSequence sequence =
+                new DeterministicExperimentGateSequence(definition);
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            for (int index = 0; index <= definition.FogStartGate + 3; index++)
+            {
+                ExperimentGatePlan plan = sequence.GetPlan(index);
+                if (index < definition.FogStartGate)
+                {
+                    continue;
+                }
+                int offset = index - definition.FogStartGate;
+                StageGateView gate = _controller.GetGate(offset);
+                gate.ActivateExperiment(
+                    plan,
+                    _controller.GetPresentationMaterial(plan.Color),
+                    neutral,
+                    30f + offset * 15f,
+                    definition.FogStartGate + (transition ? 1 : 0));
+            }
+        }
+
+        private static ExperimentGatePlan FindExperimentPlan(
+            int colorCount,
+            MechanicExperimentType mechanic,
+            bool requireCamouflage)
+        {
+            ExperimentDefinition definition =
+                ExperimentCatalog.Get(colorCount, mechanic);
+            DeterministicExperimentGateSequence sequence =
+                new DeterministicExperimentGateSequence(definition);
+            for (int index = 0; index < definition.GateCount; index++)
+            {
+                ExperimentGatePlan plan = sequence.GetPlan(index);
+                if (!requireCamouflage || plan.IsCamouflage)
+                {
+                    return plan;
+                }
+            }
+            Assert.Fail("Required experiment plan was not generated.");
+            return default;
+        }
+
+        private static string SymbolFor(RunnerColor color)
+        {
+            switch (MobileUiPolicy.GetSymbol(color))
+            {
+                case RunnerColorSymbol.Circle:
+                    return "●";
+                case RunnerColorSymbol.Square:
+                    return "■";
+                case RunnerColorSymbol.Triangle:
+                    return "▲";
+                case RunnerColorSymbol.Star:
+                    return "★";
+                case RunnerColorSymbol.Diamond:
+                    return "◆";
+                default:
+                    return "HEX";
+            }
+        }
+
         private void StartWithoutItems()
         {
             _controller.PlayFromLobby();
@@ -290,6 +466,12 @@ namespace ColorGateRunner.Tests.PlayMode
                 HighestUnlocked = stageNumber;
             public void SaveRecord(int stageNumber, StageRecord record) =>
                 _records[stageNumber - 1] = record;
+
+            public void ClearGameplayProgress()
+            {
+                HighestUnlocked = 1;
+                Array.Clear(_records, 0, _records.Length);
+            }
         }
     }
 }
