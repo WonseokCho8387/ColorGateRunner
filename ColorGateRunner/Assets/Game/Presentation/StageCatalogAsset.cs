@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 3;
+        private const int CurrentCatalogRevision = 4;
 
         [Serializable]
         private sealed class StageEntry
@@ -212,6 +212,15 @@ namespace ColorGateRunner.Presentation
                 return this;
             }
 
+            public StageEntry WithItemAvailability(
+                bool allowShield,
+                bool allowBooster)
+            {
+                shieldAllowed = allowShield;
+                boosterAllowed = allowBooster;
+                return this;
+            }
+
             private StageSpeedProfile CreateSpeedProfile()
             {
                 if (speedCurve == null || IsLinearCurve(speedCurve))
@@ -331,7 +340,8 @@ namespace ColorGateRunner.Presentation
                     24, new[] { RunnerColor.Red, RunnerColor.Blue },
                     28f, 40f, 1.55f, 1.25f,
                     new[] { GatePatternType.Steady, GatePatternType.Release },
-                    6, 4, 320f, 88f, 10101u),
+                    6, 4, 320f, 88f, 10101u)
+                    .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-02", 2, "RHYTHM CONTRAST",
                     "Read changing gate cadence.",
@@ -344,7 +354,8 @@ namespace ColorGateRunner.Presentation
                         GatePatternType.Release,
                         GatePatternType.Syncopation
                     },
-                    5, 5, 360f, 92f, 20202u),
+                    5, 5, 360f, 92f, 20202u)
+                    .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-03", 3, "EXCEPTION COLOR",
                     "Watch for deliberate color exceptions.",
@@ -357,7 +368,8 @@ namespace ColorGateRunner.Presentation
                         GatePatternType.SingleColorBreak,
                         GatePatternType.Burst
                     },
-                    5, 6, 400f, 96f, 30303u),
+                    5, 6, 400f, 96f, 30303u)
+                    .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-04", 4, "GREEN INTRODUCTION",
                     "Meet green safely, then use all three colors.",
@@ -376,7 +388,8 @@ namespace ColorGateRunner.Presentation
                         GatePatternType.Release
                     },
                     8, 6, 420f, 100f, 40404u,
-                    true, new[] { 0, 0, 8 }),
+                    true, new[] { 0, 0, 8 })
+                    .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-05", 5, "THREE-COLOR CHALLENGE",
                     "Master three colors under pressure.",
@@ -395,7 +408,8 @@ namespace ColorGateRunner.Presentation
                         GatePatternType.SameColorBait,
                         GatePatternType.SingleColorBreak
                     },
-                    4, 8, 460f, 104f, 50505u),
+                    4, 8, 460f, 104f, 50505u)
+                    .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-06", 6, "SHIELD TRAINING",
                     "Learn one stage-local Shield charge.",
@@ -427,7 +441,7 @@ namespace ColorGateRunner.Presentation
                     .WithActiveColorCount(2),
                 StageEntry.Create(
                     "stage-07", 7, "BOOSTER TIMING",
-                    "Receive a stage-local Booster after the opening.",
+                    "Receive a stage-local Booster from the start.",
                     40, new[]
                     {
                         RunnerColor.Red,
@@ -447,8 +461,7 @@ namespace ColorGateRunner.Presentation
                     GateModifierType.None,
                     false, true,
                     StageMechanicGrantMechanic.Booster,
-                    StageMechanicActivationMode.AutoActivateAtProgress,
-                    0.30f)
+                    StageMechanicActivationMode.ActiveAtStageStart)
                     .WithSpeedCurve(
                         new Keyframe(0f, 0f),
                         new Keyframe(0.30f, 0.18f),

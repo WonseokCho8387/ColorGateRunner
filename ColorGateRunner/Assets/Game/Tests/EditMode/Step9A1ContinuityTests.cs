@@ -27,7 +27,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_PreservesSequenceCursor()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan first = session.GetGatePlan(0);
             session.GetGatePlan(1);
             session.GetGatePlan(2);
@@ -42,7 +42,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_PreservesGateIndices()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan authored = session.GetGatePlan(4);
             EndBooster(session);
 
@@ -57,7 +57,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_OverridesColorWithoutChangingPlannedPosition()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan authored = session.GetGatePlan(0);
             EndBooster(session);
 
@@ -74,7 +74,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_FirstGateMatchesCurrentColor()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan authored = session.GetGatePlan(0);
             EndBooster(session);
 
@@ -87,7 +87,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_SecondGateRequiresAtMostOneTap()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan authored = session.GetGatePlan(1);
             EndBooster(session);
 
@@ -101,7 +101,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void BoosterExit_ThirdGateReturnsToAuthoredSequence()
         {
-            StageSession session = CreatePlaying(5, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             GatePlan authored = session.GetGatePlan(2);
             EndBooster(session);
 
@@ -232,7 +232,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Continue_DoesNotRestoreShield()
         {
-            StageSession session = CreatePlaying(1, shield: true);
+            StageSession session = CreatePlaying(8, shield: true);
             GatePlan first = session.GetNextGatePlan();
             SetMismatchingColor(session, first.Color);
             Assert.That(session.ResolveGate(first.Color),
@@ -252,7 +252,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Continue_DoesNotRestartBooster()
         {
-            StageSession session = CreatePlaying(1, booster: true);
+            StageSession session = CreatePlaying(8, booster: true);
             EndBooster(session);
             session.Advance(StageSession.BoosterExitDuration, 0f);
             GatePlan plan = session.GetNextGatePlan();
@@ -292,7 +292,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void Simulation_ContinuityMetricsReportNoReset()
         {
             StageSimulationResult result = StageSimulationRunner.Run(
-                StageCatalog.GetByDisplayNumber(5),
+                StageCatalog.GetByDisplayNumber(8),
                 new StartItemSelection(false, true),
                 SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
                 new GameplaySimulationSettings(200, 98765u, true));

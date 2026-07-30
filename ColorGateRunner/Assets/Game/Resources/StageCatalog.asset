@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 3
+  catalogRevision: 4
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -54,8 +54,8 @@ MonoBehaviour:
     finalPressureGateCount: 4
     boosterDistance: 320
     boosterSpeed: 88
-    shieldAllowed: 1
-    boosterAllowed: 1
+    shieldAllowed: 0
+    boosterAllowed: 0
     seed: 10101
     activeColorsFromStart: 1
     firstGateIndicesByColor: 0000000000000000
@@ -117,8 +117,8 @@ MonoBehaviour:
     finalPressureGateCount: 5
     boosterDistance: 360
     boosterSpeed: 92
-    shieldAllowed: 1
-    boosterAllowed: 1
+    shieldAllowed: 0
+    boosterAllowed: 0
     seed: 20202
     activeColorsFromStart: 1
     firstGateIndicesByColor: 0000000000000000
@@ -180,8 +180,8 @@ MonoBehaviour:
     finalPressureGateCount: 6
     boosterDistance: 400
     boosterSpeed: 96
-    shieldAllowed: 1
-    boosterAllowed: 1
+    shieldAllowed: 0
+    boosterAllowed: 0
     seed: 30303
     activeColorsFromStart: 1
     firstGateIndicesByColor: 0000000000000000
@@ -243,8 +243,8 @@ MonoBehaviour:
     finalPressureGateCount: 6
     boosterDistance: 420
     boosterSpeed: 100
-    shieldAllowed: 1
-    boosterAllowed: 1
+    shieldAllowed: 0
+    boosterAllowed: 0
     seed: 40404
     activeColorsFromStart: 1
     firstGateIndicesByColor: 000000000000000008000000
@@ -306,8 +306,8 @@ MonoBehaviour:
     finalPressureGateCount: 8
     boosterDistance: 460
     boosterSpeed: 104
-    shieldAllowed: 1
-    boosterAllowed: 1
+    shieldAllowed: 0
+    boosterAllowed: 0
     seed: 50505
     activeColorsFromStart: 1
     firstGateIndicesByColor: 000000000000000000000000
@@ -413,7 +413,7 @@ MonoBehaviour:
   - stageId: stage-07
     displayNumber: 7
     title: BOOSTER TIMING
-    description: Receive a stage-local Booster after the opening.
+    description: Receive a stage-local Booster from the start.
     targetGateCount: 40
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -488,8 +488,8 @@ MonoBehaviour:
     camouflageRevealTransition: 0.18
     mechanicGrantEnabled: 1
     grantedMechanic: 2
-    grantActivationMode: 1
-    grantActivationProgress: 0.3
+    grantActivationMode: 0
+    grantActivationProgress: 0
     grantChargeCount: 1
   - stageId: stage-08
     displayNumber: 8

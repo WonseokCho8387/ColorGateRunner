@@ -139,9 +139,8 @@ namespace ColorGateRunner.Tests.EditMode
                 session.Advance(0.1f, plan.Spacing);
             }
 
-            float expected = session.Stage.StartingSpeed +
-                ((session.Stage.MaximumSpeed - session.Stage.StartingSpeed) *
-                session.Progress);
+            float expected =
+                session.Stage.GetBaseSpeed(session.Progress);
             Assert.That(session.CurrentSpeed, Is.GreaterThan(expected));
             session.Advance(StageSession.BoosterExitDuration, 0f);
             Assert.That(session.CurrentSpeed, Is.EqualTo(expected).Within(0.0001f));
@@ -326,8 +325,11 @@ namespace ColorGateRunner.Tests.EditMode
 
         private static StageSession CreatePlaying(StartItemSelection items)
         {
+            int stageNumber =
+                items.Shield || items.Booster ? 8 : 1;
             StageSession session =
-                new StageSession(StageCatalog.GetByDisplayNumber(1));
+                new StageSession(
+                    StageCatalog.GetByDisplayNumber(stageNumber));
             session.SelectItems(items);
             session.BeginCountdown();
             session.CompleteCountdown();

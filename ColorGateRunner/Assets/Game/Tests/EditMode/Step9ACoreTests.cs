@@ -94,7 +94,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void Continue_DoesNotRestoreConsumedShieldOrBooster()
         {
             StageSession session = CreatePlaying(
-                1,
+                8,
                 new StartItemSelection(true, true));
             session.Advance(1f, session.Stage.BoosterDistance + 1f);
             session.Advance(StageSession.BoosterExitDuration, 0f);
@@ -157,7 +157,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void PostBooster_FirstGateMatchesAndSecondNeedsAtMostOneTap()
         {
             StageSession session = CreatePlaying(
-                5,
+                8,
                 new StartItemSelection(false, true));
             session.Advance(1f, session.Stage.BoosterDistance + 1f);
 

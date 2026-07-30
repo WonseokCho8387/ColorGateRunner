@@ -945,7 +945,7 @@ Comments
 ### Iteration 4 final automated evidence
 
 - EditMode: 248 executed, 248 passed.
-- PlayMode: 125 executed, 125 passed.
+- PlayMode: 126 executed, 126 passed.
 - Campaign-specific coverage includes catalog/adaptor validity, deterministic
   sampled curves, modifier placement, local Shield/Booster grants, Ice speed
   and spacing order, Echo acquire/consume/restart, catalog-bound buttons,
@@ -965,3 +965,61 @@ Comments
   - Shortlist `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
 - Automated results do not establish fun, comfort, comprehension, fairness,
   satisfaction, or finale quality.
+
+### Stage progression stable-ID regression
+
+- `LobbyPlay_UsesStableIdOfDisplayedProgressionStage` requires the session
+  started from a Stage 2 lobby to be Stage 2, then repeats the assertion for
+  Stage 3.
+- This protects catalog-driven display-number selection from diverging from
+  the stable ID used by the Play action.
+
+## Iteration 5 provided-item and high-speed progression acceptance
+
+### EditMode
+
+- `StagesOneThroughFive_RejectAllStartItems` requires catalog and session
+  rejection of Shield, Booster, and Both for Stages 1-5.
+- `BoosterStage_ProvidesLocalChargeAtStageStart` requires Stage 7 to activate
+  its provided Booster immediately after countdown and reject a duplicate
+  Booster selection.
+- Catalog architecture tests require the serialized resource asset and its
+  generated defaults to expose the same item availability.
+
+### PlayMode
+
+- `StagesOneThroughFive_ShowLockedItemsAndRejectToggles` requires disabled
+  controls, `LOCKED` labels, and unchanged selection state.
+- `StageSeven_StartBoosterCrossesEveryGateAndReachesGoal` requires
+  `BOOSTER: PROVIDED`, Booster speed at `GO`, deterministic plane-crossing
+  fallback through the existing one-shot gate path, all 40 judgments, Goal,
+  and StageCleared.
+- Existing Booster, Shield, Continue, Retry, UI, fixed-pool, scene-reference,
+  and builder tests remain required. Legacy selectable-item tests run on an
+  item-enabled campaign stage.
+
+### Simulation and regression
+
+- Run Stages 6-11 across Perfect, Expert, Average, Novice, and Stress with all
+  four item inputs. Perfect runs once; every stochastic condition runs 1,000
+  seeded attempts.
+- Require zero Booster/Continue displacement, gate-index gap/duplicate,
+  cursor-reset, and full-pool-reset counters.
+- Stages 6 and 8-11 must stay row-identical to the immediately preceding
+  baseline. Stage 7 differences are accepted only as effects of the approved
+  start-Booster timing.
+- Rerun Step 10 and require all five report hashes to remain exact.
+
+### Final evidence
+
+- EditMode: 249/249.
+- PlayMode: 128/128.
+- Stage 6-11: 120 rows, 96,024 modeled runs, zero continuity violations, and
+  all 24 Perfect/item rows cleared.
+- Stage 7 Average/None: first-clear `47.6% -> 47.0%`, Continue-clear
+  `84.8% -> 95.1%`, median clear time `33.203s -> 31.356s`, average Booster
+  bypasses `9.780 -> 15.774`.
+- Step 10 CSV, JSON, summary, comparison, and shortlist hashes match the
+  Iteration 4 baseline exactly.
+- Automated evidence does not establish fun, comfort, comprehension,
+  fairness, or satisfaction.

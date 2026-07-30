@@ -643,9 +643,9 @@ Status: Approved implementation contract.
 - Stage base speed is
   `Lerp(StartSpeed, MaxSpeed, Curve(progress))`. Booster and Ice apply after
   base speed, and Booster is not capped by `MaxSpeed`.
-- Stage 6 grants one stage-local Shield at start. Stage 7 auto-activates one
-  stage-local Booster at 30% progress. Retry restores the stage-local grant;
-  Continue follows the existing no-item-restoration rule.
+- Stage 6 grants one stage-local Shield at start. The former Stage 7
+  30%-progress Booster activation is superseded by the human-feedback
+  decision below.
 - Campaign expands sequentially through Stage 11 using stable IDs and
   data-bound UI. Existing Stage 1–5 and Step 10 outputs are regression
   baselines, not values to be silently updated.
@@ -665,3 +665,20 @@ Status: Implemented and validated.
 - Clone types, Source relationships, gap insertion, Clone failure, and Clone
   presentation are absent from active code. Historical Clone text remains
   only as a superseded decision record.
+
+## Iteration 5 provided-item timing and high-speed progression
+
+Status: Approved human-feedback correction.
+
+- `PROVIDED` means the item becomes active immediately after the same
+  countdown boundary as a player-selected item.
+- Stage 6 keeps one provided Shield at start. Stage 7 now provides one
+  Booster at start; the former 30% activation contract is superseded.
+- Stages 1-5 reject Shield and Booster selection in both catalog data and the
+  PreRun UI. Stage 6-11 retain their existing allowed-item values, with
+  duplicate selection blocked for a provided item.
+- Gate judgment remains one-shot through `StageGateView.TryResolveCrossing`.
+  Player movement crossing an unresolved gate plane is a deterministic
+  fallback for a missed physics Trigger and reuses that same judgment path.
+- The fixed six-gate pool, authored gate sequence, Booster speed/distance,
+  stage curves, and Goal contract are unchanged.

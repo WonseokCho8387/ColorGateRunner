@@ -16,7 +16,8 @@ stage by matching every gate before crossing the Goal.
 
 1. Lobby shows the lowest unlocked uncleared stage and current visual tier.
 2. Play opens PreRun Item Selection for that single current stage.
-3. Shield and Booster are independent free toggles.
+3. Shield and Booster are independent free toggles only when the selected
+   stage allows them. Stages 1-5 keep both items locked.
 4. Start enters one `3, 2, 1, GO` countdown.
 5. Items activate after `GO`, then the runner moves automatically.
 6. Taps cycle through the colors currently allowed by the stage.
@@ -301,9 +302,11 @@ relationship, `0.45s` insertion gap, or `CLONE MISS`.
   while Echo is held or another offer is active.
 - Camouflage reveal is based on deterministic ETA rather than gate count. A
   reveal never reverses, and visibility never exempts judgment.
-- Stage 6 grants one stage-local Shield at start. Stage 7 grants one
-  stage-local Booster at 30% progress. These grants do not consume or persist
-  inventory state.
+- Stages 1-5 do not allow start-item selection. Stage 6 grants one stage-local
+  Shield at start. Stage 7 grants one stage-local Booster at start. A provided
+  item uses the same post-countdown activation timing as the equivalent
+  player-selected item, cannot be selected twice, and does not consume or
+  persist inventory state.
 - Stages 8–11 focus respectively on Camouflage, Fog, Ice, and Echo. Existing
   flow, Continue, Retry, Goal, and stable stage IDs remain authoritative.
 - Stage 6–11 color count, speed, curve, cadence, and mechanic density are
@@ -338,7 +341,7 @@ Booster replaces base movement speed. Ice multiplies non-Booster movement by
 | 4 | 3 | Linear `32 -> 48` | Green introduction |
 | 5 | 3 | Linear `36 -> 54` | Three-color challenge |
 | 6 | 2 | `38 -> 56`; `(0,.0) (.35,.22) (.70,.62) (1,1)` | Local Shield at start |
-| 7 | 2 | `40 -> 58`; `(0,.0) (.30,.18) (.65,.55) (1,1)` | Local Booster at 30% |
+| 7 | 2 | `40 -> 58`; `(0,.0) (.30,.18) (.65,.55) (1,1)` | Local Booster at start |
 | 8 | 2 | `40 -> 60`; `(0,.0) (.40,.25) (.75,.70) (1,1)` | Camouflage |
 | 9 | 2 | Linear `42 -> 62` | Fog |
 | 10 | 2 | `44 -> 64`; `(0,.0) (.50,.35) (.80,.75) (1,1)` | Ice |

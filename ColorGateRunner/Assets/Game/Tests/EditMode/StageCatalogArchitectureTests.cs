@@ -28,6 +28,12 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(
                     catalog.GetByIndex(index).SpeedProfile.SampleCount,
                     Is.EqualTo(2));
+                Assert.That(
+                    catalog.GetByIndex(index).ShieldAllowed,
+                    Is.False);
+                Assert.That(
+                    catalog.GetByIndex(index).BoosterAllowed,
+                    Is.False);
             }
             Assert.That(
                 catalog.GetByDisplayNumber(6).PrimaryMechanic,

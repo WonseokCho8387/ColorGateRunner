@@ -344,3 +344,68 @@ Validation
   `Artifacts/Simulation/MechanicCampaign-*`.
 - Human feedback remains the gate for Echo comprehension, reveal timing,
   speed feel, difficulty, and finale quality.
+
+## Iteration 4 stage-progression hotfix
+
+Human finding
+
+- After Stage 1 clear, the lobby displayed Stage 2 but Play could start Stage
+  1 again. The saved state correctly contained Stage 1 clear and
+  `HighestUnlocked = 2`; the failure was after persistence.
+
+Cause and correction
+
+- Catalog-driven selection changed `_selectedStageNumber` in `ShowLobby()`
+  without changing `_selectedStageId`.
+- `PlayFromLobby()` correctly used stable IDs, but therefore used the stale
+  Stage 1 ID. `ShowLobby()` now synchronizes both values from the same
+  `StageDefinition`.
+
+Validation
+
+- EditMode 248/248; PlayMode 126/126.
+- A PlayMode regression verifies Stage 2 and Stage 3 lobby displays start the
+  corresponding sessions.
+- The change does not alter stage data, deterministic generation, balance,
+  packages, ProjectSettings, or saved-record format.
+
+## Iteration 5 provided-item timing and high-speed progression
+
+Human findings
+
+- Stage 7 displayed `BOOSTER: PROVIDED` but activated the grant only after
+  30% progress, unlike a selected Booster or the provided Stage 6 Shield.
+- Around the same transition, Booster speed could carry the kinematic player
+  completely past the gate Trigger between physics updates. The unresolved
+  gate then blocked pool progression and left an endless empty track.
+- Allowing item selection before the first item-teaching stage confused the
+  campaign introduction.
+
+Implemented
+
+- Stage 7 now activates its provided Booster at `GO`.
+- Stages 1-5 reject both item selections in catalog data and show `LOCKED` in
+  the existing PreRun controls.
+- Movement checks the current unresolved gate plane after advancing and calls
+  the same one-shot `TryResolveCrossing()` used by the physics Trigger.
+- Legacy item behavior tests now run on Stage 8, the first ordinary campaign
+  stage after both provided-item teaching stages, instead of bypassing the new
+  Stage 1-5 lock contract.
+
+Validation and learning
+
+- EditMode 249/249; PlayMode 128/128.
+- Stage 7 starts at Booster speed `110`, resolves all 40 gates, and reaches
+  Goal without growing the fixed six-gate pool.
+- Stage 6-11 validation covers 120 matrix rows and 96,024 modeled runs.
+  Stages 6 and 8-11 are row-identical to the prior baseline; only Stage 7 has
+  the 20 intended contract changes.
+- Stage 7 Average/None first-clear remains nearly flat
+  (`47.6% -> 47.0%`) while Continue-clear rises
+  (`84.8% -> 95.1%`). Earlier protection also shortens median clear time
+  (`33.203s -> 31.356s`) and increases average Booster bypasses
+  (`9.780 -> 15.774`).
+- All Stage 6-11 Perfect rows clear and all continuity/pool violation counters
+  remain zero. A fresh Step 10 matrix reproduced all five baseline hashes.
+- Human play still owns the decision on comprehension, speed feel, comfort,
+  difficulty, and fun.

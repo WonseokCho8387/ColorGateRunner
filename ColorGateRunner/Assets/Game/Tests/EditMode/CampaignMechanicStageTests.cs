@@ -43,26 +43,40 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void BoosterStage_ActivatesLocalGrantAtConfiguredProgress()
+        public void BoosterStage_ProvidesLocalChargeAtStageStart()
         {
             StageSession session = CreatePlaying(7, default);
-            Assert.That(session.BoosterActive, Is.False);
-
-            while (session.Progress <
-                session.Stage.MechanicGrantSettings.ActivationProgress)
-            {
-                GatePlan plan = session.GetNextGatePlan();
-                MatchCurrentColor(session, plan.Color);
-                Assert.That(
-                    session.ResolveGate(plan),
-                    Is.EqualTo(GateOutcome.Matched));
-            }
 
             Assert.That(session.MechanicGrantActivated, Is.True);
             Assert.That(session.BoosterActive, Is.True);
             Assert.That(
+                session.Stage.MechanicGrantSettings.ActivationMode,
+                Is.EqualTo(
+                    StageMechanicActivationMode.ActiveAtStageStart));
+            Assert.That(session.Items.Booster, Is.False);
+            Assert.That(
                 session.BoosterDistanceRemaining,
                 Is.EqualTo(session.Stage.BoosterDistance));
+        }
+
+        [Test]
+        public void StagesOneThroughFive_RejectAllStartItems()
+        {
+            for (int stageNumber = 1; stageNumber <= 5; stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+                Assert.That(stage.ShieldAllowed, Is.False);
+                Assert.That(stage.BoosterAllowed, Is.False);
+
+                StageSession session = CreatePlaying(
+                    stageNumber,
+                    new StartItemSelection(true, true));
+                Assert.That(session.Items.Shield, Is.False);
+                Assert.That(session.Items.Booster, Is.False);
+                Assert.That(session.ShieldActive, Is.False);
+                Assert.That(session.BoosterActive, Is.False);
+            }
         }
 
         [Test]

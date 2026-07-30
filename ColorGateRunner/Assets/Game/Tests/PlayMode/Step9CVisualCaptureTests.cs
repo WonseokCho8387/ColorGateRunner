@@ -54,7 +54,7 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return Capture("04-Gameplay-ThreeColor.png");
 
             yield return LoadCleanScene();
-            _controller.PlayFromLobby();
+            SelectItemEnabledStage();
             _controller.ToggleShieldSelection();
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
@@ -395,10 +395,17 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void StartWithBooster()
         {
-            _controller.PlayFromLobby();
+            SelectItemEnabledStage();
             _controller.ToggleBoosterSelection();
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
+        }
+
+        private void SelectItemEnabledStage()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(8);
         }
 
         private void FailCurrentGate()

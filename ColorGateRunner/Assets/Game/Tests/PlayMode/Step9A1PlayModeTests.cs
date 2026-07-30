@@ -307,7 +307,20 @@ namespace ColorGateRunner.Tests.PlayMode
             bool shield = false,
             bool booster = false)
         {
-            _controller.PlayFromLobby();
+            if (shield || booster)
+            {
+                InMemoryStageProgressStore store =
+                    new InMemoryStageProgressStore
+                    {
+                        HighestUnlocked = 8
+                    };
+                _controller.SetProgressStoreForTests(store);
+                _controller.SelectStage(8);
+            }
+            else
+            {
+                _controller.PlayFromLobby();
+            }
             if (shield)
             {
                 _controller.ToggleShieldSelection();
@@ -324,10 +337,11 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void EndBooster()
         {
-            float duration =
-                (_controller.Session.Stage.BoosterDistance /
-                _controller.Session.Stage.BoosterSpeed) + 0.01f;
-            _controller.Tick(duration);
+            _controller.Session.Advance(
+                0f,
+                _controller.Session.Stage.BoosterDistance - 1f);
+            _controller.Tick(
+                1.01f / _controller.Session.Stage.BoosterSpeed);
             Assert.That(_controller.Session.BoosterActive, Is.False);
             Assert.That(_controller.BoosterExitOverridesApplied, Is.True);
         }
@@ -409,11 +423,14 @@ namespace ColorGateRunner.Tests.PlayMode
             private readonly StageRecord[] _records =
                 new StageRecord[StageCatalog.Count];
 
-            public int LoadHighestUnlocked() => 1;
+            public int HighestUnlocked { get; set; } = 1;
+
+            public int LoadHighestUnlocked() => HighestUnlocked;
             public StageRecord LoadRecord(int stageNumber) =>
                 _records[stageNumber - 1];
             public void SaveHighestUnlocked(int stageNumber)
             {
+                HighestUnlocked = stageNumber;
             }
             public void SaveRecord(int stageNumber, StageRecord record) =>
                 _records[stageNumber - 1] = record;
@@ -421,6 +438,7 @@ namespace ColorGateRunner.Tests.PlayMode
             public void ClearGameplayProgress()
             {
                 System.Array.Clear(_records, 0, _records.Length);
+                HighestUnlocked = 1;
             }
         }
     }

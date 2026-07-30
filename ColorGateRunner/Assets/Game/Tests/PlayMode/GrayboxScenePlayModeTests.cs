@@ -42,6 +42,35 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void StagesOneThroughFive_ShowLockedItemsAndRejectToggles()
+        {
+            _store.HighestUnlocked = 5;
+            _controller.SetProgressStoreForTests(_store);
+
+            for (int stageNumber = 1; stageNumber <= 5; stageNumber++)
+            {
+                _controller.SelectStage(stageNumber);
+                Assert.That(
+                    _controller.ShieldToggleButton.interactable,
+                    Is.False);
+                Assert.That(
+                    _controller.BoosterToggleButton.interactable,
+                    Is.False);
+                Assert.That(
+                    _controller.ShieldToggleText.text,
+                    Is.EqualTo("SHIELD: LOCKED"));
+                Assert.That(
+                    _controller.BoosterToggleText.text,
+                    Is.EqualTo("BOOSTER: LOCKED"));
+
+                _controller.ToggleShieldSelection();
+                _controller.ToggleBoosterSelection();
+                Assert.That(_controller.ShieldSelected, Is.False);
+                Assert.That(_controller.BoosterSelected, Is.False);
+            }
+        }
+
+        [Test]
         public void DebugStagePicker_RemainsHidden()
         {
             Assert.That(_controller.StageSelectPanel.activeSelf, Is.False);
@@ -586,10 +615,15 @@ namespace ColorGateRunner.Tests.PlayMode
         public void PostBooster_FirstGateMatchesCurrentColor()
         {
             StartPlaying(false, true);
+            _controller.Session.Advance(
+                0f,
+                _controller.Session.Stage.BoosterDistance - 1f);
             _controller.Tick(
-                (_controller.Session.Stage.BoosterDistance /
-                _controller.Session.Stage.BoosterSpeed) + 0.1f);
-            Assert.That(_controller.GetGate(0).AssignedColor,
+                1.01f / _controller.Session.Stage.BoosterSpeed);
+            StageGateView first = FindGateByPlanIndex(
+                _controller.Session.GatesPassed);
+            Assert.That(first, Is.Not.Null);
+            Assert.That(first.AssignedColor,
                 Is.EqualTo(_controller.Session.CurrentColor));
         }
 
@@ -826,6 +860,32 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.LobbyStageText.text, Does.Contain("STAGE 2"));
         }
 
+        [Test]
+        public void LobbyPlay_UsesStableIdOfDisplayedProgressionStage()
+        {
+            _store.HighestUnlocked = 2;
+            _store.Records[0] =
+                new StageRecord(true, 30f, 32f, 1);
+            _controller.SetProgressStoreForTests(_store);
+
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(2));
+            _controller.PlayFromLobby();
+            Assert.That(
+                _controller.Session.Stage.DisplayNumber,
+                Is.EqualTo(2));
+
+            _store.HighestUnlocked = 3;
+            _store.Records[1] =
+                new StageRecord(true, 31f, 33f, 1);
+            _controller.SetProgressStoreForTests(_store);
+
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(3));
+            _controller.PlayFromLobby();
+            Assert.That(
+                _controller.Session.Stage.DisplayNumber,
+                Is.EqualTo(3));
+        }
+
         [TestCase(2, 1)]
         [TestCase(4, 2)]
         [TestCase(5, 3)]
@@ -910,9 +970,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 bool stageBooster =
                     _controller.Session.StageProvidesBooster;
                 Assert.That(_controller.Session.Items.Shield,
-                    Is.EqualTo((mask & 1) != 0 && !stageShield));
+                    Is.EqualTo(
+                        (mask & 1) != 0 &&
+                        _controller.Session.Stage.ShieldAllowed &&
+                        !stageShield));
                 Assert.That(_controller.Session.Items.Booster,
-                    Is.EqualTo((mask & 2) != 0 && !stageBooster));
+                    Is.EqualTo(
+                        (mask & 2) != 0 &&
+                        _controller.Session.Stage.BoosterAllowed &&
+                        !stageBooster));
                 Assert.That(_controller.Session.FlowState,
                     Is.EqualTo(StageFlowState.Countdown));
 
@@ -920,13 +986,75 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(_controller.Session.FlowState,
                     Is.EqualTo(StageFlowState.Playing));
                 Assert.That(_controller.Session.ShieldActive,
-                    Is.EqualTo((mask & 1) != 0 || stageShield));
+                    Is.EqualTo(
+                        ((mask & 1) != 0 &&
+                         _controller.Session.Stage.ShieldAllowed) ||
+                        stageShield));
                 Assert.That(_controller.Session.BoosterActive,
-                    Is.EqualTo((mask & 2) != 0 && !stageBooster));
+                    Is.EqualTo(
+                        ((mask & 2) != 0 &&
+                         _controller.Session.Stage.BoosterAllowed &&
+                         !stageBooster) ||
+                        stageBooster));
                 Assert.That(_controller.ShieldVisual.activeSelf,
-                    Is.EqualTo((mask & 1) != 0 || stageShield));
+                    Is.EqualTo(
+                        ((mask & 1) != 0 &&
+                         _controller.Session.Stage.ShieldAllowed) ||
+                        stageShield));
                 Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
             }
+        }
+
+        [Test]
+        public void StageSeven_StartBoosterCrossesEveryGateAndReachesGoal()
+        {
+            _store.HighestUnlocked = 7;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(7);
+
+            Assert.That(
+                _controller.BoosterToggleText.text,
+                Is.EqualTo("BOOSTER: PROVIDED"));
+            Assert.That(
+                _controller.BoosterToggleButton.interactable,
+                Is.False);
+
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+            Assert.That(
+                _controller.Session.CurrentSpeed,
+                Is.EqualTo(_controller.Session.Stage.BoosterSpeed));
+
+            while (_controller.Session.GatesPassed <
+                _controller.Session.Stage.TargetGateCount)
+            {
+                StageGateView gate = FindGateByPlanIndex(
+                    _controller.Session.GatesPassed);
+                Assert.That(gate, Is.Not.Null);
+                Match(gate.AssignedColor);
+                float distanceToPastGate =
+                    gate.transform.position.z -
+                    _controller.PlayerTransform.position.z + 1f;
+                float deltaTime = distanceToPastGate /
+                    _controller.Session.GetSpeedForPlan(gate.ActivePlan);
+                _controller.Tick(deltaTime);
+            }
+
+            Assert.That(
+                _controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.StageFinishing));
+            Assert.That(_controller.Goal.activeSelf, Is.True);
+
+            float distanceToPastGoal =
+                _controller.Goal.transform.position.z -
+                _controller.PlayerTransform.position.z + 1f;
+            _controller.TickMovement(
+                distanceToPastGoal / _controller.Session.CurrentSpeed);
+
+            Assert.That(
+                _controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.StageCleared));
         }
 
         [Test]
@@ -1074,7 +1202,16 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void SelectItemsAndStart(bool shield, bool booster)
         {
-            _controller.PlayFromLobby();
+            if (shield || booster)
+            {
+                _store.HighestUnlocked = 8;
+                _controller.SetProgressStoreForTests(_store);
+                _controller.SelectStage(8);
+            }
+            else
+            {
+                _controller.PlayFromLobby();
+            }
             if (shield)
             {
                 _controller.ToggleShieldSelection();

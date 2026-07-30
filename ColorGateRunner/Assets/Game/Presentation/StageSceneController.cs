@@ -178,6 +178,10 @@ namespace ColorGateRunner.Presentation
         internal Text ProgressText => progressText;
         internal Text ClearDetailsText => clearDetailsText;
         internal Text FailDetailsText => failDetailsText;
+        internal Button ShieldToggleButton => shieldToggleButton;
+        internal Text ShieldToggleText => shieldToggleText;
+        internal Button BoosterToggleButton => boosterToggleButton;
+        internal Text BoosterToggleText => boosterToggleText;
         internal Button ContinueButton => continueButton;
         internal Button RetryButton => retryButton;
         internal Button ReplayButton => replayButton;
@@ -378,6 +382,11 @@ namespace ColorGateRunner.Presentation
             }
 
             player.position += Vector3.forward * distance;
+            ResolveCrossedGatePlanes();
+            if (_session.FlowState == StageFlowState.Failed)
+            {
+                return;
+            }
             trackPool.Tick(player.position.z);
             trackPool.SetSurfaceMaterial(
                 upcoming != null && upcoming.ActivePlan.Modifier.IsIce
@@ -475,7 +484,8 @@ namespace ColorGateRunner.Presentation
         {
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
-                _session.StageProvidesShield)
+                _session.StageProvidesShield ||
+                !_session.Stage.ShieldAllowed)
             {
                 return;
             }
@@ -487,7 +497,8 @@ namespace ColorGateRunner.Presentation
         {
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
-                _session.StageProvidesBooster)
+                _session.StageProvidesBooster ||
+                !_session.Stage.BoosterAllowed)
             {
                 return;
             }
@@ -631,6 +642,7 @@ namespace ColorGateRunner.Presentation
             ApplyLobbyTier();
             StageDefinition stage =
                 StageCatalog.GetByDisplayNumber(_selectedStageNumber);
+            _selectedStageId = stage.StageId;
             lobbyStageText.text = $"STAGE {_selectedStageNumber}";
             lobbyStageTitleText.text = stage.Title;
             lobbyStageDescriptionText.text = stage.Description;
@@ -1729,19 +1741,25 @@ namespace ColorGateRunner.Presentation
         private void SynchronizeItemSelection()
         {
             shieldToggleButton.interactable =
+                _session.Stage.ShieldAllowed &&
                 !_session.StageProvidesShield;
             boosterToggleButton.interactable =
+                _session.Stage.BoosterAllowed &&
                 !_session.StageProvidesBooster;
-            shieldToggleText.text = _session.StageProvidesShield
-                ? "SHIELD: PROVIDED"
-                : _shieldSelected
-                    ? "SHIELD: ON"
-                    : "SHIELD: OFF";
-            boosterToggleText.text = _session.StageProvidesBooster
-                ? "BOOSTER: PROVIDED"
-                : _boosterSelected
-                    ? "BOOSTER: ON"
-                    : "BOOSTER: OFF";
+            shieldToggleText.text = !_session.Stage.ShieldAllowed
+                ? "SHIELD: LOCKED"
+                : _session.StageProvidesShield
+                    ? "SHIELD: PROVIDED"
+                    : _shieldSelected
+                        ? "SHIELD: ON"
+                        : "SHIELD: OFF";
+            boosterToggleText.text = !_session.Stage.BoosterAllowed
+                ? "BOOSTER: LOCKED"
+                : _session.StageProvidesBooster
+                    ? "BOOSTER: PROVIDED"
+                    : _boosterSelected
+                        ? "BOOSTER: ON"
+                        : "BOOSTER: OFF";
         }
 
         private void RefreshStageButtons()
@@ -1853,6 +1871,33 @@ namespace ColorGateRunner.Presentation
                 }
             }
             return null;
+        }
+
+        private void ResolveCrossedGatePlanes()
+        {
+            if (_session == null ||
+                (_session.FlowState != StageFlowState.Playing &&
+                 _session.FlowState != StageFlowState.ShieldRecovery))
+            {
+                return;
+            }
+
+            int maximumResolutions = gates.Length;
+            for (int index = 0; index < maximumResolutions; index++)
+            {
+                StageGateView gate = FindActiveGate(_session.GatesPassed);
+                if (gate == null ||
+                    gate.transform.position.z > player.position.z ||
+                    !gate.TryResolveCrossing())
+                {
+                    return;
+                }
+                if (_session.FlowState == StageFlowState.Failed ||
+                    _session.FlowState == StageFlowState.StageFinishing)
+                {
+                    return;
+                }
+            }
         }
 
         private void PrepareCleanContinueRespawn()

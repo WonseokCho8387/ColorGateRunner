@@ -2,13 +2,13 @@
 
 Version
 
-Iteration 4
+Iteration 5
 
-(Echo Modifier / Configurable Campaign Expansion complete)
+(Provided-item timing / high-speed progression correction complete)
 
 ---
 
-Authoritative Iteration 4 Result
+Authoritative Iteration 5 Result
 
 - `StageCatalog.asset` is the single production source for all 11 campaign
   stages. Runtime, simulation, and tests consume its pure-Core adapter through
@@ -17,8 +17,14 @@ Authoritative Iteration 4 Result
   does not add gates, positions, collision paths, or a second generator.
 - Camouflage reveal uses effective-speed ETA, transitions once, never hides
   again, and always keeps ordinary judgment active.
+- Stages 1-5 lock both start items in catalog data and the PreRun UI.
 - Stage 6 provides one local Shield at start; Stage 7 provides one local
-  Booster at 30% progress. The item picker prevents duplicate selection.
+  Booster at start. Both activate after the same countdown boundary as an
+  equivalent selected item, and the picker prevents duplicate selection.
+- Player movement crossing an unresolved gate plane reuses the existing
+  one-shot `TryResolveCrossing()` path. This prevents high-speed Booster
+  movement from tunneling past the thin physics Trigger without adding a
+  second judgment system or increasing the six-gate pool.
 - Stages 8, 9, 10, and 11 teach Camouflage, Fog, Ice, and Echo respectively.
   Stages 6-10 use two active colors to isolate the new mechanic; Stage 11
   returns to three colors for the finale.
@@ -29,21 +35,46 @@ Authoritative Iteration 4 Result
 
 Final Validation
 
-- EditMode: 248 / 248 passed.
-- PlayMode: 125 / 125 passed.
-- Stage 1-5 final simulation CSV rows exactly match the immediately preceding
-  Echo-expansion baseline.
-- All five Step 10 files are byte-identical to their baseline.
-- The final 1,000-run matrix covers every Stage 1-11, player profile, and
-  start-item combination in new Mechanic Campaign artifacts.
+- EditMode: 249 / 249 passed.
+- PlayMode: 128 / 128 passed.
+- Stage 7 PlayMode starts Booster at `GO`, crosses all 40 planned gates at
+  runtime speed, retains the fixed pool, and reaches Goal/StageCleared.
+- The requested Stage 6-11 simulation subset contains 120 rows and 96,024
+  modeled runs: six stages, five profiles, four item inputs, Perfect once and
+  every stochastic condition 1,000 times.
+- Stages 6 and 8-11 have zero changed rows versus the preceding campaign
+  baseline. All 20 Stage 7 rows change only under the approved start-Booster
+  contract.
+- Stage 7 Average/None changes mechanically from first-clear
+  `47.6% -> 47.0%`, Continue-clear `84.8% -> 95.1%`, median clear time
+  `33.203s -> 31.356s`, and average Booster bypasses `9.780 -> 15.774`.
+  These are not claims about fun or comfort.
+- All 24 Stage 6-11 Perfect/item rows clear, and all 120 rows report zero
+  Booster/Continue displacement, gate-index gap/duplicate, cursor reset, and
+  full-pool reset violations.
+- A fresh Step 10 run reproduced all five baseline hashes exactly.
+- The full refreshed Stage 1-11 matrix is stored in the existing Mechanic
+  Campaign artifacts.
 - Core keeps `noEngineReferences: true`; no package or ProjectSettings feature
   change was introduced.
 
+Stage Progression Hotfix
+
+- Fixed a stale stable-ID reference in `ShowLobby()`. The lobby previously
+  displayed the newly unlocked stage number but `PlayFromLobby()` could still
+  start the prior stage ID.
+- The displayed `StageDefinition.StageId` is now synchronized whenever lobby
+  progression selects a stage.
+- PlayMode explicitly verifies displayed Stage 2 starts Stage 2 and displayed
+  Stage 3 starts Stage 3.
+
 Next Iteration
 
-Human mobile play only: evaluate Echo frequency/comprehension, Echo versus
-Shield readability, Camouflage lead time, Stage 6-11 pacing, curve feel, Ice
-comfort, and Stage 11 finale quality before approving another balance pass.
+Human mobile play only: verify Stage 7 Booster is visibly active from `GO`,
+the first Booster gate cannot be skipped, the provided/selected timing feels
+consistent, and the Stage 1-5 `LOCKED` labels are understood. Continue the
+existing Echo, Camouflage, Stage 6-11 pacing, Ice comfort, and finale review
+before another balance pass.
 
 ---
 
