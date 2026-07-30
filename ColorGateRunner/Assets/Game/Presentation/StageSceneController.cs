@@ -1,6 +1,7 @@
 using System;
 using ColorGateRunner.Core;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
@@ -26,6 +27,7 @@ namespace ColorGateRunner.Presentation
         private static readonly float[] ColorStackPositions =
             { -34f, -91f, -137f, -176f, -211f, -243f };
 
+        [SerializeField] private StageCatalogAsset stageCatalogAsset;
         [SerializeField] private Transform player;
         [SerializeField] private Renderer playerRenderer;
         [SerializeField] private Rigidbody playerBody;
@@ -42,6 +44,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
+        [SerializeField] private GameObject echoShellVisual;
+        [SerializeField] private Renderer[] echoShellRenderers;
         [SerializeField] private ParticleSystem successParticles;
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private TrailRenderer playerTrail;
@@ -112,6 +116,7 @@ namespace ColorGateRunner.Presentation
         private DevelopmentTelemetry _telemetry;
         private int _highestUnlocked;
         private int _selectedStageNumber = 1;
+        private string _selectedStageId;
         private int _lobbyTier;
         private bool _shieldSelected;
         private bool _boosterSelected;
@@ -142,6 +147,7 @@ namespace ColorGateRunner.Presentation
         private float _colorStackTransitionRemaining;
         private Vector2[] _colorStackStartPositions;
         private Vector3[] _colorStackStartScales;
+        private UnityAction[] _stageButtonListeners;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -159,6 +165,7 @@ namespace ColorGateRunner.Presentation
         internal GameObject Goal => goal;
         internal Button ExperimentLabButton => experimentLabButton;
         internal GameObject ShieldVisual => shieldVisual;
+        internal GameObject EchoShellVisual => echoShellVisual;
         internal GameObject BoosterWarning => boosterWarning;
         internal GameObject BoosterMeterRoot => boosterMeterRoot;
         internal Image BoosterMeterFill => boosterMeterFill;
@@ -250,11 +257,21 @@ namespace ColorGateRunner.Presentation
 
         private void Awake()
         {
+            if (stageCatalogAsset != null)
+            {
+                StageCatalogProvider.Configure(stageCatalogAsset);
+            }
+            else
+            {
+                StageCatalogProvider.EnsureConfigured();
+            }
             ValidateRequiredReferences();
             _progressStore = new PlayerPrefsStageProgressStore();
             _haptics = new UnityHapticFeedback();
             _telemetry = new DevelopmentTelemetry(developmentTelemetryEnabled);
             _highestUnlocked = _progressStore.LoadHighestUnlocked();
+            _selectedStageId =
+                StageCatalog.GetByDisplayNumber(_selectedStageNumber).StageId;
             _playerStartPosition = player.position;
             _cameraStartPosition = gameplayCamera.transform.position;
             _cameraStartRotation = gameplayCamera.transform.rotation;
@@ -345,7 +362,12 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
-            float distance = _session.CurrentSpeed * deltaTime;
+            StageGateView upcoming =
+                FindActiveGate(_session.GatesPassed);
+            float effectiveSpeed = upcoming == null
+                ? _session.CurrentSpeed
+                : _session.GetSpeedForPlan(upcoming.ActivePlan);
+            float distance = effectiveSpeed * deltaTime;
             if (_session.FlowState != StageFlowState.StageFinishing)
             {
                 _session.Advance(deltaTime, distance);
@@ -357,7 +379,12 @@ namespace ColorGateRunner.Presentation
 
             player.position += Vector3.forward * distance;
             trackPool.Tick(player.position.z);
+            trackPool.SetSurfaceMaterial(
+                upcoming != null && upcoming.ActivePlan.Modifier.IsIce
+                    ? cyanMaterial
+                    : _normalTrackMaterial);
             RecycleResolvedGatesBehindPlayer();
+            UpdateCampaignGateVisibility(deltaTime);
             if (_session.FlowState == StageFlowState.StageFinishing &&
                 goal.activeSelf &&
                 player.position.z >= goal.transform.position.z)
@@ -395,20 +422,47 @@ namespace ColorGateRunner.Presentation
 
         internal void PlayFromLobby()
         {
-            SelectStage(_selectedStageNumber);
+            SelectStageById(_selectedStageId);
         }
 
         internal void SelectStage(int displayNumber)
         {
-            if (displayNumber < 1 ||
-                displayNumber > StageCatalog.Count ||
-                displayNumber > _highestUnlocked)
+            if (displayNumber < 1)
             {
                 return;
             }
+            StageDefinition definition;
+            try
+            {
+                definition =
+                    StageCatalog.GetByDisplayNumber(displayNumber);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return;
+            }
+            SelectStageById(definition.StageId);
+        }
+
+        internal void SelectStageById(string stageId)
+        {
+            StageDefinition definition;
+            try
+            {
+                definition = StageCatalog.GetById(stageId);
+            }
+            catch (ArgumentException)
+            {
+                return;
+            }
+            if (definition.DisplayNumber > _highestUnlocked)
+            {
+                return;
+            }
+            int displayNumber = definition.DisplayNumber;
             _selectedStageNumber = displayNumber;
-            _session = new StageSession(
-                StageCatalog.GetByDisplayNumber(displayNumber));
+            _selectedStageId = definition.StageId;
+            _session = new StageSession(definition);
             _shieldSelected = false;
             _boosterSelected = false;
             ApplyUiFlow(MobileUiFlow.PreRun);
@@ -420,7 +474,8 @@ namespace ColorGateRunner.Presentation
         internal void ToggleShieldSelection()
         {
             if (_session == null ||
-                _session.FlowState != StageFlowState.PreRunSelection)
+                _session.FlowState != StageFlowState.PreRunSelection ||
+                _session.StageProvidesShield)
             {
                 return;
             }
@@ -431,7 +486,8 @@ namespace ColorGateRunner.Presentation
         internal void ToggleBoosterSelection()
         {
             if (_session == null ||
-                _session.FlowState != StageFlowState.PreRunSelection)
+                _session.FlowState != StageFlowState.PreRunSelection ||
+                _session.StageProvidesBooster)
             {
                 return;
             }
@@ -477,9 +533,10 @@ namespace ColorGateRunner.Presentation
             }
             GatePlan plan = gate.ActivePlan;
             int gateIndex = gate.PlanIndex;
-            GateOutcome outcome = _session.ResolveGate(gate.AssignedColor);
+            GateOutcome outcome = _session.ResolveGate(plan);
             if (outcome == GateOutcome.Matched ||
-                outcome == GateOutcome.Invulnerable)
+                outcome == GateOutcome.Invulnerable ||
+                outcome == GateOutcome.Echoed)
             {
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
@@ -507,6 +564,7 @@ namespace ColorGateRunner.Presentation
                 plan,
                 outcome.ToString(),
                 0f);
+            UpdateCampaignGateVisibility();
             SynchronizeViews();
             return outcome;
         }
@@ -720,7 +778,8 @@ namespace ColorGateRunner.Presentation
 
         internal bool HasRequiredReferences()
         {
-            if (player == null || playerRenderer == null ||
+            if (stageCatalogAsset == null ||
+                player == null || playerRenderer == null ||
                 gameplayCamera == null || playerBody == null ||
                 redMaterial == null ||
                 blueMaterial == null || greenMaterial == null ||
@@ -730,6 +789,8 @@ namespace ColorGateRunner.Presentation
                 !tapSurface.HasRequiredReference() || trackPool == null ||
                 !trackPool.HasRequiredReferences() || gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
+                echoShellVisual == null || echoShellRenderers == null ||
+                echoShellRenderers.Length == 0 ||
                 successParticles == null || speedLines == null ||
                 playerTrail == null || uiFlowRoots == null ||
                 uiFlowRoots.Length != 7 || lobbyPanel == null ||
@@ -780,6 +841,7 @@ namespace ColorGateRunner.Presentation
         }
 
         internal void Configure(
+            StageCatalogAsset catalogAsset,
             Transform playerTransform,
             Renderer runnerRenderer,
             Rigidbody runnerBody,
@@ -796,6 +858,7 @@ namespace ColorGateRunner.Presentation
             StageGateView[] gatePool,
             GameObject goalObject,
             GameObject shieldObject,
+            GameObject echoShellObject,
             ParticleSystem success,
             ParticleSystem boosterLines,
             TrailRenderer trail,
@@ -853,6 +916,7 @@ namespace ColorGateRunner.Presentation
             Button retry,
             Button failLobby)
         {
+            stageCatalogAsset = catalogAsset;
             player = playerTransform;
             playerRenderer = runnerRenderer;
             playerBody = runnerBody;
@@ -869,6 +933,9 @@ namespace ColorGateRunner.Presentation
             gates = gatePool;
             goal = goalObject;
             shieldVisual = shieldObject;
+            echoShellVisual = echoShellObject;
+            echoShellRenderers =
+                echoShellObject.GetComponentsInChildren<Renderer>(true);
             successParticles = success;
             speedLines = boosterLines;
             playerTrail = trail;
@@ -934,11 +1001,14 @@ namespace ColorGateRunner.Presentation
             resetProgressButton.onClick.AddListener(RequestProgressReset);
             confirmResetProgressButton.onClick.AddListener(ConfirmProgressReset);
             cancelResetProgressButton.onClick.AddListener(CancelProgressReset);
-            stageButtons[0].onClick.AddListener(SelectStage1);
-            stageButtons[1].onClick.AddListener(SelectStage2);
-            stageButtons[2].onClick.AddListener(SelectStage3);
-            stageButtons[3].onClick.AddListener(SelectStage4);
-            stageButtons[4].onClick.AddListener(SelectStage5);
+            _stageButtonListeners = new UnityAction[stageButtons.Length];
+            for (int index = 0; index < stageButtons.Length; index++)
+            {
+                string stageId = StageCatalog.GetByIndex(index).StageId;
+                UnityAction listener = () => SelectStageById(stageId);
+                _stageButtonListeners[index] = listener;
+                stageButtons[index].onClick.AddListener(listener);
+            }
             developerUnlockAllButton.onClick.AddListener(UnlockAllForDevelopment);
             shieldToggleButton.onClick.AddListener(ToggleShieldSelection);
             boosterToggleButton.onClick.AddListener(ToggleBoosterSelection);
@@ -954,7 +1024,7 @@ namespace ColorGateRunner.Presentation
 
         private void RemoveListeners()
         {
-            if (stageButtons == null || stageButtons.Length != StageCatalog.Count)
+            if (stageButtons == null)
             {
                 return;
             }
@@ -963,11 +1033,17 @@ namespace ColorGateRunner.Presentation
             resetProgressButton.onClick.RemoveListener(RequestProgressReset);
             confirmResetProgressButton.onClick.RemoveListener(ConfirmProgressReset);
             cancelResetProgressButton.onClick.RemoveListener(CancelProgressReset);
-            stageButtons[0].onClick.RemoveListener(SelectStage1);
-            stageButtons[1].onClick.RemoveListener(SelectStage2);
-            stageButtons[2].onClick.RemoveListener(SelectStage3);
-            stageButtons[3].onClick.RemoveListener(SelectStage4);
-            stageButtons[4].onClick.RemoveListener(SelectStage5);
+            if (_stageButtonListeners != null)
+            {
+                int listenerCount = Mathf.Min(
+                    stageButtons.Length,
+                    _stageButtonListeners.Length);
+                for (int index = 0; index < listenerCount; index++)
+                {
+                    stageButtons[index].onClick.RemoveListener(
+                        _stageButtonListeners[index]);
+                }
+            }
             developerUnlockAllButton.onClick.RemoveListener(UnlockAllForDevelopment);
             shieldToggleButton.onClick.RemoveListener(ToggleShieldSelection);
             boosterToggleButton.onClick.RemoveListener(ToggleBoosterSelection);
@@ -992,12 +1068,6 @@ namespace ColorGateRunner.Presentation
             ShowLobby();
         }
 
-        private void SelectStage1() => SelectStage(1);
-        private void SelectStage2() => SelectStage(2);
-        private void SelectStage3() => SelectStage(3);
-        private void SelectStage4() => SelectStage(4);
-        private void SelectStage5() => SelectStage(5);
-
         private void BuildInitialGatePool()
         {
             _nextPlanIndex = 0;
@@ -1007,6 +1077,7 @@ namespace ColorGateRunner.Presentation
             {
                 ActivateNextGate(gates[index]);
             }
+            UpdateCampaignGateVisibility();
         }
 
         private void BuildInitialExperimentGatePool()
@@ -1035,6 +1106,12 @@ namespace ColorGateRunner.Presentation
                 _nextPlanIndex,
                 GetMaterial(plan.Color),
                 _nextGateZ);
+            gate.UpdateCampaignVisibility(
+                _session.GatesPassed,
+                EstimateCampaignGateEta(plan, _nextGateZ),
+                _normalTrackMaterial,
+                _session.Stage.CamouflageSettings,
+                0f);
             _nextPlanIndex++;
         }
 
@@ -1053,7 +1130,9 @@ namespace ColorGateRunner.Presentation
                 GetMaterial(plan.Color),
                 _normalTrackMaterial,
                 _nextGateZ,
-                _experimentSession.GatesPassed);
+                _experimentSession.GatesPassed,
+                EstimateExperimentGateEta(plan, _nextGateZ),
+                _experimentSession.Definition.Camouflage);
             _nextPlanIndex++;
         }
 
@@ -1090,21 +1169,25 @@ namespace ColorGateRunner.Presentation
             }
 
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
-            bool matched =
-                _experimentSession.CurrentColor == plan.Color;
-            bool booster = _experimentSession.BoosterActive;
-            bool shield = _experimentSession.ShieldActive;
             bool resolved = _experimentSession.Resolve(plan);
             GateOutcome outcome;
             if (resolved)
             {
-                outcome = matched
-                    ? GateOutcome.Matched
-                    : booster
-                        ? GateOutcome.Boosted
-                        : shield
-                            ? GateOutcome.Shielded
-                            : GateOutcome.Matched;
+                switch (_experimentSession.LastResolution)
+                {
+                    case ExperimentGateResolution.EchoColorMatch:
+                        outcome = GateOutcome.Echoed;
+                        break;
+                    case ExperimentGateResolution.BoosterDefense:
+                        outcome = GateOutcome.Boosted;
+                        break;
+                    case ExperimentGateResolution.ShieldDefense:
+                        outcome = GateOutcome.Shielded;
+                        break;
+                    default:
+                        outcome = GateOutcome.Matched;
+                        break;
+                }
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();
@@ -1176,7 +1259,7 @@ namespace ColorGateRunner.Presentation
             bool ice = upcoming.ActiveExperimentPlan.IsIce;
             trackPool.SetSurfaceMaterial(
                 ice ? cyanMaterial : _normalTrackMaterial);
-            UpdateExperimentGateVisibility();
+            UpdateExperimentGateVisibility(deltaTime);
         }
 
         private void TriggerExperimentFailure()
@@ -1231,7 +1314,8 @@ namespace ColorGateRunner.Presentation
             return null;
         }
 
-        private void UpdateExperimentGateVisibility()
+        private void UpdateExperimentGateVisibility(
+            float deltaSeconds = 0f)
         {
             for (int index = 0; index < gates.Length; index++)
             {
@@ -1240,9 +1324,65 @@ namespace ColorGateRunner.Presentation
                 {
                     gate.UpdateExperimentVisibility(
                         _experimentSession.GatesPassed,
-                        _normalTrackMaterial);
+                        EstimateExperimentGateEta(
+                            gate.ActiveExperimentPlan,
+                            gate.transform.position.z),
+                        _normalTrackMaterial,
+                        _experimentSession.Definition.Camouflage,
+                        deltaSeconds);
                 }
             }
+        }
+
+        private float EstimateExperimentGateEta(
+            ExperimentGatePlan plan,
+            float gateWorldZ)
+        {
+            float remainingDistance = Mathf.Max(
+                0f,
+                gateWorldZ - player.position.z);
+            float speed = _experimentSession.GetSpeedForPlan(plan);
+            return GateEtaEstimator.EstimateSeconds(
+                remainingDistance,
+                speed);
+        }
+
+        private void UpdateCampaignGateVisibility(
+            float deltaSeconds = 0f)
+        {
+            if (_session == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < gates.Length; index++)
+            {
+                StageGateView gate = gates[index];
+                if (gate.gameObject.activeSelf &&
+                    !gate.HasExperimentPlan)
+                {
+                    gate.UpdateCampaignVisibility(
+                        _session.GatesPassed,
+                        EstimateCampaignGateEta(
+                            gate.ActivePlan,
+                            gate.transform.position.z),
+                        _normalTrackMaterial,
+                        _session.Stage.CamouflageSettings,
+                        deltaSeconds);
+                }
+            }
+        }
+
+        private float EstimateCampaignGateEta(
+            GatePlan plan,
+            float gateWorldZ)
+        {
+            float remainingDistance = Mathf.Max(
+                0f,
+                gateWorldZ - player.position.z);
+            return GateEtaEstimator.EstimateSeconds(
+                remainingDistance,
+                _session.GetSpeedForPlan(plan));
         }
 
         private void PlacePlannedGoal()
@@ -1406,15 +1546,10 @@ namespace ColorGateRunner.Presentation
 
         private string FormatExperimentResultDetails()
         {
-            string failureCause = string.Empty;
-            if (_experimentSession.FlowState == StageFlowState.Failed)
-            {
-                failureCause =
-                    _experimentSession.LastFailureCause ==
-                    ExperimentRuntimeFailureCause.CloneGateMiss
-                        ? "\nCAUSE CLONE MISS"
-                        : "\nCAUSE GATE MISS";
-            }
+            string failureCause =
+                _experimentSession.FlowState == StageFlowState.Failed
+                    ? "\nCAUSE GATE MISS"
+                    : string.Empty;
             return
                 $"{_experimentSession.Definition.ColorCount} COLORS · " +
                 $"{_experimentSession.Definition.Mechanic.ToString().ToUpperInvariant()}\n" +
@@ -1459,6 +1594,7 @@ namespace ColorGateRunner.Presentation
             trackPool.ResetPool();
             goal.SetActive(false);
             shieldVisual.SetActive(false);
+            echoShellVisual.SetActive(false);
             successParticles.Stop(
                 true,
                 ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -1509,6 +1645,17 @@ namespace ColorGateRunner.Presentation
                 _session.FlowState == StageFlowState.Failed
                 ? failureMaterial
                 : GetMaterial(_session.CurrentColor);
+            echoShellVisual.SetActive(_session.EchoActive);
+            if (_session.EchoActive)
+            {
+                Material echoMaterial = GetMaterial(_session.EchoColor);
+                for (int index = 0;
+                    index < echoShellRenderers.Length;
+                    index++)
+                {
+                    echoShellRenderers[index].sharedMaterial = echoMaterial;
+                }
+            }
             shieldVisual.SetActive(
                 _session.ShieldActive ||
                 (_session.FlowState == StageFlowState.Countdown &&
@@ -1525,7 +1672,9 @@ namespace ColorGateRunner.Presentation
                     (_shieldSelected && !_session.ContinueUsed)));
             SynchronizeColorHud();
 
-            float boosterNormalized = _session.Items.Booster
+            float boosterNormalized =
+                (_session.Items.Booster ||
+                 _session.StageProvidesBooster)
                 ? _session.BoosterDistanceRemaining /
                     _session.Stage.BoosterDistance
                 : 0f;
@@ -1579,25 +1728,34 @@ namespace ColorGateRunner.Presentation
 
         private void SynchronizeItemSelection()
         {
-            shieldToggleText.text = _shieldSelected
-                ? "SHIELD: ON"
-                : "SHIELD: OFF";
-            boosterToggleText.text = _boosterSelected
-                ? "BOOSTER: ON"
-                : "BOOSTER: OFF";
+            shieldToggleButton.interactable =
+                !_session.StageProvidesShield;
+            boosterToggleButton.interactable =
+                !_session.StageProvidesBooster;
+            shieldToggleText.text = _session.StageProvidesShield
+                ? "SHIELD: PROVIDED"
+                : _shieldSelected
+                    ? "SHIELD: ON"
+                    : "SHIELD: OFF";
+            boosterToggleText.text = _session.StageProvidesBooster
+                ? "BOOSTER: PROVIDED"
+                : _boosterSelected
+                    ? "BOOSTER: ON"
+                    : "BOOSTER: OFF";
         }
 
         private void RefreshStageButtons()
         {
             for (int index = 0; index < StageCatalog.Count; index++)
             {
-                int number = index + 1;
+                StageDefinition definition = StageCatalog.GetByIndex(index);
+                int number = definition.DisplayNumber;
                 bool unlocked = number <= _highestUnlocked;
                 stageButtons[index].interactable = unlocked;
                 StageRecord record = _progressStore.LoadRecord(number);
                 stageSummaryTexts[index].text =
                     $"STAGE {number}  {(record.Cleared ? "CLEARED" : unlocked ? "OPEN" : "LOCKED")}\n" +
-                    StageCatalog.GetByDisplayNumber(number).Title;
+                    definition.Title;
             }
             developerUnlockAllButton.gameObject.SetActive(false);
             stageSelectPanel.SetActive(false);
@@ -1973,6 +2131,21 @@ namespace ColorGateRunner.Presentation
                 (countdown && _experimentSession.Items.Shield);
             shieldVisual.SetActive(shieldRelevant);
             shieldIcon.SetActive(shieldRelevant);
+            bool echoRelevant =
+                _experimentSession.FlowState == StageFlowState.Playing &&
+                _experimentSession.EchoActive;
+            echoShellVisual.SetActive(echoRelevant);
+            if (echoRelevant)
+            {
+                Material echoMaterial =
+                    GetMaterial(_experimentSession.EchoColor);
+                for (int index = 0;
+                    index < echoShellRenderers.Length;
+                    index++)
+                {
+                    echoShellRenderers[index].sharedMaterial = echoMaterial;
+                }
+            }
             boosterMeterRoot.SetActive(_experimentSession.BoosterActive);
             boosterMeterFill.fillAmount = Mathf.Clamp01(
                 _experimentSession.BoosterDistanceRemaining / 160f);

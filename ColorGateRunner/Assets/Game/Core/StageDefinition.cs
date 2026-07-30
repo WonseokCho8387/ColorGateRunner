@@ -28,7 +28,65 @@ namespace ColorGateRunner.Core
             bool boosterAllowed,
             uint seed,
             bool activeColorsFromStart = true,
-            int[] firstGateIndicesByColor = null)
+            int[] firstGateIndicesByColor = null,
+            StagePrimaryMechanic primaryMechanic = StagePrimaryMechanic.None,
+            GateModifierType gateModifiers = GateModifierType.None,
+            EchoSettings echoSettings = null,
+            CamouflageSettings camouflageSettings = null,
+            StageMechanicGrantSettings mechanicGrantSettings = null)
+            : this(
+                stageId,
+                displayNumber,
+                title,
+                description,
+                targetGateCount,
+                allowedColors,
+                StageSpeedProfile.Linear(startingSpeed, maximumSpeed),
+                cadenceStart,
+                cadenceEnd,
+                allowedPatterns,
+                introGateCount,
+                finalPressureGateCount,
+                boosterDistance,
+                boosterSpeed,
+                shieldAllowed,
+                boosterAllowed,
+                seed,
+                activeColorsFromStart,
+                firstGateIndicesByColor,
+                primaryMechanic,
+                gateModifiers,
+                echoSettings,
+                camouflageSettings,
+                mechanicGrantSettings)
+        {
+        }
+
+        public StageDefinition(
+            string stageId,
+            int displayNumber,
+            string title,
+            string description,
+            int targetGateCount,
+            RunnerColor[] allowedColors,
+            StageSpeedProfile speedProfile,
+            float cadenceStart,
+            float cadenceEnd,
+            GatePatternType[] allowedPatterns,
+            int introGateCount,
+            int finalPressureGateCount,
+            float boosterDistance,
+            float boosterSpeed,
+            bool shieldAllowed,
+            bool boosterAllowed,
+            uint seed,
+            bool activeColorsFromStart = true,
+            int[] firstGateIndicesByColor = null,
+            StagePrimaryMechanic primaryMechanic = StagePrimaryMechanic.None,
+            GateModifierType gateModifiers = GateModifierType.None,
+            EchoSettings echoSettings = null,
+            CamouflageSettings camouflageSettings = null,
+            StageMechanicGrantSettings mechanicGrantSettings = null)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -37,8 +95,8 @@ namespace ColorGateRunner.Core
             TargetGateCount = targetGateCount;
             _allowedColors = allowedColors ??
                 throw new ArgumentNullException(nameof(allowedColors));
-            StartingSpeed = startingSpeed;
-            MaximumSpeed = maximumSpeed;
+            SpeedProfile = speedProfile ??
+                throw new ArgumentNullException(nameof(speedProfile));
             CadenceStart = cadenceStart;
             CadenceEnd = cadenceEnd;
             _allowedPatterns = allowedPatterns ??
@@ -53,6 +111,13 @@ namespace ColorGateRunner.Core
             ActiveColorsFromStart = activeColorsFromStart;
             _firstGateIndicesByColor = firstGateIndicesByColor ??
                 CreateDefaultFirstGateIndices(_allowedColors.Length);
+            PrimaryMechanic = primaryMechanic;
+            GateModifiers = gateModifiers;
+            EchoSettings = echoSettings ?? EchoSettings.Disabled();
+            CamouflageSettings = camouflageSettings ??
+                CamouflageSettings.CreateDefault();
+            MechanicGrantSettings = mechanicGrantSettings ??
+                StageMechanicGrantSettings.Disabled();
         }
 
         public string StageId { get; }
@@ -60,8 +125,9 @@ namespace ColorGateRunner.Core
         public string Title { get; }
         public string Description { get; }
         public int TargetGateCount { get; }
-        public float StartingSpeed { get; }
-        public float MaximumSpeed { get; }
+        public StageSpeedProfile SpeedProfile { get; }
+        public float StartingSpeed => SpeedProfile.StartingSpeed;
+        public float MaximumSpeed => SpeedProfile.MaximumSpeed;
         public float CadenceStart { get; }
         public float CadenceEnd { get; }
         public int IntroGateCount { get; }
@@ -72,8 +138,18 @@ namespace ColorGateRunner.Core
         public bool BoosterAllowed { get; }
         public uint Seed { get; }
         public bool ActiveColorsFromStart { get; }
+        public StagePrimaryMechanic PrimaryMechanic { get; }
+        public GateModifierType GateModifiers { get; }
+        public EchoSettings EchoSettings { get; }
+        public CamouflageSettings CamouflageSettings { get; }
+        public StageMechanicGrantSettings MechanicGrantSettings { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
+
+        public float GetBaseSpeed(float normalizedProgress)
+        {
+            return SpeedProfile.Evaluate(normalizedProgress);
+        }
 
         public RunnerColor GetAllowedColor(int index)
         {
@@ -200,7 +276,9 @@ namespace ColorGateRunner.Core
                 FinalPressureGateCount > 0 &&
                 FinalPressureGateCount < TargetGateCount &&
                 BoosterDistance > 0f &&
-                BoosterSpeed > MaximumSpeed;
+                BoosterSpeed > MaximumSpeed &&
+                (!EchoSettings.Enabled ||
+                 (GateModifiers & GateModifierType.EchoProvider) != 0);
         }
 
         private bool HasValidFirstGateIndices()

@@ -209,3 +209,28 @@ they are not advisory.
   distinguishable cause such as `CLONE MISS`.
 - Retry/Replay clear Clone reaction and visibility state before the identical
   condition is rebuilt.
+
+## Iteration 4 Echo Modifier presentation
+
+This section supersedes the Clone Gate presentation above.
+
+- An Echo Provider keeps the ordinary gate frame, color opening, and symbol.
+  A compact `ECHO` marker sits above the readable judgment information.
+- Hidden Camouflage providers use a neutral marker that reveals no target
+  color. Marker, gate color, and symbol react together when ETA reveal begins.
+- The held Echo is a thin inner player ring or shell colored from the stored
+  effective gate color. The existing segmented Shield remains the outer layer.
+- Acquisition uses one short transfer/pulse. Consumption brightens and
+  collapses the inner shell. Existing primitives, generated materials, and
+  bounded animation are reused.
+- Shield and Echo must remain distinguishable when simultaneous. No new
+  shader package, post-processing, full-screen distortion, or dedicated
+  particle system is introduced.
+- Stage-local Shield and Booster status may reuse the existing item HUD with
+  a concise `PROVIDED BY STAGE` treatment.
+
+Implementation result: Echo uses the thin four-segment inner player shell,
+while Shield remains the larger six-segment outer shell. An ordinary provider
+gate uses the existing frame and an `ECHO` marker. Camouflage keeps provider
+target color and symbol hidden until ETA reveal. Human portrait-mobile review
+is still required for simultaneous Echo/Shield separation and marker size.

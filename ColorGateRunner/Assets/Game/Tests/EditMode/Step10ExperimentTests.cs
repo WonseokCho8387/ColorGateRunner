@@ -77,7 +77,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Camouflage_RevealsAfterOneInterveningGate()
+        public void Camouflage_RevealsAtConfiguredEta()
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
                 4,
@@ -96,10 +96,14 @@ namespace ColorGateRunner.Tests.EditMode
             }
 
             Assert.That(
-                camouflage.IsCamouflageRevealed(camouflage.GateIndex - 2),
+                camouflage.ShouldRevealCamouflage(
+                    definition.Camouflage.RevealLeadTimeSeconds + 0.01f,
+                    definition.Camouflage),
                 Is.False);
             Assert.That(
-                camouflage.IsCamouflageRevealed(camouflage.GateIndex - 1),
+                camouflage.ShouldRevealCamouflage(
+                    definition.Camouflage.RevealLeadTimeSeconds,
+                    definition.Camouflage),
                 Is.True);
         }
 

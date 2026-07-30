@@ -11,6 +11,7 @@ namespace ColorGateRunner.Core
             int indexInPattern,
             bool hasShieldPickupBefore)
             : this(
+                indexInPattern,
                 color,
                 color,
                 spacing,
@@ -19,11 +20,38 @@ namespace ColorGateRunner.Core
                 pattern,
                 indexInPattern,
                 hasShieldPickupBefore,
-                false)
+                false,
+                GateModifier.None)
+        {
+        }
+
+        public GatePlan(
+            int gateId,
+            RunnerColor color,
+            float spacing,
+            float timeToGate,
+            float beatMultiplier,
+            GatePatternType pattern,
+            int indexInPattern,
+            bool hasShieldPickupBefore,
+            GateModifier modifier)
+            : this(
+                gateId,
+                color,
+                color,
+                spacing,
+                timeToGate,
+                beatMultiplier,
+                pattern,
+                indexInPattern,
+                hasShieldPickupBefore,
+                false,
+                modifier)
         {
         }
 
         private GatePlan(
+            int gateId,
             RunnerColor color,
             RunnerColor plannedColor,
             float spacing,
@@ -32,8 +60,10 @@ namespace ColorGateRunner.Core
             GatePatternType pattern,
             int indexInPattern,
             bool hasShieldPickupBefore,
-            bool hasTemporaryColorOverride)
+            bool hasTemporaryColorOverride,
+            GateModifier modifier)
         {
+            GateId = gateId;
             Color = color;
             PlannedColor = plannedColor;
             Spacing = spacing;
@@ -43,8 +73,10 @@ namespace ColorGateRunner.Core
             IndexInPattern = indexInPattern;
             HasShieldPickupBefore = hasShieldPickupBefore;
             HasTemporaryColorOverride = hasTemporaryColorOverride;
+            Modifier = modifier;
         }
 
+        public int GateId { get; }
         public RunnerColor Color { get; }
         public RunnerColor PlannedColor { get; }
         public float Spacing { get; }
@@ -54,11 +86,13 @@ namespace ColorGateRunner.Core
         public int IndexInPattern { get; }
         public bool HasShieldPickupBefore { get; }
         public bool HasTemporaryColorOverride { get; }
+        public GateModifier Modifier { get; }
         public bool IsPatternStart => IndexInPattern == 0;
 
         public GatePlan WithTemporaryColorOverride(RunnerColor color)
         {
             return new GatePlan(
+                GateId,
                 color,
                 PlannedColor,
                 Spacing,
@@ -67,7 +101,24 @@ namespace ColorGateRunner.Core
                 Pattern,
                 IndexInPattern,
                 HasShieldPickupBefore,
-                color != PlannedColor);
+                color != PlannedColor,
+                Modifier);
+        }
+
+        public GatePlan WithModifier(GateModifier modifier)
+        {
+            return new GatePlan(
+                GateId,
+                Color,
+                PlannedColor,
+                Spacing,
+                TimeToGate,
+                BeatMultiplier,
+                Pattern,
+                IndexInPattern,
+                HasShieldPickupBefore,
+                HasTemporaryColorOverride,
+                modifier);
         }
     }
 }

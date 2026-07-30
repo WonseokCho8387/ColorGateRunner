@@ -10,6 +10,7 @@ namespace ColorGateRunner.Editor
         [MenuItem("Tools/Color Gate Runner/Run Step 9A Simulation")]
         public static void RunStep9ASimulation()
         {
+            StageCatalogAssetBuilder.EnsureAndConfigure();
             SimulationBatchResult batch =
                 StageSimulationRunner.RunFullMatrix(1000);
             string projectPath = Directory.GetParent(Application.dataPath).FullName;
@@ -20,16 +21,23 @@ namespace ColorGateRunner.Editor
                 "Simulation");
             Directory.CreateDirectory(outputPath);
             File.WriteAllText(
-                Path.Combine(outputPath, "Step9A-SimulationSummary.md"),
+                Path.Combine(
+                    outputPath,
+                    "MechanicCampaign-SimulationSummary.md"),
                 SimulationReportFormatter.ToMarkdown(batch));
             File.WriteAllText(
-                Path.Combine(outputPath, "Step9A-SimulationResults.json"),
+                Path.Combine(
+                    outputPath,
+                    "MechanicCampaign-SimulationResults.json"),
                 SimulationReportFormatter.ToJson(batch));
             File.WriteAllText(
-                Path.Combine(outputPath, "Step9A-SimulationResults.csv"),
+                Path.Combine(
+                    outputPath,
+                    "MechanicCampaign-SimulationResults.csv"),
                 SimulationReportFormatter.ToCsv(batch));
             Debug.Log(
-                $"Step 9A simulation wrote {batch.Results.Count} matrix rows to {outputPath}.");
+                $"Mechanic campaign simulation wrote {batch.Results.Count} " +
+                $"matrix rows to {outputPath}.");
         }
 
         public static void RunStep9ASimulationFromCommandLine()

@@ -8,19 +8,20 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Lobby_SelectsLowestUnlockedUnclearedStage()
         {
-            bool[] cleared = { true, false, false, false, false };
+            bool[] cleared = CreateClearedFlags();
+            cleared[0] = true;
             Assert.That(
                 LobbyProgression.SelectCurrentStage(3, cleared),
                 Is.EqualTo(2));
         }
 
         [Test]
-        public void Lobby_AllClearedKeepsStageFive()
+        public void Lobby_AllClearedKeepsFinalStage()
         {
-            bool[] cleared = { true, true, true, true, true };
+            bool[] cleared = CreateClearedFlags(true);
             Assert.That(
-                LobbyProgression.SelectCurrentStage(5, cleared),
-                Is.EqualTo(5));
+                LobbyProgression.SelectCurrentStage(11, cleared),
+                Is.EqualTo(11));
             Assert.That(LobbyProgression.IsPrototypeComplete(cleared), Is.True);
         }
 
@@ -34,8 +35,24 @@ namespace ColorGateRunner.Tests.EditMode
             bool stage4,
             bool stage5)
         {
-            bool[] cleared = { false, stage2, false, stage4, stage5 };
+            bool[] cleared = CreateClearedFlags();
+            cleared[1] = stage2;
+            cleared[3] = stage4;
+            cleared[4] = stage5;
             Assert.That(LobbyProgression.GetVisualTier(cleared), Is.EqualTo(expected));
+        }
+
+        private static bool[] CreateClearedFlags(bool value = false)
+        {
+            bool[] result = new bool[StageCatalog.Count];
+            if (value)
+            {
+                for (int index = 0; index < result.Length; index++)
+                {
+                    result[index] = true;
+                }
+            }
+            return result;
         }
 
         [Test]

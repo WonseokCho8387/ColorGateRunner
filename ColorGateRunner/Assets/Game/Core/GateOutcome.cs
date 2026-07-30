@@ -7,6 +7,7 @@ namespace ColorGateRunner.Core
         Shielded,
         Invulnerable,
         Boosted,
-        Mismatched
+        Mismatched,
+        Echoed
     }
 }

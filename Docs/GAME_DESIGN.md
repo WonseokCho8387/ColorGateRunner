@@ -276,6 +276,40 @@ Source selection, Flicker, Clone with Booster balancing, Clone with Fog or Ice
 balancing, campaign use, Pattern/Section metadata, and a new Pattern Generator
 remain deferred.
 
+## Iteration 4 approved Echo and campaign-expansion contract
+
+This section supersedes the Iteration 3 Clone-only gameplay contract. The
+historical Clone record remains for traceability, but production and
+development play no longer use an additional Clone Gate, Source/Clone
+relationship, `0.45s` insertion gap, or `CLONE MISS`.
+
+- Campaign stage authoring uses one `StageCatalogAsset`. A Unity adapter
+  converts it into immutable pure-Core definitions consumed by runtime,
+  simulation, and tests through `IStageCatalog`.
+- `StageSpeedProfile` evaluates progress from 0–1 using one deterministic Core
+  curve. `MaxSpeed` caps stage base speed before Booster or Ice modifiers.
+- Gate modifiers share one Core representation for None, Camouflage, Fog,
+  Ice, and Echo Provider. Flicker and a generic combination engine remain
+  deferred.
+- Echo Provider is a modifier on an ordinary gate and never increases gate
+  count. An exact player-color match stores the gate's effective color in one
+  non-stacking player Echo.
+- Judgment priority is Player match, Echo match, Shield, then failure. Echo
+  and Shield cannot be consumed by the same judgment.
+- Echo cannot be acquired from Echo-assisted, Shielded, Continue-protected, or
+  automatic success. Runtime offer state prevents a second visible provider
+  while Echo is held or another offer is active.
+- Camouflage reveal is based on deterministic ETA rather than gate count. A
+  reveal never reverses, and visibility never exempts judgment.
+- Stage 6 grants one stage-local Shield at start. Stage 7 grants one
+  stage-local Booster at 30% progress. These grants do not consume or persist
+  inventory state.
+- Stages 8–11 focus respectively on Camouflage, Fog, Ice, and Echo. Existing
+  flow, Continue, Retry, Goal, and stable stage IDs remain authoritative.
+- Stage 6–11 color count, speed, curve, cadence, and mechanic density are
+  selected from documented simulation candidates. Automated results cannot
+  establish fun, readability, comfort, fairness, or satisfaction.
+
 ## Iteration Notes
 
 Stage unlock policy Mechanics are introduced once.
@@ -287,3 +321,31 @@ Tap Budget
 Maximum = 4
 4 Tap Peak only <1%
 Difficulty comes from Rhythm not randomness.
+
+## Iteration 4 final campaign stage catalog
+
+Base speed is evaluated as
+`Start + (Max - Start) * Curve(normalized gate progress)`. Curve points below
+are normalized `(progress, speed fraction)` values sampled once into pure Core.
+Booster replaces base movement speed. Ice multiplies non-Booster movement by
+`1.45` and authored spacing by `1.30`.
+
+| Stage | Colors | Base speed curve | Primary mechanic |
+|---:|---:|---|---|
+| 1 | 2 | Linear `28 -> 40` | Two-color basics |
+| 2 | 2 | Linear `32 -> 44` | Rhythm contrast |
+| 3 | 2 | Linear `34 -> 46` | Exception color |
+| 4 | 3 | Linear `32 -> 48` | Green introduction |
+| 5 | 3 | Linear `36 -> 54` | Three-color challenge |
+| 6 | 2 | `38 -> 56`; `(0,.0) (.35,.22) (.70,.62) (1,1)` | Local Shield at start |
+| 7 | 2 | `40 -> 58`; `(0,.0) (.30,.18) (.65,.55) (1,1)` | Local Booster at 30% |
+| 8 | 2 | `40 -> 60`; `(0,.0) (.40,.25) (.75,.70) (1,1)` | Camouflage |
+| 9 | 2 | Linear `42 -> 62` | Fog |
+| 10 | 2 | `44 -> 64`; `(0,.0) (.50,.35) (.80,.75) (1,1)` | Ice |
+| 11 | 3 | `44 -> 66`; `(0,.0) (.45,.30) (.75,.68) (1,1)` | Echo |
+
+Stages 6-10 intentionally return to two colors so human evaluation can focus
+on one new mechanic. Stage 11 restores three colors. The final simulation
+improved Average/None first-clear rates for Stages 8-10 from
+`21.2/20.0/18.5%` to `31.2/30.5/27.9%`; these figures are mechanical evidence,
+not a claim of fun, fairness, or comfort.

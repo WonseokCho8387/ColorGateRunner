@@ -302,7 +302,9 @@ namespace ColorGateRunner.Core
                         plan = session.GetGatePlan(gateIndex);
                     }
                     float travelTime = plan.Spacing /
-                        Math.Max(0.01f, session.CurrentSpeed);
+                        Math.Max(
+                            0.01f,
+                            session.GetSpeedForPlan(plan));
                     float reaction = profile.ReactionSeconds +
                         (NextSigned(ref random) * profile.ReactionVariance);
                     float margin = travelTime - Math.Max(0f, reaction);
@@ -353,7 +355,7 @@ namespace ColorGateRunner.Core
 
                     bool hadShield = session.ShieldActive;
                     bool boosterAtGate = session.BoosterActive;
-                    GateOutcome outcome = session.ResolveGate(plan.Color);
+                    GateOutcome outcome = session.ResolveGate(plan);
                     if (boosterAtGate)
                     {
                         boosterBypassed++;
@@ -843,7 +845,7 @@ namespace ColorGateRunner.Core
         public static string ToMarkdown(SimulationBatchResult batch)
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine("# Step 9A Simulation Summary")
+            builder.AppendLine("# Mechanic Campaign Simulation Summary")
                 .AppendLine()
                 .AppendLine("> Provisional mechanical model only. This report does not measure fun, excitement, fairness, or motivation.")
                 .AppendLine("> Step 8 had no Core simulation baseline. The tables below are the Step 9A final baseline for future gameplay-affecting comparisons.")
@@ -880,7 +882,8 @@ namespace ColorGateRunner.Core
             builder.AppendLine()
                 .AppendLine("## Item-effect comparison")
                 .AppendLine()
-                .AppendLine("Average-profile aggregate across all five stages.")
+                .AppendLine(
+                    "Average-profile aggregate across all campaign stages.")
                 .AppendLine()
                 .AppendLine("| Items | First clear | With Continue | Change vs no item |")
                 .AppendLine("|---|---:|---:|---:|");

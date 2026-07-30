@@ -901,3 +901,67 @@ Comments
 - Clone-only Perfect simulation produced the same completed result, time, and
   tap metrics when repeated with the same seed.
 - ProjectSettings and package manifest/lock hashes remained unchanged.
+
+## Iteration 4 Echo and campaign-expansion acceptance mapping
+
+### Phase gates
+
+- Architecture: one `StageCatalogAsset`, pure Adapter output, `IStageCatalog`
+  runtime/simulation parity, deterministic curve parity, and exact Stage 1–5
+  simulation/hash regression.
+- Modifier foundation: shared None/Camouflage/Fog/Ice/Echo Provider metadata,
+  stable Gate ID role locking, one pending offer across the active pool, and
+  catalog-driven Stage UI without duplicate listeners.
+- Echo: one held color, deterministic first/additional offers, cooldown and
+  acquisition caps, unchanged gate count, effective-color acquisition, and
+  Player → Echo → Shield → Fail priority.
+- ETA: speed-aware reveal under normal, Booster, and Ice states; monotonic
+  reveal; Retry reset; no hidden color leak.
+- Speed profile: serialized Start/Max/Curve, identical Core evaluation at
+  0/25/50/75/100%, modifier ordering, and unchanged Stage 1–5 results.
+- Campaign: Stage 5→6 progression, Stage 11 completion, stage-local Shield and
+  Booster grants, Primary Mechanic occurrence, Continue/Retry/Goal, and
+  catalog ID-based UI/persistence.
+
+### Simulation and regression
+
+- Run every Stage 1–11 across Perfect, Expert, Average, Novice, and Stress
+  with documented item/grant combinations.
+- Perfect must clear every stage with exact input. Investigate adjacent
+  non-Perfect first-attempt increases of 5 percentage points or more rather
+  than forcing monotonicity.
+- Preserve Stage 1–5 Markdown/JSON/CSV baseline hashes and all five Step 10
+  hashes. Stage 6–11 reports use new artifact names.
+- Builder runs twice; require no missing scripts/references or duplicate
+  EventSystem, controller, stage button, listener, gate view, track, or player
+  Echo shell.
+
+### Manual
+
+- Human review owns Echo frequency and understanding, Echo/Shield visual
+  separation, ETA lead comfort, curve feel, stage-local grant comprehension,
+  mobile readability, difficulty progression, and Stage 11 finale quality.
+
+### Iteration 4 final automated evidence
+
+- EditMode: 248 executed, 248 passed.
+- PlayMode: 125 executed, 125 passed.
+- Campaign-specific coverage includes catalog/adaptor validity, deterministic
+  sampled curves, modifier placement, local Shield/Booster grants, Ice speed
+  and spacing order, Echo acquire/consume/restart, catalog-bound buttons,
+  Campaign Camouflage ETA reveal plus ordinary failure, and Campaign Echo
+  player-shell activation.
+- Every Stage 1-11 initializes under all four requested start-item
+  combinations. Stage-provided items explicitly reject duplicate selection.
+- The 1,000-run full matrix covers Perfect, Expert, Average, Novice, and Stress
+  for every Stage 1-11 and all start-item combinations.
+- The Stage 1-5 CSV prefix has zero differences from
+  `EchoExpansion-BaselineResults.csv`.
+- Step 10 SHA-256 values remain:
+  - CSV `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`
+  - JSON `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`
+  - Summary `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`
+  - Comparison `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`
+  - Shortlist `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
+- Automated results do not establish fun, comfort, comprehension, fairness,
+  satisfaction, or finale quality.

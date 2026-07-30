@@ -9,98 +9,23 @@ namespace ColorGateRunner.Core
         Camouflage,
         Fog,
         Ice,
-        Clone
-    }
-
-    public enum ExperimentGateRole
-    {
-        Standard,
-        Source,
-        Clone
+        Echo
     }
 
     public enum ExperimentRuntimeFailureCause
     {
         None,
-        StandardGateMiss,
-        CloneGateMiss
+        StandardGateMiss
     }
 
-    public sealed class CloneSettings
+    public enum ExperimentGateResolution
     {
-        private readonly int[] _sourceIndices;
-
-        public CloneSettings(int[] sourceIndices, float gapSeconds)
-        {
-            if (sourceIndices == null || sourceIndices.Length == 0)
-            {
-                throw new ArgumentException(
-                    "Clone SourceIndices must not be empty.",
-                    nameof(sourceIndices));
-            }
-            if (gapSeconds <= 0f)
-            {
-                throw new ArgumentOutOfRangeException(nameof(gapSeconds));
-            }
-
-            _sourceIndices = new int[sourceIndices.Length];
-            int previous = 0;
-            for (int index = 0; index < sourceIndices.Length; index++)
-            {
-                int sourceIndex = sourceIndices[index];
-                if (sourceIndex <= previous)
-                {
-                    throw new ArgumentException(
-                        "Clone SourceIndices must be positive, unique, and ordered.",
-                        nameof(sourceIndices));
-                }
-                _sourceIndices[index] = sourceIndex;
-                previous = sourceIndex;
-            }
-            GapSeconds = gapSeconds;
-        }
-
-        public int SourceCount => _sourceIndices.Length;
-        public float GapSeconds { get; }
-        public int MaximumSourceIndex =>
-            _sourceIndices[_sourceIndices.Length - 1];
-
-        public static CloneSettings CreateApproved()
-        {
-            return new CloneSettings(new[] { 3, 6 }, 0.45f);
-        }
-
-        public int GetSourceIndex(int index)
-        {
-            if (index < 0 || index >= _sourceIndices.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-            return _sourceIndices[index];
-        }
-
-        public bool IsSourceIndex(int oneBasedNonCloneIndex)
-        {
-            for (int index = 0; index < _sourceIndices.Length; index++)
-            {
-                if (_sourceIndices[index] == oneBasedNonCloneIndex)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void ValidateForGateCount(int nonCloneGateCount)
-        {
-            if (nonCloneGateCount < MaximumSourceIndex)
-            {
-                throw new ArgumentException(
-                    $"Clone settings require at least {MaximumSourceIndex} " +
-                    "non-Clone judgment gates.",
-                    nameof(nonCloneGateCount));
-            }
-        }
+        None,
+        PlayerColorMatch,
+        EchoColorMatch,
+        ShieldDefense,
+        BoosterDefense,
+        Failure
     }
 
     public enum ExperimentRisk
@@ -167,41 +92,32 @@ namespace ColorGateRunner.Core
             int colorCount,
             MechanicExperimentType mechanic,
             uint seed,
-            CloneSettings cloneSettings = null,
-            int nonCloneGateCount = 40)
+            int gateCount = 40,
+            EchoSettings echoSettings = null,
+            CamouflageSettings camouflageSettings = null)
         {
             if (colorCount < 3 || colorCount > 6)
             {
                 throw new ArgumentOutOfRangeException(nameof(colorCount));
             }
-            if (nonCloneGateCount < 1)
+            if (gateCount < 1)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(nonCloneGateCount));
+                    nameof(gateCount));
             }
-
-            if (mechanic == MechanicExperimentType.Clone &&
-                cloneSettings == null)
-            {
-                cloneSettings = CloneSettings.CreateApproved();
-            }
-            cloneSettings?.ValidateForGateCount(nonCloneGateCount);
 
             ColorCount = colorCount;
             Mechanic = mechanic;
             Seed = seed;
-            Clone = cloneSettings;
-            string cloneSuffix =
-                cloneSettings != null &&
-                mechanic != MechanicExperimentType.Clone
-                    ? "-clone"
-                    : string.Empty;
             Id =
                 $"step10-{colorCount}-colors-" +
-                $"{mechanic.ToString().ToLowerInvariant()}{cloneSuffix}";
-            NonCloneGateCount = nonCloneGateCount;
-            GateCount = nonCloneGateCount +
-                (cloneSettings == null ? 0 : cloneSettings.SourceCount);
+                mechanic.ToString().ToLowerInvariant();
+            GateCount = gateCount;
+            Echo = mechanic == MechanicExperimentType.Echo
+                ? echoSettings ?? EchoSettings.CreateDefault()
+                : EchoSettings.Disabled();
+            Camouflage = camouflageSettings ??
+                CamouflageSettings.CreateDefault();
             StartingSpeed = 16f;
             MaximumSpeed = 22f;
             CadenceStart = 1.45f;
@@ -221,10 +137,9 @@ namespace ColorGateRunner.Core
         public int ColorCount { get; }
         public MechanicExperimentType Mechanic { get; }
         public uint Seed { get; }
-        public CloneSettings Clone { get; }
-        public bool CloneEnabled => Clone != null;
-        public int NonCloneGateCount { get; }
         public int GateCount { get; }
+        public EchoSettings Echo { get; }
+        public CamouflageSettings Camouflage { get; }
         public float StartingSpeed { get; }
         public float MaximumSpeed { get; }
         public float CadenceStart { get; }
@@ -290,56 +205,61 @@ namespace ColorGateRunner.Core
     {
         public ExperimentGatePlan(
             int gateIndex,
-            int nonCloneGateIndex,
-            ExperimentGateRole role,
-            int sourceGateId,
             RunnerColor color,
             int requiredTapCount,
             float baseSpeed,
             float cadence,
             float spacing,
             MechanicExperimentType mechanic,
-            bool camouflage,
-            bool fog,
-            bool ice)
+            GateModifier modifier)
         {
             GateId = gateIndex;
             GateIndex = gateIndex;
-            NonCloneGateIndex = nonCloneGateIndex;
-            Role = role;
-            SourceGateId = sourceGateId;
             Color = color;
             RequiredTapCount = requiredTapCount;
             BaseSpeed = baseSpeed;
             Cadence = cadence;
             Spacing = spacing;
             Mechanic = mechanic;
-            IsCamouflage = camouflage;
-            IsFog = fog;
-            IsIce = ice;
+            Modifier = modifier;
         }
 
         public int GateId { get; }
         public int GateIndex { get; }
         public int GenerationOrder => GateIndex;
-        public int NonCloneGateIndex { get; }
-        public ExperimentGateRole Role { get; }
-        public int SourceGateId { get; }
-        public bool IsSource => Role == ExperimentGateRole.Source;
-        public bool IsClone => Role == ExperimentGateRole.Clone;
         public RunnerColor Color { get; }
         public int RequiredTapCount { get; }
         public float BaseSpeed { get; }
         public float Cadence { get; }
         public float Spacing { get; }
         public MechanicExperimentType Mechanic { get; }
-        public bool IsCamouflage { get; }
-        public bool IsFog { get; }
-        public bool IsIce { get; }
+        public GateModifier Modifier { get; }
+        public bool IsCamouflage => Modifier.IsCamouflage;
+        public bool IsFog => Modifier.IsFog;
+        public bool IsIce => Modifier.IsIce;
+        public bool IsEchoProvider => Modifier.IsEchoProvider;
 
-        public bool IsCamouflageRevealed(int passedGateCount)
+        public ExperimentGatePlan WithModifier(GateModifier modifier)
         {
-            return !IsCamouflage || passedGateCount >= GateIndex - 1;
+            return new ExperimentGatePlan(
+                GateIndex,
+                Color,
+                RequiredTapCount,
+                BaseSpeed,
+                Cadence,
+                Spacing,
+                Mechanic,
+                modifier);
+        }
+
+        public bool ShouldRevealCamouflage(
+            float estimatedArrivalSeconds,
+            CamouflageSettings settings)
+        {
+            return !IsCamouflage ||
+                GateEtaEstimator.ShouldStartReveal(
+                    estimatedArrivalSeconds,
+                    settings);
         }
 
         public bool IsFullyVisibleInFog(int passedGateCount)
@@ -353,9 +273,6 @@ namespace ColorGateRunner.Core
         private readonly ExperimentDefinition _definition;
         private uint _state;
         private int _plannedColorIndex;
-        private int _nonCloneCursor;
-        private bool _clonePending;
-        private ExperimentGatePlan _pendingSource;
 
         public DeterministicExperimentGateSequence(
             ExperimentDefinition definition)
@@ -375,28 +292,23 @@ namespace ColorGateRunner.Core
                 throw new ArgumentOutOfRangeException(nameof(gateIndex));
             }
 
-            if (_clonePending)
-            {
-                return CreateClonePlan(gateIndex);
-            }
-
-            int nonCloneGateIndex = _nonCloneCursor;
+            int authoredGateIndex = Cursor;
             _state = DeterministicGateSequence.AdvanceXorshift32(_state);
             int maximumTaps =
-                nonCloneGateIndex < _definition.WarmUpGateCount
+                authoredGateIndex < _definition.WarmUpGateCount
                 ? 1
                 : Math.Min(3, _definition.MaximumPermittedRequiredTaps);
             int taps = (int)(_state % (uint)(maximumTaps + 1));
-            if (nonCloneGateIndex >= _definition.PressureGateCount &&
-                nonCloneGateIndex % 5 == 0)
+            if (authoredGateIndex >= _definition.PressureGateCount &&
+                authoredGateIndex % 5 == 0)
             {
                 taps = _definition.MaximumPermittedRequiredTaps;
             }
 
             _plannedColorIndex =
                 (_plannedColorIndex + taps) % _definition.ColorCount;
-            float progress = (float)nonCloneGateIndex /
-                Math.Max(1, _definition.NonCloneGateCount - 1);
+            float progress = (float)authoredGateIndex /
+                Math.Max(1, _definition.GateCount - 1);
             float speed = Lerp(
                 _definition.StartingSpeed,
                 _definition.MaximumSpeed,
@@ -407,44 +319,42 @@ namespace ColorGateRunner.Core
                 progress);
             bool camouflage =
                 _definition.Mechanic == MechanicExperimentType.Camouflage &&
-                nonCloneGateIndex >= _definition.WarmUpGateCount &&
-                nonCloneGateIndex % 5 == 2 &&
-                (nonCloneGateIndex >= 20 || taps <= 1);
+                authoredGateIndex >= _definition.WarmUpGateCount &&
+                authoredGateIndex % 5 == 2 &&
+                (authoredGateIndex >= 20 || taps <= 1);
             bool fog =
                 _definition.Mechanic == MechanicExperimentType.Fog &&
-                nonCloneGateIndex >= _definition.FogStartGate &&
-                nonCloneGateIndex <= _definition.FogEndGate;
+                authoredGateIndex >= _definition.FogStartGate &&
+                authoredGateIndex <= _definition.FogEndGate;
             bool ice =
                 _definition.Mechanic == MechanicExperimentType.Ice &&
-                nonCloneGateIndex >= _definition.IceStartGate &&
-                nonCloneGateIndex <= _definition.IceEndGate;
+                authoredGateIndex >= _definition.IceStartGate &&
+                authoredGateIndex <= _definition.IceEndGate;
             float spacing = speed * cadence *
                 (ice ? _definition.IceSpacingMultiplier : 1f);
-            bool isSource = _definition.CloneEnabled &&
-                _definition.Clone.IsSourceIndex(nonCloneGateIndex + 1);
+            GateModifier modifier = GateModifier.None;
+            if (camouflage)
+            {
+                modifier = modifier.With(GateModifierType.Camouflage);
+            }
+            if (fog)
+            {
+                modifier = modifier.With(GateModifierType.Fog);
+            }
+            if (ice)
+            {
+                modifier = modifier.With(GateModifierType.Ice);
+            }
             ExperimentGatePlan plan = new ExperimentGatePlan(
                 gateIndex,
-                nonCloneGateIndex,
-                isSource
-                    ? ExperimentGateRole.Source
-                    : ExperimentGateRole.Standard,
-                -1,
                 _definition.GetColor(_plannedColorIndex),
                 taps,
                 speed,
                 cadence,
                 spacing,
                 _definition.Mechanic,
-                camouflage,
-                fog,
-                ice);
-            _nonCloneCursor++;
+                modifier);
             Cursor++;
-            if (isSource)
-            {
-                _pendingSource = plan;
-                _clonePending = true;
-            }
             return plan;
         }
 
@@ -452,33 +362,7 @@ namespace ColorGateRunner.Core
         {
             _state = DeterministicGateSequence.NormalizeSeed(_definition.Seed);
             _plannedColorIndex = 0;
-            _nonCloneCursor = 0;
-            _clonePending = false;
-            _pendingSource = default;
             Cursor = 0;
-        }
-
-        private ExperimentGatePlan CreateClonePlan(int gateIndex)
-        {
-            _clonePending = false;
-            CloneSettings settings = _definition.Clone;
-            ExperimentGatePlan clone = new ExperimentGatePlan(
-                gateIndex,
-                _pendingSource.NonCloneGateIndex,
-                ExperimentGateRole.Clone,
-                _pendingSource.GateId,
-                _pendingSource.Color,
-                0,
-                _pendingSource.BaseSpeed,
-                settings.GapSeconds,
-                _pendingSource.BaseSpeed * settings.GapSeconds,
-                _definition.Mechanic,
-                _definition.Mechanic ==
-                    MechanicExperimentType.Camouflage,
-                false,
-                false);
-            Cursor++;
-            return clone;
         }
 
         private static float Lerp(float start, float end, float amount)
@@ -490,6 +374,7 @@ namespace ColorGateRunner.Core
     public sealed class ExperimentSession
     {
         private readonly DeterministicExperimentGateSequence _sequence;
+        private readonly EchoOfferCoordinator _echoCoordinator;
         private bool _shieldActive;
         private float _boosterDistanceRemaining;
 
@@ -505,9 +390,11 @@ namespace ColorGateRunner.Core
             Definition = definition ??
                 throw new ArgumentNullException(nameof(definition));
             _sequence = new DeterministicExperimentGateSequence(definition);
-            Items = definition.CloneEnabled
-                ? new StartItemSelection(items.Shield, false)
-                : items;
+            _echoCoordinator = new EchoOfferCoordinator(
+                definition.Echo,
+                definition.Seed,
+                definition.GateCount);
+            Items = items;
             Restart();
         }
 
@@ -525,6 +412,17 @@ namespace ColorGateRunner.Core
         public bool Completed => FlowState == StageFlowState.StageCleared;
         public int SequenceCursor => _sequence.Cursor;
         public ExperimentRuntimeFailureCause LastFailureCause { get; private set; }
+        public ExperimentGateResolution LastResolution { get; private set; }
+        public bool EchoActive => _echoCoordinator.EchoActive;
+        public RunnerColor EchoColor => _echoCoordinator.EchoColor;
+        public int EchoAcquisitionCount =>
+            _echoCoordinator.EchoAcquisitionCount;
+        public int EchoCooldownRemaining =>
+            _echoCoordinator.EchoCooldownRemaining;
+        public bool EchoOfferPending =>
+            _echoCoordinator.EchoOfferPending;
+        public int ActiveEchoOfferGateId =>
+            _echoCoordinator.ActiveEchoOfferGateId;
 
         public bool CompleteCountdown()
         {
@@ -560,12 +458,24 @@ namespace ColorGateRunner.Core
 
         public ExperimentGatePlan GetNextPlan()
         {
-            return _sequence.GetPlan(GatesPassed);
+            return GetPlan(GatesPassed);
         }
 
         public ExperimentGatePlan GetPlan(int gateIndex)
         {
-            return _sequence.GetPlan(gateIndex);
+            ExperimentGatePlan plan = _sequence.GetPlan(gateIndex);
+            if (Definition.Mechanic != MechanicExperimentType.Echo)
+            {
+                return plan;
+            }
+            float progress = plan.GateIndex /
+                (float)Math.Max(1, Definition.GateCount - 1);
+            GateModifier modifier = _echoCoordinator.RegisterGate(
+                plan.GateId,
+                progress,
+                false,
+                plan.Modifier);
+            return plan.WithModifier(modifier);
         }
 
         public bool Resolve(ExperimentGatePlan plan)
@@ -575,18 +485,42 @@ namespace ColorGateRunner.Core
             {
                 return false;
             }
-            if (CurrentColor != plan.Color &&
-                !ExperimentItemRules.TryProtectMismatch(
-                    ref _shieldActive,
-                    _boosterDistanceRemaining))
+            bool playerMatch = CurrentColor == plan.Color;
+            if (playerMatch)
             {
-                LastFailureCause = plan.IsClone
-                    ? ExperimentRuntimeFailureCause.CloneGateMiss
-                    : ExperimentRuntimeFailureCause.StandardGateMiss;
+                LastResolution = ExperimentGateResolution.PlayerColorMatch;
+                if (plan.IsEchoProvider)
+                {
+                    _echoCoordinator.TryAcquire(
+                        plan.GateId,
+                        plan.Color,
+                        true);
+                }
+            }
+            else if (_echoCoordinator.TryConsume(plan.Color))
+            {
+                LastResolution = ExperimentGateResolution.EchoColorMatch;
+            }
+            else if (_boosterDistanceRemaining > 0f)
+            {
+                LastResolution = ExperimentGateResolution.BoosterDefense;
+            }
+            else if (_shieldActive)
+            {
+                _shieldActive = false;
+                LastResolution = ExperimentGateResolution.ShieldDefense;
+            }
+            else
+            {
+                LastResolution = ExperimentGateResolution.Failure;
+                LastFailureCause =
+                    ExperimentRuntimeFailureCause.StandardGateMiss;
+                _echoCoordinator.OnGateResolved(plan.GateId);
                 FlowState = StageFlowState.Failed;
                 CurrentSpeed = 0f;
                 return false;
             }
+            _echoCoordinator.OnGateResolved(plan.GateId);
             GatesPassed++;
             ExperimentItemRules.AdvanceDistance(
                 ref _boosterDistanceRemaining,
@@ -629,6 +563,7 @@ namespace ColorGateRunner.Core
         public void Restart()
         {
             _sequence.Reset();
+            _echoCoordinator.Restart();
             CurrentColor = Definition.GetColor(0);
             GatesPassed = 0;
             CurrentSpeed = Definition.StartingSpeed;
@@ -636,6 +571,7 @@ namespace ColorGateRunner.Core
             _shieldActive = false;
             _boosterDistanceRemaining = 0f;
             LastFailureCause = ExperimentRuntimeFailureCause.None;
+            LastResolution = ExperimentGateResolution.None;
             FlowState = StageFlowState.Countdown;
         }
 

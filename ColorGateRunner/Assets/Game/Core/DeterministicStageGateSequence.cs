@@ -59,18 +59,28 @@ namespace ColorGateRunner.Core
             {
                 cadence = _stage.CadenceStart;
             }
-            float speed = Lerp(_stage.StartingSpeed, _stage.MaximumSpeed, progress);
+            float speed = _stage.SpeedProfile.IsLinear
+                ? Lerp(_stage.StartingSpeed, _stage.MaximumSpeed, progress)
+                : _stage.GetBaseSpeed(progress);
+            GateModifier modifier =
+                GateModifierRules.CreateForStageGate(_stage, gateIndex);
             float spacing = speed * cadence;
+            if (modifier.IsIce)
+            {
+                spacing *= GateModifierRules.IceSpacingMultiplier;
+            }
             Cursor++;
 
             return new GatePlan(
+                gateIndex,
                 color,
                 spacing,
                 cadence,
                 1f,
                 pattern,
                 gateIndex,
-                false);
+                false,
+                modifier);
         }
 
         public void Reset()

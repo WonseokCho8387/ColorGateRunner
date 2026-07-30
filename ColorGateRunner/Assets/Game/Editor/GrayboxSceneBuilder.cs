@@ -40,6 +40,8 @@ namespace ColorGateRunner.Editor
         [MenuItem("Tools/Color Gate Runner/Build Graybox Scene")]
         public static void BuildGrayboxScene()
         {
+            StageCatalogAsset stageCatalogAsset =
+                StageCatalogAssetBuilder.EnsureAndConfigure();
             EnsureAssetFolder(GeneratedMaterialsFolder);
             Material red = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Red.mat",
@@ -83,6 +85,8 @@ namespace ColorGateRunner.Editor
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             GameObject shieldVisual =
                 CreateShieldVisual(playerObject.transform, blue);
+            GameObject echoShellVisual =
+                CreateEchoShellVisual(playerObject.transform, blue);
             GameObject goal = CreateGoal(root.transform, neutral);
             StageGateView[] gates =
                 CreateGatePool(root.transform, controller, neutral);
@@ -242,6 +246,7 @@ namespace ColorGateRunner.Editor
             CreateEventSystem(root.transform);
             tapSurface.Configure(controller);
             controller.Configure(
+                stageCatalogAsset,
                 playerObject.transform,
                 playerRenderer,
                 playerBody,
@@ -258,6 +263,7 @@ namespace ColorGateRunner.Editor
                 gates,
                 goal,
                 shieldVisual,
+                echoShellVisual,
                 successParticles,
                 speedLines,
                 trail,
@@ -709,6 +715,36 @@ namespace ColorGateRunner.Editor
             return shield;
         }
 
+        private static GameObject CreateEchoShellVisual(
+            Transform player,
+            Material material)
+        {
+            GameObject shell = new GameObject("EchoShellVisual");
+            shell.transform.SetParent(player, false);
+            shell.transform.localScale = Vector3.one * 0.92f;
+            for (int index = 0; index < 4; index++)
+            {
+                GameObject segment =
+                    GameObject.CreatePrimitive(PrimitiveType.Cube);
+                segment.name = $"EchoShellSegment_{index:00}";
+                segment.transform.SetParent(shell.transform, false);
+                float angle = index * 90f * Mathf.Deg2Rad;
+                segment.transform.localPosition = new Vector3(
+                    Mathf.Cos(angle) * 0.82f,
+                    Mathf.Sin(angle) * 0.82f,
+                    -0.08f);
+                segment.transform.localRotation =
+                    Quaternion.Euler(0f, 0f, 45f + (index * 90f));
+                segment.transform.localScale =
+                    new Vector3(0.52f, 0.09f, 0.09f);
+                segment.GetComponent<Renderer>().sharedMaterial = material;
+                UnityEngine.Object.DestroyImmediate(
+                    segment.GetComponent<Collider>());
+            }
+            shell.SetActive(false);
+            return shell;
+        }
+
         private static GameObject CreateGoal(Transform parent, Material material)
         {
             GameObject goal = new GameObject("Goal");
@@ -1150,17 +1186,21 @@ namespace ColorGateRunner.Editor
             summaries = new Text[StageCatalog.Count];
             for (int index = 0; index < StageCatalog.Count; index++)
             {
-                float top = 0.79f - (index * 0.14f);
+                int row = index / 2;
+                int column = index % 2;
+                float top = 0.80f - (row * 0.12f);
+                float left = column == 0 ? 0.08f : 0.52f;
+                float right = column == 0 ? 0.48f : 0.92f;
                 Text label;
                 buttons[index] = CreateButton(
                     $"StageButton_{index + 1:00}",
                     panel.transform,
                     $"STAGE {index + 1}",
-                    new Vector2(0.12f, top - 0.10f),
-                    new Vector2(0.88f, top),
+                    new Vector2(left, top - 0.095f),
+                    new Vector2(right, top),
                     out label);
                 label.alignment = TextAnchor.MiddleLeft;
-                label.fontSize = 28;
+                label.fontSize = 21;
                 summaries[index] = label;
             }
 

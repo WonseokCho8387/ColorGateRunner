@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 
 namespace ColorGateRunner.Tests.PlayMode
 {
-    public sealed class Iteration3ClonePlayModeTests
+    public sealed class Iteration3EchoPlayModeTests
     {
         private StageSceneController _controller;
 
@@ -24,224 +24,115 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void CloneLauncher_StartsStandaloneConditionWithoutBooster()
+        public void EchoLauncher_StartsFortyGateModifierCondition()
         {
             _controller.OpenExperimentLab();
             ExperimentLauncher launcher = FindLauncher();
-            launcher.ToggleBooster();
-            SelectClone(launcher);
-
-            Assert.That(launcher.Booster, Is.False);
-            Assert.That(launcher.Label, Does.Contain("CLONE"));
-            Assert.That(launcher.Label, Does.Contain("NO ITEMS"));
+            SelectEcho(launcher);
+            Assert.That(launcher.Label, Does.Contain("ECHO"));
 
             launcher.StartExperiment();
 
             Assert.That(_controller.ExperimentActive, Is.True);
             Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Countdown));
-            Assert.That(
-                _controller.ExperimentSession.Definition.CloneEnabled,
-                Is.True);
-            Assert.That(
                 _controller.ExperimentSession.Definition.GateCount,
-                Is.EqualTo(42));
-            Assert.That(
-                _controller.ExperimentSession.Items.Booster,
-                Is.False);
+                Is.EqualTo(40));
             Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
         }
 
-        [Test]
-        public void CloneRuntime_CountdownBlocksThenJudgesSourceAndClone()
+        [UnityTest]
+        public IEnumerator ProviderUsesOrdinaryGateAndShowsEchoMarker()
         {
-            StartClone(out _);
-            StageGateView first = FindGate(0);
-
-            Assert.That(first.TryResolveCrossing(), Is.False);
-            Assert.That(_controller.ExperimentSession.GatesPassed, Is.Zero);
-
+            StartEcho();
             EnterPlaying();
-            PassCurrent();
-            PassCurrent();
-            StageGateView source = FindGate(2);
-            Assert.That(source.ActiveExperimentPlan.IsSource, Is.True);
-            RunnerColor sourceColor = source.AssignedColor;
-            float sourceZ = source.transform.position.z;
-            Pass(source);
+            StageGateView provider = PassUntilProvider();
 
-            StageGateView clone = FindGate(3);
-            Assert.That(clone.ActiveExperimentPlan.IsClone, Is.True);
-            Assert.That(clone.AssignedColor, Is.EqualTo(sourceColor));
-            Assert.That(
-                clone.transform.position.z - sourceZ,
-                Is.EqualTo(clone.ActiveExperimentPlan.Spacing)
-                    .Within(0.0001f));
-            Assert.That(clone.CloneVisualActive, Is.True);
-            Assert.That(clone.SymbolAlpha, Is.LessThan(1f));
-
-            Pass(clone);
-
-            Assert.That(_controller.ExperimentSession.GatesPassed,
-                Is.EqualTo(4));
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(provider.ActiveExperimentPlan.IsEchoProvider, Is.True);
+            Assert.That(provider.EchoProviderVisualActive, Is.True);
+            Assert.That(provider.SymbolVisible, Is.True);
+            Assert.That(provider.gameObject.name, Does.StartWith("StageGate_"));
+            yield return null;
         }
 
-        [Test]
-        public void CloneRuntime_FailureShowsCauseAndRetryReplaysLayout()
+        [UnityTest]
+        public IEnumerator DirectMatchActivatesColoredEchoShell()
         {
-            StartClone(out _);
+            StartEcho();
             EnterPlaying();
-            PassCurrent();
-            PassCurrent();
-            PassCurrent();
-            StageGateView clone = FindGate(3);
-            float cloneZ = clone.transform.position.z;
-            MismatchCurrent(clone);
+            StageGateView provider = PassUntilProvider();
+            MatchColor(provider.AssignedColor);
 
-            Assert.That(
-                _controller.ExperimentSession.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.CloneGateMiss));
-            _controller.Tick(1.1f);
-            Assert.That(_controller.FailedResultRoot.activeSelf, Is.True);
-            Assert.That(
-                _controller.FailDetailsText.text,
-                Does.Contain("CLONE MISS"));
+            Assert.That(provider.TryResolveCrossing(), Is.True);
 
-            _controller.RetryToItemSelection();
-
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Countdown));
-            Assert.That(_controller.ExperimentSession.GatesPassed, Is.Zero);
-            Assert.That(
-                _controller.ExperimentSession.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.None));
-            StageGateView replayClone = FindGate(3);
-            Assert.That(replayClone.transform.position.z,
-                Is.EqualTo(cloneZ).Within(0.0001f));
-            Assert.That(replayClone.CloneVisualActive, Is.True);
-            Assert.That(replayClone.ReactionActive, Is.False);
+            Assert.That(_controller.ExperimentSession.EchoActive, Is.True);
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.True);
+            yield return null;
         }
 
-        [Test]
-        public void CloneRuntime_ShieldConsumesOnceAndKeepsPlaying()
+        [UnityTest]
+        public IEnumerator EchoConsumptionHidesShellWithoutUsingShield()
         {
-            StartDefinition(
-                ExperimentCatalog.Get(4, MechanicExperimentType.Clone),
-                new StartItemSelection(true, false));
+            StartEcho(true);
             EnterPlaying();
-            PassCurrent();
-            PassCurrent();
-            PassCurrent();
-            StageGateView clone = FindGate(3);
-            MismatchCurrent(clone);
+            StageGateView provider = PassUntilProvider();
+            MatchColor(provider.AssignedColor);
+            provider.TryResolveCrossing();
+            RunnerColor echoColor =
+                _controller.ExperimentSession.EchoColor;
+            StageGateView current = FindGate(
+                _controller.ExperimentSession.GatesPassed);
+            SetDifferentColor(echoColor);
+            current.ApplyTemporaryPlan(
+                current.ActivePlan.WithTemporaryColorOverride(echoColor),
+                _controller.GetPresentationMaterial(echoColor));
 
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Playing));
-            Assert.That(_controller.ExperimentSession.GatesPassed,
-                Is.EqualTo(4));
-            Assert.That(
-                _controller.ExperimentSession.ShieldActive,
-                Is.False);
-            Assert.That(_controller.ShieldVisual.activeSelf, Is.False);
+            ExperimentGatePlan echoPlan = new ExperimentGatePlan(
+                _controller.ExperimentSession.GatesPassed,
+                echoColor,
+                0,
+                current.ActiveExperimentPlan.BaseSpeed,
+                current.ActiveExperimentPlan.Cadence,
+                current.ActiveExperimentPlan.Spacing,
+                MechanicExperimentType.Echo,
+                GateModifier.None);
+            _controller.ExperimentSession.Resolve(echoPlan);
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.ExperimentSession.EchoActive, Is.False);
+            Assert.That(_controller.ExperimentSession.ShieldActive, Is.True);
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.False);
+            yield return null;
         }
 
-        [Test]
-        public void CloneCamouflage_HidesRevealsJudgesAndResets()
+        [UnityTest]
+        public IEnumerator RetryClearsShellAndReproducesProvider()
         {
-            ExperimentDefinition definition = new ExperimentDefinition(
-                4,
-                MechanicExperimentType.Camouflage,
-                ExperimentCatalog.DefaultSeed,
-                CloneSettings.CreateApproved());
-            StartDefinition(
-                definition,
-                new StartItemSelection(false, false));
-            StageGateView clone = FindGate(3);
-            Assert.That(clone.ActiveExperimentPlan.IsClone, Is.True);
-            Assert.That(clone.ActiveExperimentPlan.IsCamouflage, Is.True);
-            Assert.That(clone.SymbolVisible, Is.False);
-
+            StartEcho();
             EnterPlaying();
-            PassCurrent();
-            PassCurrent();
+            StageGateView provider = PassUntilProvider();
+            int providerId = provider.ActiveExperimentPlan.GateId;
+            MatchColor(provider.AssignedColor);
+            provider.TryResolveCrossing();
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.True);
 
-            StageGateView source = FindGate(2);
-            clone = FindGate(3);
-            Assert.That(clone.SymbolVisible, Is.True);
-            Assert.That(clone.AssignedColor, Is.EqualTo(source.AssignedColor));
-            Pass(source);
-            MismatchCurrent(clone);
-
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Failed));
-            Assert.That(
-                _controller.ExperimentSession.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.CloneGateMiss));
-
-            _controller.RetryToItemSelection();
-
-            StageGateView replayClone = FindGate(3);
-            Assert.That(replayClone.SymbolVisible, Is.False);
-            Assert.That(replayClone.CloneVisualActive, Is.True);
+            _controller.RestartDevelopmentExperiment();
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.False);
+            EnterPlaying();
+            StageGateView replay = PassUntilProvider();
+            Assert.That(replay.ActiveExperimentPlan.GateId, Is.EqualTo(providerId));
+            yield return null;
         }
 
-        [Test]
-        public void CloneRuntime_CompletionReplayAndLabReentryDoNotGrowPools()
-        {
-            StartClone(out ExperimentLauncher launcher);
-            EnterPlaying();
-            float firstCloneZ = FindGate(3).transform.position.z;
-
-            while (_controller.ExperimentSession.FlowState ==
-                StageFlowState.Playing)
-            {
-                PassCurrent();
-            }
-            _controller.Tick(1.3f);
-
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.StageCleared));
-            Assert.That(_controller.ClearResultRoot.activeSelf, Is.True);
-
-            _controller.RetryToItemSelection();
-
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Countdown));
-            Assert.That(FindGate(3).transform.position.z,
-                Is.EqualTo(firstCloneZ).Within(0.0001f));
-            _controller.BackToExperimentLab();
-            launcher.StartExperiment();
-
-            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
-            Assert.That(_controller.TrackPool.SegmentCount, Is.EqualTo(6));
-            Assert.That(
-                Object.FindObjectsByType<ExperimentLauncher>(
-                    FindObjectsInactive.Include).Length,
-                Is.EqualTo(1));
-        }
-
-        private void StartClone(out ExperimentLauncher launcher)
+        private void StartEcho(bool shield = false)
         {
             _controller.OpenExperimentLab();
-            launcher = FindLauncher();
-            SelectClone(launcher);
+            ExperimentLauncher launcher = FindLauncher();
+            SelectEcho(launcher);
+            if (shield)
+            {
+                launcher.ToggleShield();
+            }
             launcher.StartExperiment();
-        }
-
-        private void StartDefinition(
-            ExperimentDefinition definition,
-            StartItemSelection items)
-        {
-            _controller.StartDevelopmentExperiment(definition, items);
         }
 
         private void EnterPlaying()
@@ -252,42 +143,41 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.Playing));
         }
 
-        private void PassCurrent()
+        private StageGateView PassUntilProvider()
         {
-            Pass(FindGate(_controller.ExperimentSession.GatesPassed));
-        }
-
-        private void Pass(StageGateView gate)
-        {
-            MatchColor(gate.AssignedColor);
-            Assert.That(gate.TryResolveCrossing(), Is.True);
-        }
-
-        private void MismatchCurrent(StageGateView gate)
-        {
-            if (_controller.ExperimentSession.CurrentColor ==
-                gate.AssignedColor)
+            while (true)
             {
-                _controller.HandleGameplayTap();
+                StageGateView gate = FindGate(
+                    _controller.ExperimentSession.GatesPassed);
+                if (gate.ActiveExperimentPlan.IsEchoProvider)
+                {
+                    return gate;
+                }
+                MatchColor(gate.AssignedColor);
+                Assert.That(gate.TryResolveCrossing(), Is.True);
             }
-            Assert.That(
-                _controller.ExperimentSession.CurrentColor,
-                Is.Not.EqualTo(gate.AssignedColor));
-            Assert.That(gate.TryResolveCrossing(), Is.True);
         }
 
-        private void MatchColor(RunnerColor color)
+        private void MatchColor(RunnerColor target)
         {
             int safety =
                 _controller.ExperimentSession.Definition.ColorCount;
-            while (_controller.ExperimentSession.CurrentColor != color &&
+            while (_controller.ExperimentSession.CurrentColor != target &&
                 safety-- > 0)
             {
                 _controller.HandleGameplayTap();
             }
             Assert.That(
                 _controller.ExperimentSession.CurrentColor,
-                Is.EqualTo(color));
+                Is.EqualTo(target));
+        }
+
+        private void SetDifferentColor(RunnerColor target)
+        {
+            if (_controller.ExperimentSession.CurrentColor == target)
+            {
+                _controller.HandleGameplayTap();
+            }
         }
 
         private StageGateView FindGate(int gateIndex)
@@ -307,13 +197,12 @@ namespace ColorGateRunner.Tests.PlayMode
             return null;
         }
 
-        private static void SelectClone(ExperimentLauncher launcher)
+        private static void SelectEcho(ExperimentLauncher launcher)
         {
-            while (launcher.Mechanic != MechanicExperimentType.Clone)
+            while (launcher.Mechanic != MechanicExperimentType.Echo)
             {
                 launcher.NextMechanic();
             }
-            Assert.That(launcher.SelectedDefinition.CloneEnabled, Is.True);
         }
 
         private static ExperimentLauncher FindLauncher()
@@ -333,7 +222,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             public int LoadHighestUnlocked()
             {
-                return 5;
+                return StageCatalog.Count;
             }
 
             public void SaveHighestUnlocked(int highestUnlocked)

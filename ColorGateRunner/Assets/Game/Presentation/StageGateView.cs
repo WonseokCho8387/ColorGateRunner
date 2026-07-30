@@ -24,8 +24,10 @@ namespace ColorGateRunner.Presentation
         private ExperimentGatePlan _experimentPlan;
         private bool _hasExperimentPlan;
         private bool _experimentWasHidden;
-        private bool _cloneVisualActive;
-        private MaterialPropertyBlock _clonePropertyBlock;
+        private bool _echoProviderVisualActive;
+        private bool _camouflageRevealStarted;
+        private float _camouflageRevealProgress;
+        private MaterialPropertyBlock _visibilityPropertyBlock;
 
         internal RunnerColor AssignedColor { get; private set; }
         internal GatePlan ActivePlan { get; private set; }
@@ -37,12 +39,14 @@ namespace ColorGateRunner.Presentation
         internal bool HasExperimentPlan => _hasExperimentPlan;
         internal ExperimentGatePlan ActiveExperimentPlan => _experimentPlan;
         internal bool SymbolVisible => colorSymbol.gameObject.activeSelf;
-        internal bool CloneVisualActive => _cloneVisualActive;
+        internal bool EchoProviderVisualActive => _echoProviderVisualActive;
         internal float SymbolAlpha => colorSymbol.color.a;
+        internal float CamouflageRevealProgress =>
+            _camouflageRevealProgress;
 
         private void Awake()
         {
-            _clonePropertyBlock = new MaterialPropertyBlock();
+            _visibilityPropertyBlock = new MaterialPropertyBlock();
             CaptureParts();
         }
 
@@ -84,7 +88,11 @@ namespace ColorGateRunner.Presentation
             _resolved = false;
             _reactionRemaining = 0f;
             _boosterDestroyed = false;
-            ResetClonePresentation();
+            ResetEchoProviderPresentation();
+            _experimentWasHidden = false;
+            _camouflageRevealStarted = !plan.Modifier.IsCamouflage;
+            _camouflageRevealProgress =
+                plan.Modifier.IsCamouflage ? 0f : 1f;
             gameObject.SetActive(true);
             Vector3 position = transform.position;
             position.z = worldZ;
@@ -94,6 +102,10 @@ namespace ColorGateRunner.Presentation
             ResetParts();
             ApplyMaterial(material);
             ApplyColorSymbol();
+            if (plan.Modifier.IsEchoProvider)
+            {
+                ApplyEchoProviderPresentation();
+            }
         }
 
         internal void ApplyTemporaryPlan(
@@ -112,45 +124,156 @@ namespace ColorGateRunner.Presentation
             Material colorMaterial,
             Material neutralMaterial,
             float worldZ,
-            int passedGateCount)
+            int passedGateCount,
+            float estimatedArrivalSeconds,
+            CamouflageSettings camouflageSettings)
         {
             _experimentPlan = plan;
             _hasExperimentPlan = true;
             _experimentWasHidden = false;
+            _camouflageRevealStarted = !plan.IsCamouflage;
+            _camouflageRevealProgress = plan.IsCamouflage ? 0f : 1f;
             Activate(
                 new GatePlan(
+                    plan.GateId,
                     plan.Color,
                     plan.Spacing,
                     plan.Cadence,
                     1f,
                     GatePatternType.Steady,
                     plan.GateIndex,
-                    false),
+                    false,
+                    plan.Modifier),
                 plan.GateIndex,
                 colorMaterial,
                 worldZ);
-            if (plan.IsClone)
+            if (plan.IsEchoProvider)
             {
-                ApplyClonePresentation();
+                ApplyEchoProviderPresentation();
             }
-            UpdateExperimentVisibility(passedGateCount, neutralMaterial);
+            UpdateExperimentVisibility(
+                passedGateCount,
+                estimatedArrivalSeconds,
+                neutralMaterial,
+                camouflageSettings,
+                0f);
         }
 
         internal void UpdateExperimentVisibility(
             int passedGateCount,
-            Material neutralMaterial)
+            float estimatedArrivalSeconds,
+            Material neutralMaterial,
+            CamouflageSettings camouflageSettings,
+            float deltaSeconds)
         {
             if (!_hasExperimentPlan)
             {
                 return;
             }
+            UpdateModifierVisibility(
+                _experimentPlan.IsCamouflage,
+                _experimentPlan.IsFullyVisibleInFog(passedGateCount),
+                _experimentPlan.IsEchoProvider,
+                estimatedArrivalSeconds,
+                neutralMaterial,
+                camouflageSettings,
+                deltaSeconds);
+        }
+
+        internal void UpdateCampaignVisibility(
+            int passedGateCount,
+            float estimatedArrivalSeconds,
+            Material neutralMaterial,
+            CamouflageSettings camouflageSettings,
+            float deltaSeconds)
+        {
+            bool fogVisible =
+                !ActivePlan.Modifier.IsFog ||
+                _planIndex - passedGateCount < 2;
+            UpdateModifierVisibility(
+                ActivePlan.Modifier.IsCamouflage,
+                fogVisible,
+                ActivePlan.Modifier.IsEchoProvider,
+                estimatedArrivalSeconds,
+                neutralMaterial,
+                camouflageSettings,
+                deltaSeconds);
+        }
+
+        private void UpdateModifierVisibility(
+            bool isCamouflage,
+            bool fogVisible,
+            bool isEchoProvider,
+            float estimatedArrivalSeconds,
+            Material neutralMaterial,
+            CamouflageSettings camouflageSettings,
+            float deltaSeconds)
+        {
+            if (isCamouflage &&
+                !_camouflageRevealStarted &&
+                GateEtaEstimator.ShouldStartReveal(
+                    estimatedArrivalSeconds,
+                    camouflageSettings))
+            {
+                _camouflageRevealStarted = true;
+            }
+            if (_camouflageRevealStarted &&
+                _camouflageRevealProgress < 1f)
+            {
+                _camouflageRevealProgress =
+                    camouflageSettings.RevealTransitionSeconds <= 0f
+                        ? 1f
+                        : Mathf.Min(
+                            1f,
+                            _camouflageRevealProgress +
+                            (Mathf.Max(0f, deltaSeconds) /
+                             camouflageSettings.RevealTransitionSeconds));
+            }
             bool camouflageHidden =
-                !_experimentPlan.IsCamouflageRevealed(passedGateCount);
-            bool fogObscured =
-                !_experimentPlan.IsFullyVisibleInFog(passedGateCount);
+                isCamouflage &&
+                !_camouflageRevealStarted;
+            bool fogObscured = !fogVisible;
             bool hidden = camouflageHidden || fogObscured;
-            ApplyMaterial(hidden ? neutralMaterial : _assignedMaterial);
-            colorSymbol.gameObject.SetActive(!hidden);
+            if (hidden)
+            {
+                ApplyMaterial(neutralMaterial);
+            }
+            else if (isCamouflage &&
+                _camouflageRevealProgress < 1f)
+            {
+                ApplyRevealBlend(
+                    neutralMaterial,
+                    _camouflageRevealProgress);
+            }
+            else
+            {
+                ApplyMaterial(_assignedMaterial);
+            }
+            if (hidden)
+            {
+                colorSymbol.gameObject.SetActive(
+                    isEchoProvider);
+                if (isEchoProvider)
+                {
+                    colorSymbol.text = "ECHO";
+                    colorSymbol.color = Color.white;
+                }
+            }
+            else
+            {
+                colorSymbol.gameObject.SetActive(true);
+                ApplyColorSymbol();
+                if (isEchoProvider)
+                {
+                    ApplyEchoProviderPresentation();
+                }
+                if (isCamouflage)
+                {
+                    Color symbolColor = colorSymbol.color;
+                    symbolColor.a = _camouflageRevealProgress;
+                    colorSymbol.color = symbolColor;
+                }
+            }
             if (_experimentWasHidden && !hidden)
             {
                 _reactionRemaining = ReactionDuration;
@@ -222,7 +345,9 @@ namespace ColorGateRunner.Presentation
             _planIndex = -1;
             _hasExperimentPlan = false;
             _experimentWasHidden = false;
-            ResetClonePresentation();
+            _camouflageRevealStarted = false;
+            _camouflageRevealProgress = 0f;
+            ResetEchoProviderPresentation();
             transform.localScale = Vector3.one;
             ResetParts();
             colorSymbol.gameObject.SetActive(true);
@@ -282,8 +407,48 @@ namespace ColorGateRunner.Presentation
         {
             for (int index = 0; index < gateRenderers.Length; index++)
             {
+                gateRenderers[index].SetPropertyBlock(null);
                 gateRenderers[index].sharedMaterial = material;
             }
+        }
+
+        private void ApplyRevealBlend(
+            Material neutralMaterial,
+            float progress)
+        {
+            if (_visibilityPropertyBlock == null)
+            {
+                _visibilityPropertyBlock = new MaterialPropertyBlock();
+            }
+            Color neutral = GetMaterialColor(neutralMaterial);
+            Color target = GetMaterialColor(_assignedMaterial);
+            Color blended = Color.Lerp(neutral, target, progress);
+            _visibilityPropertyBlock.Clear();
+            _visibilityPropertyBlock.SetColor("_BaseColor", blended);
+            _visibilityPropertyBlock.SetColor("_Color", blended);
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                gateRenderers[index].sharedMaterial = _assignedMaterial;
+                gateRenderers[index].SetPropertyBlock(
+                    _visibilityPropertyBlock);
+            }
+        }
+
+        private static Color GetMaterialColor(Material material)
+        {
+            if (material == null)
+            {
+                return Color.white;
+            }
+            if (material.HasProperty("_BaseColor"))
+            {
+                return material.GetColor("_BaseColor");
+            }
+            if (material.HasProperty("_Color"))
+            {
+                return material.GetColor("_Color");
+            }
+            return Color.white;
         }
 
         private void ApplyColorSymbol()
@@ -293,60 +458,20 @@ namespace ColorGateRunner.Presentation
             colorSymbol.color = Color.white;
         }
 
-        private void ApplyClonePresentation()
+        private void ApplyEchoProviderPresentation()
         {
-            _cloneVisualActive = true;
-            if (_clonePropertyBlock == null)
-            {
-                _clonePropertyBlock = new MaterialPropertyBlock();
-            }
-            _clonePropertyBlock.Clear();
-            Color echoColor = GetAssignedColor();
-            echoColor.r *= 0.68f;
-            echoColor.g *= 0.68f;
-            echoColor.b *= 0.68f;
-            echoColor.a = 0.62f;
-            _clonePropertyBlock.SetColor("_BaseColor", echoColor);
-            _clonePropertyBlock.SetColor("_Color", echoColor);
-            for (int index = 0; index < gateRenderers.Length; index++)
-            {
-                gateRenderers[index].SetPropertyBlock(_clonePropertyBlock);
-            }
+            _echoProviderVisualActive = true;
             colorSymbol.text = "ECHO\n" + colorSymbol.text;
-            colorSymbol.color = new Color(1f, 1f, 1f, 0.72f);
+            colorSymbol.color = Color.white;
         }
 
-        private void ResetClonePresentation()
+        private void ResetEchoProviderPresentation()
         {
-            _cloneVisualActive = false;
-            if (gateRenderers != null)
-            {
-                for (int index = 0; index < gateRenderers.Length; index++)
-                {
-                    gateRenderers[index].SetPropertyBlock(null);
-                }
-            }
+            _echoProviderVisualActive = false;
             if (colorSymbol != null)
             {
                 colorSymbol.color = Color.white;
             }
-        }
-
-        private Color GetAssignedColor()
-        {
-            if (_assignedMaterial == null)
-            {
-                return Color.white;
-            }
-            if (_assignedMaterial.HasProperty("_BaseColor"))
-            {
-                return _assignedMaterial.GetColor("_BaseColor");
-            }
-            if (_assignedMaterial.HasProperty("_Color"))
-            {
-                return _assignedMaterial.GetColor("_Color");
-            }
-            return Color.white;
         }
 
         private static string GetSymbolText(RunnerColorSymbol symbol)

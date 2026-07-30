@@ -1,0 +1,799 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
+  m_Name: StageCatalog
+  m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
+  catalogRevision: 3
+  stages:
+  - stageId: stage-01
+    displayNumber: 1
+    title: TWO-COLOR BASICS
+    description: Learn the red and blue match.
+    targetGateCount: 24
+    allowedColors: 0000000001000000
+    activeColorCount: 2
+    startingSpeed: 28
+    maximumSpeed: 40
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.55
+    cadenceEnd: 1.25
+    allowedPatterns: 0000000004000000
+    introGateCount: 6
+    finalPressureGateCount: 4
+    boosterDistance: 320
+    boosterSpeed: 88
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 10101
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 0000000000000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-02
+    displayNumber: 2
+    title: RHYTHM CONTRAST
+    description: Read changing gate cadence.
+    targetGateCount: 28
+    allowedColors: 0000000001000000
+    activeColorCount: 2
+    startingSpeed: 32
+    maximumSpeed: 44
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.45
+    cadenceEnd: 1.1
+    allowedPatterns: 00000000030000000400000007000000
+    introGateCount: 5
+    finalPressureGateCount: 5
+    boosterDistance: 360
+    boosterSpeed: 92
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 20202
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 0000000000000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-03
+    displayNumber: 3
+    title: EXCEPTION COLOR
+    description: Watch for deliberate color exceptions.
+    targetGateCount: 30
+    allowedColors: 0000000001000000
+    activeColorCount: 2
+    startingSpeed: 34
+    maximumSpeed: 46
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.4
+    cadenceEnd: 1
+    allowedPatterns: 00000000050000000600000008000000
+    introGateCount: 5
+    finalPressureGateCount: 6
+    boosterDistance: 400
+    boosterSpeed: 96
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 30303
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 0000000000000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-04
+    displayNumber: 4
+    title: GREEN INTRODUCTION
+    description: Meet green safely, then use all three colors.
+    targetGateCount: 32
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 32
+    maximumSpeed: 48
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.45
+    cadenceEnd: 1
+    allowedPatterns: 000000000a0000000300000004000000
+    introGateCount: 8
+    finalPressureGateCount: 6
+    boosterDistance: 420
+    boosterSpeed: 100
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 40404
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000008000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-05
+    displayNumber: 5
+    title: THREE-COLOR CHALLENGE
+    description: Master three colors under pressure.
+    targetGateCount: 36
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 36
+    maximumSpeed: 54
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.25
+    cadenceEnd: 0.85
+    allowedPatterns: 0900000003000000070000000500000006000000
+    introGateCount: 4
+    finalPressureGateCount: 8
+    boosterDistance: 460
+    boosterSpeed: 104
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 50505
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-06
+    displayNumber: 6
+    title: SHIELD TRAINING
+    description: Learn one stage-local Shield charge.
+    targetGateCount: 38
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 38
+    maximumSpeed: 56
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.35
+        value: 0.22
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.7
+        value: 0.62
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.22
+    cadenceEnd: 0.82
+    allowedPatterns: 090000000300000004000000
+    introGateCount: 5
+    finalPressureGateCount: 8
+    boosterDistance: 480
+    boosterSpeed: 108
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 60606
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 1
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 1
+    grantedMechanic: 1
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 1
+  - stageId: stage-07
+    displayNumber: 7
+    title: BOOSTER TIMING
+    description: Receive a stage-local Booster after the opening.
+    targetGateCount: 40
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 40
+    maximumSpeed: 58
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.3
+        value: 0.18
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.65
+        value: 0.55
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.18
+    cadenceEnd: 0.8
+    allowedPatterns: 090000000700000004000000
+    introGateCount: 5
+    finalPressureGateCount: 8
+    boosterDistance: 500
+    boosterSpeed: 110
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 70707
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 2
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 1
+    grantedMechanic: 2
+    grantActivationMode: 1
+    grantActivationProgress: 0.3
+    grantChargeCount: 1
+  - stageId: stage-08
+    displayNumber: 8
+    title: CAMOUFLAGE READ
+    description: Hidden gates reveal from time-to-arrival.
+    targetGateCount: 42
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 40
+    maximumSpeed: 60
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.4
+        value: 0.25
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.75
+        value: 0.7
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.16
+    cadenceEnd: 0.78
+    allowedPatterns: 090000000300000004000000
+    introGateCount: 6
+    finalPressureGateCount: 9
+    boosterDistance: 500
+    boosterSpeed: 112
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 80808
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 3
+    gateModifiers: 1
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-09
+    displayNumber: 9
+    title: FOG SIGHTLINE
+    description: Read only the nearest two gates through Fog.
+    targetGateCount: 44
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 42
+    maximumSpeed: 62
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.12
+    cadenceEnd: 0.76
+    allowedPatterns: 090000000700000005000000
+    introGateCount: 6
+    finalPressureGateCount: 9
+    boosterDistance: 520
+    boosterSpeed: 114
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 90909
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 4
+    gateModifiers: 2
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-10
+    displayNumber: 10
+    title: ICE MOMENTUM
+    description: Ice raises movement speed while preserving reaction time.
+    targetGateCount: 46
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 44
+    maximumSpeed: 64
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.5
+        value: 0.35
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.8
+        value: 0.75
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.08
+    cadenceEnd: 0.76
+    allowedPatterns: 090000000300000004000000
+    introGateCount: 6
+    finalPressureGateCount: 10
+    boosterDistance: 540
+    boosterSpeed: 116
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 100010
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 5
+    gateModifiers: 4
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-11
+    displayNumber: 11
+    title: ECHO MASTERY
+    description: Acquire and spend one-color Echo protection.
+    targetGateCount: 48
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 44
+    maximumSpeed: 66
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.45
+        value: 0.3
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.75
+        value: 0.68
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.05
+    cadenceEnd: 0.76
+    allowedPatterns: 090000000700000006000000
+    introGateCount: 6
+    finalPressureGateCount: 10
+    boosterDistance: 560
+    boosterSpeed: 118
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 110011
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 6
+    gateModifiers: 8
+    echoEnabled: 1
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 3
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0

@@ -2,7 +2,8 @@
   "name": "ColorGateRunner.EditModeTests",
   "rootNamespace": "ColorGateRunner.Tests.EditMode",
   "references": [
-    "ColorGateRunner.Core"
+    "ColorGateRunner.Core",
+    "ColorGateRunner.Presentation"
   ],
   "includePlatforms": [
     "Editor"

@@ -254,3 +254,93 @@ Combined-mechanic balancing
 Campaign Clone
 
 Pattern Generator
+
+---
+
+Iteration 4
+
+Status
+
+Approved / In Progress
+
+---
+
+Contract
+
+StageCatalogAsset single source
+
+Pure Core Adapter and IStageCatalog
+
+Shared GateModifier
+
+EchoOfferCoordinator
+
+Echo Modifier replacing Clone Gate
+
+Camouflage ETA Reveal
+
+StageSpeedProfile
+
+Stage-local Shield / Booster
+
+Campaign Stage 6–11
+
+Simulation-selected color and pacing values
+
+---
+
+Baseline
+
+EditMode 231 / 231
+
+PlayMode 117 / 117
+
+Stage 1–5 simulation hashes unchanged
+
+Step10 report hashes unchanged
+
+---
+
+Human Feedback Required
+
+Echo frequency and comprehension
+
+Echo / Shield readability
+
+Camouflage reveal lead
+
+Stage speed feel
+
+Stage 6–11 difficulty and finale quality
+
+## Iteration 4 completion
+
+Result
+
+- Replaced active Clone gameplay with one ordinary-gate Echo modifier.
+- Moved the campaign to one Inspector-authored 11-stage catalog without
+  duplicating generation, judgment, movement, or persistence systems.
+- Added deterministic ETA Camouflage and sampled speed curves shared by
+  runtime and simulation.
+- Added teaching stages for local Shield, local Booster, Camouflage, Fog,
+  Ice, and Echo.
+
+Learning
+
+- The first three-color Stage 8-10 candidate produced Average/None first-clear
+  rates of `21.2%`, `20.0%`, and `18.5%`. Isolating the new mechanic with two
+  colors raised them to `31.2%`, `30.5%`, and `27.9%` without changing the
+  mechanic or speed contracts.
+- Stage 6 is mechanically easier because its local Shield is working as
+  intended. Stage 7 failures concentrate before the 30% Booster grant; human
+  play must decide whether that opening communicates the coming mechanic.
+- Exact Stage 1-5 row equality and exact Step 10 file hashes show that the
+  expansion did not silently alter the previous campaign or experiment matrix.
+
+Validation
+
+- EditMode 248/248; PlayMode 125/125.
+- Full Stage 1-11, profile, and item matrix completed under
+  `Artifacts/Simulation/MechanicCampaign-*`.
+- Human feedback remains the gate for Echo comprehension, reveal timing,
+  speed feel, difficulty, and finale quality.

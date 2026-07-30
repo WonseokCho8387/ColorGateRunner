@@ -1,438 +1,265 @@
-using System;
 using System.Collections.Generic;
 using ColorGateRunner.Core;
 using NUnit.Framework;
 
 namespace ColorGateRunner.Tests.EditMode
 {
-    public sealed class Iteration3CloneTests
+    public sealed class Iteration3EchoTests
     {
         [Test]
-        public void CloneSettings_UsesApprovedSourcesAndGap()
+        public void EchoExperiment_DoesNotIncreaseGateCount()
         {
-            CloneSettings settings = CloneSettings.CreateApproved();
+            ExperimentDefinition definition =
+                ExperimentCatalog.Get(4, MechanicExperimentType.Echo);
+            Assert.That(definition.GateCount, Is.EqualTo(40));
 
-            Assert.That(settings.SourceCount, Is.EqualTo(2));
-            Assert.That(settings.GetSourceIndex(0), Is.EqualTo(3));
-            Assert.That(settings.GetSourceIndex(1), Is.EqualTo(6));
-            Assert.That(settings.GapSeconds, Is.EqualTo(0.45f));
+            DeterministicExperimentGateSequence sequence =
+                new DeterministicExperimentGateSequence(definition);
+            for (int index = 0; index < definition.GateCount; index++)
+            {
+                ExperimentGatePlan plan = sequence.GetPlan(index);
+                Assert.That(plan.GateId, Is.EqualTo(index));
+                Assert.That(plan.GenerationOrder, Is.EqualTo(index));
+            }
+            Assert.That(sequence.Cursor, Is.EqualTo(40));
         }
 
         [Test]
-        public void CloneSettings_RejectsDefinitionsWithTooFewSources()
+        public void EchoExperiment_FirstProviderIsDeterministic()
         {
-            ArgumentException exception = Assert.Throws<ArgumentException>(
-                () => new ExperimentDefinition(
-                    4,
-                    MechanicExperimentType.Clone,
-                    12345u,
-                    CloneSettings.CreateApproved(),
-                    5));
+            ExperimentSession first = CreatePlayingEcho(false);
+            ExperimentSession second = CreatePlayingEcho(false);
+            List<int> firstOffers = GenerateProviderIds(first, 10);
+            List<int> secondOffers = GenerateProviderIds(second, 10);
 
+            Assert.That(firstOffers.Count, Is.EqualTo(1));
+            Assert.That(secondOffers, Is.EqualTo(firstOffers));
+            Assert.That(firstOffers[0] / 39f, Is.InRange(0.1f, 0.2f));
+        }
+
+        [Test]
+        public void ProviderAcquisition_RequiresDirectPlayerMatch()
+        {
+            ExperimentSession session = CreatePlayingEcho(true);
+            ExperimentGatePlan provider = AdvanceToProvider(session);
+            SetDifferentColor(session, provider.Color);
+
+            Assert.That(session.Resolve(provider), Is.True);
             Assert.That(
-                exception.Message,
-                Does.Contain("at least 6 non-Clone judgment gates"));
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
+            Assert.That(session.EchoActive, Is.False);
+            Assert.That(session.EchoAcquisitionCount, Is.Zero);
         }
 
         [Test]
-        public void CloneSequence_InsertsExactlyTwoClonesAfterSourcesThreeAndSix()
+        public void ProviderAcquisition_StoresEffectiveColor()
         {
-            ExperimentGatePlan[] plans = Generate(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.Clone));
-            List<ExperimentGatePlan> sources =
-                FindByRole(plans, ExperimentGateRole.Source);
-            List<ExperimentGatePlan> clones =
-                FindByRole(plans, ExperimentGateRole.Clone);
+            ExperimentSession session = CreatePlayingEcho(false);
+            ExperimentGatePlan provider = AdvanceToProvider(session);
+            MatchColor(session, provider.Color);
 
-            Assert.That(plans.Length, Is.EqualTo(42));
-            Assert.That(sources.Count, Is.EqualTo(2));
-            Assert.That(clones.Count, Is.EqualTo(2));
-            AssertSourceClonePair(sources[0], clones[0], 2, 3);
-            AssertSourceClonePair(sources[1], clones[1], 6, 7);
-            Assert.That(sources[0].NonCloneGateIndex, Is.EqualTo(2));
-            Assert.That(sources[1].NonCloneGateIndex, Is.EqualTo(5));
+            Assert.That(session.Resolve(provider), Is.True);
+            Assert.That(session.EchoActive, Is.True);
+            Assert.That(session.EchoColor, Is.EqualTo(provider.Color));
+            Assert.That(session.EchoAcquisitionCount, Is.EqualTo(1));
         }
 
         [Test]
-        public void CloneSequence_SameSeedReplaysIdentically()
+        public void ResolutionPriority_PlayerThenEchoThenShield()
         {
-            ExperimentDefinition definition = ExperimentCatalog.Get(
-                5,
-                MechanicExperimentType.Clone,
-                98765u);
-            ExperimentGatePlan[] first = Generate(definition);
-            ExperimentGatePlan[] replay = Generate(definition);
+            ExperimentSession session = CreatePlayingEcho(true);
+            ExperimentGatePlan provider = AdvanceToProvider(session);
+            MatchColor(session, provider.Color);
+            Assert.That(session.Resolve(provider), Is.True);
+            RunnerColor stored = session.EchoColor;
+            RunnerColor player = session.CurrentColor;
 
-            Assert.That(replay.Length, Is.EqualTo(first.Length));
-            for (int index = 0; index < first.Length; index++)
-            {
-                AssertPlanEqual(first[index], replay[index]);
-            }
-        }
-
-        [Test]
-        public void CloneSequence_UsesSourceColorAndConfiguredGap()
-        {
-            ExperimentGatePlan[] plans = Generate(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.Clone));
-
-            for (int index = 0; index < plans.Length; index++)
-            {
-                ExperimentGatePlan clone = plans[index];
-                if (!clone.IsClone)
-                {
-                    continue;
-                }
-                ExperimentGatePlan source = plans[clone.SourceGateId];
-                Assert.That(clone.Color, Is.EqualTo(source.Color));
-                Assert.That(clone.RequiredTapCount, Is.Zero);
-                Assert.That(clone.BaseSpeed, Is.EqualTo(source.BaseSpeed));
-                Assert.That(
-                    clone.Spacing,
-                    Is.EqualTo(source.BaseSpeed * 0.45f).Within(0.0001f));
-                Assert.That(clone.Cadence, Is.EqualTo(0.45f));
-            }
-        }
-
-        [Test]
-        public void CloneSequence_PreservesEveryNonClonePlanAndFollowingGap()
-        {
-            uint seed = 54321u;
-            ExperimentGatePlan[] baseline = Generate(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.None,
-                    seed));
-            ExperimentGatePlan[] withClones = Generate(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.Clone,
-                    seed));
-            int nonClone = 0;
-            for (int index = 0; index < withClones.Length; index++)
-            {
-                ExperimentGatePlan plan = withClones[index];
-                if (plan.IsClone)
-                {
-                    continue;
-                }
-                Assert.That(plan.NonCloneGateIndex, Is.EqualTo(nonClone));
-                Assert.That(plan.Color, Is.EqualTo(baseline[nonClone].Color));
-                Assert.That(
-                    plan.RequiredTapCount,
-                    Is.EqualTo(baseline[nonClone].RequiredTapCount));
-                Assert.That(
-                    plan.Spacing,
-                    Is.EqualTo(baseline[nonClone].Spacing).Within(0.0001f));
-                nonClone++;
-            }
-            Assert.That(nonClone, Is.EqualTo(baseline.Length));
-        }
-
-        [Test]
-        public void CloneSession_SourceAndCloneAreIndependentJudgments()
-        {
-            ExperimentSession session = CreatePlaying(
-                MechanicExperimentType.Clone,
-                shield: false);
-            ExperimentGatePlan source = PassUntilFirstSource(session);
-
-            Assert.That(source.IsSource, Is.True);
-            Assert.That(session.GatesPassed, Is.EqualTo(3));
-            ExperimentGatePlan clone = session.GetNextPlan();
-            Assert.That(clone.IsClone, Is.True);
-            Assert.That(clone.SourceGateId, Is.EqualTo(source.GateId));
-
-            session.TryCycleColor();
-
-            Assert.That(session.Resolve(clone), Is.False);
-            Assert.That(session.FlowState, Is.EqualTo(StageFlowState.Failed));
+            ExperimentGatePlan playerMatch = CreatePlan(
+                session.GatesPassed,
+                player);
+            Assert.That(session.Resolve(playerMatch), Is.True);
             Assert.That(
-                session.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.CloneGateMiss));
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.PlayerColorMatch));
+            Assert.That(session.EchoActive, Is.True);
+            Assert.That(session.ShieldActive, Is.True);
+
+            SetDifferentColor(session, stored);
+            ExperimentGatePlan echoMatch = CreatePlan(
+                session.GatesPassed,
+                stored);
+            Assert.That(session.Resolve(echoMatch), Is.True);
+            Assert.That(
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
+            Assert.That(session.EchoActive, Is.False);
+            Assert.That(session.ShieldActive, Is.True);
+
+            RunnerColor mismatch = NextColor(session, session.CurrentColor);
+            ExperimentGatePlan shielded = CreatePlan(
+                session.GatesPassed,
+                mismatch);
+            Assert.That(session.Resolve(shielded), Is.True);
+            Assert.That(
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
+            Assert.That(session.ShieldActive, Is.False);
         }
 
         [Test]
-        public void CloneSession_CloneSuccessCountsTowardCompletion()
+        public void EchoUse_DoesNotIncreaseCompletionRequirement()
         {
-            ExperimentSession session = CreatePlaying(
-                MechanicExperimentType.Clone,
-                shield: false);
-
-            while (session.FlowState == StageFlowState.Playing)
+            ExperimentSession session = CreatePlayingEcho(false);
+            for (int index = 0; index < session.Definition.GateCount; index++)
             {
-                PassNext(session);
+                ExperimentGatePlan plan = session.GetPlan(index);
+                MatchColor(session, plan.Color);
+                Assert.That(session.Resolve(plan), Is.True);
             }
 
-            Assert.That(session.GatesPassed, Is.EqualTo(42));
+            Assert.That(session.GatesPassed, Is.EqualTo(40));
             Assert.That(
                 session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));
         }
 
         [Test]
-        public void CloneSession_ShieldConsumesOnceAndPassesClone()
+        public void Retry_ClearsEchoStateAndReproducesProvider()
         {
-            ExperimentSession session = CreatePlaying(
-                MechanicExperimentType.Clone,
-                shield: true);
-            PassUntilFirstSource(session);
-            ExperimentGatePlan clone = session.GetNextPlan();
-            session.TryCycleColor();
-
-            Assert.That(session.Resolve(clone), Is.True);
-            Assert.That(session.ShieldActive, Is.False);
-            Assert.That(session.GatesPassed, Is.EqualTo(4));
-            Assert.That(session.FlowState, Is.EqualTo(StageFlowState.Playing));
-            Assert.That(
-                session.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.None));
-            Assert.That(session.Resolve(clone), Is.False);
-            Assert.That(session.GatesPassed, Is.EqualTo(4));
-        }
-
-        [Test]
-        public void CloneCamouflage_UsesOrdinaryHideRevealAndJudgment()
-        {
-            ExperimentDefinition definition = new ExperimentDefinition(
-                4,
-                MechanicExperimentType.Camouflage,
-                ExperimentCatalog.DefaultSeed,
-                CloneSettings.CreateApproved());
-            ExperimentGatePlan[] plans = Generate(definition);
-            ExperimentGatePlan clone =
-                FindByRole(plans, ExperimentGateRole.Clone)[0];
-            ExperimentGatePlan source = plans[clone.SourceGateId];
-
-            Assert.That(clone.IsCamouflage, Is.True);
-            Assert.That(
-                clone.IsCamouflageRevealed(clone.GateIndex - 2),
-                Is.False);
-            Assert.That(
-                clone.IsCamouflageRevealed(clone.GateIndex - 1),
-                Is.True);
-            Assert.That(clone.Color, Is.EqualTo(source.Color));
-
-            ExperimentSession session = new ExperimentSession(definition);
-            session.CompleteCountdown();
-            PassUntilFirstSource(session);
-            clone = session.GetNextPlan();
-            session.TryCycleColor();
-
-            Assert.That(session.Resolve(clone), Is.False);
-            Assert.That(session.FlowState, Is.EqualTo(StageFlowState.Failed));
-        }
-
-        [Test]
-        public void CloneRestart_PreservesLayoutAndResetsRuntimeState()
-        {
-            ExperimentSession session = CreatePlaying(
-                MechanicExperimentType.Clone,
-                shield: true);
-            PassUntilFirstSource(session);
-            ExperimentGatePlan clone = session.GetNextPlan();
-            session.TryCycleColor();
-            Assert.That(session.Resolve(clone), Is.True);
-            Assert.That(session.ShieldActive, Is.False);
+            ExperimentSession session = CreatePlayingEcho(false);
+            ExperimentGatePlan provider = AdvanceToProvider(session);
+            int providerId = provider.GateId;
+            MatchColor(session, provider.Color);
+            session.Resolve(provider);
+            Assert.That(session.EchoActive, Is.True);
 
             session.Restart();
-
-            Assert.That(session.GatesPassed, Is.Zero);
-            Assert.That(session.SequenceCursor, Is.Zero);
-            Assert.That(
-                session.FlowState,
-                Is.EqualTo(StageFlowState.Countdown));
-            Assert.That(session.ShieldActive, Is.False);
-            Assert.That(
-                session.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.None));
-            Assert.That(session.CompleteCountdown(), Is.True);
-            Assert.That(session.ShieldActive, Is.True);
-            ExperimentGatePlan replayFirst = session.GetNextPlan();
-            ExperimentGatePlan expectedFirst = Generate(
-                session.Definition)[0];
-            AssertPlanEqual(expectedFirst, replayFirst);
-        }
-
-        [Test]
-        public void CloneSession_DisablesBoosterSelection()
-        {
-            ExperimentSession session = new ExperimentSession(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.Clone),
-                new StartItemSelection(true, true));
-
-            Assert.That(session.Items.Shield, Is.True);
-            Assert.That(session.Items.Booster, Is.False);
             session.CompleteCountdown();
-            Assert.That(session.BoosterActive, Is.False);
+            ExperimentGatePlan replayProvider = AdvanceToProvider(session);
+
+            Assert.That(session.EchoActive, Is.False);
+            Assert.That(session.EchoAcquisitionCount, Is.Zero);
+            Assert.That(replayProvider.GateId, Is.EqualTo(providerId));
         }
 
         [Test]
-        public void CloneJudgment_IsBlockedOutsidePlaying()
+        public void EchoProviderCanAlsoCarryCamouflageWithoutColorLeak()
         {
-            ExperimentSession session = new ExperimentSession(
-                ExperimentCatalog.Get(
-                    4,
-                    MechanicExperimentType.Clone));
-            ExperimentGatePlan first = session.GetNextPlan();
-
-            Assert.That(session.Resolve(first), Is.False);
-            Assert.That(session.GatesPassed, Is.Zero);
-        }
-
-        [Test]
-        public void CloneSimulation_SameSeedProducesSameCompletedResult()
-        {
-            ExperimentDefinition definition = ExperimentCatalog.Get(
+            GateModifier modifier =
+                new GateModifier(GateModifierType.Camouflage)
+                    .With(GateModifierType.EchoProvider);
+            ExperimentGatePlan plan = new ExperimentGatePlan(
                 4,
-                MechanicExperimentType.Clone,
-                24680u);
-            SimulatedPlayerProfile perfect = SimulatedPlayerProfile.Get(
-                SimulatedPlayerKind.Perfect);
+                RunnerColor.Green,
+                1,
+                18f,
+                1.2f,
+                21.6f,
+                MechanicExperimentType.Echo,
+                modifier);
 
-            ExperimentSimulationResult first =
-                ExperimentSimulationRunner.Run(
-                    definition,
-                    perfect,
-                    1,
-                    13579u);
-            ExperimentSimulationResult replay =
-                ExperimentSimulationRunner.Run(
-                    definition,
-                    perfect,
-                    1,
-                    13579u);
-
-            Assert.That(first.CompletedCount, Is.EqualTo(1));
-            Assert.That(replay.CompletedCount,
-                Is.EqualTo(first.CompletedCount));
-            Assert.That(replay.CompletionRate,
-                Is.EqualTo(first.CompletionRate));
-            Assert.That(replay.MedianCompletionTime,
-                Is.EqualTo(first.MedianCompletionTime));
-            Assert.That(replay.AverageRequiredTaps,
-                Is.EqualTo(first.AverageRequiredTaps));
+            Assert.That(plan.IsCamouflage, Is.True);
+            Assert.That(plan.IsEchoProvider, Is.True);
+            Assert.That(plan.Color, Is.EqualTo(RunnerColor.Green));
         }
 
-        private static ExperimentSession CreatePlaying(
-            MechanicExperimentType mechanic,
-            bool shield)
+        private static ExperimentSession CreatePlayingEcho(bool shield)
         {
             ExperimentSession session = new ExperimentSession(
-                ExperimentCatalog.Get(4, mechanic),
+                ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
                 new StartItemSelection(shield, false));
-            Assert.That(session.CompleteCountdown(), Is.True);
+            session.CompleteCountdown();
             return session;
         }
 
-        private static ExperimentGatePlan PassUntilFirstSource(
+        private static List<int> GenerateProviderIds(
+            ExperimentSession session,
+            int count)
+        {
+            List<int> result = new List<int>();
+            for (int index = 0; index < count; index++)
+            {
+                ExperimentGatePlan plan = session.GetPlan(index);
+                if (plan.IsEchoProvider)
+                {
+                    result.Add(plan.GateId);
+                }
+            }
+            return result;
+        }
+
+        private static ExperimentGatePlan AdvanceToProvider(
             ExperimentSession session)
         {
-            while (true)
+            while (session.GatesPassed < session.Definition.GateCount)
             {
-                ExperimentGatePlan plan = session.GetNextPlan();
-                CycleTo(session, plan.Color);
-                Assert.That(session.Resolve(plan), Is.True);
-                if (plan.IsSource)
+                ExperimentGatePlan plan =
+                    session.GetPlan(session.GatesPassed);
+                if (plan.IsEchoProvider)
                 {
                     return plan;
                 }
+                MatchColor(session, plan.Color);
+                Assert.That(session.Resolve(plan), Is.True);
             }
+            Assert.Fail("No Echo provider was generated.");
+            return default;
         }
 
-        private static void PassNext(ExperimentSession session)
-        {
-            ExperimentGatePlan plan = session.GetNextPlan();
-            CycleTo(session, plan.Color);
-            Assert.That(session.Resolve(plan), Is.True);
-        }
-
-        private static void CycleTo(
-            ExperimentSession session,
+        private static ExperimentGatePlan CreatePlan(
+            int gateIndex,
             RunnerColor color)
         {
+            return new ExperimentGatePlan(
+                gateIndex,
+                color,
+                0,
+                18f,
+                1f,
+                18f,
+                MechanicExperimentType.Echo,
+                GateModifier.None);
+        }
+
+        private static void MatchColor(
+            ExperimentSession session,
+            RunnerColor target)
+        {
             int safety = session.Definition.ColorCount;
-            while (session.CurrentColor != color && safety-- > 0)
+            while (session.CurrentColor != target && safety-- > 0)
             {
-                Assert.That(session.TryCycleColor(), Is.True);
+                session.TryCycleColor();
             }
-            Assert.That(session.CurrentColor, Is.EqualTo(color));
+            Assert.That(session.CurrentColor, Is.EqualTo(target));
         }
 
-        private static ExperimentGatePlan[] Generate(
-            ExperimentDefinition definition)
+        private static void SetDifferentColor(
+            ExperimentSession session,
+            RunnerColor target)
         {
-            DeterministicExperimentGateSequence sequence =
-                new DeterministicExperimentGateSequence(definition);
-            ExperimentGatePlan[] result =
-                new ExperimentGatePlan[definition.GateCount];
-            for (int index = 0; index < result.Length; index++)
+            if (session.CurrentColor == target)
             {
-                result[index] = sequence.GetPlan(index);
+                session.TryCycleColor();
             }
-            return result;
+            Assert.That(session.CurrentColor, Is.Not.EqualTo(target));
         }
 
-        private static List<ExperimentGatePlan> FindByRole(
-            ExperimentGatePlan[] plans,
-            ExperimentGateRole role)
+        private static RunnerColor NextColor(
+            ExperimentSession session,
+            RunnerColor current)
         {
-            List<ExperimentGatePlan> result =
-                new List<ExperimentGatePlan>();
-            for (int index = 0; index < plans.Length; index++)
+            for (int index = 0;
+                index < session.Definition.ColorCount;
+                index++)
             {
-                if (plans[index].Role == role)
+                RunnerColor color = session.Definition.GetColor(index);
+                if (color != current)
                 {
-                    result.Add(plans[index]);
+                    return color;
                 }
             }
-            return result;
-        }
-
-        private static void AssertSourceClonePair(
-            ExperimentGatePlan source,
-            ExperimentGatePlan clone,
-            int expectedSourceGateId,
-            int expectedCloneGateId)
-        {
-            Assert.That(source.GateId, Is.EqualTo(expectedSourceGateId));
-            Assert.That(clone.GateId, Is.EqualTo(expectedCloneGateId));
-            Assert.That(
-                clone.GateIndex,
-                Is.EqualTo(source.GateIndex + 1));
-            Assert.That(clone.SourceGateId, Is.EqualTo(source.GateId));
-            Assert.That(clone.IsSource, Is.False);
-        }
-
-        private static void AssertPlanEqual(
-            ExperimentGatePlan expected,
-            ExperimentGatePlan actual)
-        {
-            Assert.That(actual.GateId, Is.EqualTo(expected.GateId));
-            Assert.That(actual.GateIndex, Is.EqualTo(expected.GateIndex));
-            Assert.That(
-                actual.NonCloneGateIndex,
-                Is.EqualTo(expected.NonCloneGateIndex));
-            Assert.That(actual.Role, Is.EqualTo(expected.Role));
-            Assert.That(
-                actual.SourceGateId,
-                Is.EqualTo(expected.SourceGateId));
-            Assert.That(actual.Color, Is.EqualTo(expected.Color));
-            Assert.That(
-                actual.RequiredTapCount,
-                Is.EqualTo(expected.RequiredTapCount));
-            Assert.That(
-                actual.Spacing,
-                Is.EqualTo(expected.Spacing).Within(0.0001f));
-            Assert.That(
-                actual.Cadence,
-                Is.EqualTo(expected.Cadence).Within(0.0001f));
+            return current;
         }
     }
 }

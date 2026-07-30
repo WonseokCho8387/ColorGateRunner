@@ -585,7 +585,7 @@ Status: Active.
 
 ## Iteration 3 Clone-only Experiment contract
 
-Status: Active implementation contract.
+Status: Superseded by Iteration 4 Echo Modifier Design. Retained as history.
 
 - Clone extends the existing deterministic Experiment gate sequence. No
   second generator, runtime flow, collision system, or Pattern Generator is
@@ -617,3 +617,51 @@ Status: Active implementation contract.
   Flicker, color-changing Clone, multiple/recursive Clone, Clone chains,
   combined-mechanic balancing, Pattern/Section metadata, and Experiment
   Continue remain deferred.
+
+## Iteration 4 Echo Modifier and configurable campaign expansion
+
+Status: Approved implementation contract.
+
+- `StageCatalogAsset` is the only production campaign-stage value source.
+  Runtime and Editor simulation consume the same adapter output through
+  `IStageCatalog`; Core keeps `noEngineReferences: true`.
+- Unity `AnimationCurve` data is converted once into deterministic pure-Core
+  curve data. Runtime, ETA, and simulation use the same evaluator.
+- None, Camouflage, Fog, Ice, and Echo Provider share one minimal GateModifier
+  representation. This is not approval for Flicker or a general modifier
+  composition framework.
+- `EchoOfferCoordinator` owns deterministic candidates, one locked active
+  offer, one held Echo, cooldown, acquisition count, and Retry/Replay reset.
+  Presentation only reports stable gate IDs and pool lifecycle events.
+- Echo is an ordinary gate modifier. It adds no judgment gate and stores the
+  effective color only after an exact player-color pass.
+- Judgment priority is Player, Echo, Shield, Failure. Echo-assisted and
+  Shielded passes never acquire Echo.
+- Camouflage reveal begins when deterministic ETA is at or below its
+  stage-authored lead time, fades over its authored transition, and never
+  hides again.
+- Stage base speed is
+  `Lerp(StartSpeed, MaxSpeed, Curve(progress))`. Booster and Ice apply after
+  base speed, and Booster is not capped by `MaxSpeed`.
+- Stage 6 grants one stage-local Shield at start. Stage 7 auto-activates one
+  stage-local Booster at 30% progress. Retry restores the stage-local grant;
+  Continue follows the existing no-item-restoration rule.
+- Campaign expands sequentially through Stage 11 using stable IDs and
+  data-bound UI. Existing Stage 1–5 and Step 10 outputs are regression
+  baselines, not values to be silently updated.
+- Simulation candidate selection may tune only documented stage-authored
+  colors, speed profile, cadence, and mechanic settings. No runtime adaptive
+  balancing or player-profile manipulation is allowed.
+
+## Iteration 4 implementation outcome
+
+Status: Implemented and validated.
+
+- The final simulation-informed candidate uses two active colors in Stages
+  6-10 and three in Stage 11. This is authored catalog data, not adaptive
+  difficulty.
+- Stage 6-11 speed profiles and cadence remain initial human-play candidates.
+  Automated evidence did not authorize further tuning.
+- Clone types, Source relationships, gap insertion, Clone failure, and Clone
+  presentation are absent from active code. Historical Clone text remains
+  only as a superseded decision record.

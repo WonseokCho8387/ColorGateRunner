@@ -118,10 +118,6 @@ namespace ColorGateRunner.Presentation
         {
             _mechanic = (MechanicExperimentType)(
                 ((int)_mechanic + 1) % 5);
-            if (_mechanic == MechanicExperimentType.Clone)
-            {
-                _booster = false;
-            }
             _session = null;
             RefreshLabel();
         }
@@ -148,12 +144,6 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleBooster()
         {
-            if (_mechanic == MechanicExperimentType.Clone)
-            {
-                _booster = false;
-                RefreshLabel();
-                return;
-            }
             _booster = !_booster;
             RefreshLabel();
         }

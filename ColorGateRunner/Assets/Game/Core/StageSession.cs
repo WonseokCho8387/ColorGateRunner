@@ -7,6 +7,7 @@ namespace ColorGateRunner.Core
         public const float BoosterExitDuration = 0.35f;
 
         private readonly DeterministicStageGateSequence _sequence;
+        private readonly EchoOfferCoordinator _echoCoordinator;
         private StartItemSelection _items;
         private float _shieldRecoveryRemaining;
         private float _boosterExitRemaining;
@@ -16,6 +17,7 @@ namespace ColorGateRunner.Core
         private bool _clearResolved;
         private bool _failedGatePendingForContinue;
         private float _speedBeforeFailure;
+        private bool _mechanicGrantActivated;
 
         public StageSession(StageDefinition stage)
         {
@@ -26,6 +28,10 @@ namespace ColorGateRunner.Core
             }
 
             _sequence = new DeterministicStageGateSequence(stage);
+            _echoCoordinator = new EchoOfferCoordinator(
+                stage.EchoSettings,
+                stage.Seed,
+                stage.TargetGateCount);
             FlowState = StageFlowState.PreRunSelection;
             CurrentColor = RunnerColor.Red;
             CurrentSpeed = stage.StartingSpeed;
@@ -74,6 +80,19 @@ namespace ColorGateRunner.Core
             _failedGatePendingForContinue;
         public int ContinuedFailedGateResolutionCount { get; private set; }
         public float SpeedBeforeFailure => _speedBeforeFailure;
+        public bool EchoActive => _echoCoordinator.EchoActive;
+        public RunnerColor EchoColor => _echoCoordinator.EchoColor;
+        public int EchoAcquisitionCount =>
+            _echoCoordinator.EchoAcquisitionCount;
+        public bool MechanicGrantActivated => _mechanicGrantActivated;
+        public bool StageProvidesShield =>
+            Stage.MechanicGrantSettings.Enabled &&
+            Stage.MechanicGrantSettings.Mechanic ==
+                StageMechanicGrantMechanic.Shield;
+        public bool StageProvidesBooster =>
+            Stage.MechanicGrantSettings.Enabled &&
+            Stage.MechanicGrantSettings.Mechanic ==
+                StageMechanicGrantMechanic.Booster;
 
         public void SelectItems(StartItemSelection items)
         {
@@ -83,8 +102,8 @@ namespace ColorGateRunner.Core
             }
 
             _items = new StartItemSelection(
-                items.Shield && Stage.ShieldAllowed,
-                items.Booster && Stage.BoosterAllowed);
+                items.Shield && Stage.ShieldAllowed && !StageProvidesShield,
+                items.Booster && Stage.BoosterAllowed && !StageProvidesBooster);
         }
 
         public bool BeginCountdown()
@@ -120,6 +139,7 @@ namespace ColorGateRunner.Core
                 _safeGateCountRemaining = 2;
                 ResolveFailedGateForContinue();
             }
+            ApplyMechanicGrantIfEligible(true);
             BoosterDistanceRemaining = BoosterActive
                 ? Stage.BoosterDistance
                 : 0f;
@@ -204,9 +224,20 @@ namespace ColorGateRunner.Core
 
         public GatePlan GetGatePlan(int gateIndex)
         {
-            return AdjustForSafeTransition(
+            GatePlan plan = AdjustForSafeTransition(
                 _sequence.GetPlan(gateIndex),
                 gateIndex - GatesPassed);
+            float progress = Stage.TargetGateCount <= 1
+                ? 1f
+                : Math.Min(
+                    1f,
+                    gateIndex / (float)(Stage.TargetGateCount - 1));
+            GateModifier modifier = _echoCoordinator.RegisterGate(
+                plan.GateId,
+                progress,
+                false,
+                plan.Modifier);
+            return plan.WithModifier(modifier);
         }
 
         public GatePlan AdjustForSafeTransition(GatePlan plan)
@@ -237,6 +268,21 @@ namespace ColorGateRunner.Core
 
         public GateOutcome ResolveGate(RunnerColor gateColor)
         {
+            GatePlan plan = new GatePlan(
+                GatesPassed,
+                gateColor,
+                0f,
+                0f,
+                1f,
+                GatePatternType.Steady,
+                GatesPassed,
+                false,
+                GateModifier.None);
+            return ResolveGate(plan);
+        }
+
+        public GateOutcome ResolveGate(GatePlan plan)
+        {
             if ((FlowState != StageFlowState.Playing &&
                 FlowState != StageFlowState.ShieldRecovery) ||
                 GatesPassed >= Stage.TargetGateCount)
@@ -244,43 +290,55 @@ namespace ColorGateRunner.Core
                 return GateOutcome.Ignored;
             }
 
-            if (BoosterActive)
+            bool passedByPlayerColor = CurrentColor == plan.Color;
+            if (Stage.EchoSettings.Enabled && passedByPlayerColor)
             {
-                GatesPassed++;
-                ConsumeSafeGate();
-                EnterFinishingIfFinalGate();
-                UpdateSpeed();
-                return GateOutcome.Boosted;
+                _echoCoordinator.TryAcquire(
+                    plan.GateId,
+                    plan.Color,
+                    plan.Modifier.IsEchoProvider);
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Matched);
             }
 
-            if (CurrentColor == gateColor)
+            if (Stage.EchoSettings.Enabled &&
+                _echoCoordinator.TryConsume(plan.Color))
             {
-                GatesPassed++;
-                ConsumeSafeGate();
-                EnterFinishingIfFinalGate();
-                UpdateSpeed();
-                return GateOutcome.Matched;
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Echoed);
+            }
+
+            if (BoosterActive)
+            {
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Boosted);
+            }
+
+            if (passedByPlayerColor)
+            {
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Matched);
             }
 
             if (ShieldActive)
             {
                 ShieldActive = false;
-                GatesPassed++;
-                ConsumeSafeGate();
                 FlowState = StageFlowState.ShieldRecovery;
                 _shieldRecoveryRemaining = GameRules.ShieldRecoveryDuration;
-                EnterFinishingIfFinalGate();
-                UpdateSpeed();
-                return GateOutcome.Shielded;
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Shielded);
             }
 
             if (_continueProtectionRemaining > 0f)
             {
-                GatesPassed++;
-                ConsumeSafeGate();
-                EnterFinishingIfFinalGate();
-                UpdateSpeed();
-                return GateOutcome.Invulnerable;
+                return CompleteSuccessfulGate(
+                    plan.GateId,
+                    GateOutcome.Invulnerable);
             }
 
             FlowState = StageFlowState.Failed;
@@ -299,6 +357,8 @@ namespace ColorGateRunner.Core
 
             ContinueUsed = true;
             _continueCountdown = true;
+            _mechanicGrantActivated = false;
+            _echoCoordinator.Restart();
             BoosterActive = false;
             BoosterDistanceRemaining = 0f;
             _boosterExitRemaining = 0f;
@@ -345,6 +405,18 @@ namespace ColorGateRunner.Core
             _clearResolved = false;
             _speedBeforeFailure = Stage.StartingSpeed;
             _sequence.Reset();
+            _echoCoordinator.Restart();
+            _mechanicGrantActivated = false;
+        }
+
+        public float GetSpeedForPlan(GatePlan plan)
+        {
+            if (plan.Modifier.IsIce && !BoosterActive)
+            {
+                return CurrentSpeed * GateModifierRules.IceSpeedMultiplier;
+            }
+
+            return CurrentSpeed;
         }
 
         private void ResolveFailedGateForContinue()
@@ -356,9 +428,56 @@ namespace ColorGateRunner.Core
             }
 
             _failedGatePendingForContinue = false;
+            _echoCoordinator.OnGateResolved(GatesPassed);
             GatesPassed++;
             ContinuedFailedGateResolutionCount++;
+            ApplyMechanicGrantIfEligible(false);
             EnterFinishingIfFinalGate();
+        }
+
+        private GateOutcome CompleteSuccessfulGate(
+            int gateId,
+            GateOutcome outcome)
+        {
+            _echoCoordinator.OnGateResolved(gateId);
+            GatesPassed++;
+            ConsumeSafeGate();
+            ApplyMechanicGrantIfEligible(false);
+            EnterFinishingIfFinalGate();
+            UpdateSpeed();
+            return outcome;
+        }
+
+        private void ApplyMechanicGrantIfEligible(bool stageStart)
+        {
+            StageMechanicGrantSettings grant =
+                Stage.MechanicGrantSettings;
+            if (!grant.Enabled || _mechanicGrantActivated)
+            {
+                return;
+            }
+
+            bool eligible =
+                grant.ActivationMode ==
+                    StageMechanicActivationMode.ActiveAtStageStart
+                    ? stageStart
+                    : Progress >= grant.ActivationProgress;
+            if (!eligible)
+            {
+                return;
+            }
+
+            _mechanicGrantActivated = true;
+            if (grant.Mechanic == StageMechanicGrantMechanic.Shield)
+            {
+                ShieldActive = true;
+            }
+            else if (grant.Mechanic ==
+                StageMechanicGrantMechanic.Booster)
+            {
+                BoosterActive = true;
+                BoosterDistanceRemaining = Stage.BoosterDistance;
+            }
         }
 
         private void EnterFinishingIfFinalGate()
@@ -402,8 +521,10 @@ namespace ColorGateRunner.Core
             }
 
             float stageProgress = Progress;
-            float normalSpeed = Stage.StartingSpeed +
-                ((Stage.MaximumSpeed - Stage.StartingSpeed) * stageProgress);
+            float normalSpeed = Stage.SpeedProfile.IsLinear
+                ? Stage.StartingSpeed +
+                    ((Stage.MaximumSpeed - Stage.StartingSpeed) * stageProgress)
+                : Stage.GetBaseSpeed(stageProgress);
             if (_boosterExitRemaining > 0f)
             {
                 float strength =

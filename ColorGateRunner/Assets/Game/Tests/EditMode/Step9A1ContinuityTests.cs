@@ -13,7 +13,7 @@ namespace ColorGateRunner.Tests.EditMode
             float[] boosters = { 88f, 92f, 96f, 100f, 104f };
             float[] boosterDistances = { 320f, 360f, 400f, 420f, 460f };
 
-            for (int index = 0; index < StageCatalog.Count; index++)
+            for (int index = 0; index < starts.Length; index++)
             {
                 StageDefinition stage = StageCatalog.GetByIndex(index);
                 Assert.That(stage.StartingSpeed, Is.EqualTo(starts[index]));

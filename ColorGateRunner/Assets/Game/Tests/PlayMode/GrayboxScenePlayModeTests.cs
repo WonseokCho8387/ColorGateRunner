@@ -433,15 +433,33 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.GetPresentationMaterial(plan.Color),
                 neutral,
                 position.z,
-                plan.GateIndex - 2);
+                plan.GateIndex - 2,
+                definition.Camouflage.RevealLeadTimeSeconds + 1f,
+                definition.Camouflage);
             Vector3 before = gate.transform.position;
             Assert.That(gate.SymbolVisible, Is.False);
 
-            gate.UpdateExperimentVisibility(plan.GateIndex - 1, neutral);
+            gate.UpdateExperimentVisibility(
+                plan.GateIndex - 1,
+                definition.Camouflage.RevealLeadTimeSeconds,
+                neutral,
+                definition.Camouflage,
+                definition.Camouflage.RevealTransitionSeconds);
 
             Assert.That(gate.SymbolVisible, Is.True);
             Assert.That(gate.transform.position, Is.EqualTo(before));
             Assert.That(gate.ReactionActive, Is.True);
+
+            gate.UpdateExperimentVisibility(
+                plan.GateIndex - 2,
+                definition.Camouflage.RevealLeadTimeSeconds + 5f,
+                neutral,
+                definition.Camouflage,
+                0f);
+            Assert.That(
+                gate.SymbolVisible,
+                Is.True,
+                "Reveal remains latched when ETA later changes.");
         }
 
         [Test]
@@ -472,7 +490,9 @@ namespace ColorGateRunner.Tests.PlayMode
                     _controller.GetPresentationMaterial(plan.Color),
                     neutral,
                     50f + offset * 20f,
-                    definition.FogStartGate);
+                    definition.FogStartGate,
+                    float.PositiveInfinity,
+                    definition.Camouflage);
                 visible += gate.SymbolVisible ? 1 : 0;
             }
 
@@ -861,6 +881,12 @@ namespace ColorGateRunner.Tests.PlayMode
         [TestCase(3)]
         [TestCase(4)]
         [TestCase(5)]
+        [TestCase(6)]
+        [TestCase(7)]
+        [TestCase(8)]
+        [TestCase(9)]
+        [TestCase(10)]
+        [TestCase(11)]
         public void EveryStage_AllItemCombinationsCanInitialize(int stageNumber)
         {
             _store.HighestUnlocked = StageCatalog.Count;
@@ -879,10 +905,14 @@ namespace ColorGateRunner.Tests.PlayMode
                 }
                 _controller.StartSelectedStage();
 
+                bool stageShield =
+                    _controller.Session.StageProvidesShield;
+                bool stageBooster =
+                    _controller.Session.StageProvidesBooster;
                 Assert.That(_controller.Session.Items.Shield,
-                    Is.EqualTo((mask & 1) != 0));
+                    Is.EqualTo((mask & 1) != 0 && !stageShield));
                 Assert.That(_controller.Session.Items.Booster,
-                    Is.EqualTo((mask & 2) != 0));
+                    Is.EqualTo((mask & 2) != 0 && !stageBooster));
                 Assert.That(_controller.Session.FlowState,
                     Is.EqualTo(StageFlowState.Countdown));
 
@@ -890,13 +920,82 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(_controller.Session.FlowState,
                     Is.EqualTo(StageFlowState.Playing));
                 Assert.That(_controller.Session.ShieldActive,
-                    Is.EqualTo((mask & 1) != 0));
+                    Is.EqualTo((mask & 1) != 0 || stageShield));
                 Assert.That(_controller.Session.BoosterActive,
-                    Is.EqualTo((mask & 2) != 0));
+                    Is.EqualTo((mask & 2) != 0 && !stageBooster));
                 Assert.That(_controller.ShieldVisual.activeSelf,
-                    Is.EqualTo((mask & 1) != 0));
+                    Is.EqualTo((mask & 1) != 0 || stageShield));
                 Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
             }
+        }
+
+        [Test]
+        public void StageSelectUi_HasOneButtonPerCatalogEntry()
+        {
+            for (int index = 0; index < StageCatalog.Count; index++)
+            {
+                Assert.That(_controller.GetStageButton(index), Is.Not.Null);
+            }
+        }
+
+        [Test]
+        public void CampaignCamouflageGate_RevealsFromEtaAndStaysJudged()
+        {
+            SelectAndStartStage(8);
+            while (_controller.Session.GatesPassed < 3)
+            {
+                StageGateView current = FindGateByPlanIndex(
+                    _controller.Session.GatesPassed);
+                Match(current.AssignedColor);
+                current.TryResolveCrossing();
+            }
+
+            StageGateView camouflage = FindGateByPlanIndex(8);
+            Assert.That(camouflage, Is.Not.Null);
+            Assert.That(camouflage.ActivePlan.Modifier.IsCamouflage, Is.True);
+            Assert.That(camouflage.SymbolVisible, Is.False);
+
+            camouflage.UpdateCampaignVisibility(
+                _controller.Session.GatesPassed,
+                0f,
+                _controller.GetPresentationMaterial(RunnerColor.Red),
+                _controller.Session.Stage.CamouflageSettings,
+                _controller.Session.Stage.CamouflageSettings
+                    .RevealTransitionSeconds);
+
+            Assert.That(camouflage.SymbolVisible, Is.True);
+            Assert.That(camouflage.CamouflageRevealProgress, Is.EqualTo(1f));
+            Mismatch(camouflage.AssignedColor);
+            Assert.That(camouflage.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+        }
+
+        [Test]
+        public void CampaignEchoProvider_ActivatesColoredPlayerShell()
+        {
+            SelectAndStartStage(11);
+            StageGateView provider = null;
+            while (provider == null)
+            {
+                StageGateView current = FindGateByPlanIndex(
+                    _controller.Session.GatesPassed);
+                Assert.That(current, Is.Not.Null);
+                if (current.ActivePlan.Modifier.IsEchoProvider)
+                {
+                    provider = current;
+                    break;
+                }
+
+                Match(current.AssignedColor);
+                current.TryResolveCrossing();
+            }
+
+            Match(provider.AssignedColor);
+            Assert.That(provider.TryResolveCrossing(), Is.True);
+            Assert.That(_controller.Session.EchoActive, Is.True);
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.True);
         }
 
         [Test]
@@ -1242,6 +1341,18 @@ namespace ColorGateRunner.Tests.PlayMode
             SelectItemsAndStart(shield, booster);
             _controller.Tick(3.1f);
             Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+        }
+
+        private void SelectAndStartStage(int stageNumber)
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(stageNumber);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            Assert.That(
+                _controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
         }
 
