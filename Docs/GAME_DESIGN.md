@@ -68,6 +68,11 @@ Stage 4 keeps its first eight gates Red/Blue, then presents a deterministic
 Green onboarding gate. Stages 1–3 never introduce Green. Stage 5 uses all
 three colors and the strongest supported pattern mix.
 
+The input cycle uses the stage's active colors in authored forward order.
+Stage 4 activates Red, Blue, and Green from its initial countdown even though
+Green first appears at gate index 8. Runtime input, HUD guidance, and
+simulation required-tap calculation use the same modular forward-cycle rule.
+
 ## Start items
 
 ### Shield
@@ -152,7 +157,7 @@ item/Continue effects only. Local development telemetry may later calibrate
 profiles; it is disabled by default, contains no identifiers, and is never
 uploaded.
 
-## Step 9A.1 active continuity and movement overrides
+## Step 9A.1 continuity and historical movement overrides
 
 This section supersedes only the conflicting Step 9A transition and movement
 values above. All unrelated stage, item, input, persistence, and result rules
@@ -177,6 +182,29 @@ remain active.
   metadata separately from temporary effective colors and report continuity
   metrics. Mechanical continuity does not establish perceptual smoothness,
   comfort, fairness, or fun.
+
+## Iteration 2 active campaign speed-scale override
+
+This section supersedes only the Step 9A.1 campaign movement and world-distance
+values above. Continue, Booster continuity, cadence, input, persistence, and
+result rules remain unchanged.
+
+- Normal campaign speed is linear in passed-gate progress:
+  `speed = start + (maximum - start) * progress`.
+- Starting/maximum speeds for Stages 1–5 are respectively `28/40`, `32/44`,
+  `34/46`, `32/48`, and `36/54` units per second.
+- Fixed Booster speeds are `88`, `92`, `96`, `100`, and `104`, with travel
+  distances `320`, `360`, `400`, `420`, and `460` units.
+- Authored gate cadence remains `1.55→1.25`, `1.45→1.10`, `1.40→1.00`,
+  `1.45→1.00`, and `1.25→0.85` seconds. Gate spacing remains speed multiplied
+  by cadence, so spatial spacing doubles with speed.
+- Campaign initial gate lead is 48 units and Goal distance is 40 units.
+- Experiment Lab retains its separate movement values and 24-unit initial
+  lead.
+- The scale change preserves time-based decision cadence, approximate stage
+  duration, and approximate Booster duration by construction. Human playtest
+  must determine whether the new motion reads as faster and remains
+  comfortable.
 
 ## Step 10 development experiment lab
 
@@ -206,3 +234,56 @@ six colors crossed with None, Camouflage, Fog, and Ice.
 
 Flicker, Clone, combined mechanics, reverse cycling, swipe-back input, and
 permanent four-through-six-color progression remain deferred.
+
+## Iteration 3 Clone-only experiment contract
+
+Clone is a development-only Experiment capability. It is not part of campaign
+Stages 1–5 and does not introduce a new input.
+
+- A Clone Gate is an additional real judgment gate placed immediately after
+  one explicit Source Gate. Source and Clone are judged independently.
+- Clone uses the Source Gate's target color. Passing the Source does not pass
+  its Clone, and passing a Clone contributes to Experiment completion.
+- Gate roles are `Standard`, `Source`, and `Clone`. Every generated judgment
+  gate has a stable generated identity. A Clone records its Source identity;
+  Standard and Source gates have no Source identity.
+- The first Clone-only condition uses `SourceIndices [3, 6]`, where indices
+  count non-Clone judgment gates from one. Exactly two Clones are generated.
+  Source selection is explicit rather than random and is unchanged by seed.
+- A definition with fewer than six non-Clone judgment gates is invalid. It
+  does not substitute another Source.
+- Clone gap is calculated as
+  `Experiment base movement speed * 0.45 seconds`. It is not recalculated for
+  Booster. Later gate positions shift forward in sequence, so Source and Clone
+  never overlap and no following gap is shortened.
+- A Clone cannot be a Goal, a Goal cannot be a Source, and a Clone cannot
+  create another Clone. One Source owns at most one Clone.
+- Clone-only Launcher runs disable Booster and use normal Experiment speed.
+- A Clone mismatch uses the existing failure flow. Active Shield consumes its
+  one shared protection, passes that Clone, and keeps the Experiment running.
+  No Clone-specific Shield rule is introduced.
+- Camouflage remains a visibility mechanic. Clone hides its color and symbol
+  under the same condition as an ordinary Camouflage gate, reveals at the same
+  distance, then uses normal judgment. Camouflage never exempts Clone from
+  judgment and never suppresses failure.
+- Retry and Replay preserve the definition, seed, Source relationships, Clone
+  positions, and colors while resetting all judgment and visibility state.
+- Clone failure is identified separately from an ordinary gate failure in
+  runtime result information.
+
+Clone color variation, multiple Clones per Source, Clone chains, probabilistic
+Source selection, Flicker, Clone with Booster balancing, Clone with Fog or Ice
+balancing, campaign use, Pattern/Section metadata, and a new Pattern Generator
+remain deferred.
+
+## Iteration Notes
+
+Stage unlock policy Mechanics are introduced once.
+After that they become optional.
+
+---
+
+Tap Budget
+Maximum = 4
+4 Tap Peak only <1%
+Difficulty comes from Rhythm not randomness.

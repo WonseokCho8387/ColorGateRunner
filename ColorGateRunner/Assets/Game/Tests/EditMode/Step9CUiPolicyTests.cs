@@ -28,7 +28,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ThreeColorIntroduction_ShowsTwoTilesUntilIntroductionEnds()
+        public void StageFour_ShowsCompleteColorCycleFromStart()
         {
             StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
 
@@ -36,7 +36,7 @@ namespace ColorGateRunner.Tests.EditMode
                 MobileUiPolicy.GetActiveColorCount(
                     stage,
                     stage.IntroGateCount - 1),
-                Is.EqualTo(2));
+                Is.EqualTo(3));
         }
 
         [Test]

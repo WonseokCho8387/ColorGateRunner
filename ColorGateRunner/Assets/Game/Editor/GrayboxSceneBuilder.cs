@@ -79,6 +79,7 @@ namespace ColorGateRunner.Editor
             GameObject playerObject =
                 CreatePlayer(root.transform, red);
             Renderer playerRenderer = playerObject.GetComponent<Renderer>();
+            Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             GameObject shieldVisual =
                 CreateShieldVisual(playerObject.transform, blue);
@@ -116,6 +117,7 @@ namespace ColorGateRunner.Editor
             Text lobbyProgressText;
             Text lobbyTierText;
             Button lobbyPlayButton;
+            Button experimentLabButton;
             GameObject[] lobbyTierRoots;
             Button resetProgressButton;
             GameObject resetProgressConfirmation;
@@ -130,6 +132,7 @@ namespace ColorGateRunner.Editor
                 out lobbyProgressText,
                 out lobbyTierText,
                 out lobbyPlayButton,
+                out experimentLabButton,
                 out lobbyTierRoots,
                 out resetProgressButton,
                 out resetProgressConfirmation,
@@ -241,6 +244,7 @@ namespace ColorGateRunner.Editor
             controller.Configure(
                 playerObject.transform,
                 playerRenderer,
+                playerBody,
                 camera,
                 red,
                 blue,
@@ -265,6 +269,7 @@ namespace ColorGateRunner.Editor
                 lobbyProgressText,
                 lobbyTierText,
                 lobbyPlayButton,
+                experimentLabButton,
                 lobbyTierRoots,
                 resetProgressButton,
                 resetProgressConfirmation,
@@ -429,6 +434,7 @@ namespace ColorGateRunner.Editor
                 "LobbyStageTitle",
                 "LobbyStageDescription",
                 "LobbyPlayButton",
+                "ExperimentLabButton",
                 "ResetProgressButton",
                 "ResetProgressConfirmation",
                 "ConfirmResetProgressButton",
@@ -458,6 +464,11 @@ namespace ColorGateRunner.Editor
                 "ShieldIcon",
                 "ShieldVisual",
                 "Goal",
+                "FinishLeftPost",
+                "FinishRightPost",
+                "FinishCrossbar",
+                "FinishBanner",
+                "FinishFloorLine",
                 "StageClearPanel",
                 "StageFailedPanel",
                 "ClearContinueButton",
@@ -700,13 +711,63 @@ namespace ColorGateRunner.Editor
 
         private static GameObject CreateGoal(Transform parent, Material material)
         {
-            GameObject goal = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            goal.name = "Goal";
+            GameObject goal = new GameObject("Goal");
             goal.transform.SetParent(parent, false);
-            goal.transform.localScale = new Vector3(6f, 3f, 0.35f);
-            goal.GetComponent<Renderer>().sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(goal.GetComponent<Collider>());
+            CreateFinishPart(
+                "FinishLeftPost",
+                goal.transform,
+                new Vector3(-2.7f, 2f, 0f),
+                new Vector3(0.35f, 4f, 0.35f),
+                material);
+            CreateFinishPart(
+                "FinishRightPost",
+                goal.transform,
+                new Vector3(2.7f, 2f, 0f),
+                new Vector3(0.35f, 4f, 0.35f),
+                material);
+            CreateFinishPart(
+                "FinishCrossbar",
+                goal.transform,
+                new Vector3(0f, 4f, 0f),
+                new Vector3(5.75f, 0.55f, 0.45f),
+                material);
+            CreateFinishPart(
+                "FinishFloorLine",
+                goal.transform,
+                new Vector3(0f, 0.06f, 0f),
+                new Vector3(6f, 0.12f, 0.8f),
+                material);
+
+            GameObject banner = new GameObject(
+                "FinishBanner",
+                typeof(TextMesh));
+            banner.transform.SetParent(goal.transform, false);
+            banner.transform.localPosition = new Vector3(0f, 4f, -0.25f);
+            banner.transform.localRotation = Quaternion.identity;
+            TextMesh text = banner.GetComponent<TextMesh>();
+            text.text = "FINISH";
+            text.fontSize = 72;
+            text.characterSize = 0.12f;
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.color = Color.white;
             return goal;
+        }
+
+        private static void CreateFinishPart(
+            string name,
+            Transform parent,
+            Vector3 localPosition,
+            Vector3 localScale,
+            Material material)
+        {
+            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localScale = localScale;
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
         }
 
         private static StageGateView[] CreateGatePool(
@@ -924,6 +985,7 @@ namespace ColorGateRunner.Editor
             out Text progress,
             out Text tier,
             out Button play,
+            out Button experimentLab,
             out GameObject[] tierRoots,
             out Button resetProgress,
             out GameObject resetConfirmation,
@@ -985,13 +1047,22 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.86f, 0.23f),
                 out playLabel);
             playLabel.fontSize = 46;
+            Text labLabel;
+            experimentLab = CreateButton(
+                "ExperimentLabButton",
+                panel.transform,
+                "EXPERIMENT LAB",
+                new Vector2(0.30f, 0.045f),
+                new Vector2(0.70f, 0.085f),
+                out labLabel);
+            labLabel.fontSize = 16;
             Text resetLabel;
             resetProgress = CreateButton(
                 "ResetProgressButton",
                 panel.transform,
                 "RESET PROGRESS",
-                new Vector2(0.36f, 0.035f),
-                new Vector2(0.64f, 0.075f),
+                new Vector2(0.36f, 0.005f),
+                new Vector2(0.64f, 0.035f),
                 out resetLabel);
             resetLabel.fontSize = 16;
             tierRoots = new GameObject[4];

@@ -6,12 +6,12 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class Step9A1ContinuityTests
     {
         [Test]
-        public void StageCatalog_AllMovementSpeedsAreDoubled()
+        public void StageCatalog_UsesIteration2DoubleSpeedScale()
         {
-            float[] starts = { 14f, 16f, 17f, 16f, 18f };
-            float[] maximums = { 20f, 22f, 23f, 24f, 27f };
-            float[] boosters = { 44f, 46f, 48f, 50f, 52f };
-            float[] boosterDistances = { 160f, 180f, 200f, 210f, 230f };
+            float[] starts = { 28f, 32f, 34f, 32f, 36f };
+            float[] maximums = { 40f, 44f, 46f, 48f, 54f };
+            float[] boosters = { 88f, 92f, 96f, 100f, 104f };
+            float[] boosterDistances = { 320f, 360f, 400f, 420f, 460f };
 
             for (int index = 0; index < StageCatalog.Count; index++)
             {
@@ -113,7 +113,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ContinueSnapshot_PreservesExactStageState()
+        public void Continue_PreservesStateAndConsumesFailedGate()
         {
             StageSession session = CreateFailedWithLookahead(
                 out float elapsed,
@@ -125,7 +125,8 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(session.ContinueAfterFailure(), Is.True);
 
             Assert.That(session.ElapsedPlayingSeconds, Is.EqualTo(elapsed));
-            Assert.That(session.Progress, Is.EqualTo(progress));
+            Assert.That(session.Progress,
+                Is.EqualTo(progress + (1f / session.Stage.TargetGateCount)));
             Assert.That(session.CurrentSpeed, Is.EqualTo(speed));
             Assert.That(session.CurrentColor, Is.EqualTo(color));
             Assert.That(session.SequenceCursor, Is.EqualTo(cursor));
@@ -147,7 +148,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Continue_PreservesNormalizedProgress()
+        public void Continue_AdvancesProgressPastConsumedFailedGate()
         {
             StageSession session = CreateFailedWithLookahead(
                 out _,
@@ -158,7 +159,8 @@ namespace ColorGateRunner.Tests.EditMode
 
             session.ContinueAfterFailure();
 
-            Assert.That(session.Progress, Is.EqualTo(progress));
+            Assert.That(session.Progress,
+                Is.EqualTo(progress + (1f / session.Stage.TargetGateCount)));
         }
 
         [Test]

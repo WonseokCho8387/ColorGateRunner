@@ -488,3 +488,132 @@ Status: Active development-only experiment policy.
 Deferred: Flicker Gate, Clone Gate, permanent four-through-six-color
 progression, reverse-cycle input, swipe-to-previous-color input, combined
 mechanics, and production adaptive difficulty.
+
+## Step 10.1 human-playtest fixes and Experiment Lab access
+
+Status: Active. The Continue timing and Stage 4 color-activation details below
+Supersede only the conflicting Step 9A.1 and Step 9C statements; their other
+continuity and readability decisions remain historical and active.
+
+- The experiment launcher already existed under
+  `DevelopmentDebugRoot/ExperimentLauncherPanel`, but no Lobby action selected
+  the Development flow. A secondary `EXPERIMENT LAB` Lobby button is now the
+  explicit access path in the Unity Editor and Development Builds. It is hidden
+  in release builds, opens the existing launcher, returns to the Lobby on
+  leave, and never writes normal stage progression.
+- Stage 4 makes Red, Blue, and Green available to the input cycle and HUD from
+  the initial countdown. Gate-color availability is separate deterministic
+  data: Green first appears at zero-based gate index `8` (the ninth gate).
+  The first eight authored gates are `Red, Blue, Blue, Blue, Blue, Red, Red,
+  Blue`; seven of eight transitions need zero or one tap. Their cadence remains
+  at the generous Stage 4 starting cadence of `1.45s`. Stage 1–3 color rules
+  are unchanged.
+- A `StageGoalPlan` deterministically sums the configured initial lead, every
+  authored gate spacing, and the 20-unit finish offset. The Goal is activated
+  once at run setup and is never repositioned when the final gate resolves,
+  Booster ends, or Continue is used. Stage 4 places it `826.9061` units ahead
+  of the player; the camera far plane is 500 units, so it enters view
+  continuously from that range.
+- The generated Goal is a neutral marathon finish made from two posts, an
+  overhead crossbar and `FINISH` banner, and a floor line. It has no
+  color-match or collision requirement.
+- The Step 9A.1 rule that delayed failed-gate consumption until `GO` and kept
+  the visual failure snapshot through the countdown is Superseded. Selecting
+  Continue now consumes the failed gate exactly once immediately, deactivates
+  that pooled view, preserves the same `StageSession` and sequence, and places
+  the player no closer than 24 units before the next unresolved gate.
+  Rotation, scale, current-color material, Rigidbody linear/angular velocity,
+  camera shake/FOV, and Booster presentation are reset before the countdown.
+  Other gate and track transforms stay frozen; no pool is rebuilt.
+
+## Iteration 1 Experiment Runtime Flow and Stage 4 simulation parity
+
+Status: Active.
+
+- Experiment uses the existing `StageFlowState` as its single Core flow source:
+  `Countdown`, `Playing`, `Failed`, and `StageCleared` as the experiment's
+  completed state. The former mutable failure/completion booleans are replaced
+  by properties derived from that state.
+- Experiment launch and every Retry/Replay begin at the shared three-second
+  countdown. Movement, color input, gate judgment, item activation, and elapsed
+  experiment time advance only while `Playing`.
+- Failed and completed experiments reuse the generated campaign result roots.
+  Failure offers `Retry Same Test` and `Back to Lab`; completion offers
+  `Replay` and `Back to Lab`. Experiment Continue, rewards, scores, grades, and
+  statistics screens remain absent.
+- Retry and Replay restart the same `ExperimentSession` definition. Color
+  count, mechanic, seed, selected items, settings, and deterministic gate
+  sequence are preserved; transient runtime and presentation state reset.
+- Result actions use the controller's existing fixed button listeners with
+  flow-aware handlers. No runtime listener registration or second result-flow
+  object graph is introduced.
+- Experiment start, failure, completion, Retry, Replay, and Back to Lab do not
+  load or save normal campaign progress. Back to Lab returns directly to the
+  existing development launcher.
+- The Stage 4 Perfect first-attempt failure at zero-based gate index 5 was a
+  simulator/runtime rule mismatch. Runtime used the Step 10.1 three-color
+  `Red, Blue, Green` input cycle from countdown, while the simulator retained
+  the superseded two-color intro calculation and applied its one computed tap
+  through the three-color runtime session, landing on Green instead of Red.
+- `StageDefinition` now owns the pure active-color count, next-color, and
+  required-tap calculations. Runtime input, HUD policy, safe-color selection,
+  and simulation share that rule. No gate count, speed, cadence, timing window,
+  profile accuracy, or Stage 4 exception was changed.
+- Clone, Flicker, Pattern/Section metadata, and Experiment Continue remain
+  deferred.
+
+## Iteration 2 campaign speed-scale playtest adjustment
+
+Status: Active.
+
+- Human playtesting found that the campaign did not communicate enough speed.
+- Normal campaign starting/maximum speeds are doubled to `28/40`, `32/44`,
+  `34/46`, `32/48`, and `36/54` units per second.
+- Campaign Booster speeds are doubled to `88`, `92`, `96`, `100`, and `104`.
+  Booster travel distances are doubled with them to `320`, `360`, `400`,
+  `420`, and `460` units.
+- Gate cadence is unchanged. Since authored spacing is speed multiplied by
+  cadence, gate spacing doubles with movement speed. Campaign initial lead
+  becomes 48 units and Goal distance becomes 40 units.
+- This preserves the existing time-based input windows, approximate stage
+  duration, and approximate Booster duration while increasing world motion.
+- Experiment Lab remains isolated at its existing movement values and
+  24-unit initial lead.
+- Automated validation may establish deterministic timing and continuity, but
+  not perceived speed, comfort, fairness, or fun. Those remain human
+  playtest judgments.
+
+## Iteration 3 Clone-only Experiment contract
+
+Status: Active implementation contract.
+
+- Clone extends the existing deterministic Experiment gate sequence. No
+  second generator, runtime flow, collision system, or Pattern Generator is
+  introduced.
+- `CloneSettings` explicitly owns one-based non-Clone Source indices
+  `[3, 6]` and `GapSeconds = 0.45`. Exactly two Clone Gates are inserted,
+  immediately after those Sources, in that order.
+- Source selection is not random. Seed still determines the ordinary
+  Experiment gate colors and spacing; the explicit Clone relationship and
+  insertion locations replay identically for every retry.
+- A Clone copies its Source target color and is a separate, one-shot judgment
+  included in Experiment completion. It cannot be a Goal or Source and cannot
+  create another Clone. One Source owns at most one Clone.
+- Clone gap distance is the Experiment's normal base movement speed at that
+  Source multiplied by `0.45` seconds. Booster does not affect the calculation
+  and is disabled by the Clone-only Launcher condition.
+- Definitions with fewer than six non-Clone gates reject these settings
+  explicitly; they never select replacement Sources.
+- Shield uses the shared mismatch protection path. One active Shield consumes
+  once, passes the mismatched Clone, and preserves Playing.
+- Camouflage remains presentation visibility only: Clone hides and reveals
+  under the ordinary rule, then uses normal judgment and failure behavior.
+- Clone failure uses the existing `Failed` flow but carries a distinct failure
+  cause for the result presentation.
+- Retry/Replay reset gate View, visibility, reaction, and judgment state while
+  preserving the same seed, definition, Source/Clone relationships, colors,
+  and positions.
+- Campaign stages and the 16-condition Step 10 matrix remain unchanged.
+  Flicker, color-changing Clone, multiple/recursive Clone, Clone chains,
+  combined-mechanic balancing, Pattern/Section metadata, and Experiment
+  Continue remain deferred.

@@ -135,15 +135,9 @@ namespace ColorGateRunner.Core
                 return false;
             }
 
-            int allowedCount = GetCurrentAllowedColorCount();
-            int currentIndex = 0;
-            while (currentIndex < allowedCount &&
-                Stage.GetAllowedColor(currentIndex) != CurrentColor)
-            {
-                currentIndex++;
-            }
-
-            CurrentColor = Stage.GetAllowedColor((currentIndex + 1) % allowedCount);
+            CurrentColor = Stage.GetNextActiveColor(
+                GatesPassed,
+                CurrentColor);
             return true;
         }
 
@@ -312,6 +306,7 @@ namespace ColorGateRunner.Core
             _safeGateCountRemaining = 2;
             FlowState = StageFlowState.Countdown;
             CurrentSpeed = _speedBeforeFailure;
+            ResolveFailedGateForContinue();
             return true;
         }
 
@@ -366,17 +361,6 @@ namespace ColorGateRunner.Core
             EnterFinishingIfFinalGate();
         }
 
-        private int GetCurrentAllowedColorCount()
-        {
-            if (Stage.DisplayNumber == 4 &&
-                GatesPassed < Stage.IntroGateCount)
-            {
-                return 2;
-            }
-
-            return Stage.AllowedColorCount;
-        }
-
         private void EnterFinishingIfFinalGate()
         {
             if (GatesPassed >= Stage.TargetGateCount)
@@ -399,16 +383,7 @@ namespace ColorGateRunner.Core
 
         private RunnerColor GetNextAllowedColor(RunnerColor color)
         {
-            int count = GetCurrentAllowedColorCount();
-            for (int index = 0; index < count; index++)
-            {
-                if (Stage.GetAllowedColor(index) == color)
-                {
-                    return Stage.GetAllowedColor((index + 1) % count);
-                }
-            }
-
-            return Stage.GetAllowedColor(0);
+            return Stage.GetNextActiveColor(GatesPassed, color);
         }
 
         private void UpdateSpeed()

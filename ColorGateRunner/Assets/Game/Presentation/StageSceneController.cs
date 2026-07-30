@@ -8,8 +8,9 @@ namespace ColorGateRunner.Presentation
     public sealed class StageSceneController : MonoBehaviour
     {
         private const float CountdownDuration = 3f;
-        private const float InitialGateLeadDistance = 24f;
-        private const float GoalDistance = 20f;
+        private const float CampaignInitialGateLeadDistance = 48f;
+        private const float ExperimentInitialGateLeadDistance = 24f;
+        private const float CampaignGoalDistance = 40f;
         private const float FailurePanelDelay = 1f;
         private const float ClearPanelDelay = 1.2f;
         private const float BoosterWarningThreshold = 0.2f;
@@ -27,6 +28,7 @@ namespace ColorGateRunner.Presentation
 
         [SerializeField] private Transform player;
         [SerializeField] private Renderer playerRenderer;
+        [SerializeField] private Rigidbody playerBody;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Material redMaterial;
         [SerializeField] private Material blueMaterial;
@@ -53,6 +55,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text lobbyProgressText;
         [SerializeField] private Text lobbyTierText;
         [SerializeField] private Button lobbyPlayButton;
+        [SerializeField] private Button experimentLabButton;
         [SerializeField] private GameObject[] lobbyTierRoots;
         [SerializeField] private Button resetProgressButton;
         [SerializeField] private GameObject resetProgressConfirmation;
@@ -154,6 +157,7 @@ namespace ColorGateRunner.Presentation
         internal GameObject ClearPanel => clearPanel;
         internal GameObject FailPanel => failPanel;
         internal GameObject Goal => goal;
+        internal Button ExperimentLabButton => experimentLabButton;
         internal GameObject ShieldVisual => shieldVisual;
         internal GameObject BoosterWarning => boosterWarning;
         internal GameObject BoosterMeterRoot => boosterMeterRoot;
@@ -168,6 +172,10 @@ namespace ColorGateRunner.Presentation
         internal Text ClearDetailsText => clearDetailsText;
         internal Text FailDetailsText => failDetailsText;
         internal Button ContinueButton => continueButton;
+        internal Button RetryButton => retryButton;
+        internal Button ReplayButton => replayButton;
+        internal Button ClearLobbyButton => clearLobbyButton;
+        internal Button FailLobbyButton => failLobbyButton;
         internal Transform PlayerTransform => player;
         internal Renderer PlayerRenderer => playerRenderer;
         internal Camera GameplayCamera => gameplayCamera;
@@ -277,7 +285,7 @@ namespace ColorGateRunner.Presentation
 
             if (_experimentActive)
             {
-                TickExperiment(deltaTime);
+                TickExperimentRuntime(deltaTime);
                 TickCamera(deltaTime);
                 return;
             }
@@ -304,16 +312,7 @@ namespace ColorGateRunner.Presentation
                     ApplyUiFlow(MobileUiFlow.Gameplay);
                     if (continued)
                     {
-                        player.localRotation = Quaternion.identity;
-                        player.localScale = Vector3.one;
-                        playerRenderer.sharedMaterial =
-                            GetMaterial(_session.CurrentColor);
                         ApplySafeOverridesToActiveGates();
-                        if (_session.FlowState == StageFlowState.StageFinishing &&
-                            _failedGate != null)
-                        {
-                            ShowGoalAfter(_failedGate.transform.position.z);
-                        }
                     }
                     else
                     {
@@ -455,10 +454,12 @@ namespace ColorGateRunner.Presentation
             }
             ResetRunPresentation();
             BuildInitialGatePool();
+            PlacePlannedGoal();
             ApplyUiFlow(MobileUiFlow.Countdown);
             shieldVisual.SetActive(_shieldSelected);
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
+            SynchronizeViews();
             _telemetry.Record(
                 "run-start",
                 _session,
@@ -499,10 +500,6 @@ namespace ColorGateRunner.Presentation
                 gate.ShowFailure(failureMaterial);
                 TriggerFailure(gate);
             }
-            if (_session.FlowState == StageFlowState.StageFinishing)
-            {
-                ShowGoalAfter(gate.transform.position.z);
-            }
             _telemetry.Record(
                 "gate",
                 _session,
@@ -514,6 +511,13 @@ namespace ColorGateRunner.Presentation
             return outcome;
         }
 
+        internal bool CanResolveExperimentGate()
+        {
+            return _experimentActive &&
+                _experimentSession != null &&
+                _experimentSession.FlowState == StageFlowState.Playing;
+        }
+
         internal void ContinueAfterFailure()
         {
             if (_session == null || !_session.ContinueAfterFailure())
@@ -522,6 +526,7 @@ namespace ColorGateRunner.Presentation
             }
             failPanel.SetActive(false);
             _failureDelayRemaining = 0f;
+            PrepareCleanContinueRespawn();
             ApplySafeOverridesToActiveGates();
             ApplyUiFlow(MobileUiFlow.Countdown);
             _countdownRemaining = CountdownDuration;
@@ -530,6 +535,11 @@ namespace ColorGateRunner.Presentation
 
         internal void RetryToItemSelection()
         {
+            if (_experimentActive)
+            {
+                RestartDevelopmentExperiment();
+                return;
+            }
             if (_session == null)
             {
                 return;
@@ -579,8 +589,10 @@ namespace ColorGateRunner.Presentation
             resetProgressConfirmation.SetActive(false);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             resetProgressButton.gameObject.SetActive(true);
+            experimentLabButton.gameObject.SetActive(true);
 #else
             resetProgressButton.gameObject.SetActive(false);
+            experimentLabButton.gameObject.SetActive(false);
 #endif
             ApplyUiFlow(MobileUiFlow.Lobby);
             RefreshStageButtons();
@@ -617,6 +629,29 @@ namespace ColorGateRunner.Presentation
 #endif
         }
 
+        internal void OpenExperimentLab()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            _experimentActive = false;
+            _experimentSession = null;
+            _session = null;
+            if (_normalTrackMaterial != null)
+            {
+                trackPool.SetSurfaceMaterial(_normalTrackMaterial);
+            }
+            ResetRunPresentation();
+            ApplyUiFlow(MobileUiFlow.Development);
+            stageSelectPanel.SetActive(false);
+#endif
+        }
+
+        internal static bool ShouldShowExperimentLab(
+            bool isEditor,
+            bool isDevelopmentBuild)
+        {
+            return isEditor || isDevelopmentBuild;
+        }
+
         internal void SetProgressStoreForTests(IStageProgressStore store)
         {
             _progressStore = store ?? throw new ArgumentNullException(nameof(store));
@@ -641,10 +676,38 @@ namespace ColorGateRunner.Presentation
             _experimentSession = new ExperimentSession(definition, items);
             _experimentActive = true;
             ResetRunPresentation();
-            ApplyUiFlow(MobileUiFlow.Gameplay);
+            ApplyUiFlow(MobileUiFlow.Countdown);
             BuildInitialExperimentGatePool();
             _colorStackInitialized = false;
+            _countdownRemaining = CountdownDuration;
+            UpdateCountdownText();
             SynchronizeExperimentViews();
+#endif
+        }
+
+        internal void RestartDevelopmentExperiment()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (!_experimentActive || _experimentSession == null)
+            {
+                return;
+            }
+
+            _experimentSession.Restart();
+            ResetRunPresentation();
+            ApplyUiFlow(MobileUiFlow.Countdown);
+            BuildInitialExperimentGatePool();
+            _colorStackInitialized = false;
+            _countdownRemaining = CountdownDuration;
+            UpdateCountdownText();
+            SynchronizeExperimentViews();
+#endif
+        }
+
+        internal void BackToExperimentLab()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            OpenExperimentLab();
 #endif
         }
 
@@ -658,7 +721,8 @@ namespace ColorGateRunner.Presentation
         internal bool HasRequiredReferences()
         {
             if (player == null || playerRenderer == null ||
-                gameplayCamera == null || redMaterial == null ||
+                gameplayCamera == null || playerBody == null ||
+                redMaterial == null ||
                 blueMaterial == null || greenMaterial == null ||
                 yellowMaterial == null || purpleMaterial == null ||
                 cyanMaterial == null ||
@@ -672,6 +736,7 @@ namespace ColorGateRunner.Presentation
                 lobbyStageText == null || lobbyStageTitleText == null ||
                 lobbyStageDescriptionText == null || lobbyProgressText == null ||
                 lobbyTierText == null || lobbyPlayButton == null ||
+                experimentLabButton == null ||
                 lobbyTierRoots == null || lobbyTierRoots.Length != 4 ||
                 resetProgressButton == null ||
                 resetProgressConfirmation == null ||
@@ -717,6 +782,7 @@ namespace ColorGateRunner.Presentation
         internal void Configure(
             Transform playerTransform,
             Renderer runnerRenderer,
+            Rigidbody runnerBody,
             Camera camera,
             Material red,
             Material blue,
@@ -741,6 +807,7 @@ namespace ColorGateRunner.Presentation
             Text lobbyProgress,
             Text lobbyTierLabel,
             Button lobbyPlay,
+            Button labButton,
             GameObject[] tierRoots,
             Button resetButton,
             GameObject resetConfirmation,
@@ -788,6 +855,7 @@ namespace ColorGateRunner.Presentation
         {
             player = playerTransform;
             playerRenderer = runnerRenderer;
+            playerBody = runnerBody;
             gameplayCamera = camera;
             redMaterial = red;
             blueMaterial = blue;
@@ -812,6 +880,7 @@ namespace ColorGateRunner.Presentation
             lobbyProgressText = lobbyProgress;
             lobbyTierText = lobbyTierLabel;
             lobbyPlayButton = lobbyPlay;
+            experimentLabButton = labButton;
             lobbyTierRoots = tierRoots;
             resetProgressButton = resetButton;
             resetProgressConfirmation = resetConfirmation;
@@ -861,6 +930,7 @@ namespace ColorGateRunner.Presentation
         private void AddListeners()
         {
             lobbyPlayButton.onClick.AddListener(PlayFromLobby);
+            experimentLabButton.onClick.AddListener(OpenExperimentLab);
             resetProgressButton.onClick.AddListener(RequestProgressReset);
             confirmResetProgressButton.onClick.AddListener(ConfirmProgressReset);
             cancelResetProgressButton.onClick.AddListener(CancelProgressReset);
@@ -878,8 +948,8 @@ namespace ColorGateRunner.Presentation
             retryButton.onClick.AddListener(RetryToItemSelection);
             replayButton.onClick.AddListener(RetryToItemSelection);
             clearContinueButton.onClick.AddListener(ShowLobby);
-            clearLobbyButton.onClick.AddListener(ShowLobby);
-            failLobbyButton.onClick.AddListener(ShowLobby);
+            clearLobbyButton.onClick.AddListener(LeaveResultFlow);
+            failLobbyButton.onClick.AddListener(LeaveResultFlow);
         }
 
         private void RemoveListeners()
@@ -889,6 +959,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             lobbyPlayButton.onClick.RemoveListener(PlayFromLobby);
+            experimentLabButton.onClick.RemoveListener(OpenExperimentLab);
             resetProgressButton.onClick.RemoveListener(RequestProgressReset);
             confirmResetProgressButton.onClick.RemoveListener(ConfirmProgressReset);
             cancelResetProgressButton.onClick.RemoveListener(CancelProgressReset);
@@ -906,8 +977,19 @@ namespace ColorGateRunner.Presentation
             retryButton.onClick.RemoveListener(RetryToItemSelection);
             replayButton.onClick.RemoveListener(RetryToItemSelection);
             clearContinueButton.onClick.RemoveListener(ShowLobby);
-            clearLobbyButton.onClick.RemoveListener(ShowLobby);
-            failLobbyButton.onClick.RemoveListener(ShowLobby);
+            clearLobbyButton.onClick.RemoveListener(LeaveResultFlow);
+            failLobbyButton.onClick.RemoveListener(LeaveResultFlow);
+        }
+
+        private void LeaveResultFlow()
+        {
+            if (_experimentActive)
+            {
+                BackToExperimentLab();
+                return;
+            }
+
+            ShowLobby();
         }
 
         private void SelectStage1() => SelectStage(1);
@@ -920,7 +1002,7 @@ namespace ColorGateRunner.Presentation
         {
             _nextPlanIndex = 0;
             _nextGateZ =
-                player.position.z + InitialGateLeadDistance;
+                player.position.z + CampaignInitialGateLeadDistance;
             for (int index = 0; index < gates.Length; index++)
             {
                 ActivateNextGate(gates[index]);
@@ -930,7 +1012,8 @@ namespace ColorGateRunner.Presentation
         private void BuildInitialExperimentGatePool()
         {
             _nextPlanIndex = 0;
-            _nextGateZ = player.position.z + InitialGateLeadDistance;
+            _nextGateZ =
+                player.position.z + ExperimentInitialGateLeadDistance;
             for (int index = 0; index < gates.Length; index++)
             {
                 ActivateNextExperimentGate(gates[index]);
@@ -1001,6 +1084,11 @@ namespace ColorGateRunner.Presentation
 
         private GateOutcome HandleExperimentGateCrossed(StageGateView gate)
         {
+            if (!CanResolveExperimentGate())
+            {
+                return GateOutcome.Invulnerable;
+            }
+
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
             bool matched =
                 _experimentSession.CurrentColor == plan.Color;
@@ -1021,23 +1109,55 @@ namespace ColorGateRunner.Presentation
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();
                 RecycleOrDeactivate(gate);
+                if (_experimentSession.FlowState ==
+                    StageFlowState.StageCleared)
+                {
+                    TriggerExperimentCompleted();
+                }
             }
             else
             {
                 outcome = GateOutcome.Mismatched;
                 gate.ShowFailure(failureMaterial);
-                stageHudText.text = "EXPERIMENT FAILED";
+                TriggerExperimentFailure();
             }
             UpdateExperimentGateVisibility();
             SynchronizeExperimentViews();
             return outcome;
         }
 
+        private void TickExperimentRuntime(float deltaTime)
+        {
+            if (_experimentSession == null)
+            {
+                return;
+            }
+
+            if (_experimentSession.FlowState == StageFlowState.Countdown)
+            {
+                _countdownRemaining = Mathf.Max(
+                    0f,
+                    _countdownRemaining - deltaTime);
+                UpdateCountdownText();
+                if (_countdownRemaining <= 0f &&
+                    _experimentSession.CompleteCountdown())
+                {
+                    ApplyUiFlow(MobileUiFlow.Gameplay);
+                    SynchronizeExperimentViews();
+                }
+                return;
+            }
+
+            if (_experimentSession.FlowState == StageFlowState.Playing)
+            {
+                TickExperiment(deltaTime);
+            }
+        }
+
         private void TickExperiment(float deltaTime)
         {
             if (_experimentSession == null ||
-                _experimentSession.Failed ||
-                _experimentSession.Completed)
+                _experimentSession.FlowState != StageFlowState.Playing)
             {
                 return;
             }
@@ -1050,12 +1170,49 @@ namespace ColorGateRunner.Presentation
             float speed = _experimentSession.GetSpeedForPlan(
                 upcoming.ActiveExperimentPlan);
             float distance = speed * deltaTime;
+            _experimentSession.Advance(deltaTime);
             player.position += Vector3.forward * distance;
             trackPool.Tick(player.position.z);
             bool ice = upcoming.ActiveExperimentPlan.IsIce;
             trackPool.SetSurfaceMaterial(
                 ice ? cyanMaterial : _normalTrackMaterial);
             UpdateExperimentGateVisibility();
+        }
+
+        private void TriggerExperimentFailure()
+        {
+            if (_experimentSession == null ||
+                _experimentSession.FlowState != StageFlowState.Failed)
+            {
+                return;
+            }
+
+            _failureDelayRemaining = FailurePanelDelay;
+            playerRenderer.sharedMaterial = failureMaterial;
+            player.localRotation = Quaternion.Euler(65f, 0f, 18f);
+            player.localScale = Vector3.one * 0.8f;
+            shieldVisual.SetActive(false);
+            ResetBoosterPresentation();
+            ApplyUiFlow(MobileUiFlow.FailedResult);
+            failPanel.SetActive(false);
+        }
+
+        private void TriggerExperimentCompleted()
+        {
+            if (_experimentSession == null ||
+                _experimentSession.FlowState != StageFlowState.StageCleared)
+            {
+                return;
+            }
+
+            _clearDelayRemaining = ClearPanelDelay;
+            player.localScale = Vector3.one * 1.18f;
+            successParticles.transform.position = player.position;
+            successParticles.Play();
+            shieldVisual.SetActive(false);
+            ResetBoosterPresentation();
+            ApplyUiFlow(MobileUiFlow.ClearResult);
+            clearPanel.SetActive(false);
         }
 
         private StageGateView FindExperimentGate(int gateIndex)
@@ -1088,9 +1245,16 @@ namespace ColorGateRunner.Presentation
             }
         }
 
-        private void ShowGoalAfter(float gateZ)
+        private void PlacePlannedGoal()
         {
-            goal.transform.position = new Vector3(0f, 1.5f, gateZ + GoalDistance);
+            StageGoalPlan plan = StageGoalPlanner.Create(
+                _session.Stage,
+                CampaignInitialGateLeadDistance,
+                CampaignGoalDistance);
+            goal.transform.position = new Vector3(
+                0f,
+                0f,
+                player.position.z + plan.DistanceFromPlayer);
             goal.SetActive(true);
         }
 
@@ -1167,7 +1331,22 @@ namespace ColorGateRunner.Presentation
                 _failureDelayRemaining = Mathf.Max(
                     0f,
                     _failureDelayRemaining - deltaTime);
-                if (_failureDelayRemaining <= 0f && _session != null)
+                if (_failureDelayRemaining <= 0f &&
+                    _experimentActive &&
+                    _experimentSession != null &&
+                    _experimentSession.FlowState == StageFlowState.Failed)
+                {
+                    failPanel.SetActive(true);
+                    failTitleText.text = "EXPERIMENT FAILED";
+                    failDetailsText.text =
+                        FormatExperimentResultDetails();
+                    continueButton.gameObject.SetActive(false);
+                    retryButton.gameObject.SetActive(true);
+                    failLobbyButton.gameObject.SetActive(true);
+                    SetButtonLabel(retryButton, "RETRY SAME TEST");
+                    SetButtonLabel(failLobbyButton, "BACK TO LAB");
+                }
+                else if (_failureDelayRemaining <= 0f && _session != null)
                 {
                     failPanel.SetActive(true);
                     failTitleText.text = "STAGE FAILED";
@@ -1176,6 +1355,11 @@ namespace ColorGateRunner.Presentation
                         $"ITEMS {FormatItems(_session.Items)}";
                     continueButton.gameObject.SetActive(
                         _session.ContinueAvailable);
+                    retryButton.gameObject.SetActive(true);
+                    failLobbyButton.gameObject.SetActive(true);
+                    SetButtonLabel(continueButton, "CONTINUE");
+                    SetButtonLabel(retryButton, "RETRY");
+                    SetButtonLabel(failLobbyButton, "LOBBY");
                 }
             }
             if (_clearDelayRemaining > 0f)
@@ -1183,7 +1367,23 @@ namespace ColorGateRunner.Presentation
                 _clearDelayRemaining = Mathf.Max(
                     0f,
                     _clearDelayRemaining - deltaTime);
-                if (_clearDelayRemaining <= 0f && _session != null)
+                if (_clearDelayRemaining <= 0f &&
+                    _experimentActive &&
+                    _experimentSession != null &&
+                    _experimentSession.FlowState ==
+                    StageFlowState.StageCleared)
+                {
+                    clearPanel.SetActive(true);
+                    clearTitleText.text = "EXPERIMENT COMPLETE";
+                    clearDetailsText.text =
+                        FormatExperimentResultDetails();
+                    clearContinueButton.gameObject.SetActive(false);
+                    replayButton.gameObject.SetActive(true);
+                    clearLobbyButton.gameObject.SetActive(true);
+                    SetButtonLabel(replayButton, "REPLAY");
+                    SetButtonLabel(clearLobbyButton, "BACK TO LAB");
+                }
+                else if (_clearDelayRemaining <= 0f && _session != null)
                 {
                     clearPanel.SetActive(true);
                     clearTitleText.text = "STAGE CLEAR";
@@ -1194,7 +1394,43 @@ namespace ColorGateRunner.Presentation
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
                         $"BEST {record.BestTime:0.00}s";
+                    clearContinueButton.gameObject.SetActive(true);
+                    replayButton.gameObject.SetActive(true);
+                    clearLobbyButton.gameObject.SetActive(true);
+                    SetButtonLabel(clearContinueButton, "CONTINUE");
+                    SetButtonLabel(replayButton, "REPLAY");
+                    SetButtonLabel(clearLobbyButton, "LOBBY");
                 }
+            }
+        }
+
+        private string FormatExperimentResultDetails()
+        {
+            string failureCause = string.Empty;
+            if (_experimentSession.FlowState == StageFlowState.Failed)
+            {
+                failureCause =
+                    _experimentSession.LastFailureCause ==
+                    ExperimentRuntimeFailureCause.CloneGateMiss
+                        ? "\nCAUSE CLONE MISS"
+                        : "\nCAUSE GATE MISS";
+            }
+            return
+                $"{_experimentSession.Definition.ColorCount} COLORS · " +
+                $"{_experimentSession.Definition.Mechanic.ToString().ToUpperInvariant()}\n" +
+                $"SEED {_experimentSession.Definition.Seed}\n" +
+                $"PROGRESS {_experimentSession.GatesPassed}/" +
+                $"{_experimentSession.Definition.GateCount}\n" +
+                $"TIME {_experimentSession.ElapsedPlayingSeconds:0.00}s" +
+                failureCause;
+        }
+
+        private static void SetButtonLabel(Button button, string value)
+        {
+            Text label = button.GetComponentInChildren<Text>(true);
+            if (label != null)
+            {
+                label.text = value;
             }
         }
 
@@ -1427,11 +1663,6 @@ namespace ColorGateRunner.Presentation
             }
 
             int firstUpcomingPlanIndex = _session.GatesPassed;
-            if (_session.FlowState == StageFlowState.Countdown &&
-                _session.FailedGatePendingForContinue)
-            {
-                firstUpcomingPlanIndex++;
-            }
 
             for (int offset = 0; offset < 2; offset++)
             {
@@ -1464,6 +1695,42 @@ namespace ColorGateRunner.Presentation
                 }
             }
             return null;
+        }
+
+        private void PrepareCleanContinueRespawn()
+        {
+            StageGateView consumedGate = _failedGate;
+            if (consumedGate != null)
+            {
+                consumedGate.Deactivate();
+            }
+            _failedGate = null;
+
+            StageGateView nextGate = FindActiveGate(_session.GatesPassed);
+            if (nextGate != null)
+            {
+                Vector3 position = player.position;
+                position.x = _playerStartPosition.x;
+                position.y = _playerStartPosition.y;
+                position.z = Mathf.Min(
+                    position.z,
+                    nextGate.transform.position.z -
+                    CampaignInitialGateLeadDistance);
+                player.position = position;
+            }
+
+            player.localRotation = Quaternion.identity;
+            player.localScale = Vector3.one;
+            playerRenderer.sharedMaterial = GetMaterial(_session.CurrentColor);
+            playerBody.linearVelocity = Vector3.zero;
+            playerBody.angularVelocity = Vector3.zero;
+            _cameraShakeRemaining = 0f;
+            _boosterCameraBlend = 0f;
+            gameplayCamera.transform.SetPositionAndRotation(
+                player.position + _cameraFollowOffset,
+                _cameraStartRotation);
+            gameplayCamera.fieldOfView = NormalFov;
+            ResetBoosterPresentation();
         }
 
         private void RecycleResolvedGatesBehindPlayer()
@@ -1506,7 +1773,7 @@ namespace ColorGateRunner.Presentation
             if (_experimentActive && _experimentSession != null)
             {
                 boosterTarget = _experimentSession.BoosterActive &&
-                    !_experimentSession.Failed;
+                    _experimentSession.FlowState == StageFlowState.Playing;
             }
             float blendDuration = boosterTarget
                 ? BoosterCameraBlendIn
@@ -1681,6 +1948,8 @@ namespace ColorGateRunner.Presentation
 
         private void SynchronizeExperimentViews()
         {
+            bool countdown =
+                _experimentSession.FlowState == StageFlowState.Countdown;
             playerRenderer.sharedMaterial =
                 _experimentSession.Failed
                     ? failureMaterial
@@ -1698,7 +1967,12 @@ namespace ColorGateRunner.Presentation
                 _experimentSession.Definition.GateCount;
             SetHorizontalFill(progressFill, progress);
             progressFill.fillAmount = progress;
-            shieldIcon.SetActive(_experimentSession.ShieldActive);
+            bool shieldRelevant =
+                (_experimentSession.FlowState == StageFlowState.Playing &&
+                _experimentSession.ShieldActive) ||
+                (countdown && _experimentSession.Items.Shield);
+            shieldVisual.SetActive(shieldRelevant);
+            shieldIcon.SetActive(shieldRelevant);
             boosterMeterRoot.SetActive(_experimentSession.BoosterActive);
             boosterMeterFill.fillAmount = Mathf.Clamp01(
                 _experimentSession.BoosterDistanceRemaining / 160f);

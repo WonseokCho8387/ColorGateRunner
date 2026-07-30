@@ -439,7 +439,6 @@ namespace ColorGateRunner.Core
                             int cursorAtFailure = session.SequenceCursor;
                             float elapsedAtFailure =
                                 session.ElapsedPlayingSeconds;
-                            float progressAtFailure = session.Progress;
                             float speedAtFailure =
                                 session.SpeedBeforeFailure;
                             RunnerColor colorAtFailure =
@@ -452,7 +451,7 @@ namespace ColorGateRunner.Core
                             if (session.SequenceCursor != cursorAtFailure ||
                                 session.ElapsedPlayingSeconds !=
                                     elapsedAtFailure ||
-                                session.Progress != progressAtFailure ||
+                                session.GatesPassed != nextIndex ||
                                 session.CurrentSpeed != speedAtFailure ||
                                 session.CurrentColor != colorAtFailure)
                             {
@@ -656,35 +655,10 @@ namespace ColorGateRunner.Core
             StageSession session,
             RunnerColor target)
         {
-            RunnerColor current = session.CurrentColor;
-            for (int taps = 0; taps < 3; taps++)
-            {
-                if (current == target)
-                {
-                    return taps;
-                }
-                current = NextColor(session.Stage, session.GatesPassed, current);
-            }
-            return 0;
-        }
-
-        private static RunnerColor NextColor(
-            StageDefinition stage,
-            int gateIndex,
-            RunnerColor current)
-        {
-            int count = stage.DisplayNumber == 4 &&
-                gateIndex < stage.IntroGateCount
-                ? 2
-                : stage.AllowedColorCount;
-            for (int index = 0; index < count; index++)
-            {
-                if (stage.GetAllowedColor(index) == current)
-                {
-                    return stage.GetAllowedColor((index + 1) % count);
-                }
-            }
-            return stage.GetAllowedColor(0);
+            return session.Stage.GetRequiredTapCount(
+                session.GatesPassed,
+                session.CurrentColor,
+                target);
         }
 
         private static uint Normalize(uint seed)

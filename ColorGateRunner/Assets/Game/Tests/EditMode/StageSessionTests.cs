@@ -134,8 +134,9 @@ namespace ColorGateRunner.Tests.EditMode
             StageSession session = CreatePlaying(new StartItemSelection(false, true));
             while (session.BoosterDistanceRemaining > 0f)
             {
-                session.ResolveGate(session.GetNextGatePlan().Color);
-                session.Advance(0.1f, 10f);
+                GatePlan plan = session.GetNextGatePlan();
+                session.ResolveGate(plan.Color);
+                session.Advance(0.1f, plan.Spacing);
             }
 
             float expected = session.Stage.StartingSpeed +

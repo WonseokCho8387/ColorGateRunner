@@ -4,6 +4,18 @@ namespace ColorGateRunner.Core
 {
     public sealed class DeterministicStageGateSequence
     {
+        private static readonly RunnerColor[] StageFourTutorialColors =
+        {
+            RunnerColor.Red,
+            RunnerColor.Blue,
+            RunnerColor.Blue,
+            RunnerColor.Blue,
+            RunnerColor.Blue,
+            RunnerColor.Red,
+            RunnerColor.Red,
+            RunnerColor.Blue
+        };
+
         private readonly StageDefinition _stage;
         private uint _state;
         private RunnerColor _previousColor;
@@ -42,6 +54,11 @@ namespace ColorGateRunner.Core
                     GameRules.MinimumReactionTime,
                     cadence * section.CadenceMultiplier);
             }
+            if (_stage.DisplayNumber == 4 &&
+                gateIndex <= _stage.GetFirstGateIndex(RunnerColor.Green))
+            {
+                cadence = _stage.CadenceStart;
+            }
             float speed = Lerp(_stage.StartingSpeed, _stage.MaximumSpeed, progress);
             float spacing = speed * cadence;
             Cursor++;
@@ -72,17 +89,18 @@ namespace ColorGateRunner.Core
                 return RecordColor(ChooseStageThreeColor(gateIndex));
             }
 
-            int colorCount = _stage.AllowedColorCount;
-            if (_stage.DisplayNumber == 4 && gateIndex < _stage.IntroGateCount)
+            if (_stage.DisplayNumber == 4 &&
+                gateIndex < _stage.GetFirstGateIndex(RunnerColor.Green))
             {
-                colorCount = 2;
+                return RecordColor(ChooseStageFourTutorialColor(gateIndex));
             }
-            else if (_stage.DisplayNumber == 4 &&
-                gateIndex == _stage.IntroGateCount)
+            if (_stage.DisplayNumber == 4 &&
+                gateIndex == _stage.GetFirstGateIndex(RunnerColor.Green))
             {
                 return RecordColor(RunnerColor.Green);
             }
 
+            int colorCount = _stage.GetGateColorCountAt(gateIndex);
             RunnerColor color = _stage.GetAllowedColor((int)(raw % (uint)colorCount));
             if (_hasPreviousColor &&
                 color == _previousColor &&
@@ -114,6 +132,12 @@ namespace ColorGateRunner.Core
                 RunnerColor.Blue, RunnerColor.Blue, RunnerColor.Red, RunnerColor.Blue
             };
             return authored[gateIndex % authored.Length];
+        }
+
+        private static RunnerColor ChooseStageFourTutorialColor(int gateIndex)
+        {
+            return StageFourTutorialColors[
+                gateIndex % StageFourTutorialColors.Length];
         }
 
         private RunnerColor RecordColor(RunnerColor color)

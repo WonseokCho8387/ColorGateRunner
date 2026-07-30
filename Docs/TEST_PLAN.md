@@ -426,7 +426,7 @@ emotional achievement, replay motivation, or perceived fairness.
 ### EditMode automated
 
 - Doubled movement scale:
-  `StageCatalog_AllMovementSpeedsAreDoubled`.
+  `StageCatalog_UsesIteration2DoubleSpeedScale`.
 - Booster continuity:
   `BoosterExit_PreservesSequenceCursor`,
   `BoosterExit_PreservesGateIndices`,
@@ -435,9 +435,9 @@ emotional achievement, replay motivation, or perceived fairness.
   `BoosterExit_SecondGateRequiresAtMostOneTap`,
   `BoosterExit_ThirdGateReturnsToAuthoredSequence`.
 - Continue state continuity:
-  `ContinueSnapshot_PreservesExactStageState`,
+  `Continue_PreservesStateAndConsumesFailedGate`,
   `Continue_PreservesElapsedTime`,
-  `Continue_PreservesNormalizedProgress`,
+  `Continue_AdvancesProgressPastConsumedFailedGate`,
   `Continue_PreservesCurrentSpeed`,
   `Continue_PreservesCurrentColor`,
   `Continue_PreservesPendingSequenceCursor`,
@@ -458,13 +458,13 @@ emotional achievement, replay motivation, or perceived fairness.
   `BoosterExit_FirstGateUsesCurrentPlayerColor`,
   `BoosterExit_OriginalPatternResumesAfterShortOverride`.
 - Continue live-scene integration:
-  `Continue_FreezesExistingScene`,
+  `Continue_FreezesTrackDuringCleanRespawn`,
   `Continue_CountdownUsesSameGateLayout`,
   `Continue_UnaffectedGateTransformsRemainUnchanged`,
   `Continue_FailedGateCannotImmediatelyFailAgain`,
   `Continue_ResumesSameTimerProgressSpeedColorAndCursor`,
   `Continue_ResumesSameActiveSequence`,
-  `Continue_DoesNotResetCameraOrShowItemSelection`,
+  `Continue_ClearsCameraShakeAndDoesNotShowItemSelection`,
   `Continue_DoesNotRestoreShieldOrBooster`,
   `Continue_GateAndTrackPoolsDoNotResetOrGrow`.
 - Repetition:
@@ -493,13 +493,45 @@ emotional achievement, replay motivation, or perceived fairness.
 - Confirm the first three gates after Booster and Continue are readable, the
   camera return is continuous, and no Shield/Booster presentation reappears.
 
+## Iteration 2 campaign speed-scale acceptance mapping
+
+### Automated
+
+- `StageCatalog_UsesIteration2DoubleSpeedScale` verifies normal campaign
+  speeds `28/40`, `32/44`, `34/46`, `32/48`, and `36/54`, Booster speeds
+  `88`, `92`, `96`, `100`, and `104`, and Booster distances `320`, `360`,
+  `400`, `420`, and `460`.
+- Goal planning and Continue integration verify the 48-unit campaign initial
+  lead and 40-unit Goal distance.
+- `BoosterEnd_UsesSpeedAtCurrentStageProgress` advances through authored gate
+  spacing and verifies the 0.35-second return to the current normal curve.
+- EditMode and PlayMode suites must pass after the idempotent Scene Builder
+  completes its two-build structural validation.
+- Rerun all five campaign stages across Perfect, Expert, Average, Novice, and
+  Stress profiles, all four start-item combinations, and deterministic plus
+  1,000-run stochastic modes.
+- Compare the immediately preceding baseline with the final campaign report.
+  Non-spatial gameplay metrics must be identical; next-gate distance telemetry
+  must scale by exactly 2.
+- Rerun the Step 10 experiment matrix. All five report hashes must remain
+  unchanged because Experiment Lab is outside this adjustment.
+
+### Manual mobile check
+
+- Confirm the campaign reads as materially faster on a portrait device.
+- Confirm normal gates, Booster exit, Continue recovery, and Goal approach
+  remain readable and comfortable.
+- Record human feedback before changing cadence or presentation. Automated
+  timing continuity does not establish perceived speed, comfort, fairness, or
+  fun.
+
 ## Step 9C mobile UI readability acceptance mapping
 
 ### EditMode automated
 
 - Color tile policy: `TwoColorHud_UsesStageOrder`,
   `ThreeColorHud_UsesStageOrderAfterIntroduction`,
-  `ThreeColorIntroduction_ShowsTwoTilesUntilIntroductionEnds`,
+  `StageFour_ShowsCompleteColorCycleFromStart`,
   `CurrentColor_RemainsAnActiveTile`, and `NextColor_FollowsActiveCycle`.
 - Presentation policy: `PrimaryFlow_ActivatesExactlyOneRoot`,
   `Countdown_UsesGameplayHudWithCountdownOverlay`,
@@ -651,3 +683,221 @@ feedback dependency. Perfect performs the exact required tap count.
 - Human review must decide whether any candidate is understandable, visually
   satisfying, comfortable, fair, fun, or replayable. Automated evidence must
   not make those claims.
+
+## Step 10.1 human-playtest fixes acceptance mapping
+
+### EditMode automated
+
+- Stage 4 activation and tutorial:
+  `Stage4_ActiveColorsAreCompleteAtRunStart`,
+  `Stage4_GreenGatesBeginAtConfiguredLaterIndex`,
+  `Stage4_ColorCycleDoesNotMutateMidRun`, and
+  `Stage4_EarlyTutorialPrimarilyRequiresZeroOrOneTap`.
+- Finish planning:
+  `Goal_IsPartOfDeterministicStagePlanning` verifies that a replay of the same
+  stage definition produces the same finish distance after all planned gates.
+- Continue semantics:
+  `Continue_ConsumesFailedGateImmediately` and
+  `Continue_SelectsGateAfterConsumedFailure` require one consumption, the next
+  global gate index, and the existing two-gate safe-color policy.
+- Experiment selections:
+  `ExperimentLauncherOptions_MapToExistingDefinitions` covers 4-color
+  None/Camouflage/Fog/Ice, 5-color None, and 6-color None against the existing
+  immutable experiment catalog.
+- Existing continuity simulation remains required:
+  `Simulation_ContinuityMetricsReportNoReset` treats the single failed-gate
+  increment as intended consumption, while still requiring zero sequence
+  reset, duplicate index, pool reset, or unaffected-transform displacement.
+
+### PlayMode automated
+
+- Stage 4 scene integration:
+  `Stage4_HudShowsThreeColorsImmediately`,
+  `Stage4_EarlyGatesDoNotUseGreen`, and
+  `Stage4_LaterGateUsesGreen`.
+- Finish continuity:
+  `Goal_IsVisibleAtLongRangeAndApproachesContinuously` and
+  `Goal_DoesNotPopOrTeleportAtFinalGate`.
+- Continue presentation:
+  `Continue_ResetsPlayerToCleanUprightPose` and
+  `Continue_ConsumesFailedGateAndLeavesReadableNextGate`, plus the retained
+  Step 9A.1 frozen-track, sequence, item, and fixed-pool tests.
+- Tester access:
+  `ExperimentLab_OpensFromLobbyInDevelopmentFlow`,
+  `ExperimentLab_ShortlistedConditionsLaunchWithoutProgression`, and
+  `ExperimentLab_IsHiddenForReleasePolicy`.
+
+### Structural validation
+
+- Run the idempotent scene builder twice. Require one `ExperimentLabButton`,
+  one existing `ExperimentLauncherPanel`, one Goal root with exactly one left
+  post, right post, crossbar, FINISH banner, and floor line, one fixed six-gate
+  pool, one fixed six-segment track pool, assigned controller references, and
+  no missing scripts.
+- Both test result XML files must execute nonzero tests. Run the Stage 1–5
+  deterministic/stochastic simulation and verify the Step 10 experiment report
+  hashes and source data remain unchanged.
+
+### Manual mobile check
+
+- Confirm all three Stage 4 tiles are legible before `GO`, the delayed Green
+  gate is understood without a perceived control change, and the early
+  zero/one-tap teaching rhythm is readable.
+- Confirm the finish structure becomes recognizable as it enters the 500-unit
+  camera range and never visibly pops or shifts during Booster, Continue, or
+  final-gate resolution.
+- Confirm Continue immediately looks like a clean respawn, the failed gate is
+  absent ahead, the next gate is comfortably readable, and the fixed camera
+  rotation remains stable.
+- In the Editor or a Development Build, open Lobby > `EXPERIMENT LAB`, launch
+  every shortlisted condition without Inspector edits, verify the active label,
+  leave to the Lobby, and confirm the button is absent from a release build.
+
+## Human Playtest
+
+Fun
+
+1~5
+
+Difficulty
+
+1~5
+
+Replay
+
+1~5
+
+Comments
+
+## Iteration 1 Experiment Runtime Flow acceptance mapping
+
+### EditMode automated
+
+- Shared Stage 4 color cycle:
+  `Stage4_PerfectFirstAttemptUsesRuntimeColorCycle` and
+  `Stage4_SharedTapCalculationMatchesRuntimeCycle`.
+- Experiment Core flow:
+  `ExperimentCountdown_BlocksInputProgressAndJudgment`,
+  `ExperimentCountdown_CompletesOnceIntoPlaying`,
+  `ExperimentMismatch_EntersFailedOnce`, and
+  `ExperimentFinalGate_EntersCompletedOnce`.
+- Deterministic replay:
+  `ExperimentRestart_PreservesConditionAndResetsRuntime`.
+
+### PlayMode automated
+
+- Countdown and Playing integration:
+  `ExperimentRuntime_CountdownBlocksProgressThenStartsPlaying`.
+- Failed result and deterministic Retry:
+  `ExperimentRuntime_FailureShowsResultAndRetryReplaysCondition`.
+- Completed result and deterministic Replay:
+  `ExperimentRuntime_CompletionShowsResultAndReplayRestarts`.
+- Campaign isolation and Lab return:
+  `ExperimentRuntime_BackToLabDoesNotReadOrWriteProgress`.
+- Reentry and fixed object graph:
+  `ExperimentRuntime_ReentryKeepsSingleRuntimeObjectGraph`.
+- The launcher integration check is now
+  `ExperimentLauncher_StartsCountdownWithFixedPoolSession`.
+
+### Regression evidence
+
+- EditMode: 217 executed, 217 passed.
+- PlayMode: 111 executed, 111 passed.
+- The idempotent Scene Builder completed its two-build structural validation
+  with no missing script or missing reference failure.
+- Stage 1–5 deterministic/stochastic simulation was rerun for every documented
+  profile and item combination. Only nine Stage 4 rows changed; Stage 1, 2, 3,
+  and 5 rows were identical.
+- Stage 4 Perfect/None changed from first-attempt clear `0%` with one gate-5
+  failure to `100%` with zero failures. Average/None changed from `0.5%` to
+  `32.9%` first-attempt clear after removal of the same invalid forced mismatch.
+- All five Step 10 experiment report SHA-256 hashes remained unchanged.
+
+### Manual evaluation
+
+- Confirm countdown preparation and GO timing are readable.
+- Confirm failure cause, Retry Same Test, Replay, and Back to Lab are
+  immediately understandable.
+- Confirm success and failure results are visually distinct and Retry does not
+  feel unnecessarily slow.
+- Automated evidence does not establish fun, comfort, fairness, satisfaction,
+  or replay motivation.
+
+## Iteration 3 Clone-only Experiment acceptance mapping
+
+### EditMode automated
+
+- `CloneSettings_UsesApprovedSourcesAndGap` verifies one-based Source indices
+  `[3, 6]` and `GapSeconds = 0.45`.
+- `CloneSettings_RejectsDefinitionsWithTooFewSources` requires a clear error
+  for fewer than six non-Clone gates and no replacement Source.
+- `CloneSequence_SameSeedReplaysIdentically` and
+  `CloneSequence_SourceRelationshipsReplayIdentically` cover identity,
+  placement, color, role, generation order, and Source relationship.
+- `CloneSequence_InsertsExactlyTwoClonesAfterSourcesThreeAndSix` requires
+  exactly one Clone after each approved Source, no intervening gate, no
+  chains, and no Clone-owned Clone.
+- `CloneSequence_UsesSourceColorAndConfiguredGap` requires the Source color
+  and base normal speed multiplied by `0.45` seconds.
+- `CloneSession_SourceAndCloneAreIndependentJudgments`,
+  `CloneSession_CloneSuccessCountsTowardCompletion`, and
+  `CloneSession_CloneMismatchEntersFailedWithDistinctCause` cover the shared
+  Playing/Failed flow and one-shot judgment.
+- `CloneSession_ShieldConsumesOnceAndPassesClone` requires the shared Shield
+  path and continued Playing.
+- `CloneCamouflage_UsesOrdinaryHideRevealAndJudgment` requires ordinary
+  hiding/reveal, Source color after reveal, required judgment, and normal
+  mismatch/Shield behavior.
+- `CloneRestart_PreservesLayoutAndResetsRuntimeState` covers seed, placement,
+  judgment, Shield, and visibility reset.
+
+### PlayMode automated
+
+- Launcher starts a Clone-only condition with Booster disabled.
+- Countdown blocks Source and Clone judgment.
+- Source success is followed by a separate Clone judgment.
+- Clone View uses the Source color and distinguishable lower-intensity echo
+  presentation without increasing the fixed gate or track pools.
+- Clone failure shows the existing result flow and a distinct `CLONE MISS`
+  cause; Retry Same Test reproduces placement and clears runtime state.
+- Active Shield protects one Clone mismatch and updates the existing Shield
+  presentation.
+- Camouflage Clone hides/reveals exactly like an ordinary Camouflage gate,
+  remains judgment-required, and resets on Retry/Replay.
+- Replay, Back to Lab, repeated Lab entry, listener count, two-build Scene
+  Builder stability, missing scripts, and missing references remain covered.
+
+### Regression and simulation
+
+- Rerun all campaign Stage 1–5 profile/item combinations and require exact
+  equality with the immediately preceding baseline.
+- Rerun the existing 16-condition Step 10 matrix and require all existing
+  report artifacts to remain byte-identical.
+- Run deterministic Clone-only validation twice with the same seed and after
+  Retry/Replay; compare all generated identities, relationships, colors,
+  positions, and outcomes.
+- Automated results do not establish Clone readability, spacing comfort,
+  tension, fairness, or fun.
+
+### Manual mobile check
+
+- Confirm Clone reads as the Source's real, hazardous echo rather than
+  decoration or Shield.
+- Confirm the Source/Clone relationship, judgment opening, and `0.45s`
+  initial gap remain readable at portrait mobile scale.
+- Confirm `CLONE MISS`, Shield protection, Camouflage reveal, Retry identity,
+  and overall screen complexity are understandable.
+
+### Regression evidence
+
+- EditMode: 231 executed, 231 passed.
+- PlayMode: 117 executed, 117 passed.
+- The idempotent Scene Builder completed its two-build structural validation
+  with no missing script or missing reference failure.
+- Campaign simulation Markdown, JSON, and CSV SHA-256 hashes matched the
+  immediately preceding Clone baseline exactly.
+- All five existing Step 10 report SHA-256 hashes matched the immediately
+  preceding Clone baseline exactly.
+- Clone-only Perfect simulation produced the same completed result, time, and
+  tap metrics when repeated with the same seed.
+- ProjectSettings and package manifest/lock hashes remained unchanged.

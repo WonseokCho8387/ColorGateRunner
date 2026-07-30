@@ -189,3 +189,23 @@ they are not advisory.
   development preview. Entry and exit never create or rebuild track objects.
 - The Reset Progress confirmation and experiment launcher are development
   controls. They are absent from the normal release flow.
+- Experiment must use the same Runtime Flow as Campaign.
+
+## Iteration 3 Clone experiment presentation
+
+- Clone keeps the Source Gate silhouette, target color, symbol, and readable
+  judgment opening.
+- Clone has lower visual intensity than its Source and reads as a translucent
+  echo, while its outline and central symbol remain legible.
+- The presentation must distinguish Clone from both a decorative afterimage
+  and the segmented Shield around the player.
+- Clone uses the existing pooled gate geometry, generated materials, and color
+  symbols. It adds no shader package, post-processing, full-screen distortion,
+  camera effect, or dedicated particle system.
+- Under Camouflage, Clone uses the ordinary neutral silhouette and hidden
+  symbol, then restores its Source color and symbol at the ordinary reveal
+  condition. Camouflage does not imply safety or judgment exemption.
+- Clone failure uses the existing failure presentation plus a short,
+  distinguishable cause such as `CLONE MISS`.
+- Retry/Replay clear Clone reaction and visibility state before the identical
+  condition is rebuilt.

@@ -111,14 +111,7 @@ namespace ColorGateRunner.Core
                 throw new ArgumentNullException(nameof(stage));
             }
 
-            if (stage.DisplayNumber == 4 &&
-                stage.AllowedColorCount == 3 &&
-                resolvedGateCount < stage.IntroGateCount)
-            {
-                return 2;
-            }
-
-            return stage.AllowedColorCount;
+            return stage.GetActiveColorCount(resolvedGateCount);
         }
 
         public static RunnerColor GetColorAt(
@@ -140,16 +133,9 @@ namespace ColorGateRunner.Core
             int resolvedGateCount,
             RunnerColor currentColor)
         {
-            int activeCount = GetActiveColorCount(stage, resolvedGateCount);
-            for (int index = 0; index < activeCount; index++)
-            {
-                if (stage.GetAllowedColor(index) == currentColor)
-                {
-                    return stage.GetAllowedColor((index + 1) % activeCount);
-                }
-            }
-
-            return stage.GetAllowedColor(0);
+            return stage.GetNextActiveColor(
+                resolvedGateCount,
+                currentColor);
         }
 
         public static int GetStackSlot(

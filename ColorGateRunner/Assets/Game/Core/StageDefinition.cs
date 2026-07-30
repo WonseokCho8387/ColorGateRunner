@@ -6,6 +6,7 @@ namespace ColorGateRunner.Core
     {
         private readonly RunnerColor[] _allowedColors;
         private readonly GatePatternType[] _allowedPatterns;
+        private readonly int[] _firstGateIndicesByColor;
 
         public StageDefinition(
             string stageId,
@@ -25,7 +26,9 @@ namespace ColorGateRunner.Core
             float boosterSpeed,
             bool shieldAllowed,
             bool boosterAllowed,
-            uint seed)
+            uint seed,
+            bool activeColorsFromStart = true,
+            int[] firstGateIndicesByColor = null)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -47,6 +50,9 @@ namespace ColorGateRunner.Core
             ShieldAllowed = shieldAllowed;
             BoosterAllowed = boosterAllowed;
             Seed = seed;
+            ActiveColorsFromStart = activeColorsFromStart;
+            _firstGateIndicesByColor = firstGateIndicesByColor ??
+                CreateDefaultFirstGateIndices(_allowedColors.Length);
         }
 
         public string StageId { get; }
@@ -65,6 +71,7 @@ namespace ColorGateRunner.Core
         public bool ShieldAllowed { get; }
         public bool BoosterAllowed { get; }
         public uint Seed { get; }
+        public bool ActiveColorsFromStart { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
 
@@ -91,6 +98,91 @@ namespace ColorGateRunner.Core
             return false;
         }
 
+        public int GetFirstGateIndex(RunnerColor color)
+        {
+            for (int index = 0; index < _allowedColors.Length; index++)
+            {
+                if (_allowedColors[index] == color)
+                {
+                    return _firstGateIndicesByColor[index];
+                }
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(color));
+        }
+
+        public int GetGateColorCountAt(int gateIndex)
+        {
+            if (gateIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(gateIndex));
+            }
+
+            int count = 0;
+            for (int index = 0; index < _firstGateIndicesByColor.Length; index++)
+            {
+                if (_firstGateIndicesByColor[index] <= gateIndex)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        public int GetActiveColorCount(int resolvedGateCount)
+        {
+            return ActiveColorsFromStart
+                ? AllowedColorCount
+                : GetGateColorCountAt(resolvedGateCount);
+        }
+
+        public RunnerColor GetNextActiveColor(
+            int resolvedGateCount,
+            RunnerColor currentColor)
+        {
+            int activeCount = GetActiveColorCount(resolvedGateCount);
+            for (int index = 0; index < activeCount; index++)
+            {
+                if (_allowedColors[index] == currentColor)
+                {
+                    return _allowedColors[(index + 1) % activeCount];
+                }
+            }
+
+            return _allowedColors[0];
+        }
+
+        public int GetRequiredTapCount(
+            int resolvedGateCount,
+            RunnerColor currentColor,
+            RunnerColor targetColor)
+        {
+            int activeCount = GetActiveColorCount(resolvedGateCount);
+            int currentIndex = -1;
+            int targetIndex = -1;
+            for (int index = 0; index < activeCount; index++)
+            {
+                RunnerColor color = _allowedColors[index];
+                if (color == currentColor)
+                {
+                    currentIndex = index;
+                }
+                if (color == targetColor)
+                {
+                    targetIndex = index;
+                }
+            }
+
+            if (currentIndex < 0 || targetIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(targetColor),
+                    "Both colors must be active in the current cycle.");
+            }
+
+            return (targetIndex - currentIndex + activeCount) % activeCount;
+        }
+
         public bool IsValid()
         {
             return StageId.Length > 0 &&
@@ -102,11 +194,31 @@ namespace ColorGateRunner.Core
                 CadenceStart >= GameRules.MinimumReactionTime &&
                 CadenceEnd >= GameRules.MinimumReactionTime &&
                 _allowedPatterns.Length > 0 &&
+                _firstGateIndicesByColor.Length == _allowedColors.Length &&
+                HasValidFirstGateIndices() &&
                 IntroGateCount >= 0 &&
                 FinalPressureGateCount > 0 &&
                 FinalPressureGateCount < TargetGateCount &&
                 BoosterDistance > 0f &&
                 BoosterSpeed > MaximumSpeed;
+        }
+
+        private bool HasValidFirstGateIndices()
+        {
+            for (int index = 0; index < _firstGateIndicesByColor.Length; index++)
+            {
+                if (_firstGateIndicesByColor[index] < 0 ||
+                    _firstGateIndicesByColor[index] >= TargetGateCount)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static int[] CreateDefaultFirstGateIndices(int count)
+        {
+            return new int[count];
         }
     }
 }

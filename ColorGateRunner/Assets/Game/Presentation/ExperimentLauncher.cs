@@ -32,6 +32,8 @@ namespace ColorGateRunner.Presentation
         internal bool Booster => _booster;
         internal ExperimentSession Session => _session;
         internal string Label => label.text;
+        internal ExperimentDefinition SelectedDefinition =>
+            ExperimentCatalog.Get(_colorCount, _mechanic, _seed);
 
         private void Awake()
         {
@@ -40,6 +42,16 @@ namespace ColorGateRunner.Presentation
 #if !UNITY_EDITOR && !DEVELOPMENT_BUILD
             gameObject.SetActive(false);
 #endif
+        }
+
+        private void OnEnable()
+        {
+            if (sceneController != null &&
+                !sceneController.ExperimentActive)
+            {
+                _session = null;
+                RefreshLabel();
+            }
         }
 
         private void OnDestroy()
@@ -105,7 +117,11 @@ namespace ColorGateRunner.Presentation
         internal void NextMechanic()
         {
             _mechanic = (MechanicExperimentType)(
-                ((int)_mechanic + 1) % 4);
+                ((int)_mechanic + 1) % 5);
+            if (_mechanic == MechanicExperimentType.Clone)
+            {
+                _booster = false;
+            }
             _session = null;
             RefreshLabel();
         }
@@ -132,14 +148,19 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleBooster()
         {
+            if (_mechanic == MechanicExperimentType.Clone)
+            {
+                _booster = false;
+                RefreshLabel();
+                return;
+            }
             _booster = !_booster;
             RefreshLabel();
         }
 
         internal void StartExperiment()
         {
-            ExperimentDefinition definition =
-                ExperimentCatalog.Get(_colorCount, _mechanic, _seed);
+            ExperimentDefinition definition = SelectedDefinition;
             StartItemSelection items = new StartItemSelection(_shield, _booster);
             sceneController.StartDevelopmentExperiment(
                 definition,

@@ -1,5 +1,20 @@
 # Color Gate Runner — Agent Instructions
 
+## Project Bootstrap
+
+When starting a new Codex session:
+
+1. Read PROJECT_CHARTER.md.
+2. Read CURRENT_STATUS.md.
+3. Read all design documents.
+4. Summarize the current project state.
+5. Propose an implementation plan.
+6. Wait for approval.
+7. Implement.
+8. Run tests.
+9. Update CURRENT_STATUS.md and ITERATIONS.md.
+10. Report completion.
+
 ## Mission
 
 Build a small portrait mobile hyper-casual game that is easy to test,
@@ -60,3 +75,20 @@ A task is complete only when:
 - No Missing Script or Missing Reference is introduced.
 - The behavior matches `Docs/GAME_DESIGN.md`.
 - User-facing changes are summarized.
+
+## Documentation Rules
+
+Treat the Docs folder as the source of truth.
+Do not duplicate documentation.
+Update existing documents whenever possible.
+Only create new documents if they do not already exist.
+CURRENT_STATUS.md represents the latest state.
+DECISIONS.md is historical.
+ITERATIONS.md records learning from each development cycle.
+
+## AI Collaboration
+
+The agent should optimize not only the game but also the development process.
+If a workflow documentation or architecture can improve future iterations propose it.
+Do not optimize code only.
+Optimize the entire project.

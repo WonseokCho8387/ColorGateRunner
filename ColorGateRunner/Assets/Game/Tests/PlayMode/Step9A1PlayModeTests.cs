@@ -77,19 +77,14 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Continue_FreezesExistingScene()
+        public void Continue_FreezesTrackDuringCleanRespawn()
         {
             StartPlaying();
             Fail();
-            Vector3 player = _controller.PlayerTransform.position;
-            float[] gates = CaptureGatePositions();
             Vector3[] tracks = CaptureTrackPositions();
 
             _controller.ContinueAfterFailure();
 
-            Assert.That(_controller.PlayerTransform.position,
-                Is.EqualTo(player));
-            Assert.That(CaptureGatePositions(), Is.EqualTo(gates));
             Assert.That(CaptureTrackPositions(), Is.EqualTo(tracks));
         }
 
@@ -119,6 +114,10 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 0; index < snapshot.ActiveGates.Length; index++)
             {
                 ActiveGateSnapshot expected = snapshot.ActiveGates[index];
+                if (expected.PlanIndex == snapshot.FailedGateIndex)
+                {
+                    continue;
+                }
                 StageGateView gate =
                     _controller.GetGate(expected.PoolIdentity);
                 Assert.That(gate.transform.position,
@@ -160,7 +159,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.ElapsedPlayingSeconds,
                 Is.EqualTo(snapshot.ElapsedPlayingSeconds));
             Assert.That(_controller.Session.Progress,
-                Is.EqualTo(snapshot.NormalizedProgress));
+                Is.EqualTo(
+                    snapshot.NormalizedProgress +
+                    (1f / _controller.Session.Stage.TargetGateCount)));
             Assert.That(_controller.Session.CurrentSpeed,
                 Is.EqualTo(snapshot.NormalSpeed));
             Assert.That(_controller.Session.CurrentColor,
@@ -184,6 +185,13 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 0; index < snapshot.ActiveGates.Length; index++)
             {
                 ActiveGateSnapshot expected = snapshot.ActiveGates[index];
+                if (expected.PlanIndex == snapshot.FailedGateIndex)
+                {
+                    Assert.That(
+                        _controller.GetGate(expected.PoolIdentity).gameObject.activeSelf,
+                        Is.False);
+                    continue;
+                }
                 StageGateView gate =
                     _controller.GetGate(expected.PoolIdentity);
                 Assert.That(gate.PlanIndex,
@@ -192,7 +200,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Continue_DoesNotResetCameraOrShowItemSelection()
+        public void Continue_ClearsCameraShakeAndDoesNotShowItemSelection()
         {
             StartPlaying();
             Fail();
@@ -201,8 +209,6 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.ContinueAfterFailure();
             _controller.Tick(0.4f);
 
-            Assert.That(_controller.GameplayCamera.transform.position,
-                Is.EqualTo(snapshot.CameraPosition));
             Assert.That(_controller.GameplayCamera.transform.rotation,
                 Is.EqualTo(snapshot.CameraRotation));
             Assert.That(_controller.ItemPanel.activeSelf, Is.False);

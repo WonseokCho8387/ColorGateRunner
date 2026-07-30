@@ -156,6 +156,7 @@ namespace ColorGateRunner.Tests.EditMode
                 4,
                 MechanicExperimentType.Ice);
             ExperimentSession session = new ExperimentSession(definition);
+            session.CompleteCountdown();
             ExperimentGatePlan ice = default;
             for (int index = 0; index <= definition.IceStartGate; index++)
             {
@@ -185,6 +186,7 @@ namespace ColorGateRunner.Tests.EditMode
                 3,
                 MechanicExperimentType.Ice);
             ExperimentSession session = new ExperimentSession(definition);
+            session.CompleteCountdown();
             ExperimentGatePlan plan = default;
             for (int index = 0; index <= definition.IceEndGate + 1; index++)
             {

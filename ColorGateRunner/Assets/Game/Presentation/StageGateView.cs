@@ -24,6 +24,8 @@ namespace ColorGateRunner.Presentation
         private ExperimentGatePlan _experimentPlan;
         private bool _hasExperimentPlan;
         private bool _experimentWasHidden;
+        private bool _cloneVisualActive;
+        private MaterialPropertyBlock _clonePropertyBlock;
 
         internal RunnerColor AssignedColor { get; private set; }
         internal GatePlan ActivePlan { get; private set; }
@@ -35,9 +37,12 @@ namespace ColorGateRunner.Presentation
         internal bool HasExperimentPlan => _hasExperimentPlan;
         internal ExperimentGatePlan ActiveExperimentPlan => _experimentPlan;
         internal bool SymbolVisible => colorSymbol.gameObject.activeSelf;
+        internal bool CloneVisualActive => _cloneVisualActive;
+        internal float SymbolAlpha => colorSymbol.color.a;
 
         private void Awake()
         {
+            _clonePropertyBlock = new MaterialPropertyBlock();
             CaptureParts();
         }
 
@@ -52,6 +57,11 @@ namespace ColorGateRunner.Presentation
         internal bool TryResolveCrossing()
         {
             if (_resolved || !gameObject.activeSelf)
+            {
+                return false;
+            }
+            if (_hasExperimentPlan &&
+                !controller.CanResolveExperimentGate())
             {
                 return false;
             }
@@ -74,6 +84,7 @@ namespace ColorGateRunner.Presentation
             _resolved = false;
             _reactionRemaining = 0f;
             _boosterDestroyed = false;
+            ResetClonePresentation();
             gameObject.SetActive(true);
             Vector3 position = transform.position;
             position.z = worldZ;
@@ -118,6 +129,10 @@ namespace ColorGateRunner.Presentation
                 plan.GateIndex,
                 colorMaterial,
                 worldZ);
+            if (plan.IsClone)
+            {
+                ApplyClonePresentation();
+            }
             UpdateExperimentVisibility(passedGateCount, neutralMaterial);
         }
 
@@ -207,6 +222,7 @@ namespace ColorGateRunner.Presentation
             _planIndex = -1;
             _hasExperimentPlan = false;
             _experimentWasHidden = false;
+            ResetClonePresentation();
             transform.localScale = Vector3.one;
             ResetParts();
             colorSymbol.gameObject.SetActive(true);
@@ -275,6 +291,62 @@ namespace ColorGateRunner.Presentation
             RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(AssignedColor);
             colorSymbol.text = GetSymbolText(symbol);
             colorSymbol.color = Color.white;
+        }
+
+        private void ApplyClonePresentation()
+        {
+            _cloneVisualActive = true;
+            if (_clonePropertyBlock == null)
+            {
+                _clonePropertyBlock = new MaterialPropertyBlock();
+            }
+            _clonePropertyBlock.Clear();
+            Color echoColor = GetAssignedColor();
+            echoColor.r *= 0.68f;
+            echoColor.g *= 0.68f;
+            echoColor.b *= 0.68f;
+            echoColor.a = 0.62f;
+            _clonePropertyBlock.SetColor("_BaseColor", echoColor);
+            _clonePropertyBlock.SetColor("_Color", echoColor);
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                gateRenderers[index].SetPropertyBlock(_clonePropertyBlock);
+            }
+            colorSymbol.text = "ECHO\n" + colorSymbol.text;
+            colorSymbol.color = new Color(1f, 1f, 1f, 0.72f);
+        }
+
+        private void ResetClonePresentation()
+        {
+            _cloneVisualActive = false;
+            if (gateRenderers != null)
+            {
+                for (int index = 0; index < gateRenderers.Length; index++)
+                {
+                    gateRenderers[index].SetPropertyBlock(null);
+                }
+            }
+            if (colorSymbol != null)
+            {
+                colorSymbol.color = Color.white;
+            }
+        }
+
+        private Color GetAssignedColor()
+        {
+            if (_assignedMaterial == null)
+            {
+                return Color.white;
+            }
+            if (_assignedMaterial.HasProperty("_BaseColor"))
+            {
+                return _assignedMaterial.GetColor("_BaseColor");
+            }
+            if (_assignedMaterial.HasProperty("_Color"))
+            {
+                return _assignedMaterial.GetColor("_Color");
+            }
+            return Color.white;
         }
 
         private static string GetSymbolText(RunnerColorSymbol symbol)

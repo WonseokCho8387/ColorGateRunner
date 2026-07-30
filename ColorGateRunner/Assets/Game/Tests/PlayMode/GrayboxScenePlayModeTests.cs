@@ -326,13 +326,15 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void ExperimentLauncher_StartsPlayableFixedPoolSession()
+        public void ExperimentLauncher_StartsCountdownWithFixedPoolSession()
         {
             ExperimentLauncher launcher = FindExperimentLauncher();
             launcher.StartExperiment();
 
             Assert.That(_controller.ExperimentActive, Is.True);
             Assert.That(_controller.ExperimentSession, Is.Not.Null);
+            Assert.That(_controller.ExperimentSession.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
             Assert.That(_controller.GameplayHudRoot.activeSelf, Is.True);
             Assert.That(_controller.ActiveGateCount, Is.EqualTo(6));
             Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
@@ -362,6 +364,7 @@ namespace ColorGateRunner.Tests.PlayMode
             ExperimentLauncher launcher = FindExperimentLauncher();
             launcher.PreviousColorCount();
             launcher.StartExperiment();
+            _controller.Tick(3.1f);
             for (int index = 0; index < 5; index++)
             {
                 _controller.HandleGameplayTap();
@@ -498,6 +501,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 3,
                 MechanicExperimentType.Ice);
             ExperimentSession session = new ExperimentSession(definition);
+            session.CompleteCountdown();
             ExperimentGatePlan plan = default;
             for (int index = 0; index <= definition.IceStartGate; index++)
             {
