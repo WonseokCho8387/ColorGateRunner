@@ -409,3 +409,35 @@ Validation and learning
   remain zero. A fresh Step 10 matrix reproduced all five baseline hashes.
 - Human play still owns the decision on comprehension, speed feel, comfort,
   difficulty, and fun.
+
+## Iteration 5 build-test tooling follow-up
+
+Need
+
+- Human feedback now requires repeatable Android-device and browser builds
+  without manually re-entering scenes, targets, and output paths.
+
+Implemented
+
+- Added one shared Editor build path under
+  `Tools > Color Gate Runner > Test Builds`.
+- Android APK, WebGL, combined build, and output-folder commands use the
+  enabled Build Settings scenes and ignored `Builds/Test` outputs.
+- Test builds use Development mode. Android temporarily disables App Bundle
+  output and restores the previous setting after success or failure.
+- Scene, module, platform-switch, and `BuildReport` failures are explicit.
+  No gameplay, packages, or ProjectSettings values were changed.
+
+Validation and learning
+
+- The original editor compiled the menu without errors. AndroidPlayer and
+  WebGLSupport are installed and were discovered by Unity.
+- Three focused EditMode assertions pass for the scene list, both targets,
+  deterministic output locations, and Development mode.
+- An isolated Android invocation completed platform switching, scripts,
+  Android shaders, and entered the Player backend. The copied-Library backend
+  then stopped progressing before APK output, so it was stopped; the combined
+  invocation consequently did not reach WebGL.
+- Actual APK installation and WebGL browser launch remain human acceptance
+  work in the original editor. This tooling does not claim device or browser
+  compatibility until those outputs are produced and played.

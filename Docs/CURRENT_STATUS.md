@@ -68,13 +68,33 @@ Stage Progression Hotfix
 - PlayMode explicitly verifies displayed Stage 2 starts Stage 2 and displayed
   Stage 3 starts Stage 3.
 
+Test Build Tooling
+
+- `Tools > Color Gate Runner > Test Builds` provides Android APK, WebGL,
+  combined Android-plus-WebGL, and output-folder commands.
+- Both platforms use the enabled `EditorBuildSettings` scenes and Development
+  mode. Outputs stay under ignored `Builds/Test`; Android always produces an
+  APK and restores the previous App Bundle setting afterward.
+- Missing scenes, missing platform support, platform-switch failure, and
+  unsuccessful `BuildReport` results fail explicitly instead of reporting a
+  false success.
+- Build-menu EditMode coverage passes 3/3 for the playable scene, platform
+  targets, output paths, and Development option. The original editor compiled
+  the new menu without errors and both installed platform modules were found.
+- An isolated Android invocation reached the real Player build after script
+  and shader compilation, but its copied-Library backend stopped making
+  progress before producing an APK. WebGL was therefore not reached by the
+  sequential command. Actual APK and browser output remain manual acceptance
+  checks from the original editor.
+
 Next Iteration
 
-Human mobile play only: verify Stage 7 Booster is visibly active from `GO`,
-the first Booster gate cannot be skipped, the provided/selected timing feels
-consistent, and the Stage 1-5 `LOCKED` labels are understood. Continue the
-existing Echo, Camouflage, Stage 6-11 pacing, Ice comfort, and finale review
-before another balance pass.
+Use the new menus to create an APK and WebGL output from the original editor,
+then perform human mobile/browser play. Verify Stage 7 Booster is visibly
+active from `GO`, the first Booster gate cannot be skipped, the
+provided/selected timing feels consistent, and the Stage 1-5 `LOCKED` labels
+are understood. Continue the existing Echo, Camouflage, Stage 6-11 pacing,
+Ice comfort, and finale review before another balance pass.
 
 ---
 

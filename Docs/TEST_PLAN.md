@@ -1023,3 +1023,37 @@ Comments
   Iteration 4 baseline exactly.
 - Automated evidence does not establish fun, comfort, comprehension,
   fairness, or satisfaction.
+
+## Editor test-build menu acceptance
+
+### Automated
+
+- `EnabledBuildScenes_ContainThePlayableScene` requires the menu to use the
+  enabled `Assets/Scenes/SampleScene.unity` entry.
+- Android and WebGL build-option cases require their expected ignored output
+  paths and `BuildOptions.Development`.
+- Focused EditMode result: 3/3 passed.
+- The original Unity editor must compile `ColorGateRunner.Editor` without
+  errors and discover both AndroidPlayer and WebGLSupport modules.
+
+### Build pipeline
+
+- Android output is `Builds/Test/Android/ColorGateRunner.apk`.
+- WebGL output is `Builds/Test/WebGL`.
+- Android test builds must force APK output only for the duration of the build
+  and restore the prior App Bundle setting in `finally`.
+- Missing enabled scenes, missing platform support, failed target switching,
+  and non-successful `BuildReport` results must fail explicitly.
+- An isolated validation invocation reached the Android Player backend after
+  successful scripts and shader compilation. It stopped making progress
+  before APK output and was terminated; this is not an Android build pass.
+
+### Manual
+
+- In the original editor, run
+  `Tools > Color Gate Runner > Test Builds > Build Android APK`, install the
+  APK on an Android device, and complete the current human-play checklist.
+- Run `Build WebGL`, serve `Builds/Test/WebGL` through a local web server, and
+  complete the same flow in a supported browser.
+- Run `Build Android + WebGL` after both individual commands pass to confirm
+  sequential platform switching and output replacement.
