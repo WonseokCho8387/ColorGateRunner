@@ -17,6 +17,26 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button toggleBoosterButton;
         [SerializeField] private Button startButton;
         [SerializeField] private Button leaveButton;
+        [SerializeField, Tooltip("Enables Flicker gate selection.")]
+        private bool flickerEnabled = true;
+        [SerializeField, Tooltip("First normalized progress eligible for Flicker.")]
+        private float flickerEligibleStartProgress = 0.15f;
+        [SerializeField, Tooltip("Last normalized progress eligible for Flicker.")]
+        private float flickerEligibleEndProgress = 0.85f;
+        [SerializeField, Tooltip("Deterministic chance after the guaranteed first occurrence.")]
+        private float flickerOccurrenceChance = 0.35f;
+        [SerializeField, Tooltip("Minimum ordinary gates between Flicker occurrences.")]
+        private int flickerMinimumGateCooldown = 2;
+        [SerializeField, Tooltip("Seconds target information must remain visible.")]
+        private float flickerRevealDurationSeconds = 1f;
+        [SerializeField, Tooltip("Effective-speed ETA threshold for hiding.")]
+        private float flickerHideLeadTimeSeconds = 0.65f;
+        [SerializeField, Tooltip("Seconds used to hide target information.")]
+        private float flickerTransitionSeconds = 0.12f;
+        [SerializeField, Tooltip("Maximum Flicker gates in one experiment.")]
+        private int flickerMaxOccurrences = 4;
+        [SerializeField, Tooltip("Guarantees the first eligible occurrence.")]
+        private bool flickerFirstOccurrenceGuaranteed = true;
 
         private int _colorCount = 3;
         private MechanicExperimentType _mechanic;
@@ -29,11 +49,18 @@ namespace ColorGateRunner.Presentation
         internal MechanicExperimentType Mechanic => _mechanic;
         internal uint Seed => _seed;
         internal bool Shield => _shield;
-        internal bool Booster => _booster;
+        internal bool Booster =>
+            _mechanic != MechanicExperimentType.Flicker && _booster;
         internal ExperimentSession Session => _session;
         internal string Label => label.text;
         internal ExperimentDefinition SelectedDefinition =>
-            ExperimentCatalog.Get(_colorCount, _mechanic, _seed);
+            ExperimentCatalog.Get(
+                _colorCount,
+                _mechanic,
+                _seed,
+                _mechanic == MechanicExperimentType.Flicker
+                    ? CreateFlickerSettings()
+                    : null);
 
         private void Awake()
         {
@@ -117,7 +144,12 @@ namespace ColorGateRunner.Presentation
         internal void NextMechanic()
         {
             _mechanic = (MechanicExperimentType)(
-                ((int)_mechanic + 1) % 5);
+                ((int)_mechanic + 1) %
+                ((int)MechanicExperimentType.Flicker + 1));
+            if (_mechanic == MechanicExperimentType.Flicker)
+            {
+                _booster = false;
+            }
             _session = null;
             RefreshLabel();
         }
@@ -144,6 +176,12 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleBooster()
         {
+            if (_mechanic == MechanicExperimentType.Flicker)
+            {
+                _booster = false;
+                RefreshLabel();
+                return;
+            }
             _booster = !_booster;
             RefreshLabel();
         }
@@ -151,7 +189,8 @@ namespace ColorGateRunner.Presentation
         internal void StartExperiment()
         {
             ExperimentDefinition definition = SelectedDefinition;
-            StartItemSelection items = new StartItemSelection(_shield, _booster);
+            StartItemSelection items =
+                new StartItemSelection(_shield, Booster);
             sceneController.StartDevelopmentExperiment(
                 definition,
                 items);
@@ -198,12 +237,33 @@ namespace ColorGateRunner.Presentation
 
         private void RefreshLabel()
         {
-            string items = _shield && _booster
-                ? "SHIELD+BOOSTER"
-                : _shield ? "SHIELD" : _booster ? "BOOSTER" : "NO ITEMS";
+            string items = _mechanic == MechanicExperimentType.Flicker
+                ? _shield
+                    ? "SHIELD / BOOSTER DISABLED"
+                    : "BOOSTER DISABLED"
+                : _shield && _booster
+                    ? "SHIELD+BOOSTER"
+                    : _shield
+                        ? "SHIELD"
+                        : _booster ? "BOOSTER" : "NO ITEMS";
             label.text =
                 $"{_colorCount} COLORS · {_mechanic.ToString().ToUpperInvariant()} · SEED {_seed}\n" +
                 $"{items}{(_session == null ? string.Empty : " · READY")}";
+        }
+
+        private FlickerSettings CreateFlickerSettings()
+        {
+            return new FlickerSettings(
+                flickerEnabled,
+                flickerEligibleStartProgress,
+                flickerEligibleEndProgress,
+                flickerOccurrenceChance,
+                flickerMinimumGateCooldown,
+                flickerRevealDurationSeconds,
+                flickerHideLeadTimeSeconds,
+                flickerTransitionSeconds,
+                flickerMaxOccurrences,
+                flickerFirstOccurrenceGuaranteed);
         }
     }
 }

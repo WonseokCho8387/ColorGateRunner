@@ -352,3 +352,36 @@ on one new mechanic. Stage 11 restores three colors. The final simulation
 improved Average/None first-clear rates for Stages 8-10 from
 `21.2/20.0/18.5%` to `31.2/30.5/27.9%`; these figures are mechanical evidence,
 not a claim of fun, fairness, or comfort.
+
+## Iteration 6 Flicker-only Experiment contract
+
+Flicker is a modifier on an ordinary Experiment judgment gate. It is not a
+separate gate type and does not alter the target color, transform, sequence,
+completion requirement, or judgment rules.
+
+- A Flicker gate begins fully readable with its target color and symbol.
+- The target remains readable for at least `RevealDurationSeconds`.
+- Hide begins once, and only when both the minimum readable time has elapsed
+  and the shared effective-speed ETA is at or below `HideLeadTimeSeconds`.
+- The hide transition removes only target color and symbol information over
+  `TransitionSeconds`. A neutral gate silhouette, the judgment opening, and a
+  persistent `FLICKER` marker remain visible.
+- Hidden target information never reappears before judgment, even if speed or
+  ETA later changes.
+- Judgment priority remains Player color, Echo color, Shield, then failure.
+  Flicker introduces no automatic pass, failure exemption, or custom failure
+  flow.
+- Retry and Replay preserve seed, settings, gate order, target colors, and
+  selected Flicker gates while resetting observation, transition, hidden,
+  visual-alpha, and judgment state.
+- The Flicker-only Launcher condition disables Booster. A previously held
+  Echo or active Shield may still use the existing shared judgment path.
+- Flicker does not combine with Camouflage, Fog, Ice, Echo Provider, or another
+  new modifier in this iteration. Campaign Stages 1-11 and the existing
+  16-condition Step 10 matrix remain unchanged.
+
+The initial Inspector-authored defaults are: eligible progress `0.15-0.85`,
+occurrence chance `0.35`, minimum cooldown `2` gates, readable duration
+`1.00s`, hide lead `0.65s`, transition `0.12s`, maximum `4`, and guaranteed
+first occurrence enabled. These values are human-play candidates, not final
+balance.

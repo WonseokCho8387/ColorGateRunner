@@ -175,6 +175,57 @@ human decisions after automation.
 
 ---
 
+Current Flicker Cycle
+
+Play
+
+Human play approved a standalone Flicker Experiment contract: show target
+information first, hide it once near judgment, then require memory while the
+ordinary gate remains physically readable.
+
+↓
+
+Analyze
+
+The shared Gate Modifier, deterministic Experiment sequence, effective-speed
+ETA, ordinary judgment priority, and six-View pool can support Flicker without
+a second gameplay system.
+
+↓
+
+Design
+
+Use validated Inspector settings, deterministic eligible-gate selection,
+minimum observation plus ETA, one-way target hide, persistent identity, and
+ordinary Player/Echo/Shield/Failure resolution. Disable Booster and defer
+modifier combinations and campaign use.
+
+↓
+
+Codex
+
+Extended the existing sequence and pooled View with pure-Core settings and
+visibility state. Reused existing materials, symbol rendering, Launcher,
+Retry/Replay, and judgment.
+
+↓
+
+Tests
+
+262 EditMode and 133 PlayMode passed. The twice-built scene passed all 133
+PlayMode tests again. Campaign and all five Step 10 artifacts reproduced exact
+baseline hashes.
+
+↓
+
+Experiment
+
+Observation duration, hide lead, transition clarity, memory interval, retained
+gate readability, Echo/Shield comprehension, portrait readability, and
+repeat-entry fatigue remain human decisions.
+
+---
+
 Latest Clone Cycle
 
 Play

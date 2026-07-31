@@ -2,13 +2,13 @@
 
 Version
 
-Iteration 5
+Iteration 6
 
-(Provided-item timing / high-speed progression correction complete)
+(Flicker-only Experiment complete)
 
 ---
 
-Authoritative Iteration 5 Result
+Previous Iteration 5 Result
 
 - `StageCatalog.asset` is the single production source for all 11 campaign
   stages. Runtime, simulation, and tests consume its pure-Core adapter through
@@ -33,7 +33,7 @@ Authoritative Iteration 5 Result
 - The stage picker is catalog-driven and contains 11 stable-ID buttons in a
   two-column portrait layout.
 
-Final Validation
+Iteration 5 Validation
 
 - EditMode: 249 / 249 passed.
 - PlayMode: 128 / 128 passed.
@@ -87,14 +87,53 @@ Test Build Tooling
   sequential command. Actual APK and browser output remain manual acceptance
   checks from the original editor.
 
+Authoritative Iteration 6 Result
+
+- Flicker is a flag on the shared ordinary-gate `GateModifier`. It adds no
+  gate, generator, collision path, judgment path, or pool object.
+- `FlickerSettings` validates the approved Inspector-authored fields. The
+  Launcher converts its serialized values into the pure-Core settings and
+  disables Booster for Flicker-only runs.
+- The existing deterministic Experiment sequence selects stable Flicker gate
+  IDs without changing color/spacing PRNG output, gate count, or Step 10.
+- A pure-Core visibility state requires both minimum readable time and shared
+  effective-speed ETA, starts one transition, and never reveals target
+  information again before judgment.
+- The pooled View begins with target color/symbol plus a persistent `FLICKER`
+  identity. Hide blends to the existing neutral silhouette and removes only
+  target symbol information; geometry, judgment opening, transform, collider,
+  and marker remain.
+- Player, held Echo, Shield, and ordinary failure reuse the existing priority.
+  Retry/Replay reproduce selection and reset visibility state.
+- Campaign Stages 1-11 and the 16-condition Step 10 matrix are unchanged.
+
+The initial Flicker settings are Inspector-authored human-play candidates:
+eligible progress `0.15-0.85`, chance `0.35`, cooldown `2`, visible duration
+`1.00s`, hide lead `0.65s`, transition `0.12s`, maximum `4`, and guaranteed
+first occurrence. Booster is disabled for this standalone condition.
+
+Iteration 6 Validation
+
+- Original open Editor: scripts compiled without C# errors.
+- EditMode: 262/262 passed.
+- PlayMode: 134/134 passed.
+- Scene Builder: the command's two consecutive builds succeeded; the rebuilt
+  isolated scene then passed PlayMode 134/134 again.
+- Campaign simulation: 220 rows and 176,044 modeled runs. Summary, JSON, and
+  CSV hashes are byte-identical to the preceding baseline.
+- Step 10: all five CSV/JSON/summary/comparison/shortlist hashes are
+  byte-identical to the approved baseline.
+- Packages and ProjectSettings have no intended feature change. Automated
+  results do not establish Flicker readability, comfort, comprehension,
+  fairness, satisfaction, motivation, or fun.
+
 Next Iteration
 
-Use the new menus to create an APK and WebGL output from the original editor,
-then perform human mobile/browser play. Verify Stage 7 Booster is visibly
-active from `GO`, the first Booster gate cannot be skipped, the
-provided/selected timing feels consistent, and the Stage 1-5 `LOCKED` labels
-are understood. Continue the existing Echo, Camouflage, Stage 6-11 pacing,
-Ice comfort, and finale review before another balance pass.
+After automated validation, perform Flicker human play on portrait mobile and
+browser builds. Record concept recognition, observation duration, hide timing,
+memory interval, transition clarity, retained gate position, Echo/Shield
+comprehension, portrait readability, and repeat-entry fatigue before changing
+balance or expanding scope.
 
 ---
 

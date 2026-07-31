@@ -1057,3 +1057,69 @@ Comments
   complete the same flow in a supported browser.
 - Run `Build Android + WebGL` after both individual commands pass to confirm
   sequential platform switching and output replacement.
+
+## Iteration 6 Flicker-only Experiment acceptance
+
+### EditMode / Core
+
+- Validate every `FlickerSettings` range and ordering rule.
+- Require identical Flicker gate IDs for the same seed and settings.
+- Require eligible progress bounds, minimum gate cooldown, maximum
+  occurrences, and no non-judgment/Goal selection.
+- Require `FirstOccurrenceGuaranteed` to produce one occurrence when an
+  eligible gate exists and to remain safe when none exists.
+- Require modifier selection to remain fixed after plan/View binding.
+- Require no hide before the minimum visible duration, no hide before the ETA
+  threshold, hide when both are satisfied, one hide only, and no reappearance.
+- Require target color data and ordinary Player → Echo → Shield → Failure
+  judgment priority to remain unchanged.
+- Require Retry and Replay to reproduce selection while clearing runtime
+  visibility state.
+- Require Flicker not to increase gate count or combine with another modifier.
+
+### PlayMode
+
+- Launcher can select a Flicker-only condition and disables Booster.
+- Countdown does not advance Flicker observation time.
+- Playing advances visible time; the initial color, symbol, and `FLICKER`
+  identity are readable.
+- Meeting both visible-time and ETA conditions begins the transition. On
+  completion, target color and symbol are hidden while the neutral silhouette,
+  judgment opening, collider, and `FLICKER` identity remain.
+- Direct player match, existing Echo match, Shield defense, and ordinary
+  failure flow remain available after hiding; Echo and Shield are not both
+  consumed.
+- Retry/Replay reset the visual state and reproduce the same selected gates.
+- Repeated Lab entry, Back to Lab, listener counts, fixed six-gate pool,
+  two-pass Scene Builder, Missing Script, and Missing Reference checks remain
+  required.
+
+### Regression and human review
+
+- Run full EditMode and PlayMode suites.
+- Rerun Stage 1-11 campaign simulation and the existing Step 10 matrix.
+  Campaign rows and all five Step 10 hashes must remain unchanged.
+- Confirm packages and ProjectSettings have no unintended changes and run
+  `git diff --check`.
+- Human review records concept comprehension, observation duration, hide
+  timing, memory interval, transition clarity, retained gate position,
+  Echo/Shield comprehension, portrait readability, and repeat-entry fatigue.
+- Automated evidence does not establish fun, fairness, readability, comfort,
+  comprehension, satisfaction, or motivation.
+
+### Iteration 6 final automated evidence
+
+- Original Editor script compilation: no C# errors.
+- EditMode: 262/262.
+- PlayMode: 134/134.
+- Post-Builder PlayMode: 134/134 after the command rebuilt the scene twice.
+- Campaign: 220 rows, 176,044 modeled runs, with exact baseline Summary, JSON,
+  and CSV hashes.
+- Step 10 hashes:
+  - CSV `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`
+  - JSON `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`
+  - Summary `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`
+  - Comparison `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`
+  - Shortlist `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
+- The only warning class was the pre-existing Unity API deprecation in
+  `Step10_1PlayModeTests`; it is not introduced by Flicker.

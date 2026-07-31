@@ -1144,7 +1144,8 @@ namespace ColorGateRunner.Presentation
                 _nextGateZ,
                 _experimentSession.GatesPassed,
                 EstimateExperimentGateEta(plan, _nextGateZ),
-                _experimentSession.Definition.Camouflage);
+                _experimentSession.Definition.Camouflage,
+                _experimentSession.Definition.Flicker);
             _nextPlanIndex++;
         }
 
@@ -1341,6 +1342,7 @@ namespace ColorGateRunner.Presentation
                             gate.transform.position.z),
                         _normalTrackMaterial,
                         _experimentSession.Definition.Camouflage,
+                        _experimentSession.Definition.Flicker,
                         deltaSeconds);
                 }
             }

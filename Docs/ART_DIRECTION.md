@@ -234,3 +234,28 @@ while Shield remains the larger six-segment outer shell. An ordinary provider
 gate uses the existing frame and an `ECHO` marker. Camouflage keeps provider
 target color and symbol hidden until ETA reveal. Human portrait-mobile review
 is still required for simultaneous Echo/Shield separation and marker size.
+
+## Iteration 6 Flicker presentation
+
+- A Flicker gate uses the ordinary pooled gate silhouette, material, target
+  color, symbol, and judgment opening.
+- A compact neutral `FLICKER` label is visible before and after target
+  information hides without covering the target symbol.
+- During the short transition, existing material color blending and text
+  alpha are reused. No new shader, particle package, post-processing, camera
+  effect, or full-screen distortion is introduced.
+- At the end of the transition, the gate frame remains as a neutral
+  silhouette and the `FLICKER` label remains readable, while the target color
+  and target symbol are hidden.
+- Gate geometry, collider, judgment opening, position, and scale remain
+  visible and stable. Hide never makes the whole gate disappear.
+- Portrait-mobile human review owns marker size, minimum observation time,
+  hide timing, transition clarity, memory interval, and confusion with
+  Camouflage.
+
+Implementation result: the existing pooled gate uses its target material and
+symbol during observation, then blends to the existing neutral material while
+the symbol's rich-text alpha reaches zero. `FLICKER` remains visible in the
+same TextMesh, so no new scene object, material, shader, particle system, or
+package was required. Automated checks confirm retained transform, collider,
+marker, and pooled object; portrait readability remains a human decision.

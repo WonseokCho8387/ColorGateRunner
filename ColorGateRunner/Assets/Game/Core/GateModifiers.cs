@@ -57,7 +57,8 @@ namespace ColorGateRunner.Core
         Camouflage = 1 << 0,
         Fog = 1 << 1,
         Ice = 1 << 2,
-        EchoProvider = 1 << 3
+        EchoProvider = 1 << 3,
+        Flicker = 1 << 4
     }
 
     public readonly struct GateModifier
@@ -73,6 +74,7 @@ namespace ColorGateRunner.Core
         public bool IsFog => Has(GateModifierType.Fog);
         public bool IsIce => Has(GateModifierType.Ice);
         public bool IsEchoProvider => Has(GateModifierType.EchoProvider);
+        public bool IsFlicker => Has(GateModifierType.Flicker);
 
         public static GateModifier None =>
             new GateModifier(GateModifierType.None);
@@ -214,6 +216,170 @@ namespace ColorGateRunner.Core
         public static CamouflageSettings CreateDefault()
         {
             return new CamouflageSettings(1.25f, 0.18f);
+        }
+    }
+
+    public sealed class FlickerSettings
+    {
+        public FlickerSettings(
+            bool enabled,
+            float eligibleStartProgress,
+            float eligibleEndProgress,
+            float occurrenceChance,
+            int minimumGateCooldown,
+            float revealDurationSeconds,
+            float hideLeadTimeSeconds,
+            float transitionSeconds,
+            int maxOccurrences,
+            bool firstOccurrenceGuaranteed)
+        {
+            ValidateProgress(
+                eligibleStartProgress,
+                nameof(eligibleStartProgress));
+            ValidateProgress(
+                eligibleEndProgress,
+                nameof(eligibleEndProgress));
+            if (eligibleStartProgress >= eligibleEndProgress)
+            {
+                throw new ArgumentException(
+                    "Flicker eligible start must be before eligible end.");
+            }
+            ValidateProgress(occurrenceChance, nameof(occurrenceChance));
+            if (minimumGateCooldown < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minimumGateCooldown));
+            }
+            if (revealDurationSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(revealDurationSeconds));
+            }
+            if (hideLeadTimeSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(hideLeadTimeSeconds));
+            }
+            if (transitionSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(transitionSeconds));
+            }
+            if (maxOccurrences < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxOccurrences));
+            }
+
+            Enabled = enabled;
+            EligibleStartProgress = eligibleStartProgress;
+            EligibleEndProgress = eligibleEndProgress;
+            OccurrenceChance = occurrenceChance;
+            MinimumGateCooldown = minimumGateCooldown;
+            RevealDurationSeconds = revealDurationSeconds;
+            HideLeadTimeSeconds = hideLeadTimeSeconds;
+            TransitionSeconds = transitionSeconds;
+            MaxOccurrences = maxOccurrences;
+            FirstOccurrenceGuaranteed = firstOccurrenceGuaranteed;
+        }
+
+        public bool Enabled { get; }
+        public float EligibleStartProgress { get; }
+        public float EligibleEndProgress { get; }
+        public float OccurrenceChance { get; }
+        public int MinimumGateCooldown { get; }
+        public float RevealDurationSeconds { get; }
+        public float HideLeadTimeSeconds { get; }
+        public float TransitionSeconds { get; }
+        public int MaxOccurrences { get; }
+        public bool FirstOccurrenceGuaranteed { get; }
+
+        public static FlickerSettings Disabled()
+        {
+            return new FlickerSettings(
+                false,
+                0.15f,
+                0.85f,
+                0f,
+                0,
+                0f,
+                0f,
+                0f,
+                0,
+                false);
+        }
+
+        public static FlickerSettings CreateDefault()
+        {
+            return new FlickerSettings(
+                true,
+                0.15f,
+                0.85f,
+                0.35f,
+                2,
+                1f,
+                0.65f,
+                0.12f,
+                4,
+                true);
+        }
+
+        private static void ValidateProgress(float value, string name)
+        {
+            if (value < 0f || value > 1f)
+            {
+                throw new ArgumentOutOfRangeException(name);
+            }
+        }
+    }
+
+    public sealed class FlickerVisibilityState
+    {
+        public float VisibleElapsed { get; private set; }
+        public bool HideStarted { get; private set; }
+        public float TransitionProgress { get; private set; }
+        public float TargetAlpha => 1f - TransitionProgress;
+        public int HideStartCount { get; private set; }
+
+        public void Advance(
+            float deltaSeconds,
+            float estimatedArrivalSeconds,
+            FlickerSettings settings)
+        {
+            if (deltaSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
+            }
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            VisibleElapsed += deltaSeconds;
+            if (!HideStarted &&
+                VisibleElapsed >= settings.RevealDurationSeconds &&
+                estimatedArrivalSeconds <= settings.HideLeadTimeSeconds)
+            {
+                HideStarted = true;
+                HideStartCount++;
+                TransitionProgress =
+                    settings.TransitionSeconds <= 0f ? 1f : 0f;
+            }
+            if (HideStarted && TransitionProgress < 1f)
+            {
+                TransitionProgress = Math.Min(
+                    1f,
+                    TransitionProgress +
+                    (deltaSeconds / settings.TransitionSeconds));
+            }
+        }
+
+        public void Reset()
+        {
+            VisibleElapsed = 0f;
+            HideStarted = false;
+            TransitionProgress = 0f;
+            HideStartCount = 0;
         }
     }
 

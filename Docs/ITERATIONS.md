@@ -441,3 +441,65 @@ Validation and learning
 - Actual APK installation and WebGL browser launch remain human acceptance
   work in the original editor. This tooling does not claim device or browser
   compatibility until those outputs are produced and played.
+
+## Iteration 6 Flicker-only Experiment
+
+Status
+
+- Completed
+
+Contract
+
+- Ordinary-gate Flicker modifier, not a separate gate.
+- Deterministic selection inside the existing Experiment sequence.
+- Minimum readable duration plus shared effective-speed ETA hide condition.
+- One-way target-color and symbol hide with retained neutral silhouette,
+  judgment opening, and `FLICKER` identity.
+- Existing Player, Echo, Shield, Failure priority.
+- Deterministic Retry/Replay reset.
+- Booster disabled and modifier combinations deferred.
+- Campaign Stages 1-11 and Step 10 matrix unchanged.
+
+Human feedback required
+
+- Flicker concept recognition.
+- Readable observation duration.
+- Hide lead and memory interval.
+- Transition clarity.
+- Gate-position retention.
+- Echo/Shield comprehension.
+- Portrait readability and repeated-entry fatigue.
+
+Implementation
+
+- Added `Flicker` to the shared modifier and a validated pure-Core
+  `FlickerSettings`.
+- Extended the existing deterministic Experiment sequence with an independent
+  Flicker selection mask so gate count and existing color/spacing PRNG output
+  remain unchanged.
+- Added a pure-Core one-way visibility state used by the pooled gate View.
+- Reused effective-speed ETA, existing materials, rich-text symbol alpha,
+  ordinary judgment, failure, Retry/Replay, Launcher, and six-View pool.
+- Disabled Booster only for the Flicker Launcher condition.
+
+Validation and learning
+
+- Original Editor compilation completed without C# errors.
+- EditMode 262/262 and PlayMode 134/134 passed.
+- The Scene Builder completed both consecutive builds, and its rebuilt scene
+  passed PlayMode 134/134.
+- The 220-row, 176,044-run Stage 1-11 campaign output reproduced all three
+  baseline artifact hashes.
+- All five Step 10 artifact hashes reproduced exactly.
+- The architecture can express the approved one-way information hide without
+  a second gate or judgment system. Human play must determine whether the
+  default one-second observation, `0.65s` hide lead, `0.12s` transition, and
+  retained marker are perceptually clear.
+
+Deferred
+
+- Campaign Flicker.
+- Flicker combined on a gate with Camouflage, Fog, Ice, or Echo Provider.
+- Color-changing or reappearing Flicker.
+- Repeating flash patterns.
+- New failure flow, input, package, Pattern metadata, or Section metadata.

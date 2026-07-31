@@ -143,13 +143,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 35f,
                 camouflage.GateIndex - 2,
                 10f,
-                CamouflageSettings.CreateDefault());
+                CamouflageSettings.CreateDefault(),
+                FlickerSettings.Disabled());
             yield return Capture("09-Camouflage-Hidden.png");
             camouflageGate.UpdateExperimentVisibility(
                 camouflage.GateIndex - 1,
                 CamouflageSettings.CreateDefault().RevealLeadTimeSeconds,
                 neutral,
                 CamouflageSettings.CreateDefault(),
+                FlickerSettings.Disabled(),
                 CamouflageSettings.CreateDefault().RevealTransitionSeconds);
             yield return Capture("10-Camouflage-Reveal.png");
 
@@ -342,7 +344,8 @@ namespace ColorGateRunner.Tests.PlayMode
                     30f + offset * 15f,
                     definition.FogStartGate + (transition ? 1 : 0),
                     float.PositiveInfinity,
-                    definition.Camouflage);
+                    definition.Camouflage,
+                    definition.Flicker);
             }
         }
 

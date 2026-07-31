@@ -682,3 +682,38 @@ Status: Approved human-feedback correction.
   fallback for a missed physics Trigger and reuses that same judgment path.
 - The fixed six-gate pool, authored gate sequence, Booster speed/distance,
   stage curves, and Goal contract are unchanged.
+
+## Iteration 6 Flicker-only Experiment
+
+Status: Approved implementation contract.
+
+- Extend the shared `GateModifier` representation with Flicker and extend the
+  existing deterministic Experiment sequence; do not add a second generator,
+  collision path, judgment system, or Pattern/Section framework.
+- `FlickerSettings` owns Enabled, eligible progress bounds, occurrence chance,
+  minimum gate cooldown, reveal duration, hide lead time, transition duration,
+  maximum occurrences, and first-occurrence guarantee. Invalid values fail
+  explicitly rather than being silently changed at runtime.
+- Selection is stable for the same seed and settings, excludes non-judgment
+  targets, respects eligible bounds, cooldown, and maximum count, and
+  guarantees one eligible occurrence only when configured.
+- View binding never changes selection. Countdown does not advance readable
+  time. During Playing, hide starts only after
+  `VisibleElapsed >= RevealDurationSeconds` and
+  `ETA <= HideLeadTimeSeconds`.
+- Hide is one-way and presentation-only. Target color and symbol disappear;
+  neutral silhouette, judgment opening, and Flicker identity remain.
+- Existing Player → Echo → Shield → Failure priority is authoritative.
+  Flicker does not add a pass, defense, or failure cause.
+- Retry/Replay rebuild the same deterministic plans and reset all per-View
+  Flicker runtime state.
+- Flicker-only Launcher runs disable Booster and do not mix Flicker with
+  Camouflage, Fog, Ice, Echo Provider, or campaign stages.
+- Campaign Stages 1-11, the Step 10 matrix, packages, and ProjectSettings are
+  regression boundaries.
+
+Implementation outcome: completed and validated with the shared modifier,
+existing deterministic sequence, pure-Core one-way visibility state, shared
+ETA, ordinary judgment, and fixed View pool. EditMode 262/262, PlayMode
+134/134, post-Builder PlayMode 134/134, all three campaign hashes, and all five
+Step 10 hashes passed their required boundaries.
