@@ -612,6 +612,18 @@ session and services.
 - Initial destination.
 - Loading and fatal-error presentation.
 
+Implementation status: Completed in Iteration 9.
+
+- `Assets/Scenes/Boot.unity` is the first active Build Settings Scene.
+- The Builder serializes the first active non-Boot Scene path; successful
+  initialization currently enters the existing Campaign/Experiment Scene.
+- Boot provides portrait Safe Area, game title, Loading, version, blocking
+  local-error text, and Retry. It contains no Campaign or gameplay logic.
+- Retry reuses the existing AppRoot and service graph. Re-entering Boot rejects
+  a duplicate AppRoot and does not add an EventSystem.
+- Title, Frontend Scene, page router, and the later Lobby/Campaign/Stage Detail
+  shell remain deferred to Frontend Iteration 2+.
+
 ## Frontend Iteration 2 — Frontend shell
 
 - Frontend Scene.

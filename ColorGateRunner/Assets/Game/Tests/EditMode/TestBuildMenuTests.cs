@@ -13,7 +13,7 @@ namespace ColorGateRunner.Tests.EditMode
             BindingFlags.Static | BindingFlags.NonPublic;
 
         [Test]
-        public void EnabledBuildScenes_ContainThePlayableScene()
+        public void EnabledBuildScenes_StartWithBootAndContainPlayableScene()
         {
             MethodInfo method = RequireMenuType().GetMethod(
                 "GetEnabledScenePaths",
@@ -22,9 +22,8 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(method, Is.Not.Null);
             string[] scenes = (string[])method.Invoke(null, null);
 
-            Assert.That(
-                scenes,
-                Is.EqualTo(new[] { "Assets/Scenes/SampleScene.unity" }));
+            Assert.That(scenes[0], Is.EqualTo("Assets/Scenes/Boot.unity"));
+            Assert.That(scenes, Does.Contain("Assets/Scenes/SampleScene.unity"));
         }
 
         [TestCase(BuildTarget.Android, "Builds/Test/Android/ColorGateRunner.apk")]
@@ -52,9 +51,10 @@ namespace ColorGateRunner.Tests.EditMode
                 options.locationPathName,
                 Is.EqualTo(Path.GetFullPath(
                     Path.Combine(projectRoot, relativeOutput))));
-            Assert.That(
-                options.scenes,
-                Is.EqualTo(new[] { "Assets/Scenes/SampleScene.unity" }));
+            Assert.That(options.scenes[0],
+                Is.EqualTo("Assets/Scenes/Boot.unity"));
+            Assert.That(options.scenes,
+                Does.Contain("Assets/Scenes/SampleScene.unity"));
         }
 
         [Test]

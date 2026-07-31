@@ -726,6 +726,22 @@ No row may have two production owners.
 - ClockService.
 - Boot initialization.
 
+Implementation status: Completed in Iteration 9.
+
+- One persistent AppRoot composes Clock, Profile, Local Account, Settings,
+  Local Save, and the ordered initialization pipeline without service-level
+  singletons or a mutable locator.
+- The Product assembly is Unity-independent. Unity adapters own persistent
+  path, JSON, platform replacement policy, and Scene presentation.
+- Schema 1 persists only Profile and Settings plus revision/write metadata.
+  Guest identity is stable across reloads and does not use a device ID.
+- Primary/temp/backup validation, corrupt-primary recovery, schema-0 migration,
+  future-schema blocking, native atomic preference, and WebGL recoverable-only
+  replacement are implemented and tested.
+- Existing Stage PlayerPrefs remain the single progression owner. The new save
+  has no Stage section and performs no read, write, copy, reset, or migration
+  of Stage data. Product Iteration 2 remains separately deferred.
+
 ## Product Iteration 2 — Progression integration
 
 - StageProgressService.

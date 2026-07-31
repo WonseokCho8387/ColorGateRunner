@@ -3,6 +3,8 @@
   "rootNamespace": "ColorGateRunner.Tests.EditMode",
   "references": [
     "ColorGateRunner.Core",
+    "ColorGateRunner.Product",
+    "ColorGateRunner.Editor",
     "ColorGateRunner.Presentation"
   ],
   "includePlatforms": [

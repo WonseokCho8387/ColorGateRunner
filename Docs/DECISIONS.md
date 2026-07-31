@@ -823,3 +823,39 @@ Status: Implemented / Human Review Pending.
   and speed-based switch-interval adjustment remain out of scope.
 - Automated tests own determinism and regression. Human portrait play owns
   comprehension, memory difficulty, timing readability, and satisfaction.
+
+## Commercial Flow Foundation 1
+
+Status: Implemented.
+
+- Production initialization is Guest-first and offline. A Guest is created
+  once when absent, uses a generated local UUID and injected UTC clock, and is
+  restored by Profile ID on later launches. Device identifiers are forbidden.
+- One persistent `AppRoot` is the composition root. It owns one explicit
+  Clock/Profile/LocalAccount/Settings/Save/Initialization graph. Individual
+  service singletons and a mutable global service locator are forbidden.
+- `ColorGateRunner.Product` is Unity-independent. Persistent data paths,
+  Unity JSON, runtime platform selection, Boot UI, and Scene loading remain in
+  Unity adapters/presentation.
+- Product save schema 1 owns Profile, Settings, root/Profile SaveRevision, and
+  LastWriteUtc. It does not own Stage progression.
+- SaveRevision and LastWriteUtc are applied to the candidate snapshot before
+  temp serialization and validation. Successful replacement copies exactly
+  that validated candidate back to the caller.
+- Primary/temp/backup is the local write policy. Atomic replacement is used
+  only where supported; WebGL selects and reports backup-based recoverable
+  replacement instead of claiming atomic success.
+- Corrupt primary may recover from a valid backup. Corrupt primary plus backup
+  is a typed blocking error. Unknown future schema blocks without fallback,
+  empty replacement, or overwrite. Schema 0 is the only supported migration
+  entry in this Iteration.
+- `PlayerPrefsStageProgressStore` remains the sole authority for Highest
+  Unlocked, Stage clear, Clear Count, Best Time, and Best No-Item Time until a
+  separately approved Product Iteration 2. No copy, migration, reset, shadow
+  read, or new product-save Stage write is allowed now.
+- Boot is Build Index 0. The Boot Builder serializes the first active non-Boot
+  Build Settings path before reordering; Boot cannot target itself and runtime
+  does not hardcode `SampleScene`.
+- Until Frontend Iteration 2, successful Boot initialization enters the
+  existing Campaign Scene. Title, Lobby redesign, page routing, login/cloud,
+  economy, content, events, analytics, ads, and IAP remain deferred.

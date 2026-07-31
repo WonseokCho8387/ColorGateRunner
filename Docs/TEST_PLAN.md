@@ -1387,3 +1387,73 @@ Any mismatch blocks implementation.
   and lock
   `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`
   are unchanged. ProjectSettings has no diff and `git diff --check` passes.
+
+## Iteration 9 — Commercial Flow Foundation 1
+
+### Product/EditMode contract
+
+- Product assembly has no Unity reference and `noEngineReferences: true`.
+- Initialization records Clock/paths, Save load/recovery, Profile, Settings,
+  dirty persistence, and Complete in order; failure stops later steps and
+  Retry reuses the same services.
+- Fresh data creates one Guest from injected ID/clock; reload preserves ID and
+  does not store a device identifier.
+- Current-schema roundtrip preserves Profile and Settings. SaveRevision and
+  LastWriteUtc must already be present when temp bytes are serialized and
+  decoded for validation.
+- Failed replacement preserves the prior primary. Corrupt primary restores a
+  valid backup. Two corrupt files return a typed blocking error. Unknown future
+  schema does not fall back or overwrite. Schema 0 migration is deterministic.
+- Invalid settings reset as one documented section to master/music/SFX 1,
+  vibration on, and language `system`. Test files remain inside the injected
+  temporary directory.
+- Recoverable-only replacement returns `Recoverable`, never `Atomic`.
+- Destination selection uses the first active non-Boot Scene, rejects Boot-
+  only input, contains no SampleScene-name assumption, deduplicates Boot at
+  index 0, preserves other Scene order/enabled state, and retains a valid
+  explicit path after order changes.
+
+### Boot/PlayMode contract
+
+- Boot contains its generated root, AppRoot, controller, Safe Area, Loading,
+  version, error/Retry references, and exactly one EventSystem.
+- Success loads the serialized active Campaign path only after Profile and
+  Local Account are populated. Failure remains in Boot and shows the error.
+- Retry succeeds through the same graph, hides the error, loads once, and does
+  not duplicate the button listener or AppRoot.
+- Returning to Boot creates neither a second service graph nor a second
+  persistent AppRoot.
+- Boot and Guest creation preserve pre-seeded highest-unlocked and Stage-record
+  PlayerPrefs exactly. Product code contains no Stage progression reference.
+
+### Final automated evidence
+
+- EditMode `313/313`; PlayMode `152/152`.
+- Boot Builder run 1 and run 2 succeeded. Existing Campaign Scene Builder run
+  1 and run 2 succeeded. Post-Boot and post-Campaign-Builder PlayMode each
+  passed `152/152`.
+- Builder validation and PlayMode cover required references, one EventSystem,
+  Safe Area, no duplicate roots, no Missing Script, and valid Campaign entry.
+- Campaign 260-row Summary/JSON/CSV hashes are
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 CSV/JSON/Summary/Comparison/Shortlist hashes remain
+  `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`,
+  `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`,
+  `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`,
+  `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`,
+  and `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`.
+- Package manifest/lock hashes remain
+  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+  and `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`.
+  The only ProjectSettings diff is Boot-first EditorBuildSettings.
+
+### Human acceptance
+
+- Check 9:16 Boot readability, no loading flicker, Campaign transition feel,
+  understandable local-error/Retry messaging, and no duplicate audio/input.
+- On Android and WebGL, check fresh Guest creation, restart identity, forced-
+  close recovery behavior, and preservation of real Stage progress.
+- Automation does not claim visual polish, messaging comprehension, device-
+  specific persistence durability, or transition satisfaction.

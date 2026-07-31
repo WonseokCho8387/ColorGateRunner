@@ -3,6 +3,7 @@
   "rootNamespace": "ColorGateRunner.Tests.PlayMode",
   "references": [
     "ColorGateRunner.Core",
+    "ColorGateRunner.Product",
     "ColorGateRunner.Presentation",
     "UnityEngine.UI"
   ],

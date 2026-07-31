@@ -26,6 +26,8 @@ Before changing code, read:
 2. `Docs/ART_DIRECTION.md`
 3. `Docs/TEST_PLAN.md`
 4. `Docs/DECISIONS.md`
+5. `Docs/FRONTEND_FLOW.md`
+6. `Docs/PRODUCT_SYSTEMS.md`
 
 ## Working rules
 

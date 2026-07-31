@@ -3,6 +3,7 @@
   "rootNamespace": "ColorGateRunner.Presentation",
   "references": [
     "ColorGateRunner.Core",
+    "ColorGateRunner.Product",
     "UnityEngine.UI"
   ],
   "includePlatforms": [],

@@ -2,11 +2,65 @@
 
 Version
 
-Iteration 8
+Iteration 9
 
-(Campaign Stage 12 Hidden and Stage 13 Flicker implemented / human review pending)
+(Commercial Flow Foundation: Boot, AppRoot, local Guest, and versioned local
+save implemented / human review pending)
 
 ---
+
+Commercial Flow Foundation Iteration 1 Result
+
+- `Boot.unity` is Build Index 0 and initializes one persistent `AppRoot`
+  before loading the first active non-Boot Build Settings Scene. The serialized
+  destination is `Assets/Scenes/SampleScene.unity`; runtime contains no
+  `SampleScene` name hardcode.
+- `AppRoot` owns one explicit service graph: Clock, Profile, Local Account,
+  Settings, Local Save, and the ordered initialization pipeline. Individual
+  services are not singletons and no mutable service locator was added.
+- The new `ColorGateRunner.Product` assembly has no Unity reference.
+  `Application.persistentDataPath`, `JsonUtility`, Scene loading, and Boot UI
+  stay in the Unity Presentation adapter.
+- A fresh local product save creates exactly one Guest with an injected-capable
+  UUID and UTC clock. Reload preserves the Profile ID and updates Last Played.
+  Device identifiers are neither read nor stored.
+- Product save schema 1 contains Profile, Settings, SaveRevision, and
+  LastWriteUtc. Candidate revision and timestamp are applied before temporary
+  serialization and validation. Primary/temp/backup, corrupt-primary recovery,
+  supported schema-0 migration, and future-version blocking are implemented.
+- Desktop/native uses atomic replace when supported. WebGL explicitly selects
+  backup-based recoverable replacement and never reports an atomic result.
+- `PlayerPrefsStageProgressStore` remains the sole Stage progression owner.
+  Product save has no Stage section, does not read/write progression keys, and
+  performs no copy, migration, reset, or new Stage result write.
+- Boot shows Loading, version, a blocking local-error panel, and Retry. Retry
+  reuses the existing service graph; returning to Boot rejects duplicate
+  `AppRoot` creation.
+
+Iteration 9 Validation
+
+- EditMode: `313/313` passed.
+- PlayMode: `152/152` passed; the same `152/152` passed after Boot Builder and
+  again after two Campaign Scene Builder runs.
+- Boot Builder succeeded twice. Campaign Scene Builder succeeded twice. Both
+  validate required references, Safe Area, one EventSystem, and no Missing
+  Script; PlayMode validates the existing Campaign Scene after regeneration.
+- Stage 1-13 Campaign simulation produced 260 rows and reproduced Summary,
+  JSON, and CSV hashes `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 reproduced 80 rows, 64,016 runs, and all five Iteration 8 hashes.
+- Package manifest and lock hashes remain unchanged. The only approved
+  ProjectSettings diff is the Boot-first `EditorBuildSettings` Scene list.
+- Human review remains required for Boot presentation, transition feel,
+  understandable save-error text, restart persistence on Android/WebGL, and
+  preservation of real device Stage progress.
+
+Deferred after Iteration 9
+
+- Title, Frontend/Lobby redesign, Campaign Page, Stage Detail, Gameplay shell,
+  Results redesign, StageProgressService integration/migration, external
+  login/cloud, economy, events, analytics, ads, and IAP.
 
 Previous Iteration 5 Result
 

@@ -761,3 +761,85 @@ Human feedback required
 - Stage 13 forward rotation, `0.50s` boundary response, and post-Booster
   teaching frequency.
 - Shield/Booster feedback, marker legibility, and 9:16 portrait readability.
+
+## Iteration 9 — Commercial Flow Foundation 1
+
+### Play
+
+- The playable entry was the generated Campaign/Experiment `SampleScene`.
+  There was no Boot Scene, persistent composition root, production Scene
+  transition, local profile, settings persistence, or product-save owner.
+- Existing Stage progression already persisted independently through
+  `PlayerPrefsStageProgressStore` using the highest-unlocked and per-display-
+  number record keys.
+
+### Analyze
+
+- Reusing the Stage PlayerPrefs as a new product save would create two owners
+  and an unsafe migration. This Iteration therefore leaves progression fully
+  untouched and gives the new save only Profile and Settings.
+- Unity-specific path, JSON, and Scene APIs can remain adapters around a pure
+  Product assembly. A single persistent `AppRoot` is sufficient without
+  service-level singletons or a global mutable locator.
+- Build Settings already provide an explicit destination list. The Builder
+  can serialize the first active non-Boot path before inserting Boot at index
+  0, avoiding a Scene-name hardcode.
+
+### Design
+
+- Boot owns presentation and transition only. AppRoot owns the service graph
+  and ordered initialization pipeline.
+- Save writes clone the requested snapshot, apply schema/revision/write UTC,
+  validate, serialize to temp, decode and validate temp, then replace primary.
+- Native platforms prefer atomic replacement. Platforms such as WebGL use an
+  explicitly reported backup-based recoverable policy.
+- Load accepts current schema, deterministically migrates schema 0, recovers a
+  corrupt primary from a valid backup, and blocks unknown future schema.
+
+### Implementation
+
+- Added the Unity-free `ColorGateRunner.Product` assembly, local save models,
+  contracts, services, system file adapter, and initialization pipeline.
+- Added Unity JSON/path/platform adapters, one persistent `AppRoot`, Boot
+  controller, Loading/version/error/Retry UI, and Safe Area support.
+- Added an idempotent Boot Builder, Boot-first Build Settings management, and
+  enabled-scene test-build coverage.
+- Added EditMode coverage for initialization, profile identity, revision/write
+  ordering, roundtrip, failure preservation, backup recovery, future schema,
+  migration, settings policy, injected paths, and assembly purity.
+- Added PlayMode coverage for Boot structure, success transition, existing
+  profile load, Retry, duplicate rejection, and Stage PlayerPrefs preservation.
+
+### Validation
+
+- EditMode `313/313`; PlayMode `152/152`.
+- Boot Builder twice and Campaign Scene Builder twice succeeded. PlayMode
+  remained `152/152` after each Builder boundary.
+- Campaign 260-row and Step 10 64,016-run artifacts reproduced every approved
+  hash. Gameplay, Stage Catalog, items, modifiers, Retry/Continue, and Goal
+  behavior are unchanged.
+- Package manifest/lock are unchanged. ProjectSettings changes only by adding
+  Boot first while retaining the active Campaign Scene.
+
+### Learning
+
+- A new product save can be introduced safely before progression integration
+  only when ownership is explicit and the new schema contains no shadow copy.
+- Applying metadata before temp serialization makes the validated bytes and
+  in-memory success snapshot identical.
+- Cross-platform save guarantees must be named honestly. Backup recoverability
+  is a valid WebGL contract but is not atomic replacement.
+
+### Deferred
+
+- Title, Frontend shell, Lobby/Campaign/Stage Detail redesign, result screens,
+  StageProgressService migration, cloud/login, economy, content, events,
+  analytics, advertising, and IAP.
+
+### Human Review
+
+- Confirm Boot presentation is stable without flicker in 9:16 portrait.
+- Confirm Campaign transition delay feels acceptable.
+- Confirm local-save error and Retry text are understandable.
+- Confirm Android and WebGL restarts preserve the Guest and existing Stage
+  progression, including after a forced close.
