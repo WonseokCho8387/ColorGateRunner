@@ -49,9 +49,9 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Countdown_FreezesPhaseAndPlayingStartsTwoColorCycle()
+        public void Countdown_FreezesPhaseAndPlayingStartsPaletteCycle()
         {
-            StartFlicker(CreateSettings(cycleCount: 2));
+            StartFlicker(CreateSettings());
             StageGateView gate = FindGate(0);
             RunnerColor initial = gate.AssignedColor;
 
@@ -73,28 +73,29 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
         }
 
-        [Test]
-        public void ThreeColorFlicker_UpdatesColorAndSymbolFromSamePhase()
+        [TestCase(3)]
+        [TestCase(6)]
+        public void ActivePaletteFlicker_UpdatesColorAndSymbolFromSamePhase(
+            int colorCount)
         {
-            StartFlicker(CreateSettings(cycleCount: 3));
+            StartFlicker(CreateSettings(), colorCount: colorCount);
             EnterPlaying();
             StageGateView gate = FindGate(0);
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
 
-            Assert.That(plan.CycleColorCount, Is.EqualTo(3));
-            AssertDisplayedPhase(gate, plan, 0);
-            _controller.Tick(0.5f);
-            AssertDisplayedPhase(gate, plan, 1);
-            _controller.Tick(0.5f);
-            AssertDisplayedPhase(gate, plan, 2);
-            _controller.Tick(0.5f);
+            Assert.That(plan.CycleColorCount, Is.EqualTo(colorCount));
+            for (int index = 0; index < colorCount; index++)
+            {
+                AssertDisplayedPhase(gate, plan, index);
+                _controller.Tick(0.5f);
+            }
             AssertDisplayedPhase(gate, plan, 0);
         }
 
         [Test]
         public void FlickerBoundary_PulsesWithoutMovingOrDisablingGate()
         {
-            StartFlicker(CreateSettings(cycleCount: 2));
+            StartFlicker(CreateSettings());
             EnterPlaying();
             StageGateView gate = FindGate(0);
             Vector3 position = gate.transform.position;
@@ -119,7 +120,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Flicker_PlayerPassUsesExactGameplayTimeColor()
         {
-            StartFlicker(CreateSettings(cycleCount: 2));
+            StartFlicker(CreateSettings());
             EnterPlaying();
             StageGateView gate = FindGate(0);
             _controller.Tick(0.5f);
@@ -167,7 +168,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Flicker_ShieldAndFailureReuseOrdinaryFlow()
         {
-            StartFlicker(CreateSettings(cycleCount: 2), shield: true);
+            StartFlicker(CreateSettings(), shield: true);
             EnterPlaying();
             StageGateView shielded = FindGate(0);
             SetDifferentColor(shielded.AssignedColor);
@@ -178,7 +179,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(ExperimentGateResolution.ShieldDefense));
             Assert.That(_controller.ExperimentSession.ShieldActive, Is.False);
 
-            StartFlicker(CreateSettings(cycleCount: 2), shield: false);
+            StartFlicker(CreateSettings(), shield: false);
             EnterPlaying();
             StageGateView failed = FindGate(0);
             SetDifferentColor(failed.AssignedColor);
@@ -198,7 +199,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Retry_ReplaysCycleAndResetsGameplayPhase()
         {
-            StartFlicker(CreateSettings(cycleCount: 3));
+            StartFlicker(CreateSettings());
             EnterPlaying();
             StageGateView original = FindGate(0);
             RunnerColor[] cycle =
@@ -229,7 +230,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void BackToLab_ReentryClearsPooledFlickerState()
         {
-            StartFlicker(CreateSettings(cycleCount: 2));
+            StartFlicker(CreateSettings());
             EnterPlaying();
             _controller.Tick(0.5f);
             Assert.That(FindGate(0).SymbolText, Does.Contain("FLICKER"));
@@ -249,10 +250,11 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void StartFlicker(
             FlickerSettings settings,
-            bool shield = false)
+            bool shield = false,
+            int colorCount = 4)
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
-                4,
+                colorCount,
                 MechanicExperimentType.Flicker,
                 ExperimentCatalog.DefaultSeed,
                 flickerSettings: settings);
@@ -335,7 +337,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 0f,
                 _controller.ExperimentSession.Definition.Camouflage,
                 HiddenSettings.Disabled(),
-                CreateSettings(cycleCount: cycleColors.Length),
+                CreateSettings(),
                 _controller.ExperimentSession.ElapsedPlayingSeconds);
         }
 
@@ -411,7 +413,7 @@ namespace ColorGateRunner.Tests.PlayMode
             }
         }
 
-        private static FlickerSettings CreateSettings(int cycleCount)
+        private static FlickerSettings CreateSettings()
         {
             return new FlickerSettings(
                 true,
@@ -421,7 +423,6 @@ namespace ColorGateRunner.Tests.PlayMode
                 0,
                 1,
                 true,
-                cycleCount,
                 0.5f,
                 0.1f,
                 1,

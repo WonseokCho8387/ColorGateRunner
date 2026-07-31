@@ -93,6 +93,41 @@ Play Again
 
 ---
 
+Latest Hidden/Flicker Balance Cycle
+
+Play
+
+Human play found Hidden too late to create enough memory pressure and found
+random Flicker color jumps capable of demanding impractical tap bursts.
+
+Analyze
+
+Hidden difficulty grows with hide-to-arrival time, opposite Camouflage's
+reveal-to-arrival pressure. Flicker and player input used separate color-order
+rules.
+
+Design
+
+Set Hidden hide lead to `0.85s`. Derive Flicker from every active color and
+advance it with the player's one-forward-tap palette order.
+
+Codex
+
+Shared one Core next-color rule between player input and Flicker planning,
+removed the authored `2/3` count, and updated the serialized Scene default.
+
+Tests
+
+EditMode 288/288 and post-Builder PlayMode 144/144 passed. Campaign three
+hashes and Step 10 five hashes remain exact.
+
+Experiment
+
+Human review now owns Hidden memory pressure and whether three- through
+six-color Flicker remains followable at `0.50s`.
+
+---
+
 Iteration 4 Completion Loop
 
 Play

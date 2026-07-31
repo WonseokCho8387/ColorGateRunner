@@ -189,6 +189,22 @@ namespace ColorGateRunner.Core
             return result;
         }
 
+        public RunnerColor GetNextColor(RunnerColor currentColor)
+        {
+            for (int index = 0; index < _activeColors.Length; index++)
+            {
+                if (_activeColors[index] == currentColor)
+                {
+                    return _activeColors[
+                        (index + 1) % _activeColors.Length];
+                }
+            }
+
+            throw new ArgumentOutOfRangeException(
+                nameof(currentColor),
+                "Experiment color must belong to the active palette.");
+        }
+
         public float GetBaseSpeed(int gateIndex)
         {
             ValidateGateIndex(gateIndex);
@@ -512,9 +528,7 @@ namespace ColorGateRunner.Core
             if (_flickerGateMask[authoredGateIndex])
             {
                 modifier = modifier.With(GateModifierType.Flicker);
-                cycleColors = CreateFlickerCycleColors(
-                    authoredGateIndex,
-                    baseColor);
+                cycleColors = CreateFlickerCycleColors(baseColor);
                 phaseOffset = CreateFlickerPhaseOffset(
                     authoredGateIndex);
             }
@@ -692,37 +706,15 @@ namespace ColorGateRunner.Core
         }
 
         private RunnerColor[] CreateFlickerCycleColors(
-            int gateId,
             RunnerColor baseColor)
         {
-            int count = _definition.Flicker.CycleColorCount;
+            int count = _definition.ColorCount;
             RunnerColor[] result = new RunnerColor[count];
             result[0] = baseColor;
-            RunnerColor[] candidates =
-                new RunnerColor[_definition.ColorCount - 1];
-            int candidateCount = 0;
-            for (int index = 0;
-                index < _definition.ColorCount;
-                index++)
-            {
-                RunnerColor candidate = _definition.GetColor(index);
-                if (candidate != baseColor)
-                {
-                    candidates[candidateCount++] = candidate;
-                }
-            }
-
-            uint state = DeterministicGateSequence.NormalizeSeed(
-                _definition.Seed ^
-                ((uint)(gateId + 1) * 0x9E3779B9u) ^
-                0xC1C1E123u);
             for (int index = 1; index < count; index++)
             {
-                state = DeterministicGateSequence.AdvanceXorshift32(state);
-                int selected = (int)(state % (uint)candidateCount);
-                result[index] = candidates[selected];
-                candidateCount--;
-                candidates[selected] = candidates[candidateCount];
+                result[index] =
+                    _definition.GetNextColor(result[index - 1]);
             }
             return result;
         }
@@ -821,13 +813,7 @@ namespace ColorGateRunner.Core
             {
                 return false;
             }
-            int current = 0;
-            while (Definition.GetColor(current) != CurrentColor)
-            {
-                current++;
-            }
-            CurrentColor = Definition.GetColor(
-                (current + 1) % Definition.ColorCount);
+            CurrentColor = Definition.GetNextColor(CurrentColor);
             return true;
         }
 

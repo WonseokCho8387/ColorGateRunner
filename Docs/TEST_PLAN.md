@@ -1238,3 +1238,52 @@ Any mismatch blocks implementation.
 - Final rebuilt-scene tests report no Missing MonoBehaviour, required
   reference, pool growth, duplicate root, listener, or Lab reentry failure.
 - Package manifest/lock and ProjectSettings have no intended change.
+
+## Hidden lead-time and Flicker palette-order revision acceptance
+
+### Core/EditMode
+
+- Hidden defaults to `HideLeadTimeSeconds = 0.85` while readable duration
+  remains `1.00s` and transition remains `0.12s`.
+- Hidden does not start above ETA `0.85`, starts exactly at the boundary after
+  minimum observation, and retains ordinary one-way hide/reset behavior.
+- `FlickerSettings` has no authored cycle-count value or `2/3` validation.
+- For every supported Experiment color count `3-6`, a Flicker plan contains
+  every active color exactly once and derives its count from that palette.
+- The first cycle color equals the gate base color. Every subsequent color,
+  including wraparound, equals the same Core next-color result used by player
+  input and therefore requires one forward tap from the prior phase.
+- Same seed reproduces gate targets and phase offsets. Cycle order no longer
+  consumes seeded random values; Goal exclusion, eligible bounds, cooldown,
+  maximum occurrences, minimum exposure, and gate count remain unchanged.
+- Exact Gameplay Time boundaries, Player/Echo/Shield/Failure priority,
+  Retry/Replay, simulation sharing, and no mixed modifier behavior retain
+  regression coverage.
+
+### PlayMode and human review
+
+- Launcher exposes no two-/three-color cycle-count control. Selected Experiment
+  color count determines the Flicker cycle.
+- Three- and six-color runs display the full ordered palette with matching
+  symbols, pulse, collision-time judgment, and pooled-View reset.
+- Human review records whether `0.85s` Hidden memory time is appropriately
+  harder, whether Flicker can be followed with one tap per switch, and whether
+  collision-boundary response remains achievable at `0.50s`.
+- Automation does not establish difficulty quality, learnability, mastery,
+  readability, fairness, satisfaction, or fun.
+
+### Final automated evidence
+
+- Baseline EditMode `283/283`; baseline PlayMode `143/143`.
+- Final EditMode `288/288`; final PlayMode `144/144`.
+- Focused Hidden/Flicker results: EditMode `14/14` and `20/20`; PlayMode
+  `6/6` and `10/10`.
+- Scene Builder succeeded twice; generated Launcher data contains Hidden
+  `0.85` and no Flicker cycle-count field. Post-Builder PlayMode is `144/144`.
+- Stage 1-11 Campaign: 220 rows; Summary/JSON/CSV hashes remain
+  `22B85883B00B5A4404D8E352A8C1CFD896ADF03A9DA03B1D64C3B0102AAA33B0`,
+  `F5A57219244BDE8BDF61CC97A68D3EE2C05D3800F21384D0121568CAE15562CC`,
+  and
+  `D88D4B15E17D35971094CAF70038BBC7D580426DEBD267B104CA7F1A1FE76850`.
+- Step 10: 80 rows and 64,016 runs; all five hashes remain identical to the
+  Iteration 7 evidence above.

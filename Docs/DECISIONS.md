@@ -772,3 +772,25 @@ Status: Approved implementation contract.
   unaffected.
 - This is test-build presentation policy, not a Campaign, camera, safe-area,
   gameplay, or persistent ProjectSettings balance change.
+
+## Hidden lead-time and Flicker palette-order revision
+
+Status: Approved from portrait human-play feedback.
+
+- Hidden default `HideLeadTimeSeconds` changes from `0.65` to `0.85`. Its
+  `1.00s` minimum readable duration and `0.12s` transition remain unchanged.
+- Level difficulty treats ETA oppositely for the two visibility mechanics:
+  Camouflage becomes harder as reveal-to-arrival time shrinks; Hidden becomes
+  harder as hide-to-arrival memory time grows.
+- The Flicker-authored `CycleColorCount` setting and its `2/3` restriction are
+  removed. A plan derives its cycle from every currently active color.
+- The plan starts with its effective base color and advances through the same
+  active-palette order as player tap-to-cycle input. The same Core next-color
+  rule must feed both systems, so every Flicker transition is one forward tap
+  from the previous displayed color.
+- Seeded target selection, deterministic phase offset, `0.50s` interval,
+  collision-time judgment, Player/Echo/Shield/Failure priority, Retry/Replay,
+  minimum exposure, View behavior, and Booster exclusion remain unchanged.
+- This revision does not apply Flicker to Campaign, mix modifiers, introduce
+  colors, change player input, or claim that automated tests establish
+  readability, mastery, fairness, satisfaction, or fun.

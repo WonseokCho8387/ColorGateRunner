@@ -174,9 +174,14 @@ Iteration 7 Result
 - Hidden preserves the former seed-selected gate IDs, ETA-based one-way hide,
   neutral silhouette, ordinary judgment, held Echo/Shield behavior, and
   Retry/Replay reset.
+- Human-play feedback raised the Hidden default hide lead from `0.65s` to
+  `0.85s`. The `1.00s` minimum observation and `0.12s` transition remain.
+  Level tuning treats shorter Camouflage reveal time as harder but longer
+  Hidden memory time as harder.
 - Flicker remains an ordinary gate modifier. Its plan fixes the base color,
-  two or three unique cycle colors, interval, deterministic phase offset,
-  pulse, Gate ID, and selection seed without changing gate count.
+  every active-palette color in player tap order, interval, deterministic
+  phase offset, pulse, Gate ID, and selection seed without changing gate
+  count. The authored `2/3` cycle-count setting is removed.
 - `FlickerCycleCalculator` is the single pure-Core phase path used by the
   View, collision-time judgment, simulation, and tests. An exact interval
   boundary uses the new phase.
@@ -207,13 +212,26 @@ Iteration 7 Validation
 - Automated validation does not establish switching comfort, concept
   comprehension, boundary readability, fairness, satisfaction, or fun.
 
+Hidden/Flicker Human-Feedback Revision Validation
+
+- Baseline EditMode `283/283` and PlayMode `143/143` passed.
+- Final EditMode `288/288` and PlayMode `144/144` passed. Hidden/Flicker
+  focused coverage is EditMode `14/14` and `20/20`, PlayMode `6/6` and
+  `10/10`.
+- Scene Builder completed twice. The regenerated Launcher serializes Hidden
+  `0.85s` and contains no Flicker cycle-count field; post-Builder PlayMode is
+  `144/144`.
+- Stage 1-11 Campaign simulation wrote 220 rows and retained all three hashes.
+  Step 10 wrote 80 rows and 64,016 runs and retained all five hashes.
+- Package manifest/lock and ProjectSettings have no intended change.
+
 Next Iteration
 
-Perform portrait-device human play review of Hidden/Flicker concept
-separation, `0.50s` two-color timing, three-color difficulty, collision
-boundary comprehension, pulse/symbol clarity, Echo/Shield explanation, and
-minimum observation at speed. Do not apply Flicker to Campaign or combine
-modifiers until that feedback is reviewed.
+Perform portrait-device human play review of the `0.85s` Hidden memory
+interval and Flicker's full-active-palette, one-forward-tap sequence. Record
+whether `0.50s` switching remains followable at three through six colors,
+especially at the collision boundary. Do not apply Flicker to Campaign or
+combine modifiers until that feedback is reviewed.
 
 ---
 

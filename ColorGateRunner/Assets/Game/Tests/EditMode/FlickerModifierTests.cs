@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using ColorGateRunner.Core;
+using ColorGateRunner.Presentation;
 using NUnit.Framework;
 
 namespace ColorGateRunner.Tests.EditMode
@@ -19,11 +21,20 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(settings.MinimumGateCooldown, Is.EqualTo(2));
             Assert.That(settings.MaxOccurrences, Is.EqualTo(4));
             Assert.That(settings.FirstOccurrenceGuaranteed, Is.True);
-            Assert.That(settings.CycleColorCount, Is.EqualTo(2));
             Assert.That(settings.SwitchIntervalSeconds, Is.EqualTo(0.50f));
             Assert.That(settings.TransitionPulseSeconds, Is.EqualTo(0.10f));
             Assert.That(settings.MinimumCyclesVisible, Is.EqualTo(3));
             Assert.That(settings.RandomizePhaseOffset, Is.True);
+        }
+
+        [Test]
+        public void FlickerLauncher_HasNoAuthoredCycleCountSetting()
+        {
+            FieldInfo field = typeof(ExperimentLauncher).GetField(
+                "colorCycleFlickerCycleColorCount",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Assert.That(field, Is.Null);
         }
 
         [Test]
@@ -42,22 +53,13 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(maximum: -1));
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateSettings(cycleCount: 1));
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateSettings(cycleCount: 4));
-            Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(interval: 0f));
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(pulse: -0.01f));
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(minimumCycles: 0));
-            Assert.Throws<ArgumentException>(
-                () => new ExperimentDefinition(
-                    3,
-                    MechanicExperimentType.Flicker,
-                    1u,
-                    flickerSettings: CreateSettings(cycleCount: 3))
-                    .Flicker.ValidateForActiveColorCount(2));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings().ValidateForActiveColorCount(1));
         }
 
         [Test]
@@ -104,29 +106,71 @@ namespace ColorGateRunner.Tests.EditMode
             }
         }
 
-        [Test]
-        public void FlickerPlanning_CycleStartsAtBaseAndUsesUniqueActiveColors()
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(6)]
+        public void FlickerPlanning_UsesFullPaletteInPlayerInputOrder(
+            int colorCount)
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
-                4,
+                colorCount,
                 MechanicExperimentType.Flicker,
                 12345u,
-                flickerSettings: CreateSettings(cycleCount: 3));
+                flickerSettings: CreateSettings());
 
             foreach (ExperimentGatePlan plan in GetFlickerPlans(definition))
             {
-                Assert.That(plan.CycleColorCount, Is.EqualTo(3));
+                Assert.That(
+                    plan.CycleColorCount,
+                    Is.EqualTo(definition.ColorCount));
                 Assert.That(plan.GetCycleColor(0), Is.EqualTo(plan.Color));
                 HashSet<RunnerColor> unique = new HashSet<RunnerColor>(
                     plan.CopyCycleColors());
-                Assert.That(unique.Count, Is.EqualTo(3));
+                Assert.That(unique.Count, Is.EqualTo(definition.ColorCount));
                 foreach (RunnerColor color in unique)
                 {
                     Assert.That(
                         (int)color,
                         Is.InRange(0, definition.ColorCount - 1));
                 }
+                for (int index = 0;
+                    index < plan.CycleColorCount;
+                    index++)
+                {
+                    RunnerColor current = plan.GetCycleColor(index);
+                    RunnerColor next = plan.GetCycleColor(
+                        (index + 1) % plan.CycleColorCount);
+                    Assert.That(
+                        next,
+                        Is.EqualTo(definition.GetNextColor(current)));
+                }
             }
+        }
+
+        [Test]
+        public void ExperimentPlayerInput_UsesTheSamePaletteOrder()
+        {
+            ExperimentSession session = new ExperimentSession(
+                ExperimentCatalog.Get(6, MechanicExperimentType.Flicker),
+                new StartItemSelection(false, false));
+            session.CompleteCountdown();
+
+            for (int index = 0;
+                index < session.Definition.ColorCount;
+                index++)
+            {
+                RunnerColor current = session.CurrentColor;
+                RunnerColor expected =
+                    session.Definition.GetNextColor(current);
+
+                Assert.That(session.TryCycleColor(), Is.True);
+                Assert.That(session.CurrentColor, Is.EqualTo(expected));
+            }
+
+            Assert.That(
+                session.CurrentColor,
+                Is.EqualTo(session.Definition.GetColor(0)));
         }
 
         [Test]
@@ -409,7 +453,6 @@ namespace ColorGateRunner.Tests.EditMode
             int cooldown = 2,
             int maximum = 4,
             bool guaranteed = true,
-            int cycleCount = 2,
             float interval = 0.5f,
             float pulse = 0.1f,
             int minimumCycles = 3,
@@ -423,7 +466,6 @@ namespace ColorGateRunner.Tests.EditMode
                 cooldown,
                 maximum,
                 guaranteed,
-                cycleCount,
                 interval,
                 pulse,
                 minimumCycles,

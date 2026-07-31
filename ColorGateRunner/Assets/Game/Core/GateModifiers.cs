@@ -320,7 +320,7 @@ namespace ColorGateRunner.Core
                 0.35f,
                 2,
                 1f,
-                0.65f,
+                0.85f,
                 0.12f,
                 4,
                 true);
@@ -395,7 +395,6 @@ namespace ColorGateRunner.Core
             int minimumGateCooldown,
             int maxOccurrences,
             bool firstOccurrenceGuaranteed,
-            int cycleColorCount,
             float switchIntervalSeconds,
             float transitionPulseSeconds,
             int minimumCyclesVisible,
@@ -423,12 +422,6 @@ namespace ColorGateRunner.Core
                 throw new ArgumentOutOfRangeException(
                     nameof(maxOccurrences));
             }
-            if (cycleColorCount != 2 && cycleColorCount != 3)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(cycleColorCount),
-                    "Flicker cycle color count must be 2 or 3.");
-            }
             if (switchIntervalSeconds <= 0f)
             {
                 throw new ArgumentOutOfRangeException(
@@ -452,7 +445,6 @@ namespace ColorGateRunner.Core
             MinimumGateCooldown = minimumGateCooldown;
             MaxOccurrences = maxOccurrences;
             FirstOccurrenceGuaranteed = firstOccurrenceGuaranteed;
-            CycleColorCount = cycleColorCount;
             SwitchIntervalSeconds = switchIntervalSeconds;
             TransitionPulseSeconds = transitionPulseSeconds;
             MinimumCyclesVisible = minimumCyclesVisible;
@@ -466,7 +458,6 @@ namespace ColorGateRunner.Core
         public int MinimumGateCooldown { get; }
         public int MaxOccurrences { get; }
         public bool FirstOccurrenceGuaranteed { get; }
-        public int CycleColorCount { get; }
         public float SwitchIntervalSeconds { get; }
         public float TransitionPulseSeconds { get; }
         public int MinimumCyclesVisible { get; }
@@ -482,7 +473,6 @@ namespace ColorGateRunner.Core
                 0,
                 0,
                 false,
-                2,
                 0.5f,
                 0f,
                 1,
@@ -499,7 +489,6 @@ namespace ColorGateRunner.Core
                 2,
                 4,
                 true,
-                2,
                 0.50f,
                 0.10f,
                 3,
@@ -513,12 +502,6 @@ namespace ColorGateRunner.Core
                 throw new ArgumentOutOfRangeException(
                     nameof(activeColorCount),
                     "Flicker requires at least two active colors.");
-            }
-            if (CycleColorCount > activeColorCount)
-            {
-                throw new ArgumentException(
-                    "Flicker cycle color count exceeds active colors.",
-                    nameof(activeColorCount));
             }
         }
 

@@ -38,7 +38,7 @@ namespace ColorGateRunner.Presentation
         private float hiddenRevealDurationSeconds = 1f;
         [FormerlySerializedAs("flickerHideLeadTimeSeconds")]
         [SerializeField, Tooltip("Effective-speed ETA threshold for Hidden.")]
-        private float hiddenHideLeadTimeSeconds = 0.65f;
+        private float hiddenHideLeadTimeSeconds = 0.85f;
         [FormerlySerializedAs("flickerTransitionSeconds")]
         [SerializeField, Tooltip("Seconds used to hide target information.")]
         private float hiddenTransitionSeconds = 0.12f;
@@ -62,8 +62,6 @@ namespace ColorGateRunner.Presentation
         private int colorCycleFlickerMaxOccurrences = 4;
         [SerializeField, Tooltip("Guarantees the first eligible Flicker occurrence.")]
         private bool colorCycleFlickerFirstOccurrenceGuaranteed = true;
-        [SerializeField, Tooltip("Distinct colors in each Flicker cycle; must be 2 or 3.")]
-        private int colorCycleFlickerCycleColorCount = 2;
         [SerializeField, Tooltip("Seconds between authoritative Flicker color switches.")]
         private float colorCycleFlickerSwitchIntervalSeconds = 0.50f;
         [SerializeField, Tooltip("Seconds of visual pulse after a logical color switch.")]
@@ -320,7 +318,6 @@ namespace ColorGateRunner.Presentation
                 colorCycleFlickerMinimumGateCooldown,
                 colorCycleFlickerMaxOccurrences,
                 colorCycleFlickerFirstOccurrenceGuaranteed,
-                colorCycleFlickerCycleColorCount,
                 colorCycleFlickerSwitchIntervalSeconds,
                 colorCycleFlickerTransitionPulseSeconds,
                 colorCycleFlickerMinimumCyclesVisible,

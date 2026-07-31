@@ -287,5 +287,7 @@ color and its existing matching symbol together.
   effect is added.
 
 Portrait human review must distinguish Camouflage, Hidden, and Flicker; judge
-two- and three-color speed, collision-boundary readability, pulse strength,
-symbol synchronization, Echo/Shield feedback, and 9:16 legibility.
+full-active-palette rotation at each supported color count, whether the
+one-forward-tap sequence feels followable, collision-boundary readability,
+pulse strength, symbol synchronization, Echo/Shield feedback, and 9:16
+legibility.

@@ -600,3 +600,70 @@ Human feedback required
 - Two- and three-color switch speed and collision-boundary comprehension.
 - Pulse, symbol synchronization, Echo/Shield explanation, portrait
   readability, and minimum observation at speed.
+
+## Hidden lead-time and Flicker palette-order revision
+
+Status
+
+- Implemented / Human Review Pending
+
+Play
+
+- Hidden did not retain its target information long enough before hiding to
+  create the intended memory challenge.
+- Random two-/three-color Flicker cycles could jump against the player's
+  forward color order, requiring an unachievable burst of taps near judgment
+  and encouraging memorization through failure.
+
+Analyze
+
+- Hidden hide starts when minimum observation has elapsed and ETA reaches
+  `HideLeadTimeSeconds`; increasing that lead hides earlier and lengthens the
+  memory interval.
+- Experiment player input already owns one active-palette order, but Flicker
+  independently selected unique colors with a local seed.
+
+Design
+
+- Raise Hidden hide lead `0.65s -> 0.85s`; retain observation and transition.
+- Derive Flicker cycles from the full active palette, begin at gate base color,
+  and advance with the exact same Core next-color rule as player input.
+- Remove the authored `2/3` cycle-count setting while preserving target
+  selection, phase, timing, judgment, retry, View, and Campaign boundaries.
+
+Implementation
+
+- Added `ExperimentDefinition.GetNextColor` and reused it for both
+  `ExperimentSession.TryCycleColor` and Flicker plan construction.
+- Flicker plans now contain all selected Experiment colors exactly once in
+  forward input order. Seeded random color selection was removed.
+- Updated Core, Launcher, and `SampleScene` Hidden defaults to `0.85s`.
+- Removed the Launcher and Core Flicker cycle-count setting. Plan
+  `CycleColorCount` remains a derived value for phase calculation.
+
+Validation
+
+- Baseline: EditMode 283/283; PlayMode 143/143.
+- Final: EditMode 288/288; PlayMode 144/144.
+- Hidden/Flicker focused cases: EditMode 14/14 and 20/20; PlayMode 6/6 and
+  10/10.
+- Scene Builder succeeded twice and post-Builder PlayMode passed 144/144.
+- Stage 1-11 Campaign produced 220 rows with all three hashes unchanged.
+- Step 10 produced 80 rows and 64,016 runs with all five hashes unchanged.
+- Package manifest/lock, ProjectSettings, and `git diff --check` remain
+  regression boundaries for final handoff.
+
+Learning
+
+- A Core field initializer does not replace an older value already serialized
+  into a Scene. Balance-default changes must update both the code default and
+  existing authored assets, then verify a regenerated Scene.
+- Sharing the next-color rule makes Flicker response demand legible: each
+  phase change is one forward tap if the player is tracking the displayed
+  color. Automation cannot establish whether `0.50s` feels achievable.
+
+Human feedback required
+
+- Whether Hidden `0.85s` produces a useful memory interval.
+- Whether full-palette Flicker remains followable from three through six
+  colors and feels skill-based at the collision boundary.

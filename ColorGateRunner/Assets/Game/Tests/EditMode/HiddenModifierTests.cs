@@ -126,7 +126,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(settings.OccurrenceChance, Is.EqualTo(0.35f));
             Assert.That(settings.MinimumGateCooldown, Is.EqualTo(2));
             Assert.That(settings.RevealDurationSeconds, Is.EqualTo(1f));
-            Assert.That(settings.HideLeadTimeSeconds, Is.EqualTo(0.65f));
+            Assert.That(settings.HideLeadTimeSeconds, Is.EqualTo(0.85f));
             Assert.That(settings.TransitionSeconds, Is.EqualTo(0.12f));
             Assert.That(settings.MaxOccurrences, Is.EqualTo(4));
             Assert.That(settings.FirstOccurrenceGuaranteed, Is.True);
@@ -250,10 +250,10 @@ namespace ColorGateRunner.Tests.EditMode
             state.Advance(0.99f, 0.5f, settings);
             Assert.That(state.HideStarted, Is.False);
 
-            state.Advance(0.01f, 0.66f, settings);
+            state.Advance(0.01f, 0.8501f, settings);
             Assert.That(state.HideStarted, Is.False);
 
-            state.Advance(0f, 0.65f, settings);
+            state.Advance(0f, 0.85f, settings);
             Assert.That(state.HideStarted, Is.True);
             Assert.That(state.HideStartCount, Is.EqualTo(1));
 
@@ -361,7 +361,7 @@ namespace ColorGateRunner.Tests.EditMode
             float chance = 0.35f,
             int cooldown = 2,
             float reveal = 1f,
-            float lead = 0.65f,
+            float lead = 0.85f,
             float transition = 0.12f,
             int maximum = 4,
             bool guaranteed = true)

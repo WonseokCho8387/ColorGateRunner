@@ -27999,6 +27999,7 @@ MonoBehaviour:
   toggleBoosterButton: {fileID: 1927958612}
   startButton: {fileID: 1984956129}
   leaveButton: {fileID: 1975025636}
+  hiddenHideLeadTimeSeconds: 0.85
 --- !u!114 &1632963943
 MonoBehaviour:
   m_ObjectHideFlags: 0

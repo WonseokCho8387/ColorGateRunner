@@ -33,6 +33,9 @@ namespace ColorGateRunner.Tests.PlayMode
             SelectHidden(launcher);
 
             Assert.That(launcher.Booster, Is.False);
+            Assert.That(
+                launcher.SelectedDefinition.Hidden.HideLeadTimeSeconds,
+                Is.EqualTo(0.85f));
             Assert.That(launcher.Label, Does.Contain("BOOSTER DISABLED"));
             launcher.ToggleBooster();
             Assert.That(launcher.Booster, Is.False);

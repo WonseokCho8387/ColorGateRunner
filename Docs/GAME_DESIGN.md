@@ -363,6 +363,11 @@ completion requirement, or judgment rules.
 - The target remains readable for at least `RevealDurationSeconds`.
 - Hide begins once, and only when both the minimum readable time has elapsed
   and the shared effective-speed ETA is at or below `HideLeadTimeSeconds`.
+- Camouflage and Hidden use ETA in opposite difficulty directions. A shorter
+  Camouflage reveal-to-arrival window is harder, while a larger Hidden hide
+  lead creates a longer memory interval and is harder. Level authors must
+  evaluate these as separate tuning axes rather than applying one shared
+  "shorter is harder" rule.
 - The hide transition removes only target color and symbol information over
   `TransitionSeconds`. A neutral gate silhouette, the judgment opening, and a
   persistent `HIDDEN` marker remain visible.
@@ -382,7 +387,7 @@ completion requirement, or judgment rules.
 
 The initial Inspector-authored defaults are: eligible progress `0.15-0.85`,
 occurrence chance `0.35`, minimum cooldown `2` gates, readable duration
-`1.00s`, hide lead `0.65s`, transition `0.12s`, maximum `4`, and guaranteed
+`1.00s`, hide lead `0.85s`, transition `0.12s`, maximum `4`, and guaranteed
 first occurrence enabled. These values are human-play candidates, not final
 balance.
 
@@ -394,9 +399,10 @@ minimum-observation plus ETA condition, preserves the neutral gate silhouette,
 and continues to judge against the color shown before hiding.
 
 The new **Flicker** is a separate ordinary-gate modifier. It never hides the
-gate. Instead, it cycles through two or three distinct active-palette colors
-and their matching symbols. The color at the exact collision Gameplay Time is
-the authoritative judgment color.
+gate. Instead, it cycles through every currently active palette color and its
+matching symbol in the same forward order used by player tap-to-cycle input.
+The color at the exact collision Gameplay Time is the authoritative judgment
+color.
 
 - Camouflage is hidden first, reveals near arrival, then judges.
 - Hidden is visible first, hides near arrival, then judges the memorized
@@ -406,12 +412,17 @@ the authoritative judgment color.
 - Hidden retains the former Flicker enum values and deterministic selected
   gate IDs. New Flicker receives new enum values, so existing serialized data
   cannot silently change mechanics.
-- Flicker plans fix the base color, ordered `CycleColors`, cycle count,
-  switch interval, deterministic phase offset, transition pulse, gate ID,
-  and seed-derived selection data before play.
-- The first cycle color is the existing effective base color. Remaining
-  colors are selected without duplication from the active palette. Two-color
-  plans alternate both colors; three-color plans rotate all three.
+- Flicker plans fix the base color, ordered `CycleColors`, derived cycle count,
+  switch interval, deterministic phase offset, transition pulse, gate ID, and
+  seed-derived selection data before play.
+- The first cycle color is the existing effective base color. Every remaining
+  active color follows exactly once in player input order, wrapping at the end
+  of the active palette. Each logical Flicker switch is therefore one forward
+  player-color input from the previously displayed color.
+- Flicker has no authored two-/three-color count setting. Its plan cycle count
+  is derived from the active palette captured during deterministic planning.
+  Experiment runs use the selected Experiment color count; any future Campaign
+  use must capture only colors active at that gate.
 - Active color uses the shared pure Core calculation
   `floor((GameplayTime + PhaseOffset) / SwitchInterval) % CycleColorCount`.
   An exact switch boundary uses the new color.
@@ -429,6 +440,7 @@ the authoritative judgment color.
 
 Initial Inspector-authored Flicker values are: enabled, progress `0.15-0.85`,
 chance `0.30`, cooldown `2`, maximum `4`, guaranteed first occurrence,
-two colors, `0.50s` switch interval, `0.10s` pulse, three minimum visible
-cycles, and deterministic randomized phase offset. These are human-play
-candidates rather than final balance.
+`0.50s` switch interval, `0.10s` pulse, three minimum visible cycles, and
+deterministic randomized phase offset. Cycle colors are derived from the full
+active palette rather than authored. These are human-play candidates rather
+than final balance.
