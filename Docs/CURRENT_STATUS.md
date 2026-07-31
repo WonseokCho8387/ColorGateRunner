@@ -75,17 +75,27 @@ Test Build Tooling
 - Both platforms use the enabled `EditorBuildSettings` scenes and Development
   mode. Outputs stay under ignored `Builds/Test`; Android always produces an
   APK and restores the previous App Bundle setting afterward.
+- WebGL test builds temporarily use a `540 x 960` logical canvas and the
+  project-owned `ColorGateRunnerPortrait` template. Its browser container
+  preserves an exact `9:16` aspect ratio with neutral letterboxing instead of
+  stretching to a square or landscape host.
+- The build path restores the prior WebGL width, height, and template settings
+  after success or failure, so Android and persistent ProjectSettings remain
+  unchanged.
 - Missing scenes, missing platform support, platform-switch failure, and
   unsuccessful `BuildReport` results fail explicitly instead of reporting a
   false success.
-- Build-menu EditMode coverage passes 3/3 for the playable scene, platform
-  targets, output paths, and Development option. The original editor compiled
-  the new menu without errors and both installed platform modules were found.
+- Build-menu and portrait-template EditMode coverage passes 5/5 in the focused
+  suite. The full EditMode suite passes 283/283.
 - An isolated Android invocation reached the real Player build after script
   and shader compilation, but its copied-Library backend stopped making
-  progress before producing an APK. WebGL was therefore not reached by the
-  sequential command. Actual APK and browser output remain manual acceptance
-  checks from the original editor.
+  progress before producing an APK. Actual APK installation remains a manual
+  acceptance check from the original editor.
+- A separate isolated WebGL build completed successfully and produced a
+  124,340,289-byte player. Its generated page contains the expected `540 x 960`
+  canvas macros and exact `9:16` frame rules, and the validation project's
+  prior `960 x 600` default-template settings were restored afterward.
+  Browser play, input, and host-page resizing remain human acceptance checks.
 
 Authoritative Iteration 6 Result (now Hidden)
 

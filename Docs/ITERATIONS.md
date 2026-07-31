@@ -425,6 +425,10 @@ Implemented
   enabled Build Settings scenes and ignored `Builds/Test` outputs.
 - Test builds use Development mode. Android temporarily disables App Bundle
   output and restores the previous setting after success or failure.
+- WebGL temporarily uses a `540 x 960` logical canvas and the project-owned
+  `ColorGateRunnerPortrait` template. The template centers an exact `9:16`
+  frame with neutral letterboxing, including inside square or landscape hosts,
+  and the previous width, height, and template settings are restored afterward.
 - Scene, module, platform-switch, and `BuildReport` failures are explicit.
   No gameplay, packages, or ProjectSettings values were changed.
 
@@ -432,15 +436,19 @@ Validation and learning
 
 - The original editor compiled the menu without errors. AndroidPlayer and
   WebGLSupport are installed and were discovered by Unity.
-- Three focused EditMode assertions pass for the scene list, both targets,
-  deterministic output locations, and Development mode.
+- Five focused EditMode assertions pass for the scene list, both targets,
+  deterministic output locations, Development mode, exact portrait frame, and
+  temporary WebGL setting restoration. The full EditMode suite passes 283/283.
 - An isolated Android invocation completed platform switching, scripts,
   Android shaders, and entered the Player backend. The copied-Library backend
-  then stopped progressing before APK output, so it was stopped; the combined
-  invocation consequently did not reach WebGL.
-- Actual APK installation and WebGL browser launch remain human acceptance
-  work in the original editor. This tooling does not claim device or browser
-  compatibility until those outputs are produced and played.
+  then stopped progressing before APK output, so it was stopped.
+- A subsequent independent isolated WebGL invocation completed successfully
+  and produced a 124,340,289-byte player. The generated page was checked for
+  `540 x 960` canvas dimensions and exact `9:16` CSS, and the prior validation
+  project settings were restored.
+- Actual APK installation and WebGL browser play remain human acceptance work.
+  The successful file build alone does not claim device input, browser resize,
+  or gameplay compatibility.
 
 ## Iteration 6 Hidden-only Experiment (originally named Flicker)
 

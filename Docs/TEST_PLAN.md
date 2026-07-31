@@ -1032,7 +1032,12 @@ Comments
   enabled `Assets/Scenes/SampleScene.unity` entry.
 - Android and WebGL build-option cases require their expected ignored output
   paths and `BuildOptions.Development`.
-- Focused EditMode result: 3/3 passed.
+- The WebGL portrait-template case requires `540 x 960`, the project template,
+  exact `9:16` frame rules, and Unity width/height template macros.
+- The WebGL settings case applies the temporary portrait settings and verifies
+  that the prior width, height, and template values are restored.
+- Focused EditMode result: 5/5 passed.
+- Full EditMode result after the portrait correction: 283/283 passed.
 - The original Unity editor must compile `ColorGateRunner.Editor` without
   errors and discover both AndroidPlayer and WebGLSupport modules.
 
@@ -1047,6 +1052,11 @@ Comments
 - An isolated validation invocation reached the Android Player backend after
   successful scripts and shader compilation. It stopped making progress
   before APK output and was terminated; this is not an Android build pass.
+- A separate isolated WebGL invocation completed successfully and produced a
+  124,340,289-byte player. The generated `index.html` contained `width=540`,
+  `height=960`, `aspect-ratio: 9 / 16`, and the two viewport-constraining
+  dimensions. The validation project's prior `960 x 600` and default-template
+  PlayerSettings were restored after the build.
 
 ### Manual
 
@@ -1055,6 +1065,12 @@ Comments
   APK on an Android device, and complete the current human-play checklist.
 - Run `Build WebGL`, serve `Builds/Test/WebGL` through a local web server, and
   complete the same flow in a supported browser.
+- Require the WebGL test build to use a `540 x 960` canvas and the
+  `ColorGateRunnerPortrait` project template. The generated page must preserve
+  a `9:16` canvas inside square, landscape, and portrait host areas without
+  stretching.
+- Require WebGL width, height, and template PlayerSettings to be restored
+  after the build path exits. Android options remain unchanged.
 - Run `Build Android + WebGL` after both individual commands pass to confirm
   sequential platform switching and output replacement.
 

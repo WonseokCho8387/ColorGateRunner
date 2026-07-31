@@ -14,6 +14,10 @@ namespace ColorGateRunner.Editor
         internal const string AndroidOutputPath =
             "Builds/Test/Android/ColorGateRunner.apk";
         internal const string WebGlOutputPath = "Builds/Test/WebGL";
+        internal const int WebGlPortraitWidth = 540;
+        internal const int WebGlPortraitHeight = 960;
+        internal const string WebGlPortraitTemplate =
+            "PROJECT:ColorGateRunnerPortrait";
 
         private const string MenuRoot =
             "Tools/Color Gate Runner/Test Builds/";
@@ -140,11 +144,19 @@ namespace ColorGateRunner.Editor
 
             bool previousBuildAppBundle =
                 EditorUserBuildSettings.buildAppBundle;
+            WebGlSettingsSnapshot webGlSettings =
+                target == UnityEditor.BuildTarget.WebGL
+                    ? CaptureWebGlSettings()
+                    : default;
             try
             {
                 if (target == UnityEditor.BuildTarget.Android)
                 {
                     EditorUserBuildSettings.buildAppBundle = false;
+                }
+                else if (target == UnityEditor.BuildTarget.WebGL)
+                {
+                    ApplyWebGlPortraitSettings();
                 }
 
                 BuildReport report = BuildPipeline.BuildPlayer(options);
@@ -172,7 +184,34 @@ namespace ColorGateRunner.Editor
             {
                 EditorUserBuildSettings.buildAppBundle =
                     previousBuildAppBundle;
+                if (target == UnityEditor.BuildTarget.WebGL)
+                {
+                    RestoreWebGlSettings(webGlSettings);
+                }
             }
+        }
+
+        private static WebGlSettingsSnapshot CaptureWebGlSettings()
+        {
+            return new WebGlSettingsSnapshot(
+                PlayerSettings.defaultWebScreenWidth,
+                PlayerSettings.defaultWebScreenHeight,
+                PlayerSettings.WebGL.template);
+        }
+
+        private static void ApplyWebGlPortraitSettings()
+        {
+            PlayerSettings.defaultWebScreenWidth = WebGlPortraitWidth;
+            PlayerSettings.defaultWebScreenHeight = WebGlPortraitHeight;
+            PlayerSettings.WebGL.template = WebGlPortraitTemplate;
+        }
+
+        private static void RestoreWebGlSettings(
+            WebGlSettingsSnapshot settings)
+        {
+            PlayerSettings.defaultWebScreenWidth = settings.Width;
+            PlayerSettings.defaultWebScreenHeight = settings.Height;
+            PlayerSettings.WebGL.template = settings.Template;
         }
 
         private static void PrepareOutput(
@@ -203,6 +242,23 @@ namespace ColorGateRunner.Editor
                 Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
             return Path.GetFullPath(
                 Path.Combine(projectRoot, projectRelativePath));
+        }
+
+        private readonly struct WebGlSettingsSnapshot
+        {
+            public WebGlSettingsSnapshot(
+                int width,
+                int height,
+                string template)
+            {
+                Width = width;
+                Height = height;
+                Template = template;
+            }
+
+            public int Width { get; }
+            public int Height { get; }
+            public string Template { get; }
         }
     }
 }

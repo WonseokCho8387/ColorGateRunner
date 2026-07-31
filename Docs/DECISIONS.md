@@ -759,3 +759,16 @@ Status: Approved implementation contract.
   adjustment, new colors, new input, and Stage 6-11 changes are not approved.
 - Automated evidence may verify determinism and mechanics but cannot establish
   timing readability, fairness, comfort, satisfaction, or fun.
+
+## WebGL test-build portrait frame
+
+- The WebGL test-build menu owns a `540 x 960` logical canvas and a custom
+  project template that preserves an exact `9:16` DOM aspect ratio.
+- The canvas scales inside the available browser or iframe area without
+  stretching. Unused horizontal or vertical space remains a neutral
+  letterbox.
+- WebGL width, height, and template settings are temporary build inputs and
+  are restored after success or failure. Android build settings are
+  unaffected.
+- This is test-build presentation policy, not a Campaign, camera, safe-area,
+  gameplay, or persistent ProjectSettings balance change.
