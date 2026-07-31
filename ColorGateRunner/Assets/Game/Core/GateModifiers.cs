@@ -587,6 +587,216 @@ namespace ColorGateRunner.Core
         }
     }
 
+    public readonly struct FlickerGatePlan
+    {
+        private readonly RunnerColor[] _cycleColors;
+
+        public FlickerGatePlan(
+            RunnerColor[] cycleColors,
+            float switchIntervalSeconds,
+            float phaseOffsetSeconds,
+            float transitionPulseSeconds,
+            uint selectionSeed)
+        {
+            if (cycleColors == null || cycleColors.Length < 2)
+            {
+                throw new ArgumentException(
+                    "Flicker plans require at least two cycle colors.",
+                    nameof(cycleColors));
+            }
+            if (switchIntervalSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(switchIntervalSeconds));
+            }
+            if (phaseOffsetSeconds < 0f ||
+                phaseOffsetSeconds >= switchIntervalSeconds)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(phaseOffsetSeconds));
+            }
+            if (transitionPulseSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(transitionPulseSeconds));
+            }
+
+            _cycleColors = (RunnerColor[])cycleColors.Clone();
+            SwitchIntervalSeconds = switchIntervalSeconds;
+            PhaseOffsetSeconds = phaseOffsetSeconds;
+            TransitionPulseSeconds = transitionPulseSeconds;
+            SelectionSeed = selectionSeed;
+        }
+
+        public bool IsEnabled => _cycleColors != null &&
+            _cycleColors.Length >= 2;
+        public int CycleColorCount => _cycleColors == null
+            ? 0
+            : _cycleColors.Length;
+        public float SwitchIntervalSeconds { get; }
+        public float PhaseOffsetSeconds { get; }
+        public float TransitionPulseSeconds { get; }
+        public uint SelectionSeed { get; }
+
+        public RunnerColor GetCycleColor(int index)
+        {
+            if (index < 0 || index >= CycleColorCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+            return _cycleColors[index];
+        }
+
+        public RunnerColor[] CopyCycleColors()
+        {
+            RunnerColor[] result = new RunnerColor[CycleColorCount];
+            if (CycleColorCount > 0)
+            {
+                Array.Copy(_cycleColors, result, CycleColorCount);
+            }
+            return result;
+        }
+
+        public FlickerCycleSample GetSample(float gameplayTimeSeconds)
+        {
+            if (!IsEnabled)
+            {
+                return new FlickerCycleSample(0, 0, 0f);
+            }
+            return FlickerCycleCalculator.Calculate(
+                gameplayTimeSeconds,
+                PhaseOffsetSeconds,
+                SwitchIntervalSeconds,
+                TransitionPulseSeconds,
+                CycleColorCount);
+        }
+
+        public RunnerColor GetActiveColor(float gameplayTimeSeconds)
+        {
+            FlickerCycleSample sample = GetSample(gameplayTimeSeconds);
+            return GetCycleColor(sample.CycleColorIndex);
+        }
+    }
+
+    public static class DeterministicModifierPlanner
+    {
+        public static bool[] BuildOccurrenceMask(
+            int gateCount,
+            float eligibleStartProgress,
+            float eligibleEndProgress,
+            float occurrenceChance,
+            int minimumGateCooldown,
+            int maxOccurrences,
+            bool firstOccurrenceGuaranteed,
+            uint seed,
+            uint seedSalt,
+            Func<int, bool> extraEligibility = null)
+        {
+            if (gateCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(gateCount));
+            }
+
+            bool[] result = new bool[gateCount];
+            if (gateCount == 0 || maxOccurrences == 0)
+            {
+                return result;
+            }
+
+            uint selectionState = DeterministicGateSequence.NormalizeSeed(
+                seed ^ seedSalt);
+            int selectedCount = 0;
+            int lastSelectedGate = int.MinValue;
+            for (int gateIndex = 0; gateIndex < gateCount; gateIndex++)
+            {
+                float progress = gateIndex /
+                    (float)Math.Max(1, gateCount - 1);
+                if (progress < eligibleStartProgress ||
+                    progress > eligibleEndProgress ||
+                    (extraEligibility != null &&
+                     !extraEligibility(gateIndex)))
+                {
+                    continue;
+                }
+                if (lastSelectedGate != int.MinValue &&
+                    gateIndex - lastSelectedGate <= minimumGateCooldown)
+                {
+                    continue;
+                }
+
+                selectionState =
+                    DeterministicGateSequence.AdvanceXorshift32(
+                        selectionState);
+                bool guaranteed =
+                    firstOccurrenceGuaranteed &&
+                    selectedCount == 0;
+                float roll =
+                    (selectionState & 0x00FFFFFFu) / 16777216f;
+                if (!guaranteed && roll >= occurrenceChance)
+                {
+                    continue;
+                }
+
+                result[gateIndex] = true;
+                selectedCount++;
+                lastSelectedGate = gateIndex;
+                if (selectedCount >= maxOccurrences)
+                {
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        public static RunnerColor[] CreateCycleColors(
+            RunnerColor baseColor,
+            int activeColorCount,
+            Func<RunnerColor, RunnerColor> getNextColor)
+        {
+            if (activeColorCount < 2)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(activeColorCount));
+            }
+            if (getNextColor == null)
+            {
+                throw new ArgumentNullException(nameof(getNextColor));
+            }
+
+            RunnerColor[] result = new RunnerColor[activeColorCount];
+            result[0] = baseColor;
+            for (int index = 1; index < activeColorCount; index++)
+            {
+                result[index] = getNextColor(result[index - 1]);
+            }
+            return result;
+        }
+
+        public static float CreatePhaseOffset(
+            FlickerSettings settings,
+            uint seed,
+            int gateId)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+            if (!settings.RandomizePhaseOffset)
+            {
+                return 0f;
+            }
+
+            uint state = DeterministicGateSequence.NormalizeSeed(
+                seed ^
+                ((uint)(gateId + 1) * 0x85EBCA6Bu) ^
+                0xF1A5E0FFu);
+            state = DeterministicGateSequence.AdvanceXorshift32(state);
+            float unit = (state & 0x00FFFFFFu) / 16777216f;
+            return unit * settings.SwitchIntervalSeconds;
+        }
+    }
+
     public enum StagePrimaryMechanic
     {
         None,
@@ -595,7 +805,9 @@ namespace ColorGateRunner.Core
         Camouflage,
         Fog,
         Ice,
-        Echo
+        Echo,
+        Hidden,
+        Flicker
     }
 
     public enum StageMechanicGrantMechanic

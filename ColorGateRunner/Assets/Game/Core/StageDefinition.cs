@@ -33,7 +33,9 @@ namespace ColorGateRunner.Core
             GateModifierType gateModifiers = GateModifierType.None,
             EchoSettings echoSettings = null,
             CamouflageSettings camouflageSettings = null,
-            StageMechanicGrantSettings mechanicGrantSettings = null)
+            StageMechanicGrantSettings mechanicGrantSettings = null,
+            HiddenSettings hiddenSettings = null,
+            FlickerSettings flickerSettings = null)
             : this(
                 stageId,
                 displayNumber,
@@ -58,7 +60,9 @@ namespace ColorGateRunner.Core
                 gateModifiers,
                 echoSettings,
                 camouflageSettings,
-                mechanicGrantSettings)
+                mechanicGrantSettings,
+                hiddenSettings,
+                flickerSettings)
         {
         }
 
@@ -86,7 +90,9 @@ namespace ColorGateRunner.Core
             GateModifierType gateModifiers = GateModifierType.None,
             EchoSettings echoSettings = null,
             CamouflageSettings camouflageSettings = null,
-            StageMechanicGrantSettings mechanicGrantSettings = null)
+            StageMechanicGrantSettings mechanicGrantSettings = null,
+            HiddenSettings hiddenSettings = null,
+            FlickerSettings flickerSettings = null)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -118,6 +124,8 @@ namespace ColorGateRunner.Core
                 CamouflageSettings.CreateDefault();
             MechanicGrantSettings = mechanicGrantSettings ??
                 StageMechanicGrantSettings.Disabled();
+            HiddenSettings = hiddenSettings ?? HiddenSettings.Disabled();
+            FlickerSettings = flickerSettings ?? FlickerSettings.Disabled();
         }
 
         public string StageId { get; }
@@ -143,6 +151,8 @@ namespace ColorGateRunner.Core
         public EchoSettings EchoSettings { get; }
         public CamouflageSettings CamouflageSettings { get; }
         public StageMechanicGrantSettings MechanicGrantSettings { get; }
+        public HiddenSettings HiddenSettings { get; }
+        public FlickerSettings FlickerSettings { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
 
@@ -278,7 +288,12 @@ namespace ColorGateRunner.Core
                 BoosterDistance > 0f &&
                 BoosterSpeed > MaximumSpeed &&
                 (!EchoSettings.Enabled ||
-                 (GateModifiers & GateModifierType.EchoProvider) != 0);
+                 (GateModifiers & GateModifierType.EchoProvider) != 0) &&
+                (!HiddenSettings.Enabled ||
+                 (GateModifiers & GateModifierType.Hidden) != 0) &&
+                (!FlickerSettings.Enabled ||
+                 ((GateModifiers & GateModifierType.Flicker) != 0 &&
+                  AllowedColorCount >= 2));
         }
 
         private bool HasValidFirstGateIndices()

@@ -1287,3 +1287,103 @@ Any mismatch blocks implementation.
   `D88D4B15E17D35971094CAF70038BBC7D580426DEBD267B104CA7F1A1FE76850`.
 - Step 10: 80 rows and 64,016 runs; all five hashes remain identical to the
   Iteration 7 evidence above.
+
+## Iteration 8 Campaign Hidden and Flicker stages
+
+### Baseline
+
+- Require a clean worktree and `git diff --check`.
+- Full EditMode must reproduce `288/288`; full PlayMode must reproduce
+  `144/144`.
+- Stage 1-11 Campaign Summary/JSON/CSV hashes must reproduce the Iteration 7
+  values before implementation.
+- Step 10 must reproduce 80 rows, 64,016 runs, and all five Iteration 7 hashes.
+
+### Core and EditMode
+
+- Catalog contains 13 stable stages; all Stage 1-11 definitions remain byte-
+  equivalent through the Adapter.
+- Stage 12/13 IDs, display numbers, titles, gate counts, three-color palettes,
+  speed curves, cadence, item availability, seeds, and primary mechanics
+  match the approved contract.
+- Hidden/Flicker never apply to Goal and never increase gate count.
+- Same seed and Retry reproduce target gate IDs. Flicker also reproduces cycle
+  colors and phase offsets.
+- Stage 12 applies only Hidden and retains the `0.85s` ETA hide contract.
+- Stage 13 applies only Flicker and cycles Red -> Blue -> Green -> Red using
+  the same next-color rule as player input.
+- Flicker collision judgment uses the exact supplied Campaign Gameplay Time,
+  including exact switch-boundary tests.
+- Simulator and runtime call the same judgment-color calculator. Player,
+  Echo, Booster, Shield, and Failure remain mutually ordered and do not double
+  consume defenses.
+- Minimum cycle visibility is tested at normal maximum speed and selectable
+  Booster speed. Item choice must not alter planned targets or phases.
+- Retry/Continue preserve the documented Campaign progress contract while
+  Retry resets Gameplay Time and View state.
+
+### PlayMode
+
+- Lobby exposes exactly 13 catalog-driven buttons and Stage 11 -> 12 -> 13
+  progression uses stable IDs.
+- Stage 12 displays/hides ordinary pooled gates and resets correctly on Retry,
+  Continue, replay, pool reuse, and return to Lobby.
+- Stage 13 starts phases only in Playing, synchronizes color and symbol,
+  pulses at boundaries, and judges the displayed collision-time color.
+- Shield and Booster are selectable in both stages. Booster activates at
+  `GO`, uses the ordinary auto-pass path, and does not suppress later planned
+  Hidden/Flicker presentation.
+- Goal completion, Continue, Retry, next-stage navigation, Back to Lobby,
+  repeated scene entry, fixed pool size, and listener counts remain valid.
+- Scene Builder runs twice; require no Missing Script, Missing Reference,
+  duplicate controller/root/EventSystem/button/listener, or stale modifier
+  View state.
+
+### Simulation and regression
+
+- Run all five player profiles and every allowed start-item combination for
+  Stages 1-13 with 1,000 runs per row.
+- Perfect exact-input profiles must clear both new stages. Report rather than
+  tune any adjacent non-Perfect first-attempt change of five percentage points
+  or more.
+- The Stage 1-11 prefix must exactly match all three existing campaign
+  artifacts and hashes. Stage 12-13 results receive new 13-stage artifacts;
+  existing baseline artifacts are not overwritten.
+- Step 10, Echo, Shield, Camouflage, Hidden, Flicker, Experiment runtime,
+  package manifest/lock, ProjectSettings, and `git diff --check` remain
+  regression boundaries.
+
+### Human feedback
+
+- Stage 12: Hidden concept clarity, `0.85s` memory difficulty, Booster
+  interaction, marker readability, and failure comprehension.
+- Stage 13: three-color forward rotation comprehension, `0.50s` timing,
+  collision-boundary readability, sufficient post-Booster encounters,
+  color/symbol synchronization, Shield feedback, and portrait readability.
+- Automation cannot establish fun, fairness, comfort, mastery, satisfaction,
+  or final balance.
+
+### Final automated evidence
+
+- Baseline EditMode `288/288`; baseline PlayMode `144/144`.
+- New focused results: Core/EditMode `6/6`; Campaign PlayMode `3/3`.
+- Final EditMode `294/294`; final PlayMode `147/147`.
+- Scene Builder completed twice; post-Builder PlayMode `147/147`.
+- Stage 1-13 matrix contains 260 rows. The first 220 Stage 1-11 JSON rows have
+  zero differences from the previous result.
+- Perfect clears Stage 12/13 for None, Shield, Booster, and Shield+Booster.
+  Booster/Continue index-gap, duplicate, reset, displacement, and pool-reset
+  regression counters are zero.
+- Stage 11/12/13 Average+None first-attempt clear is
+  `26.9% / 16.2% / 17.6%`; human review is required before tuning.
+- New 13-stage Summary/JSON/CSV hashes are
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and
+  `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 remains 80 rows and 64,016 runs with all five Iteration 7 hashes.
+- Package manifest
+  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+  and lock
+  `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`
+  are unchanged. ProjectSettings has no diff and `git diff --check` passes.

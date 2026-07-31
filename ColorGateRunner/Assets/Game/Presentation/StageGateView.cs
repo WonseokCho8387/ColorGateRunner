@@ -227,6 +227,27 @@ namespace ColorGateRunner.Presentation
             CamouflageSettings camouflageSettings,
             float deltaSeconds)
         {
+            UpdateCampaignVisibility(
+                passedGateCount,
+                estimatedArrivalSeconds,
+                neutralMaterial,
+                camouflageSettings,
+                HiddenSettings.Disabled(),
+                FlickerSettings.Disabled(),
+                0f,
+                deltaSeconds);
+        }
+
+        internal void UpdateCampaignVisibility(
+            int passedGateCount,
+            float estimatedArrivalSeconds,
+            Material neutralMaterial,
+            CamouflageSettings camouflageSettings,
+            HiddenSettings hiddenSettings,
+            FlickerSettings flickerSettings,
+            float gameplayTimeSeconds,
+            float deltaSeconds)
+        {
             bool fogVisible =
                 !ActivePlan.Modifier.IsFog ||
                 _planIndex - passedGateCount < 2;
@@ -234,14 +255,14 @@ namespace ColorGateRunner.Presentation
                 ActivePlan.Modifier.IsCamouflage,
                 fogVisible,
                 ActivePlan.Modifier.IsEchoProvider,
-                false,
-                false,
+                ActivePlan.Modifier.IsHidden,
+                ActivePlan.Modifier.IsFlicker,
                 estimatedArrivalSeconds,
                 neutralMaterial,
                 camouflageSettings,
-                null,
-                null,
-                0f,
+                hiddenSettings,
+                flickerSettings,
+                gameplayTimeSeconds,
                 deltaSeconds);
         }
 
@@ -394,10 +415,22 @@ namespace ColorGateRunner.Presentation
 
         private void UpdateFlickerCycle(float gameplayTimeSeconds)
         {
-            FlickerCycleSample sample =
-                _experimentPlan.GetFlickerSample(gameplayTimeSeconds);
-            RunnerColor activeColor = _experimentPlan.GetCycleColor(
-                sample.CycleColorIndex);
+            FlickerCycleSample sample;
+            RunnerColor activeColor;
+            if (_hasExperimentPlan)
+            {
+                sample =
+                    _experimentPlan.GetFlickerSample(gameplayTimeSeconds);
+                activeColor = _experimentPlan.GetCycleColor(
+                    sample.CycleColorIndex);
+            }
+            else
+            {
+                sample = ActivePlan.FlickerPlan.GetSample(
+                    gameplayTimeSeconds);
+                activeColor = ActivePlan.FlickerPlan.GetCycleColor(
+                    sample.CycleColorIndex);
+            }
             _flickerPhaseIndex = sample.PhaseIndex;
             _flickerTransitionPulse = sample.TransitionPulse;
             AssignedColor = activeColor;

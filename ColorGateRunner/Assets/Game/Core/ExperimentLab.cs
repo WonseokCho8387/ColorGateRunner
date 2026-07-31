@@ -282,7 +282,7 @@ namespace ColorGateRunner.Core
 
     public readonly struct ExperimentGatePlan
     {
-        private readonly RunnerColor[] _cycleColors;
+        private readonly FlickerGatePlan _flickerPlan;
 
         public ExperimentGatePlan(
             int gateIndex,
@@ -308,37 +308,18 @@ namespace ColorGateRunner.Core
             Spacing = spacing;
             Mechanic = mechanic;
             Modifier = modifier;
-            _cycleColors = cycleColors == null
-                ? Array.Empty<RunnerColor>()
-                : (RunnerColor[])cycleColors.Clone();
-            SwitchIntervalSeconds = switchIntervalSeconds;
-            PhaseOffsetSeconds = phaseOffsetSeconds;
-            TransitionPulseSeconds = transitionPulseSeconds;
-            SelectionSeed = selectionSeed;
             if (modifier.IsFlicker)
             {
-                if (_cycleColors.Length < 2)
-                {
-                    throw new ArgumentException(
-                        "Flicker plans require at least two cycle colors.",
-                        nameof(cycleColors));
-                }
-                if (switchIntervalSeconds <= 0f)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(switchIntervalSeconds));
-                }
-                if (phaseOffsetSeconds < 0f ||
-                    phaseOffsetSeconds >= switchIntervalSeconds)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(phaseOffsetSeconds));
-                }
-                if (transitionPulseSeconds < 0f)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(transitionPulseSeconds));
-                }
+                _flickerPlan = new FlickerGatePlan(
+                    cycleColors,
+                    switchIntervalSeconds,
+                    phaseOffsetSeconds,
+                    transitionPulseSeconds,
+                    selectionSeed);
+            }
+            else
+            {
+                _flickerPlan = default;
             }
         }
 
@@ -352,13 +333,14 @@ namespace ColorGateRunner.Core
         public float Spacing { get; }
         public MechanicExperimentType Mechanic { get; }
         public GateModifier Modifier { get; }
-        public int CycleColorCount => _cycleColors == null
-            ? 0
-            : _cycleColors.Length;
-        public float SwitchIntervalSeconds { get; }
-        public float PhaseOffsetSeconds { get; }
-        public float TransitionPulseSeconds { get; }
-        public uint SelectionSeed { get; }
+        public FlickerGatePlan FlickerPlan => _flickerPlan;
+        public int CycleColorCount => _flickerPlan.CycleColorCount;
+        public float SwitchIntervalSeconds =>
+            _flickerPlan.SwitchIntervalSeconds;
+        public float PhaseOffsetSeconds => _flickerPlan.PhaseOffsetSeconds;
+        public float TransitionPulseSeconds =>
+            _flickerPlan.TransitionPulseSeconds;
+        public uint SelectionSeed => _flickerPlan.SelectionSeed;
         public bool IsCamouflage => Modifier.IsCamouflage;
         public bool IsFog => Modifier.IsFog;
         public bool IsIce => Modifier.IsIce;
@@ -368,21 +350,12 @@ namespace ColorGateRunner.Core
 
         public RunnerColor GetCycleColor(int index)
         {
-            if (index < 0 || index >= CycleColorCount)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-            return _cycleColors[index];
+            return _flickerPlan.GetCycleColor(index);
         }
 
         public RunnerColor[] CopyCycleColors()
         {
-            RunnerColor[] result = new RunnerColor[CycleColorCount];
-            if (CycleColorCount > 0)
-            {
-                Array.Copy(_cycleColors, result, CycleColorCount);
-            }
-            return result;
+            return _flickerPlan.CopyCycleColors();
         }
 
         public FlickerCycleSample GetFlickerSample(float gameplayTimeSeconds)
@@ -391,12 +364,7 @@ namespace ColorGateRunner.Core
             {
                 return new FlickerCycleSample(0, 0, 0f);
             }
-            return FlickerCycleCalculator.Calculate(
-                gameplayTimeSeconds,
-                PhaseOffsetSeconds,
-                SwitchIntervalSeconds,
-                TransitionPulseSeconds,
-                CycleColorCount);
+            return _flickerPlan.GetSample(gameplayTimeSeconds);
         }
 
         public RunnerColor GetJudgmentColor(float gameplayTimeSeconds)
@@ -405,9 +373,7 @@ namespace ColorGateRunner.Core
             {
                 return Color;
             }
-            FlickerCycleSample sample =
-                GetFlickerSample(gameplayTimeSeconds);
-            return GetCycleColor(sample.CycleColorIndex);
+            return _flickerPlan.GetActiveColor(gameplayTimeSeconds);
         }
 
         public ExperimentGatePlan WithModifier(GateModifier modifier)
@@ -421,7 +387,7 @@ namespace ColorGateRunner.Core
                 Spacing,
                 Mechanic,
                 modifier,
-                _cycleColors,
+                _flickerPlan.CopyCycleColors(),
                 SwitchIntervalSeconds,
                 PhaseOffsetSeconds,
                 TransitionPulseSeconds,
@@ -565,121 +531,58 @@ namespace ColorGateRunner.Core
 
         private void BuildHiddenGateMask()
         {
-            Array.Clear(
-                _hiddenGateMask,
-                0,
-                _hiddenGateMask.Length);
             HiddenSettings settings = _definition.Hidden;
             if (_definition.Mechanic != MechanicExperimentType.Hidden ||
                 !settings.Enabled ||
                 settings.MaxOccurrences == 0)
             {
+                Array.Clear(
+                    _hiddenGateMask,
+                    0,
+                    _hiddenGateMask.Length);
                 return;
             }
 
-            uint selectionState = DeterministicGateSequence.NormalizeSeed(
-                _definition.Seed ^ 0xF11C4E2Du);
-            int selectedCount = 0;
-            int lastSelectedGate = int.MinValue;
-            for (int gateIndex = 0;
-                gateIndex < _definition.GateCount;
-                gateIndex++)
-            {
-                float progress = gateIndex /
-                    (float)Math.Max(1, _definition.GateCount - 1);
-                if (progress < settings.EligibleStartProgress ||
-                    progress > settings.EligibleEndProgress)
-                {
-                    continue;
-                }
-                if (lastSelectedGate != int.MinValue &&
-                    gateIndex - lastSelectedGate <=
-                    settings.MinimumGateCooldown)
-                {
-                    continue;
-                }
-
-                selectionState =
-                    DeterministicGateSequence.AdvanceXorshift32(
-                        selectionState);
-                bool guaranteed =
-                    settings.FirstOccurrenceGuaranteed &&
-                    selectedCount == 0;
-                float roll =
-                    (selectionState & 0x00FFFFFFu) / 16777216f;
-                if (!guaranteed && roll >= settings.OccurrenceChance)
-                {
-                    continue;
-                }
-
-                _hiddenGateMask[gateIndex] = true;
-                selectedCount++;
-                lastSelectedGate = gateIndex;
-                if (selectedCount >= settings.MaxOccurrences)
-                {
-                    break;
-                }
-            }
+            bool[] mask = DeterministicModifierPlanner.BuildOccurrenceMask(
+                _definition.GateCount,
+                settings.EligibleStartProgress,
+                settings.EligibleEndProgress,
+                settings.OccurrenceChance,
+                settings.MinimumGateCooldown,
+                settings.MaxOccurrences,
+                settings.FirstOccurrenceGuaranteed,
+                _definition.Seed,
+                0xF11C4E2Du);
+            Array.Copy(mask, _hiddenGateMask, mask.Length);
         }
 
         private void BuildFlickerGateMask()
         {
-            Array.Clear(
-                _flickerGateMask,
-                0,
-                _flickerGateMask.Length);
             FlickerSettings settings = _definition.Flicker;
             if (_definition.Mechanic != MechanicExperimentType.Flicker ||
                 !settings.Enabled ||
                 settings.MaxOccurrences == 0)
             {
+                Array.Clear(
+                    _flickerGateMask,
+                    0,
+                    _flickerGateMask.Length);
                 return;
             }
 
-            uint selectionState = DeterministicGateSequence.NormalizeSeed(
-                _definition.Seed ^ 0xC01C1E5Fu);
-            int selectedCount = 0;
-            int lastSelectedGate = int.MinValue;
-            for (int gateIndex = 0;
-                gateIndex < _definition.GateCount;
-                gateIndex++)
-            {
-                float progress = gateIndex /
-                    (float)Math.Max(1, _definition.GateCount - 1);
-                if (progress < settings.EligibleStartProgress ||
-                    progress > settings.EligibleEndProgress ||
-                    !MeetsMinimumVisibleCycles(gateIndex, settings))
-                {
-                    continue;
-                }
-                if (lastSelectedGate != int.MinValue &&
-                    gateIndex - lastSelectedGate <=
-                    settings.MinimumGateCooldown)
-                {
-                    continue;
-                }
-
-                selectionState =
-                    DeterministicGateSequence.AdvanceXorshift32(
-                        selectionState);
-                bool guaranteed =
-                    settings.FirstOccurrenceGuaranteed &&
-                    selectedCount == 0;
-                float roll =
-                    (selectionState & 0x00FFFFFFu) / 16777216f;
-                if (!guaranteed && roll >= settings.OccurrenceChance)
-                {
-                    continue;
-                }
-
-                _flickerGateMask[gateIndex] = true;
-                selectedCount++;
-                lastSelectedGate = gateIndex;
-                if (selectedCount >= settings.MaxOccurrences)
-                {
-                    break;
-                }
-            }
+            bool[] mask = DeterministicModifierPlanner.BuildOccurrenceMask(
+                _definition.GateCount,
+                settings.EligibleStartProgress,
+                settings.EligibleEndProgress,
+                settings.OccurrenceChance,
+                settings.MinimumGateCooldown,
+                settings.MaxOccurrences,
+                settings.FirstOccurrenceGuaranteed,
+                _definition.Seed,
+                0xC01C1E5Fu,
+                gateIndex =>
+                    MeetsMinimumVisibleCycles(gateIndex, settings));
+            Array.Copy(mask, _flickerGateMask, mask.Length);
         }
 
         private bool MeetsMinimumVisibleCycles(
@@ -708,31 +611,18 @@ namespace ColorGateRunner.Core
         private RunnerColor[] CreateFlickerCycleColors(
             RunnerColor baseColor)
         {
-            int count = _definition.ColorCount;
-            RunnerColor[] result = new RunnerColor[count];
-            result[0] = baseColor;
-            for (int index = 1; index < count; index++)
-            {
-                result[index] =
-                    _definition.GetNextColor(result[index - 1]);
-            }
-            return result;
+            return DeterministicModifierPlanner.CreateCycleColors(
+                baseColor,
+                _definition.ColorCount,
+                _definition.GetNextColor);
         }
 
         private float CreateFlickerPhaseOffset(int gateId)
         {
-            FlickerSettings settings = _definition.Flicker;
-            if (!settings.RandomizePhaseOffset)
-            {
-                return 0f;
-            }
-            uint state = DeterministicGateSequence.NormalizeSeed(
-                _definition.Seed ^
-                ((uint)(gateId + 1) * 0x85EBCA6Bu) ^
-                0xF1A5E0FFu);
-            state = DeterministicGateSequence.AdvanceXorshift32(state);
-            float unit = (state & 0x00FFFFFFu) / 16777216f;
-            return unit * settings.SwitchIntervalSeconds;
+            return DeterministicModifierPlanner.CreatePhaseOffset(
+                _definition.Flicker,
+                _definition.Seed,
+                gateId);
         }
     }
 

@@ -444,3 +444,36 @@ chance `0.30`, cooldown `2`, maximum `4`, guaranteed first occurrence,
 deterministic randomized phase offset. Cycle colors are derived from the full
 active palette rather than authored. These are human-play candidates rather
 than final balance.
+
+## Iteration 8 Campaign Hidden and Flicker stages
+
+Status: Implemented / Human Review Pending.
+
+Campaign expands without changing Stages 1-11:
+
+| Stage | Title | Gates | Colors | Base speed | Cadence | Primary mechanic |
+|---:|---|---:|---|---|---|---|
+| 12 | Hidden Memory | 50 | Red, Blue, Green | `46 -> 68` | `1.05 -> 0.78s` | Hidden |
+| 13 | Flicker Flow | 52 | Red, Blue, Green | `46 -> 68` | `1.08 -> 0.80s` | Flicker |
+
+- Each stage introduces only its named gate modifier. Hidden and Flicker do
+  not mix with Camouflage, Fog, Ice, Echo Provider, or each other.
+- Stage 12 uses the approved Hidden `0.85s` hide lead, `1.00s` minimum
+  readable time, and `0.12s` transition.
+- Stage 13 cycles all three active colors in the same forward order as player
+  input. Its initial switch interval remains `0.50s`.
+- Both stages retain the existing Stage 6+ Shield and Booster selection
+  policy. Booster starts at `GO`, uses ordinary Booster auto-pass behavior,
+  and creates no Hidden/Flicker exception.
+- Flicker target selection must satisfy minimum visible cycles at the fastest
+  effective arrival speed, including selectable Booster. A selected Booster
+  may bypass early Flicker gates, so deterministic planning must leave enough
+  later Flicker occurrences to teach and evaluate the mechanic.
+- Hidden uses ordinary static target-color judgment. Flicker uses the
+  collision-time Campaign Gameplay Time color. Judgment priority remains
+  Player, held Echo when supported, Booster, Shield, then Failure.
+- Goal gates never receive Hidden or Flicker. Gate count and the fixed View
+  pool do not change because either mechanic is active.
+- Retry reproduces modifier targets, cycles, offsets, and gate order while
+  resetting Gameplay Time and all per-View visibility/pulse state.
+- These values are human-play candidates, not a claim of final balance.

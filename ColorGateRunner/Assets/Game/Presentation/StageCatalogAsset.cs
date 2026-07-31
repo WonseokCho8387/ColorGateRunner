@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 4;
+        private const int CurrentCatalogRevision = 5;
 
         [Serializable]
         private sealed class StageEntry
@@ -78,6 +78,41 @@ namespace ColorGateRunner.Presentation
             [Tooltip("Seconds used to transition from neutral to the target color.")]
             private float camouflageRevealTransition = 0.18f;
 
+            [Header("Hidden")]
+            [SerializeField]
+            [Tooltip("Enables deterministic Hidden placement for this stage.")]
+            private bool hiddenEnabled;
+            [SerializeField, Range(0f, 1f)]
+            private float hiddenEligibleStart = 0.15f;
+            [SerializeField, Range(0f, 1f)]
+            private float hiddenEligibleEnd = 0.85f;
+            [SerializeField, Range(0f, 1f)]
+            private float hiddenOccurrenceChance = 0.35f;
+            [SerializeField, Min(0)] private int hiddenMinimumGateCooldown = 2;
+            [SerializeField, Min(0f)] private float hiddenReadableSeconds = 1f;
+            [SerializeField, Min(0f)] private float hiddenLeadSeconds = 0.85f;
+            [SerializeField, Min(0f)] private float hiddenTransitionSeconds = 0.12f;
+            [SerializeField, Min(0)] private int hiddenMaxOccurrences = 4;
+            [SerializeField] private bool hiddenFirstGuaranteed = true;
+
+            [Header("Flicker")]
+            [SerializeField]
+            [Tooltip("Enables deterministic color-cycling Flicker placement for this stage.")]
+            private bool flickerEnabled;
+            [SerializeField, Range(0f, 1f)]
+            private float flickerEligibleStart = 0.15f;
+            [SerializeField, Range(0f, 1f)]
+            private float flickerEligibleEnd = 0.85f;
+            [SerializeField, Range(0f, 1f)]
+            private float flickerOccurrenceChance = 0.30f;
+            [SerializeField, Min(0)] private int flickerMinimumGateCooldown = 2;
+            [SerializeField, Min(0)] private int flickerMaxOccurrences = 4;
+            [SerializeField] private bool flickerFirstGuaranteed = true;
+            [SerializeField, Min(0.01f)] private float flickerSwitchSeconds = 0.50f;
+            [SerializeField, Min(0f)] private float flickerPulseSeconds = 0.10f;
+            [SerializeField, Min(1)] private int flickerMinimumCyclesVisible = 3;
+            [SerializeField] private bool flickerRandomizePhase = true;
+
             [Header("Stage-local Grant")]
             [SerializeField]
             [Tooltip("Provides a mechanic inside this stage without changing inventory.")]
@@ -122,7 +157,9 @@ namespace ColorGateRunner.Presentation
                         grantActivationMode,
                         grantActivationProgress,
                         grantChargeCount,
-                        true));
+                        true),
+                    CreateHiddenSettings(),
+                    CreateFlickerSettings());
             }
 
             public static StageEntry Create(
@@ -192,6 +229,27 @@ namespace ColorGateRunner.Presentation
                     echoMaxAcquisitions = enableEcho ? 3 : 0,
                     camouflageRevealLeadTime = 1.25f,
                     camouflageRevealTransition = 0.18f,
+                    hiddenEnabled = false,
+                    hiddenEligibleStart = 0.15f,
+                    hiddenEligibleEnd = 0.85f,
+                    hiddenOccurrenceChance = 0.35f,
+                    hiddenMinimumGateCooldown = 2,
+                    hiddenReadableSeconds = 1f,
+                    hiddenLeadSeconds = 0.85f,
+                    hiddenTransitionSeconds = 0.12f,
+                    hiddenMaxOccurrences = 4,
+                    hiddenFirstGuaranteed = true,
+                    flickerEnabled = false,
+                    flickerEligibleStart = 0.15f,
+                    flickerEligibleEnd = 0.85f,
+                    flickerOccurrenceChance = 0.30f,
+                    flickerMinimumGateCooldown = 2,
+                    flickerMaxOccurrences = 4,
+                    flickerFirstGuaranteed = true,
+                    flickerSwitchSeconds = 0.50f,
+                    flickerPulseSeconds = 0.10f,
+                    flickerMinimumCyclesVisible = 3,
+                    flickerRandomizePhase = true,
                     mechanicGrantEnabled = enableGrant,
                     grantedMechanic = grantMechanic,
                     grantActivationMode = activationMode,
@@ -218,6 +276,18 @@ namespace ColorGateRunner.Presentation
             {
                 shieldAllowed = allowShield;
                 boosterAllowed = allowBooster;
+                return this;
+            }
+
+            public StageEntry WithHidden()
+            {
+                hiddenEnabled = true;
+                return this;
+            }
+
+            public StageEntry WithFlicker()
+            {
+                flickerEnabled = true;
                 return this;
             }
 
@@ -255,6 +325,37 @@ namespace ColorGateRunner.Presentation
                     additionalEchoChance,
                     echoCooldownGateCount,
                     echoMaxAcquisitions);
+            }
+
+            private HiddenSettings CreateHiddenSettings()
+            {
+                return new HiddenSettings(
+                    hiddenEnabled,
+                    hiddenEligibleStart,
+                    hiddenEligibleEnd,
+                    hiddenOccurrenceChance,
+                    hiddenMinimumGateCooldown,
+                    hiddenReadableSeconds,
+                    hiddenLeadSeconds,
+                    hiddenTransitionSeconds,
+                    hiddenMaxOccurrences,
+                    hiddenFirstGuaranteed);
+            }
+
+            private FlickerSettings CreateFlickerSettings()
+            {
+                return new FlickerSettings(
+                    flickerEnabled,
+                    flickerEligibleStart,
+                    flickerEligibleEnd,
+                    flickerOccurrenceChance,
+                    flickerMinimumGateCooldown,
+                    flickerMaxOccurrences,
+                    flickerFirstGuaranteed,
+                    flickerSwitchSeconds,
+                    flickerPulseSeconds,
+                    flickerMinimumCyclesVisible,
+                    flickerRandomizePhase);
             }
 
             private int GetActiveColorCount()
@@ -566,7 +667,59 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0f, 0f),
                         new Keyframe(0.45f, 0.30f),
                         new Keyframe(0.75f, 0.68f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-12", 12, "HIDDEN MEMORY",
+                    "Remember each target after it hides.",
+                    50, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    46f, 68f, 1.05f, 0.78f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.SingleColorBreak,
+                        GatePatternType.Release
+                    },
+                    7, 10, 580f, 120f, 120012u,
+                    true, null,
+                    StagePrimaryMechanic.Hidden,
+                    GateModifierType.Hidden)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.45f, 0.28f),
+                        new Keyframe(0.75f, 0.66f),
                         new Keyframe(1f, 1f))
+                    .WithHidden(),
+                StageEntry.Create(
+                    "stage-13", 13, "FLICKER FLOW",
+                    "Track the forward color cycle at the crossing.",
+                    52, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    46f, 68f, 1.08f, 0.80f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Syncopation,
+                        GatePatternType.Release
+                    },
+                    7, 11, 600f, 122f, 130013u,
+                    true, null,
+                    StagePrimaryMechanic.Flicker,
+                    GateModifierType.Flicker)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.50f, 0.30f),
+                        new Keyframe(0.80f, 0.70f),
+                        new Keyframe(1f, 1f))
+                    .WithFlicker()
             };
         }
     }

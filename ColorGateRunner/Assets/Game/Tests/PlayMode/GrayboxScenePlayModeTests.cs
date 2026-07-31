@@ -1139,6 +1139,95 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CampaignHiddenGate_HidesAndUsesOrdinaryFailureFlow()
+        {
+            SelectAndStartStage(12);
+            StageGateView hidden = AdvanceToCampaignModifier(
+                GateModifierType.Hidden);
+
+            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(hidden.HiddenHideStarted, Is.False);
+            hidden.UpdateCampaignVisibility(
+                _controller.Session.GatesPassed,
+                0f,
+                _controller.GetPresentationMaterial(RunnerColor.Red),
+                _controller.Session.Stage.CamouflageSettings,
+                _controller.Session.Stage.HiddenSettings,
+                _controller.Session.Stage.FlickerSettings,
+                _controller.Session.ElapsedPlayingSeconds,
+                1.1f);
+
+            Assert.That(hidden.HiddenHideStarted, Is.True);
+            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Mismatch(hidden.ActivePlan.Color);
+            Assert.That(hidden.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+        }
+
+        [Test]
+        public void CampaignFlickerGate_UsesGameplayTimeForViewAndJudgment()
+        {
+            SelectAndStartStage(13);
+            StageGateView flicker = AdvanceToCampaignModifier(
+                GateModifierType.Flicker);
+            GatePlan plan = flicker.ActivePlan;
+            string initialSymbol = flicker.SymbolText;
+            float boundary =
+                plan.FlickerPlan.SwitchIntervalSeconds -
+                plan.FlickerPlan.PhaseOffsetSeconds;
+            if (boundary <= 0f)
+            {
+                boundary = plan.FlickerPlan.SwitchIntervalSeconds;
+            }
+            float gameplayTime =
+                _controller.Session.ElapsedPlayingSeconds + boundary;
+            _controller.Session.Advance(boundary, 0f);
+            flicker.UpdateCampaignVisibility(
+                _controller.Session.GatesPassed,
+                1f,
+                _controller.GetPresentationMaterial(RunnerColor.Red),
+                _controller.Session.Stage.CamouflageSettings,
+                _controller.Session.Stage.HiddenSettings,
+                _controller.Session.Stage.FlickerSettings,
+                gameplayTime,
+                0f);
+
+            RunnerColor expected = plan.GetJudgmentColor(gameplayTime);
+            Assert.That(flicker.AssignedColor, Is.EqualTo(expected));
+            Assert.That(flicker.SymbolText, Does.Contain("FLICKER"));
+            Assert.That(
+                flicker.SymbolText,
+                Is.Not.EqualTo(initialSymbol));
+            Match(expected);
+            Assert.That(flicker.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.Session.FlowState,
+                Is.Not.EqualTo(StageFlowState.Failed));
+        }
+
+        [Test]
+        public void CampaignFlickerStage_AllowsShieldAndBoosterFromGo()
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(13);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
+            Assert.That(_controller.BoosterToggleButton.interactable, Is.True);
+            _controller.ToggleShieldSelection();
+            _controller.ToggleBoosterSelection();
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+
+            Assert.That(_controller.Session.ShieldActive, Is.True);
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+            Assert.That(
+                _controller.Session.CurrentSpeed,
+                Is.EqualTo(_controller.Session.Stage.BoosterSpeed));
+        }
+
+        [Test]
         public void RuntimeGateAndTrackPools_DoNotGrow()
         {
             StartPlaying(false, true);
@@ -1503,6 +1592,28 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(
                 _controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
+        }
+
+        private StageGateView AdvanceToCampaignModifier(
+            GateModifierType modifier)
+        {
+            while (_controller.Session.GatesPassed <
+                _controller.Session.Stage.TargetGateCount)
+            {
+                StageGateView current = FindGateByPlanIndex(
+                    _controller.Session.GatesPassed);
+                Assert.That(current, Is.Not.Null);
+                if (current.ActivePlan.Modifier.Has(modifier))
+                {
+                    return current;
+                }
+
+                Match(current.AssignedColor);
+                Assert.That(current.TryResolveCrossing(), Is.True);
+            }
+
+            Assert.Fail($"Campaign modifier {modifier} was not found.");
+            return null;
         }
 
         private static ExperimentLauncher FindExperimentLauncher()

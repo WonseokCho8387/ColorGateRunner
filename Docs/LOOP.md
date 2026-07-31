@@ -358,3 +358,57 @@ and Camouflage reveal remain human checks.
 ↓
 
 Play Again
+
+---
+
+Latest Campaign Hidden/Flicker Cycle
+
+Play
+
+Campaign ended at Echo Stage 11 while Hidden and Flicker were available only
+as Lab experiments. Stage 6+ already promised consistent Shield/Booster
+selection.
+
+↓
+
+Analyze
+
+Campaign lacked Flicker plan metadata, View binding, collision-time color
+judgment, and simulator parity. Disabling Booster would avoid the interaction
+instead of validating it.
+
+↓
+
+Design
+
+Stage 12 Hidden and Stage 13 Flicker, three colors, isolated modifiers,
+shared deterministic planning, absolute Gameplay Time, and unchanged
+Shield/Booster behavior.
+
+↓
+
+Codex
+
+Added catalog revision 5, shared Flicker planning data, Campaign runtime/View/
+simulation wiring, 13 stage buttons, and deterministic exposure checks at
+Booster speed.
+
+↓
+
+Tests
+
+294 EditMode and 147 PlayMode pass. Scene Builder runs twice and post-Builder
+PlayMode remains 147/147. The 260-row Campaign matrix preserves every Stage
+1-11 row, and Step 10 keeps all five hashes.
+
+↓
+
+Experiment
+
+Human play now owns the Stage 11→12 difficulty jump, Hidden memory demand,
+Flicker boundary readability, post-Booster teaching frequency, and portrait
+legibility. Automated results do not decide balance quality.
+
+↓
+
+Play Again

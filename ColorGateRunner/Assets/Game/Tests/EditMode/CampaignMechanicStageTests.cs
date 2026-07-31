@@ -6,7 +6,7 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class CampaignMechanicStageTests
     {
         [Test]
-        public void StagesSixThroughEleven_UseOnePrimaryMechanicEach()
+        public void StagesSixThroughThirteen_UseOnePrimaryMechanicEach()
         {
             StagePrimaryMechanic[] expected =
             {
@@ -15,7 +15,9 @@ namespace ColorGateRunner.Tests.EditMode
                 StagePrimaryMechanic.Camouflage,
                 StagePrimaryMechanic.Fog,
                 StagePrimaryMechanic.Ice,
-                StagePrimaryMechanic.Echo
+                StagePrimaryMechanic.Echo,
+                StagePrimaryMechanic.Hidden,
+                StagePrimaryMechanic.Flicker
             };
 
             for (int index = 0; index < expected.Length; index++)
@@ -25,7 +27,7 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(stage.PrimaryMechanic, Is.EqualTo(expected[index]));
                 Assert.That(
                     stage.AllowedColorCount,
-                    Is.EqualTo(index == expected.Length - 1 ? 3 : 2));
+                    Is.EqualTo(index >= 5 ? 3 : 2));
             }
         }
 
@@ -85,6 +87,8 @@ namespace ColorGateRunner.Tests.EditMode
             AssertModifierExists(8, GateModifierType.Camouflage);
             AssertModifierExists(9, GateModifierType.Fog);
             AssertModifierExists(10, GateModifierType.Ice);
+            AssertModifierExists(12, GateModifierType.Hidden);
+            AssertModifierExists(13, GateModifierType.Flicker);
 
             for (int stageNumber = 1; stageNumber <= 7; stageNumber++)
             {
@@ -174,6 +178,12 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(2));
             Assert.That(
                 StageCatalog.GetByDisplayNumber(11).SpeedProfile.SampleCount,
+                Is.EqualTo(101));
+            Assert.That(
+                StageCatalog.GetByDisplayNumber(12).SpeedProfile.SampleCount,
+                Is.EqualTo(101));
+            Assert.That(
+                StageCatalog.GetByDisplayNumber(13).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
         }
 

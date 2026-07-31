@@ -305,19 +305,25 @@ namespace ColorGateRunner.Core
                         Math.Max(
                             0.01f,
                             session.GetSpeedForPlan(plan));
+                    float judgmentTime =
+                        session.ElapsedPlayingSeconds + travelTime;
+                    RunnerColor judgmentColor =
+                        plan.GetJudgmentColor(judgmentTime);
                     float reaction = profile.ReactionSeconds +
                         (NextSigned(ref random) * profile.ReactionVariance);
                     float margin = travelTime - Math.Max(0f, reaction);
                     margins.Add(margin);
 
-                    int requiredTaps = RequiredTapCount(session, plan.Color);
+                    int requiredTaps = RequiredTapCount(
+                        session,
+                        judgmentColor);
                     totalRequiredTaps += requiredTaps;
                     float density = travelTime < 1f
                         ? (1f - travelTime) * profile.DensityPenalty
                         : 0f;
                     float fatigue = (gateIndex / (float)stage.TargetGateCount) *
                         profile.FatiguePenalty;
-                    float green = plan.Color == RunnerColor.Green
+                    float green = judgmentColor == RunnerColor.Green
                         ? profile.GreenPenalty
                         : 0f;
                     float missChance = Clamp01(
@@ -355,7 +361,9 @@ namespace ColorGateRunner.Core
 
                     bool hadShield = session.ShieldActive;
                     bool boosterAtGate = session.BoosterActive;
-                    GateOutcome outcome = session.ResolveGate(plan);
+                    GateOutcome outcome = session.ResolveGate(
+                        plan,
+                        judgmentTime);
                     if (boosterAtGate)
                     {
                         boosterBypassed++;

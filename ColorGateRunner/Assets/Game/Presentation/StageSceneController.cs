@@ -544,7 +544,9 @@ namespace ColorGateRunner.Presentation
             }
             GatePlan plan = gate.ActivePlan;
             int gateIndex = gate.PlanIndex;
-            GateOutcome outcome = _session.ResolveGate(plan);
+            GateOutcome outcome = _session.ResolveGate(
+                plan,
+                _session.ElapsedPlayingSeconds);
             if (outcome == GateOutcome.Matched ||
                 outcome == GateOutcome.Invulnerable ||
                 outcome == GateOutcome.Echoed)
@@ -1123,6 +1125,9 @@ namespace ColorGateRunner.Presentation
                 EstimateCampaignGateEta(plan, _nextGateZ),
                 _normalTrackMaterial,
                 _session.Stage.CamouflageSettings,
+                _session.Stage.HiddenSettings,
+                _session.Stage.FlickerSettings,
+                _session.ElapsedPlayingSeconds,
                 0f);
             _nextPlanIndex++;
         }
@@ -1388,6 +1393,9 @@ namespace ColorGateRunner.Presentation
                             gate.transform.position.z),
                         _normalTrackMaterial,
                         _session.Stage.CamouflageSettings,
+                        _session.Stage.HiddenSettings,
+                        _session.Stage.FlickerSettings,
+                        _session.ElapsedPlayingSeconds,
                         deltaSeconds);
                 }
             }

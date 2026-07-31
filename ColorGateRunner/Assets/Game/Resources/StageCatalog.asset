@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 4
+  catalogRevision: 5
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -72,6 +72,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -135,6 +156,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -198,6 +240,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -261,6 +324,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -324,6 +408,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -405,6 +510,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 1
     grantedMechanic: 1
     grantActivationMode: 0
@@ -486,6 +612,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 1
     grantedMechanic: 2
     grantActivationMode: 0
@@ -567,6 +714,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -630,6 +798,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -711,6 +900,27 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0
@@ -792,6 +1002,231 @@ MonoBehaviour:
     echoMaxAcquisitions: 3
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-12
+    displayNumber: 12
+    title: HIDDEN MEMORY
+    description: Remember each target after it hides.
+    targetGateCount: 50
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 46
+    maximumSpeed: 68
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.45
+        value: 0.28
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.75
+        value: 0.66
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.05
+    cadenceEnd: 0.78
+    allowedPatterns: 090000000600000004000000
+    introGateCount: 7
+    finalPressureGateCount: 10
+    boosterDistance: 580
+    boosterSpeed: 120
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 120012
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 7
+    gateModifiers: 16
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    hiddenEnabled: 1
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-13
+    displayNumber: 13
+    title: FLICKER FLOW
+    description: Track the forward color cycle at the crossing.
+    targetGateCount: 52
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 46
+    maximumSpeed: 68
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.5
+        value: 0.3
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.8
+        value: 0.7
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.08
+    cadenceEnd: 0.8
+    allowedPatterns: 090000000700000004000000
+    introGateCount: 7
+    finalPressureGateCount: 11
+    boosterDistance: 600
+    boosterSpeed: 122
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 130013
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 8
+    gateModifiers: 32
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 1
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
     grantedMechanic: 0
     grantActivationMode: 0

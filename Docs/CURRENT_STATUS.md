@@ -2,9 +2,9 @@
 
 Version
 
-Iteration 7
+Iteration 8
 
-(Hidden migration and color-cycling Flicker implemented / human review pending)
+(Campaign Stage 12 Hidden and Stage 13 Flicker implemented / human review pending)
 
 ---
 
@@ -225,13 +225,50 @@ Hidden/Flicker Human-Feedback Revision Validation
   Step 10 wrote 80 rows and 64,016 runs and retained all five hashes.
 - Package manifest/lock and ProjectSettings have no intended change.
 
+Authoritative Iteration 8 Result
+
+- Campaign now contains 13 stable catalog stages. Stage 12 `HIDDEN MEMORY`
+  has 50 gates and Stage 13 `FLICKER FLOW` has 52; both use Red, Blue, Green
+  and retain selectable Shield and Booster.
+- Stage 12 uses the approved Hidden `0.85s` lead and deterministically selects
+  Gate IDs `8, 19, 22, 26`. Stage 13 deterministically selects Flicker Gate
+  IDs `8, 14, 19, 22`.
+- `FlickerGatePlan` and `DeterministicModifierPlanner` are shared by
+  Experiment and Campaign. Runtime, View, tests, and simulation use the same
+  absolute Gameplay Time phase calculation.
+- Campaign Flicker collision resolves the active color at
+  `StageSession.ElapsedPlayingSeconds`. Booster remains the existing
+  start-at-`GO` auto-pass and receives no Hidden/Flicker exception.
+- Flicker exposure is accepted only when six pooled-view spacings provide at
+  least three `0.50s` cycles at the authored Booster speed. Item choice does
+  not alter targets, cycles, or phase.
+- Catalog revision 5 and the rebuilt Scene contain 13 buttons. Scene Builder
+  completed twice and post-Builder PlayMode passed.
+- Final EditMode is `294/294`; PlayMode is `147/147` before and after the
+  second Builder run.
+- Stage 1-13 simulation wrote 260 rows. Its first 220 Stage 1-11 rows are
+  exactly equal to the previous JSON results. Perfect clears Stage 12 and 13
+  under all four item combinations.
+- New 13-stage artifact hashes are Summary
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  JSON
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and CSV
+  `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 remains 80 rows and 64,016 runs with all five hashes unchanged.
+  Package manifest/lock retain their prior hashes and ProjectSettings has no
+  diff.
+- Average/None first-attempt clear is `26.9%` at Stage 11, `16.2%` at Stage
+  12, and `17.6%` at Stage 13. This mechanical drop is not auto-tuned and
+  requires human difficulty review.
+
 Next Iteration
 
-Perform portrait-device human play review of the `0.85s` Hidden memory
-interval and Flicker's full-active-palette, one-forward-tap sequence. Record
-whether `0.50s` switching remains followable at three through six colors,
-especially at the collision boundary. Do not apply Flicker to Campaign or
-combine modifiers until that feedback is reviewed.
+Perform portrait-device human play of Stage 12 and 13. Record Hidden memory
+difficulty, Flicker collision-boundary readability, whether post-Booster
+Flicker encounters are sufficient, and whether the Stage 11 -> 12 difficulty
+step is too large. Do not mix modifiers or auto-tune values from simulation
+alone.
 
 ---
 

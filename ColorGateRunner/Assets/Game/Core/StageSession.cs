@@ -263,7 +263,27 @@ namespace ColorGateRunner.Core
                 aheadOffset == 0
                 ? CurrentColor
                 : GetNextAllowedColor(CurrentColor);
-            return plan.WithTemporaryColorOverride(color);
+            GatePlan safePlan = plan.WithTemporaryColorOverride(color);
+            if (!plan.Modifier.IsFlicker)
+            {
+                return safePlan;
+            }
+
+            int resolvedGateCount = GatesPassed + aheadOffset;
+            RunnerColor[] cycleColors =
+                DeterministicModifierPlanner.CreateCycleColors(
+                    color,
+                    plan.FlickerPlan.CycleColorCount,
+                    next => Stage.GetNextActiveColor(
+                        resolvedGateCount,
+                        next));
+            FlickerGatePlan flickerPlan = new FlickerGatePlan(
+                cycleColors,
+                plan.FlickerPlan.SwitchIntervalSeconds,
+                plan.FlickerPlan.PhaseOffsetSeconds,
+                plan.FlickerPlan.TransitionPulseSeconds,
+                plan.FlickerPlan.SelectionSeed);
+            return safePlan.WithFlickerPlan(flickerPlan);
         }
 
         public GateOutcome ResolveGate(RunnerColor gateColor)
@@ -283,6 +303,13 @@ namespace ColorGateRunner.Core
 
         public GateOutcome ResolveGate(GatePlan plan)
         {
+            return ResolveGate(plan, ElapsedPlayingSeconds);
+        }
+
+        public GateOutcome ResolveGate(
+            GatePlan plan,
+            float gameplayTimeSeconds)
+        {
             if ((FlowState != StageFlowState.Playing &&
                 FlowState != StageFlowState.ShieldRecovery) ||
                 GatesPassed >= Stage.TargetGateCount)
@@ -290,12 +317,14 @@ namespace ColorGateRunner.Core
                 return GateOutcome.Ignored;
             }
 
-            bool passedByPlayerColor = CurrentColor == plan.Color;
+            RunnerColor judgmentColor =
+                plan.GetJudgmentColor(gameplayTimeSeconds);
+            bool passedByPlayerColor = CurrentColor == judgmentColor;
             if (Stage.EchoSettings.Enabled && passedByPlayerColor)
             {
                 _echoCoordinator.TryAcquire(
                     plan.GateId,
-                    plan.Color,
+                    judgmentColor,
                     plan.Modifier.IsEchoProvider);
                 return CompleteSuccessfulGate(
                     plan.GateId,
@@ -303,7 +332,7 @@ namespace ColorGateRunner.Core
             }
 
             if (Stage.EchoSettings.Enabled &&
-                _echoCoordinator.TryConsume(plan.Color))
+                _echoCoordinator.TryConsume(judgmentColor))
             {
                 return CompleteSuccessfulGate(
                     plan.GateId,

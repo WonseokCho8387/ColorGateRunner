@@ -667,3 +667,97 @@ Human feedback required
 - Whether Hidden `0.85s` produces a useful memory interval.
 - Whether full-palette Flicker remains followable from three through six
   colors and feels skill-based at the collision boundary.
+
+## Campaign Stage 12 Hidden / Stage 13 Flicker
+
+Status
+
+- Implemented / Human Review Pending
+
+Play
+
+- Campaign currently ends at Stage 11. Hidden and Flicker are fully testable
+  only through isolated Experiment Launcher conditions.
+- Stage 6+ already establishes selectable Shield and Booster. Disabling
+  Booster only for Flicker would make the stage-selection contract
+  inconsistent and would hide the real interaction that needs evaluation.
+
+Analyze
+
+- Campaign `GatePlan` lacks Flicker cycle metadata, while
+  `ExperimentGatePlan` already owns deterministic cycle and phase data.
+- Campaign View binding currently routes Camouflage/Fog only; Hidden/Flicker
+  presentation and collision-time judgment remain Experiment-only.
+- The campaign simulator resolves a static planned color before advancing its
+  travel clock, so Flicker requires an explicit shared collision-time input.
+- Catalog-driven lobby buttons scale with `StageCatalog.Count`; the Resource
+  asset, builder upgrade threshold, serialized Scene arrays, and tests must
+  move together from 11 to 13.
+
+Design
+
+- Add Stage 12 Hidden Memory and Stage 13 Flicker Flow without changing Stage
+  1-11 data.
+- Share modifier selection, cycle metadata, phase calculation, and judgment
+  color between Experiment, Campaign runtime, View, simulation, and tests.
+- Keep Booster selectable and unchanged. Validate minimum exposure using the
+  fastest effective arrival speed and retain deterministic later encounters.
+- No mixed modifiers, new colors, new input, music integration, or duplicate
+  generator.
+
+Baseline
+
+- Clean worktree and `git diff --check`.
+- EditMode `288/288`; PlayMode `144/144`.
+- Stage 1-11 Campaign reproduced all three Iteration 7 hashes.
+- Step 10 reproduced 80 rows, 64,016 runs, and all five Iteration 7 hashes.
+
+Implementation
+
+- Added Catalog stages `stage-12` and `stage-13`, revision 5 Resource data,
+  and catalog-driven Scene buttons.
+- Extracted shared `FlickerGatePlan` and deterministic occurrence/cycle/phase
+  planning so Experiment and Campaign do not own parallel systems.
+- Extended `GatePlan`, `StageDefinition`, and `StageSession` with Campaign
+  Hidden/Flicker data and exact Gameplay Time judgment.
+- Campaign View binding now reuses the existing Hidden/Flicker presentation
+  and resets it through the existing six-gate pool.
+- Simulation supplies collision Gameplay Time to the same `GatePlan`
+  judgment-color path used by runtime.
+- Booster remains selectable and unchanged. Exposure eligibility uses
+  Booster speed without making item-dependent plans.
+
+Validation
+
+- Focused new Core/EditMode `6/6`; focused Campaign PlayMode `3/3`.
+- Full EditMode `294/294`.
+- Full PlayMode `147/147`; second Scene Builder run followed by another
+  `147/147`.
+- Stage 1-13 simulation: 260 rows. Stage 1-11 prefix has zero differences;
+  Perfect clears Stage 12/13 in all four item combinations; continuity error
+  counters are zero.
+- New Summary/JSON/CSV hashes:
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 retained all five hashes. Package manifest/lock and ProjectSettings
+  remain unchanged; `git diff --check` passes.
+
+Learning
+
+- Booster does not need a Flicker-specific disable. Planning against its
+  fastest arrival speed plus later deterministic occurrences preserves the
+  real item contract and still exposes the mechanic after early bypasses.
+- A collision-time modifier must pass explicit Gameplay Time through runtime
+  and simulation; advancing an independent simulator timer would create a
+  second judgment system.
+- Average/None first-clear drops from Stage 11 `26.9%` to Stage 12 `16.2%`.
+  This exceeds the review threshold but is evidence for human play, not
+  authority for automatic balance changes.
+
+Human feedback required
+
+- Stage 12 Hidden concept, `0.85s` memory demand, and Stage 11 -> 12 jump.
+- Stage 13 forward rotation, `0.50s` boundary response, and post-Booster
+  teaching frequency.
+- Shield/Booster feedback, marker legibility, and 9:16 portrait readability.

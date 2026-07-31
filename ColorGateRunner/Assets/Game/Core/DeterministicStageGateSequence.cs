@@ -17,6 +17,8 @@ namespace ColorGateRunner.Core
         };
 
         private readonly StageDefinition _stage;
+        private readonly bool[] _hiddenGateMask;
+        private readonly bool[] _flickerGateMask;
         private uint _state;
         private RunnerColor _previousColor;
         private int _colorRunLength;
@@ -25,6 +27,8 @@ namespace ColorGateRunner.Core
         public DeterministicStageGateSequence(StageDefinition stage)
         {
             _stage = stage ?? throw new ArgumentNullException(nameof(stage));
+            _hiddenGateMask = new bool[_stage.TargetGateCount];
+            _flickerGateMask = new bool[_stage.TargetGateCount];
             Reset();
         }
 
@@ -64,6 +68,16 @@ namespace ColorGateRunner.Core
                 : _stage.GetBaseSpeed(progress);
             GateModifier modifier =
                 GateModifierRules.CreateForStageGate(_stage, gateIndex);
+            if (gateIndex < _hiddenGateMask.Length &&
+                _hiddenGateMask[gateIndex])
+            {
+                modifier = modifier.With(GateModifierType.Hidden);
+            }
+            if (gateIndex < _flickerGateMask.Length &&
+                _flickerGateMask[gateIndex])
+            {
+                modifier = modifier.With(GateModifierType.Flicker);
+            }
             float spacing = speed * cadence;
             if (modifier.IsIce)
             {
@@ -71,7 +85,7 @@ namespace ColorGateRunner.Core
             }
             Cursor++;
 
-            return new GatePlan(
+            GatePlan plan = new GatePlan(
                 gateIndex,
                 color,
                 spacing,
@@ -81,6 +95,27 @@ namespace ColorGateRunner.Core
                 gateIndex,
                 false,
                 modifier);
+            if (modifier.IsFlicker)
+            {
+                RunnerColor[] cycleColors =
+                    DeterministicModifierPlanner.CreateCycleColors(
+                        color,
+                        _stage.GetActiveColorCount(gateIndex),
+                        next => _stage.GetNextActiveColor(
+                            gateIndex,
+                            next));
+                FlickerGatePlan flickerPlan = new FlickerGatePlan(
+                    cycleColors,
+                    _stage.FlickerSettings.SwitchIntervalSeconds,
+                    DeterministicModifierPlanner.CreatePhaseOffset(
+                        _stage.FlickerSettings,
+                        _stage.Seed,
+                        gateIndex),
+                    _stage.FlickerSettings.TransitionPulseSeconds,
+                    _stage.Seed);
+                plan = plan.WithFlickerPlan(flickerPlan);
+            }
+            return plan;
         }
 
         public void Reset()
@@ -90,6 +125,120 @@ namespace ColorGateRunner.Core
             _colorRunLength = 0;
             _hasPreviousColor = false;
             Cursor = 0;
+            BuildModifierMasks();
+        }
+
+        private void BuildModifierMasks()
+        {
+            Array.Clear(
+                _hiddenGateMask,
+                0,
+                _hiddenGateMask.Length);
+            Array.Clear(
+                _flickerGateMask,
+                0,
+                _flickerGateMask.Length);
+
+            HiddenSettings hidden = _stage.HiddenSettings;
+            if ((_stage.GateModifiers & GateModifierType.Hidden) != 0 &&
+                hidden.Enabled)
+            {
+                bool[] mask =
+                    DeterministicModifierPlanner.BuildOccurrenceMask(
+                        _stage.TargetGateCount,
+                        hidden.EligibleStartProgress,
+                        hidden.EligibleEndProgress,
+                        hidden.OccurrenceChance,
+                        hidden.MinimumGateCooldown,
+                        hidden.MaxOccurrences,
+                        hidden.FirstOccurrenceGuaranteed,
+                        _stage.Seed,
+                        0xF11C4E2Du);
+                Array.Copy(mask, _hiddenGateMask, mask.Length);
+            }
+
+            FlickerSettings flicker = _stage.FlickerSettings;
+            if ((_stage.GateModifiers & GateModifierType.Flicker) != 0 &&
+                flicker.Enabled)
+            {
+                bool[] mask =
+                    DeterministicModifierPlanner.BuildOccurrenceMask(
+                        _stage.TargetGateCount,
+                        flicker.EligibleStartProgress,
+                        flicker.EligibleEndProgress,
+                        flicker.OccurrenceChance,
+                        flicker.MinimumGateCooldown,
+                        flicker.MaxOccurrences,
+                        flicker.FirstOccurrenceGuaranteed,
+                        _stage.Seed,
+                        0xC01C1E5Fu,
+                        gateIndex => MeetsMinimumVisibleCycles(
+                            gateIndex,
+                            flicker));
+                Array.Copy(mask, _flickerGateMask, mask.Length);
+            }
+        }
+
+        private bool MeetsMinimumVisibleCycles(
+            int gateIndex,
+            FlickerSettings settings)
+        {
+            const int visibleGatePoolCount = 6;
+            int firstVisibleGate = Math.Max(
+                0,
+                gateIndex - visibleGatePoolCount + 1);
+            float visibleDistance = 0f;
+            for (int index = firstVisibleGate;
+                index <= gateIndex;
+                index++)
+            {
+                visibleDistance += GetSpacingForEligibility(index);
+            }
+            float fastestSpeed = _stage.BoosterAllowed
+                ? Math.Max(_stage.MaximumSpeed, _stage.BoosterSpeed)
+                : _stage.MaximumSpeed;
+            float expectedVisibleSeconds =
+                GateEtaEstimator.EstimateSeconds(
+                    visibleDistance,
+                    fastestSpeed);
+            return expectedVisibleSeconds >=
+                settings.SwitchIntervalSeconds *
+                settings.MinimumCyclesVisible;
+        }
+
+        private float GetSpacingForEligibility(int gateIndex)
+        {
+            float progress = _stage.TargetGateCount <= 1
+                ? 1f
+                : (float)gateIndex / (_stage.TargetGateCount - 1);
+            float cadence = Lerp(
+                _stage.CadenceStart,
+                _stage.CadenceEnd,
+                progress);
+            StageSectionInfo section =
+                StageSectionCatalog.FindSection(
+                    _stage.DisplayNumber,
+                    gateIndex);
+            if (!string.IsNullOrEmpty(section.Name))
+            {
+                cadence = Math.Max(
+                    GameRules.MinimumReactionTime,
+                    cadence * section.CadenceMultiplier);
+            }
+            float speed = _stage.SpeedProfile.IsLinear
+                ? Lerp(
+                    _stage.StartingSpeed,
+                    _stage.MaximumSpeed,
+                    progress)
+                : _stage.GetBaseSpeed(progress);
+            float spacing = speed * cadence;
+            GateModifier modifier =
+                GateModifierRules.CreateForStageGate(_stage, gateIndex);
+            if (modifier.IsIce)
+            {
+                spacing *= GateModifierRules.IceSpacingMultiplier;
+            }
+            return spacing;
         }
 
         private RunnerColor ChooseColor(int gateIndex, uint raw)

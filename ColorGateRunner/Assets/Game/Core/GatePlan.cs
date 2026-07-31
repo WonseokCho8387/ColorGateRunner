@@ -21,7 +21,8 @@ namespace ColorGateRunner.Core
                 indexInPattern,
                 hasShieldPickupBefore,
                 false,
-                GateModifier.None)
+                GateModifier.None,
+                default)
         {
         }
 
@@ -46,7 +47,35 @@ namespace ColorGateRunner.Core
                 indexInPattern,
                 hasShieldPickupBefore,
                 false,
-                modifier)
+                modifier,
+                default)
+        {
+        }
+
+        public GatePlan(
+            int gateId,
+            RunnerColor color,
+            float spacing,
+            float timeToGate,
+            float beatMultiplier,
+            GatePatternType pattern,
+            int indexInPattern,
+            bool hasShieldPickupBefore,
+            GateModifier modifier,
+            FlickerGatePlan flickerPlan)
+            : this(
+                gateId,
+                color,
+                color,
+                spacing,
+                timeToGate,
+                beatMultiplier,
+                pattern,
+                indexInPattern,
+                hasShieldPickupBefore,
+                false,
+                modifier,
+                flickerPlan)
         {
         }
 
@@ -61,7 +90,8 @@ namespace ColorGateRunner.Core
             int indexInPattern,
             bool hasShieldPickupBefore,
             bool hasTemporaryColorOverride,
-            GateModifier modifier)
+            GateModifier modifier,
+            FlickerGatePlan flickerPlan)
         {
             GateId = gateId;
             Color = color;
@@ -74,6 +104,7 @@ namespace ColorGateRunner.Core
             HasShieldPickupBefore = hasShieldPickupBefore;
             HasTemporaryColorOverride = hasTemporaryColorOverride;
             Modifier = modifier;
+            FlickerPlan = flickerPlan;
         }
 
         public int GateId { get; }
@@ -87,7 +118,15 @@ namespace ColorGateRunner.Core
         public bool HasShieldPickupBefore { get; }
         public bool HasTemporaryColorOverride { get; }
         public GateModifier Modifier { get; }
+        public FlickerGatePlan FlickerPlan { get; }
         public bool IsPatternStart => IndexInPattern == 0;
+
+        public RunnerColor GetJudgmentColor(float gameplayTimeSeconds)
+        {
+            return Modifier.IsFlicker
+                ? FlickerPlan.GetActiveColor(gameplayTimeSeconds)
+                : Color;
+        }
 
         public GatePlan WithTemporaryColorOverride(RunnerColor color)
         {
@@ -102,7 +141,8 @@ namespace ColorGateRunner.Core
                 IndexInPattern,
                 HasShieldPickupBefore,
                 color != PlannedColor,
-                Modifier);
+                Modifier,
+                FlickerPlan);
         }
 
         public GatePlan WithModifier(GateModifier modifier)
@@ -118,7 +158,31 @@ namespace ColorGateRunner.Core
                 IndexInPattern,
                 HasShieldPickupBefore,
                 HasTemporaryColorOverride,
-                modifier);
+                modifier,
+                FlickerPlan);
+        }
+
+        public GatePlan WithFlickerPlan(FlickerGatePlan flickerPlan)
+        {
+            if (!Modifier.IsFlicker || !flickerPlan.IsEnabled)
+            {
+                throw new System.InvalidOperationException(
+                    "A Flicker modifier and enabled plan are required.");
+            }
+
+            return new GatePlan(
+                GateId,
+                Color,
+                PlannedColor,
+                Spacing,
+                TimeToGate,
+                BeatMultiplier,
+                Pattern,
+                IndexInPattern,
+                HasShieldPickupBefore,
+                HasTemporaryColorOverride,
+                Modifier,
+                flickerPlan);
         }
     }
 }

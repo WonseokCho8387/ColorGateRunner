@@ -794,3 +794,32 @@ Status: Approved from portrait human-play feedback.
 - This revision does not apply Flicker to Campaign, mix modifiers, introduce
   colors, change player input, or claim that automated tests establish
   readability, mastery, fairness, satisfaction, or fun.
+
+## Campaign Hidden and Flicker stage expansion
+
+Status: Implemented / Human Review Pending.
+
+- The earlier Campaign-Flicker deferral is superseded only for two isolated
+  Campaign stages: Stage 12 Hidden and Stage 13 Flicker.
+- Stage IDs are `stage-12` and `stage-13`; prior stable IDs and Stage 1-11
+  authored data remain unchanged.
+- Stage 12 has 50 gates, three active colors, base speed `46 -> 68`, cadence
+  `1.05 -> 0.78s`, and the approved Hidden defaults.
+- Stage 13 has 52 gates, three active colors, base speed `46 -> 68`, cadence
+  `1.08 -> 0.80s`, and the approved full-active-palette Flicker cycle.
+- Campaign and Experiment share one deterministic Hidden/Flicker planning and
+  Flicker phase-calculation path. A second Campaign-only modifier system is
+  forbidden.
+- Campaign Flicker presentation and judgment use
+  `StageSession.ElapsedPlayingSeconds`; material readback, View timers, and
+  simulator-local phase formulas are forbidden.
+- Shield and Booster remain selectable in both stages. Booster is not disabled
+  and receives no modifier-specific exception: it activates at `GO` and
+  auto-passes gates through the existing shared outcome.
+- Minimum Flicker exposure is evaluated against the fastest effective arrival
+  speed, including Booster. Target planning must retain later non-bypassed
+  teaching opportunities without changing targets based on selected items.
+- Goal application, mixed modifiers, new colors, music/BPM/DSP, rhythm score,
+  and speed-based switch-interval adjustment remain out of scope.
+- Automated tests own determinism and regression. Human portrait play owns
+  comprehension, memory difficulty, timing readability, and satisfaction.

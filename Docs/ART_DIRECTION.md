@@ -291,3 +291,19 @@ full-active-palette rotation at each supported color count, whether the
 one-forward-tap sequence feels followable, collision-boundary readability,
 pulse strength, symbol synchronization, Echo/Shield feedback, and 9:16
 legibility.
+
+## Campaign Stage 12-13 presentation
+
+- Stage 12 reuses the approved pooled `HIDDEN` presentation without adding a
+  new gate mesh, material family, shader, particle system, or screen effect.
+- Stage 13 reuses the approved neutral `FLICKER` marker, synchronized color
+  and symbol swap, and short transition pulse.
+- Campaign binding must reset every Hidden/Flicker View field before a pooled
+  gate is reused for an ordinary gate or the other modifier.
+- Booster visuals remain the existing player effect. Hidden/Flicker gates do
+  not change their marker or geometry to indicate an automatic Booster pass.
+- Lobby Stage 12 and 13 entries use the existing catalog-driven button and
+  summary layout. No separate mechanic-selection UI is added.
+- Portrait human review must confirm that Stage 12's longer memory window and
+  Stage 13's three-color rotation remain readable at their authored speed
+  curves and while Booster is offered.

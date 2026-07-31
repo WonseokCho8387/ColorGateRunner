@@ -20,8 +20,8 @@ namespace ColorGateRunner.Tests.EditMode
         {
             bool[] cleared = CreateClearedFlags(true);
             Assert.That(
-                LobbyProgression.SelectCurrentStage(11, cleared),
-                Is.EqualTo(11));
+                LobbyProgression.SelectCurrentStage(13, cleared),
+                Is.EqualTo(13));
             Assert.That(LobbyProgression.IsPrototypeComplete(cleared), Is.True);
         }
 
