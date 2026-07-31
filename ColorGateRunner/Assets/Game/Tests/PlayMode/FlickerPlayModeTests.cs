@@ -24,22 +24,23 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void FlickerLauncher_DisablesBoosterAndUsesFixedPool()
+        public void FlickerLauncher_IsDistinctFromHiddenAndDisablesBooster()
         {
             _controller.OpenExperimentLab();
             ExperimentLauncher launcher = FindLauncher();
-            launcher.ToggleBooster();
-            Assert.That(launcher.Booster, Is.True);
-            SelectFlicker(launcher);
+            SelectHidden(launcher);
+            Assert.That(launcher.Label, Does.Contain("HIDDEN"));
+            launcher.NextMechanic();
 
-            Assert.That(launcher.Booster, Is.False);
+            Assert.That(
+                launcher.Mechanic,
+                Is.EqualTo(MechanicExperimentType.Flicker));
+            Assert.That(launcher.Label, Does.Contain("FLICKER"));
             Assert.That(launcher.Label, Does.Contain("BOOSTER DISABLED"));
             launcher.ToggleBooster();
             Assert.That(launcher.Booster, Is.False);
-
             launcher.StartExperiment();
 
-            Assert.That(_controller.ExperimentActive, Is.True);
             Assert.That(
                 _controller.ExperimentSession.Definition.Mechanic,
                 Is.EqualTo(MechanicExperimentType.Flicker));
@@ -48,104 +49,94 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Countdown_DoesNotAdvanceFlickerObservation()
+        public void Countdown_FreezesPhaseAndPlayingStartsTwoColorCycle()
         {
-            StartFlicker(
-                CreateFastFlickerSettings(
-                    revealDuration: 1f,
-                    transitionDuration: 0.2f),
-                shield: false);
+            StartFlicker(CreateSettings(cycleCount: 2));
             StageGateView gate = FindGate(0);
+            RunnerColor initial = gate.AssignedColor;
 
-            _controller.Tick(1f);
+            _controller.Tick(2.9f);
             Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Countdown));
-            Assert.That(gate.FlickerVisibleElapsed, Is.Zero);
-            Assert.That(gate.FlickerHideStarted, Is.False);
+                _controller.ExperimentSession.ElapsedPlayingSeconds,
+                Is.Zero);
+            Assert.That(gate.FlickerPhaseIndex, Is.Zero);
+            Assert.That(gate.AssignedColor, Is.EqualTo(initial));
 
-            _controller.Tick(2.1f);
+            _controller.Tick(0.2f);
             Assert.That(
                 _controller.ExperimentSession.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
-            Assert.That(gate.FlickerVisibleElapsed, Is.Zero);
-            Assert.That(gate.FlickerHideStarted, Is.False);
+            _controller.Tick(0.5f);
+
+            Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(1));
+            Assert.That(gate.AssignedColor, Is.Not.EqualTo(initial));
+            Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
         }
 
         [Test]
-        public void Flicker_HidesTargetOnlyAfterObservationAndEtaConditions()
+        public void ThreeColorFlicker_UpdatesColorAndSymbolFromSamePhase()
         {
-            FlickerSettings settings = CreateFastFlickerSettings(
-                revealDuration: 1f,
-                transitionDuration: 0.2f);
-            StartFlicker(settings, shield: false);
+            StartFlicker(CreateSettings(cycleCount: 3));
+            EnterPlaying();
+            StageGateView gate = FindGate(0);
+            ExperimentGatePlan plan = gate.ActiveExperimentPlan;
+
+            Assert.That(plan.CycleColorCount, Is.EqualTo(3));
+            AssertDisplayedPhase(gate, plan, 0);
+            _controller.Tick(0.5f);
+            AssertDisplayedPhase(gate, plan, 1);
+            _controller.Tick(0.5f);
+            AssertDisplayedPhase(gate, plan, 2);
+            _controller.Tick(0.5f);
+            AssertDisplayedPhase(gate, plan, 0);
+        }
+
+        [Test]
+        public void FlickerBoundary_PulsesWithoutMovingOrDisablingGate()
+        {
+            StartFlicker(CreateSettings(cycleCount: 2));
             EnterPlaying();
             StageGateView gate = FindGate(0);
             Vector3 position = gate.transform.position;
-            RunnerColor targetColor = gate.AssignedColor;
+            Vector3 scale = gate.transform.localScale;
+            BoxCollider collider = gate.GetComponent<BoxCollider>();
 
-            Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
-            Assert.That(gate.FlickerTargetAlpha, Is.EqualTo(1f));
+            _controller.Tick(0.5f);
 
-            _controller.Tick(0.99f);
-            Assert.That(gate.FlickerHideStarted, Is.False);
-
-            _controller.Tick(0.01f);
-            Assert.That(gate.FlickerHideStarted, Is.True);
-            Assert.That(gate.FlickerTransitionProgress, Is.GreaterThan(0f));
-            Assert.That(gate.FlickerHideStartCount, Is.EqualTo(1));
-
-            _controller.Tick(0.19f);
-            Assert.That(gate.FlickerTransitionProgress, Is.EqualTo(1f));
-            Assert.That(gate.FlickerTargetAlpha, Is.Zero);
+            Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(1));
+            Assert.That(gate.FlickerTransitionPulse, Is.EqualTo(1f));
             Assert.That(gate.SymbolVisible, Is.True);
             Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
-            Assert.That(gate.AssignedColor, Is.EqualTo(targetColor));
             Assert.That(gate.transform.position, Is.EqualTo(position));
-            Assert.That(gate.GetComponent<BoxCollider>().enabled, Is.True);
+            Assert.That(gate.transform.localScale, Is.EqualTo(scale));
+            Assert.That(collider.enabled, Is.True);
+            Assert.That(collider.isTrigger, Is.True);
+
+            _controller.Tick(0.1f);
+            Assert.That(gate.FlickerTransitionPulse, Is.Zero);
         }
 
         [Test]
-        public void HiddenFlicker_UsesOrdinaryShieldAndFailureFlows()
+        public void Flicker_PlayerPassUsesExactGameplayTimeColor()
         {
-            FlickerSettings settings = CreateFastFlickerSettings(
-                revealDuration: 0f,
-                transitionDuration: 0f);
-            StartFlicker(settings, shield: true);
+            StartFlicker(CreateSettings(cycleCount: 2));
             EnterPlaying();
-            StageGateView shieldedGate = FindGate(0);
-            _controller.Tick(0f);
-            SetDifferentColor(shieldedGate.AssignedColor);
+            StageGateView gate = FindGate(0);
+            _controller.Tick(0.5f);
+            MatchColor(gate.AssignedColor);
+            RunnerColor crossingColor = gate.AssignedColor;
 
-            Assert.That(shieldedGate.TryResolveCrossing(), Is.True);
+            Assert.That(gate.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.ExperimentSession.LastJudgmentColor,
+                Is.EqualTo(crossingColor));
             Assert.That(
                 _controller.ExperimentSession.LastResolution,
-                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Playing));
-            Assert.That(_controller.ExperimentSession.ShieldActive, Is.False);
-
-            StartFlicker(settings, shield: false);
-            EnterPlaying();
-            StageGateView failedGate = FindGate(0);
-            _controller.Tick(0f);
-            SetDifferentColor(failedGate.AssignedColor);
-
-            Assert.That(failedGate.TryResolveCrossing(), Is.True);
-            Assert.That(
-                _controller.ExperimentSession.LastResolution,
-                Is.EqualTo(ExperimentGateResolution.Failure));
-            Assert.That(
-                _controller.ExperimentSession.FlowState,
-                Is.EqualTo(StageFlowState.Failed));
-            Assert.That(
-                _controller.ExperimentSession.LastFailureCause,
-                Is.EqualTo(ExperimentRuntimeFailureCause.StandardGateMiss));
+                Is.EqualTo(ExperimentGateResolution.PlayerColorMatch));
         }
 
         [Test]
-        public void HiddenFlicker_UsesHeldEchoWithoutConsumingShield()
+        public void Flicker_EchoMatchConsumesEchoAndPreservesShield()
         {
             _controller.StartDevelopmentExperiment(
                 ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
@@ -156,44 +147,16 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(provider.TryResolveCrossing(), Is.True);
             RunnerColor echoColor =
                 _controller.ExperimentSession.EchoColor;
-            StageGateView flickerGate = FindGate(
+            RunnerColor other = GetDifferentColor(echoColor);
+            StageGateView gate = FindGate(
                 _controller.ExperimentSession.GatesPassed);
-            FlickerSettings settings = CreateFastFlickerSettings(
-                revealDuration: 0f,
-                transitionDuration: 0f);
-            ExperimentGatePlan original =
-                flickerGate.ActiveExperimentPlan;
-            ExperimentGatePlan flicker = new ExperimentGatePlan(
-                original.GateIndex,
+            BindFlickerPlan(
+                gate,
                 echoColor,
-                original.RequiredTapCount,
-                original.BaseSpeed,
-                original.Cadence,
-                original.Spacing,
-                MechanicExperimentType.Flicker,
-                new GateModifier(GateModifierType.Flicker));
-            Material neutral =
-                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
-            flickerGate.ActivateExperiment(
-                flicker,
-                _controller.GetPresentationMaterial(echoColor),
-                neutral,
-                flickerGate.transform.position.z,
-                _controller.ExperimentSession.GatesPassed,
-                0f,
-                _controller.ExperimentSession.Definition.Camouflage,
-                settings);
-            flickerGate.UpdateExperimentVisibility(
-                _controller.ExperimentSession.GatesPassed,
-                0f,
-                neutral,
-                _controller.ExperimentSession.Definition.Camouflage,
-                settings,
-                0f);
-            SetDifferentColor(echoColor);
+                new[] { echoColor, other });
+            MatchColor(other);
 
-            Assert.That(flickerGate.FlickerTargetAlpha, Is.Zero);
-            Assert.That(flickerGate.TryResolveCrossing(), Is.True);
+            Assert.That(gate.TryResolveCrossing(), Is.True);
             Assert.That(
                 _controller.ExperimentSession.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
@@ -202,41 +165,97 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Retry_ReproducesFlickerSelectionAndResetsVisibility()
+        public void Flicker_ShieldAndFailureReuseOrdinaryFlow()
         {
-            FlickerSettings settings = CreateFastFlickerSettings(
-                revealDuration: 0f,
-                transitionDuration: 0f);
-            StartFlicker(settings, shield: false);
+            StartFlicker(CreateSettings(cycleCount: 2), shield: true);
+            EnterPlaying();
+            StageGateView shielded = FindGate(0);
+            SetDifferentColor(shielded.AssignedColor);
+
+            Assert.That(shielded.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.ExperimentSession.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
+            Assert.That(_controller.ExperimentSession.ShieldActive, Is.False);
+
+            StartFlicker(CreateSettings(cycleCount: 2), shield: false);
+            EnterPlaying();
+            StageGateView failed = FindGate(0);
+            SetDifferentColor(failed.AssignedColor);
+
+            Assert.That(failed.TryResolveCrossing(), Is.True);
+            Assert.That(
+                _controller.ExperimentSession.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(
+                _controller.ExperimentSession.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.Failure));
+            Assert.That(
+                _controller.ExperimentSession.LastJudgmentColor,
+                Is.EqualTo(failed.AssignedColor));
+        }
+
+        [Test]
+        public void Retry_ReplaysCycleAndResetsGameplayPhase()
+        {
+            StartFlicker(CreateSettings(cycleCount: 3));
             EnterPlaying();
             StageGateView original = FindGate(0);
-            _controller.Tick(0f);
-            int gateId = original.ActiveExperimentPlan.GateId;
-            Assert.That(original.FlickerHideStarted, Is.True);
+            RunnerColor[] cycle =
+                original.ActiveExperimentPlan.CopyCycleColors();
+            float offset =
+                original.ActiveExperimentPlan.PhaseOffsetSeconds;
+            _controller.Tick(1f);
+            Assert.That(original.FlickerPhaseIndex, Is.GreaterThan(0));
 
             _controller.RestartDevelopmentExperiment();
             StageGateView replay = FindGate(0);
 
             Assert.That(
-                replay.ActiveExperimentPlan.GateId,
-                Is.EqualTo(gateId));
-            Assert.That(replay.ActiveExperimentPlan.IsFlicker, Is.True);
-            Assert.That(replay.FlickerVisibleElapsed, Is.Zero);
-            Assert.That(replay.FlickerHideStarted, Is.False);
-            Assert.That(replay.FlickerTransitionProgress, Is.Zero);
-            Assert.That(replay.FlickerTargetAlpha, Is.EqualTo(1f));
-            Assert.That(replay.SymbolText, Does.Contain("FLICKER"));
+                _controller.ExperimentSession.ElapsedPlayingSeconds,
+                Is.Zero);
+            Assert.That(replay.FlickerPhaseIndex, Is.Zero);
+            Assert.That(
+                replay.ActiveExperimentPlan.CopyCycleColors(),
+                Is.EqualTo(cycle));
+            Assert.That(
+                replay.ActiveExperimentPlan.PhaseOffsetSeconds,
+                Is.EqualTo(offset));
+            Assert.That(
+                replay.AssignedColor,
+                Is.EqualTo(replay.ActiveExperimentPlan.GetCycleColor(0)));
+        }
+
+        [Test]
+        public void BackToLab_ReentryClearsPooledFlickerState()
+        {
+            StartFlicker(CreateSettings(cycleCount: 2));
+            EnterPlaying();
+            _controller.Tick(0.5f);
+            Assert.That(FindGate(0).SymbolText, Does.Contain("FLICKER"));
+
+            _controller.BackToExperimentLab();
+            ExperimentLauncher launcher = FindLauncher();
+            Assert.That(_controller.ExperimentActive, Is.False);
+            SelectNone(launcher);
+            launcher.StartExperiment();
+            StageGateView ordinary = FindGate(0);
+
+            Assert.That(ordinary.ActiveExperimentPlan.IsFlicker, Is.False);
+            Assert.That(ordinary.SymbolText, Does.Not.Contain("FLICKER"));
+            Assert.That(ordinary.FlickerPhaseIndex, Is.Zero);
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
         }
 
         private void StartFlicker(
             FlickerSettings settings,
-            bool shield)
+            bool shield = false)
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
                 4,
                 MechanicExperimentType.Flicker,
                 ExperimentCatalog.DefaultSeed,
-                settings);
+                flickerSettings: settings);
             _controller.StartDevelopmentExperiment(
                 definition,
                 new StartItemSelection(shield, false));
@@ -285,6 +304,41 @@ namespace ColorGateRunner.Tests.PlayMode
             return null;
         }
 
+        private void BindFlickerPlan(
+            StageGateView gate,
+            RunnerColor baseColor,
+            RunnerColor[] cycleColors)
+        {
+            ExperimentGatePlan original = gate.ActiveExperimentPlan;
+            ExperimentGatePlan flicker = new ExperimentGatePlan(
+                original.GateIndex,
+                baseColor,
+                original.RequiredTapCount,
+                original.BaseSpeed,
+                original.Cadence,
+                original.Spacing,
+                MechanicExperimentType.Flicker,
+                new GateModifier(GateModifierType.Flicker),
+                cycleColors,
+                0.5f,
+                0f,
+                0.1f,
+                _controller.ExperimentSession.Definition.Seed);
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            gate.ActivateExperiment(
+                flicker,
+                _controller.GetPresentationMaterial(baseColor),
+                neutral,
+                gate.transform.position.z,
+                _controller.ExperimentSession.GatesPassed,
+                0f,
+                _controller.ExperimentSession.Definition.Camouflage,
+                HiddenSettings.Disabled(),
+                CreateSettings(cycleCount: cycleColors.Length),
+                _controller.ExperimentSession.ElapsedPlayingSeconds);
+        }
+
         private void MatchColor(RunnerColor target)
         {
             int safety =
@@ -310,26 +364,81 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.Not.EqualTo(target));
         }
 
-        private static FlickerSettings CreateFastFlickerSettings(
-            float revealDuration,
-            float transitionDuration)
+        private RunnerColor GetDifferentColor(RunnerColor target)
+        {
+            for (int index = 0;
+                index < _controller.ExperimentSession.Definition.ColorCount;
+                index++)
+            {
+                RunnerColor color =
+                    _controller.ExperimentSession.Definition.GetColor(index);
+                if (color != target)
+                {
+                    return color;
+                }
+            }
+            return target;
+        }
+
+        private static void AssertDisplayedPhase(
+            StageGateView gate,
+            ExperimentGatePlan plan,
+            int colorIndex)
+        {
+            RunnerColor expected = plan.GetCycleColor(colorIndex);
+            Assert.That(gate.AssignedColor, Is.EqualTo(expected));
+            Assert.That(
+                gate.SymbolText,
+                Does.Contain(GetSymbol(expected)));
+        }
+
+        private static string GetSymbol(RunnerColor color)
+        {
+            switch (color)
+            {
+                case RunnerColor.Red:
+                    return "●";
+                case RunnerColor.Blue:
+                    return "■";
+                case RunnerColor.Green:
+                    return "▲";
+                case RunnerColor.Yellow:
+                    return "★";
+                case RunnerColor.Purple:
+                    return "◆";
+                default:
+                    return "HEX";
+            }
+        }
+
+        private static FlickerSettings CreateSettings(int cycleCount)
         {
             return new FlickerSettings(
                 true,
                 0f,
                 0.9f,
-                0f,
+                1f,
                 0,
-                revealDuration,
-                100f,
-                transitionDuration,
                 1,
-                true);
+                true,
+                cycleCount,
+                0.5f,
+                0.1f,
+                1,
+                false);
         }
 
-        private static void SelectFlicker(ExperimentLauncher launcher)
+        private static void SelectHidden(ExperimentLauncher launcher)
         {
-            while (launcher.Mechanic != MechanicExperimentType.Flicker)
+            while (launcher.Mechanic != MechanicExperimentType.Hidden)
+            {
+                launcher.NextMechanic();
+            }
+        }
+
+        private static void SelectNone(ExperimentLauncher launcher)
+        {
+            while (launcher.Mechanic != MechanicExperimentType.None)
             {
                 launcher.NextMechanic();
             }

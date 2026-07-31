@@ -27,7 +27,9 @@ namespace ColorGateRunner.Presentation
         private bool _echoProviderVisualActive;
         private bool _camouflageRevealStarted;
         private float _camouflageRevealProgress;
-        private FlickerVisibilityState _flickerVisibility;
+        private HiddenVisibilityState _hiddenVisibility;
+        private long _flickerPhaseIndex;
+        private float _flickerTransitionPulse;
         private MaterialPropertyBlock _visibilityPropertyBlock;
 
         internal RunnerColor AssignedColor { get; private set; }
@@ -45,20 +47,22 @@ namespace ColorGateRunner.Presentation
         internal float SymbolAlpha => colorSymbol.color.a;
         internal float CamouflageRevealProgress =>
             _camouflageRevealProgress;
-        internal float FlickerVisibleElapsed =>
-            _flickerVisibility.VisibleElapsed;
-        internal bool FlickerHideStarted =>
-            _flickerVisibility.HideStarted;
-        internal float FlickerTransitionProgress =>
-            _flickerVisibility.TransitionProgress;
-        internal float FlickerTargetAlpha => _flickerVisibility.TargetAlpha;
-        internal int FlickerHideStartCount =>
-            _flickerVisibility.HideStartCount;
+        internal float HiddenVisibleElapsed =>
+            _hiddenVisibility.VisibleElapsed;
+        internal bool HiddenHideStarted =>
+            _hiddenVisibility.HideStarted;
+        internal float HiddenTransitionProgress =>
+            _hiddenVisibility.TransitionProgress;
+        internal float HiddenTargetAlpha => _hiddenVisibility.TargetAlpha;
+        internal int HiddenHideStartCount =>
+            _hiddenVisibility.HideStartCount;
+        internal long FlickerPhaseIndex => _flickerPhaseIndex;
+        internal float FlickerTransitionPulse => _flickerTransitionPulse;
 
         private void Awake()
         {
             _visibilityPropertyBlock = new MaterialPropertyBlock();
-            _flickerVisibility = new FlickerVisibilityState();
+            _hiddenVisibility = new HiddenVisibilityState();
             CaptureParts();
         }
 
@@ -105,6 +109,7 @@ namespace ColorGateRunner.Presentation
             _camouflageRevealStarted = !plan.Modifier.IsCamouflage;
             _camouflageRevealProgress =
                 plan.Modifier.IsCamouflage ? 0f : 1f;
+            ResetHiddenState();
             ResetFlickerState();
             gameObject.SetActive(true);
             Vector3 position = transform.position;
@@ -140,13 +145,16 @@ namespace ColorGateRunner.Presentation
             int passedGateCount,
             float estimatedArrivalSeconds,
             CamouflageSettings camouflageSettings,
-            FlickerSettings flickerSettings)
+            HiddenSettings hiddenSettings,
+            FlickerSettings flickerSettings,
+            float gameplayTimeSeconds)
         {
             _experimentPlan = plan;
             _hasExperimentPlan = true;
             _experimentWasHidden = false;
             _camouflageRevealStarted = !plan.IsCamouflage;
             _camouflageRevealProgress = plan.IsCamouflage ? 0f : 1f;
+            ResetHiddenState();
             ResetFlickerState();
             Activate(
                 new GatePlan(
@@ -166,10 +174,10 @@ namespace ColorGateRunner.Presentation
             {
                 ApplyEchoProviderPresentation();
             }
-            if (plan.IsFlicker)
+            if (plan.IsHidden)
             {
                 ApplyMaterial(_assignedMaterial);
-                ApplyFlickerSymbol(0f);
+                ApplyHiddenSymbol(0f);
                 return;
             }
             UpdateExperimentVisibility(
@@ -177,7 +185,9 @@ namespace ColorGateRunner.Presentation
                 estimatedArrivalSeconds,
                 neutralMaterial,
                 camouflageSettings,
+                hiddenSettings,
                 flickerSettings,
+                gameplayTimeSeconds,
                 0f);
         }
 
@@ -186,7 +196,9 @@ namespace ColorGateRunner.Presentation
             float estimatedArrivalSeconds,
             Material neutralMaterial,
             CamouflageSettings camouflageSettings,
+            HiddenSettings hiddenSettings,
             FlickerSettings flickerSettings,
+            float gameplayTimeSeconds,
             float deltaSeconds)
         {
             if (!_hasExperimentPlan)
@@ -197,11 +209,14 @@ namespace ColorGateRunner.Presentation
                 _experimentPlan.IsCamouflage,
                 _experimentPlan.IsFullyVisibleInFog(passedGateCount),
                 _experimentPlan.IsEchoProvider,
+                _experimentPlan.IsHidden,
                 _experimentPlan.IsFlicker,
                 estimatedArrivalSeconds,
                 neutralMaterial,
                 camouflageSettings,
+                hiddenSettings,
                 flickerSettings,
+                gameplayTimeSeconds,
                 deltaSeconds);
         }
 
@@ -220,10 +235,13 @@ namespace ColorGateRunner.Presentation
                 fogVisible,
                 ActivePlan.Modifier.IsEchoProvider,
                 false,
+                false,
                 estimatedArrivalSeconds,
                 neutralMaterial,
                 camouflageSettings,
                 null,
+                null,
+                0f,
                 deltaSeconds);
         }
 
@@ -231,20 +249,28 @@ namespace ColorGateRunner.Presentation
             bool isCamouflage,
             bool fogVisible,
             bool isEchoProvider,
+            bool isHidden,
             bool isFlicker,
             float estimatedArrivalSeconds,
             Material neutralMaterial,
             CamouflageSettings camouflageSettings,
+            HiddenSettings hiddenSettings,
             FlickerSettings flickerSettings,
+            float gameplayTimeSeconds,
             float deltaSeconds)
         {
-            if (isFlicker)
+            if (isHidden)
             {
-                UpdateFlickerVisibility(
+                UpdateHiddenVisibility(
                     estimatedArrivalSeconds,
                     neutralMaterial,
-                    flickerSettings,
+                    hiddenSettings,
                     deltaSeconds);
+                return;
+            }
+            if (isFlicker)
+            {
+                UpdateFlickerCycle(gameplayTimeSeconds);
                 return;
             }
 
@@ -320,10 +346,10 @@ namespace ColorGateRunner.Presentation
             _experimentWasHidden = hidden;
         }
 
-        private void UpdateFlickerVisibility(
+        private void UpdateHiddenVisibility(
             float estimatedArrivalSeconds,
             Material neutralMaterial,
-            FlickerSettings settings,
+            HiddenSettings settings,
             float deltaSeconds)
         {
             if (settings == null)
@@ -331,25 +357,25 @@ namespace ColorGateRunner.Presentation
                 throw new System.ArgumentNullException(nameof(settings));
             }
 
-            _flickerVisibility.Advance(
+            _hiddenVisibility.Advance(
                 Mathf.Max(0f, deltaSeconds),
                 estimatedArrivalSeconds,
                 settings);
-            if (_flickerVisibility.HideStarted)
+            if (_hiddenVisibility.HideStarted)
             {
                 ApplyRevealBlend(
                     neutralMaterial,
-                    _flickerVisibility.TargetAlpha);
+                    _hiddenVisibility.TargetAlpha);
             }
             else
             {
                 ApplyMaterial(_assignedMaterial);
             }
-            ApplyFlickerSymbol(
-                _flickerVisibility.TransitionProgress);
+            ApplyHiddenSymbol(
+                _hiddenVisibility.TransitionProgress);
         }
 
-        private void ApplyFlickerSymbol(float hideProgress)
+        private void ApplyHiddenSymbol(float hideProgress)
         {
             colorSymbol.richText = true;
             colorSymbol.gameObject.SetActive(true);
@@ -359,20 +385,77 @@ namespace ColorGateRunner.Presentation
             string targetSymbol = GetSymbolText(
                 MobileUiPolicy.GetSymbol(AssignedColor));
             colorSymbol.text =
-                "FLICKER\n<color=#FFFFFF" +
+                "HIDDEN\n<color=#FFFFFF" +
                 alpha.ToString("X2") +
                 ">" +
                 targetSymbol +
                 "</color>";
         }
 
+        private void UpdateFlickerCycle(float gameplayTimeSeconds)
+        {
+            FlickerCycleSample sample =
+                _experimentPlan.GetFlickerSample(gameplayTimeSeconds);
+            RunnerColor activeColor = _experimentPlan.GetCycleColor(
+                sample.CycleColorIndex);
+            _flickerPhaseIndex = sample.PhaseIndex;
+            _flickerTransitionPulse = sample.TransitionPulse;
+            AssignedColor = activeColor;
+            _assignedMaterial =
+                controller.GetPresentationMaterial(activeColor);
+            ApplyMaterial(_assignedMaterial);
+            ApplyFlickerPulse(sample.TransitionPulse);
+            ApplyFlickerSymbol();
+        }
+
+        private void ApplyFlickerSymbol()
+        {
+            colorSymbol.richText = true;
+            colorSymbol.gameObject.SetActive(true);
+            colorSymbol.color = Color.white;
+            colorSymbol.text =
+                "FLICKER\n" +
+                GetSymbolText(MobileUiPolicy.GetSymbol(AssignedColor));
+        }
+
+        private void ApplyFlickerPulse(float pulse)
+        {
+            if (pulse <= 0f)
+            {
+                return;
+            }
+            if (_visibilityPropertyBlock == null)
+            {
+                _visibilityPropertyBlock = new MaterialPropertyBlock();
+            }
+            Color baseColor = GetMaterialColor(_assignedMaterial);
+            Color pulsed = Color.Lerp(
+                baseColor,
+                Color.white,
+                Mathf.Clamp01(pulse) * 0.35f);
+            _visibilityPropertyBlock.Clear();
+            _visibilityPropertyBlock.SetColor("_BaseColor", pulsed);
+            _visibilityPropertyBlock.SetColor("_Color", pulsed);
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                gateRenderers[index].SetPropertyBlock(
+                    _visibilityPropertyBlock);
+            }
+        }
+
+        private void ResetHiddenState()
+        {
+            if (_hiddenVisibility == null)
+            {
+                _hiddenVisibility = new HiddenVisibilityState();
+            }
+            _hiddenVisibility.Reset();
+        }
+
         private void ResetFlickerState()
         {
-            if (_flickerVisibility == null)
-            {
-                _flickerVisibility = new FlickerVisibilityState();
-            }
-            _flickerVisibility.Reset();
+            _flickerPhaseIndex = 0;
+            _flickerTransitionPulse = 0f;
         }
 
         internal Transform GetPartTransform(int index)
@@ -441,6 +524,7 @@ namespace ColorGateRunner.Presentation
             _experimentWasHidden = false;
             _camouflageRevealStarted = false;
             _camouflageRevealProgress = 0f;
+            ResetHiddenState();
             ResetFlickerState();
             ResetEchoProviderPresentation();
             transform.localScale = Vector3.one;

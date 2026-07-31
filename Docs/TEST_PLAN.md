@@ -1058,12 +1058,12 @@ Comments
 - Run `Build Android + WebGL` after both individual commands pass to confirm
   sequential platform switching and output replacement.
 
-## Iteration 6 Flicker-only Experiment acceptance
+## Iteration 6 Hidden-only Experiment acceptance (originally named Flicker)
 
 ### EditMode / Core
 
-- Validate every `FlickerSettings` range and ordering rule.
-- Require identical Flicker gate IDs for the same seed and settings.
+- Validate every `HiddenSettings` range and ordering rule.
+- Require identical Hidden gate IDs for the same seed and settings.
 - Require eligible progress bounds, minimum gate cooldown, maximum
   occurrences, and no non-judgment/Goal selection.
 - Require `FirstOccurrenceGuaranteed` to produce one occurrence when an
@@ -1075,17 +1075,17 @@ Comments
   judgment priority to remain unchanged.
 - Require Retry and Replay to reproduce selection while clearing runtime
   visibility state.
-- Require Flicker not to increase gate count or combine with another modifier.
+- Require Hidden not to increase gate count or combine with another modifier.
 
 ### PlayMode
 
-- Launcher can select a Flicker-only condition and disables Booster.
-- Countdown does not advance Flicker observation time.
-- Playing advances visible time; the initial color, symbol, and `FLICKER`
+- Launcher can select a Hidden-only condition and disables Booster.
+- Countdown does not advance Hidden observation time.
+- Playing advances visible time; the initial color, symbol, and `HIDDEN`
   identity are readable.
 - Meeting both visible-time and ETA conditions begins the transition. On
   completion, target color and symbol are hidden while the neutral silhouette,
-  judgment opening, collider, and `FLICKER` identity remain.
+  judgment opening, collider, and `HIDDEN` identity remain.
 - Direct player match, existing Echo match, Shield defense, and ordinary
   failure flow remain available after hiding; Echo and Shield are not both
   consumed.
@@ -1122,4 +1122,103 @@ Comments
   - Comparison `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`
   - Shortlist `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
 - The only warning class was the pre-existing Unity API deprecation in
-  `Step10_1PlayModeTests`; it is not introduced by Flicker.
+  `Step10_1PlayModeTests`; it is not introduced by Hidden.
+
+## Iteration 7 Hidden migration and color-cycling Flicker acceptance
+
+### Baseline gate
+
+- Clean worktree and `git diff --check`.
+- EditMode `262/262`; PlayMode `134/134`.
+- All Echo and former-Flicker targeted cases pass.
+- Campaign Summary/JSON/CSV and all five Step 10 hashes match Iteration 6.
+- Package manifest/lock and ProjectSettings have no diff.
+
+Any mismatch blocks implementation.
+
+### Hidden migration
+
+- Numeric values remain `GateModifierType.Hidden = 1 << 4` and
+  `MechanicExperimentType.Hidden = 5`; new Flicker uses new values.
+- Former serialized Launcher Flicker fields load as Hidden through explicit
+  Unity migration metadata and never become new Flicker settings.
+- Hidden seed `12345` selects gate IDs `[6, 11, 18, 23]`; seed `98765`
+  selects `[6, 9, 13, 20]`.
+- Existing observation, ETA hide, transition, neutral silhouette, ordinary
+  Player/Echo/Shield/Failure judgment, and Retry/Replay reset remain.
+- Launcher and marker use `Hidden` / `HIDDEN`.
+
+### New Flicker Core/EditMode
+
+- Validate all settings, including cycle count `2/3`, active-color capacity,
+  positive switch interval, nonnegative pulse, and minimum visible cycles.
+- Same seed and Gate ID reproduce selected gates, `CycleColors`, and phase
+  offset. The first cycle color equals the plan base color; remaining colors
+  are unique active-palette colors.
+- Two colors alternate exactly; three colors rotate all three; Goal and other
+  modifiers are excluded; gate count is unchanged.
+- Eligible bounds, cooldown, maximum, guaranteed first occurrence, and
+  minimum expected exposure are enforced without fallback substitution.
+- Gameplay Time `0`, interval-minus-epsilon, exact interval boundary,
+  multiple intervals, phase-zero, randomized deterministic phase, and
+  float-boundary cases use the same pure calculator.
+- Collision-time color, rather than base color or prior View color, drives
+  Player → Echo → Shield → Failure. Echo and Shield never both consume.
+- Countdown/Failed/Cleared freeze Gameplay Time; Retry/Replay reset it and
+  reproduce the same phase at the same time.
+- Flicker simulation checks call the same Core active-color calculation.
+
+### New Flicker PlayMode
+
+- Hidden and Flicker are separate Launcher choices; both disable Booster.
+- Countdown does not advance phase; Playing changes color and matching symbol.
+- Two- and three-color display, exact boundary, short pulse, persistent
+  `FLICKER` marker, stable transform/collider, and no neutral interval pass.
+- Player, held Echo, Shield, and ordinary Failed flow use the collision-time
+  active color.
+- Retry/Replay initial phase, Back to Lab, Lab reentry, pooled View reuse,
+  listener count, fixed pools, and modifier-state clearing pass.
+- Scene Builder succeeds twice with no Missing Script, Missing Reference, or
+  duplicate generated object.
+
+### Regression and human review
+
+- Run full EditMode and PlayMode suites, Stage 1-5 campaign matrix, existing
+  Step 10 matrix, targeted Echo/Shield/Camouflage/Hidden/Flicker/runtime-flow
+  cases, Retry/Replay, and Lab reentry.
+- Preserve all campaign and Step 10 hashes. Preserve package manifest/lock and
+  meaningful ProjectSettings state. Run `git diff --check`.
+- Human review records Hidden concept continuity, Flicker concept recognition,
+  `0.50s` two-color speed, three-color difficulty, collision-time judgment
+  comprehension, color/symbol sync, pulse clarity, marker interference,
+  Echo/Shield explanations, 9:16 readability, and fast-speed observation.
+- Automation does not establish fun, fairness, readability, comfort,
+  comprehension, satisfaction, or motivation.
+
+### Iteration 7 final automated evidence
+
+- EditMode `281/281`.
+- PlayMode `143/143`; after two successful Scene Builder runs, PlayMode
+  `143/143` again.
+- Related cases: Echo `27/27`, Shield `29/29`, Camouflage `9/9`, Hidden
+  `25/25`, Flicker `27/27`, Experiment Runtime `5/5`.
+- Full Stage 1-11 campaign output: 220 rows, including the requested Stage 1-5
+  coverage; Summary
+  `22B85883B00B5A4404D8E352A8C1CFD896ADF03A9DA03B1D64C3B0102AAA33B0`,
+  JSON
+  `F5A57219244BDE8BDF61CC97A68D3EE2C05D3800F21384D0121568CAE15562CC`,
+  CSV
+  `D88D4B15E17D35971094CAF70038BBC7D580426DEBD267B104CA7F1A1FE76850`.
+- Step 10 output: 80 rows and 64,016 runs; CSV
+  `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`,
+  JSON
+  `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`,
+  Summary
+  `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`,
+  Comparison
+  `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`,
+  Shortlist
+  `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`.
+- Final rebuilt-scene tests report no Missing MonoBehaviour, required
+  reference, pool growth, duplicate root, listener, or Lab reentry failure.
+- Package manifest/lock and ProjectSettings have no intended change.

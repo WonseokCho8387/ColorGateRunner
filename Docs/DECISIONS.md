@@ -683,7 +683,11 @@ Status: Approved human-feedback correction.
 - The fixed six-gate pool, authored gate sequence, Booster speed/distance,
   stage curves, and Goal contract are unchanged.
 
-## Iteration 6 Flicker-only Experiment
+## Iteration 6 Flicker-only Experiment (renamed to Hidden in Iteration 7)
+
+Historical naming note: every `Flicker` reference in this Iteration 6 decision
+means the one-way memory mechanic now named `Hidden`, not the later
+color-cycling Flicker.
 
 Status: Approved implementation contract.
 
@@ -717,3 +721,41 @@ existing deterministic sequence, pure-Core one-way visibility state, shared
 ETA, ordinary judgment, and fixed View pool. EditMode 262/262, PlayMode
 134/134, post-Builder PlayMode 134/134, all three campaign hashes, and all five
 Step 10 hashes passed their required boundaries.
+
+## Iteration 7 Hidden migration and color-cycling Flicker
+
+Status: Approved implementation contract.
+
+- The Iteration 6 `Flicker` decision is retained historically but renamed to
+  `Hidden` in active code and current documentation. Its one-way visibility
+  behavior, ordinary judgment, deterministic selection, and Retry/Replay
+  behavior do not change.
+- `GateModifierType.Hidden` retains numeric value `1 << 4` and
+  `MechanicExperimentType.Hidden` retains numeric value `5`. The new Flicker
+  uses `1 << 5` and mechanic value `6`. Enum insertion or reordering that
+  moves existing values is forbidden.
+- Unity Launcher fields formerly named for the old Flicker migrate to Hidden
+  through `FormerlySerializedAs`. Unity migration attributes remain outside
+  the pure Core assembly.
+- New Flicker is an ordinary-gate modifier using the existing Experiment
+  sequence, flow, collision, judgment, and six-View pool. It adds no gate,
+  second generator, or Flicker-specific result flow.
+- A Flicker plan owns deterministic unique two- or three-color cycles,
+  switch interval, phase offset, transition pulse, base color, Gate ID, and
+  the existing seed context. Runtime switching consumes no random values.
+- `ExperimentSession.ElapsedPlayingSeconds` is the single time source for
+  Core calculation, View presentation, collision-time judgment, tests, and
+  Flicker simulation checks. `Time.time`, realtime, coroutines, View
+  activation time, and material readback are not judgment inputs.
+- Exact switch boundaries use the new phase. Player → Echo → Shield → Failure
+  remains authoritative against that collision-time color.
+- Deterministic target selection reuses the existing sequence-side policy,
+  excludes Goal/non-judgment and any other modifier, and also requires the
+  configured minimum visible cycles under the existing speed/spacing and
+  six-View exposure model.
+- Booster is disabled in Hidden-only and Flicker-only Launcher runs.
+- Campaign Flicker, music/BPM/DSP integration, rhythm scoring, combinations
+  with Hidden/Camouflage/Fog/Ice/Echo Provider, speed-based interval
+  adjustment, new colors, new input, and Stage 6-11 changes are not approved.
+- Automated evidence may verify determinism and mechanics but cannot establish
+  timing readability, fairness, comfort, satisfaction, or fun.

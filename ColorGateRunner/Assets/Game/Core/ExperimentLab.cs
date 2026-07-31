@@ -5,12 +5,13 @@ namespace ColorGateRunner.Core
 {
     public enum MechanicExperimentType
     {
-        None,
-        Camouflage,
-        Fog,
-        Ice,
-        Echo,
-        Flicker
+        None = 0,
+        Camouflage = 1,
+        Fog = 2,
+        Ice = 3,
+        Echo = 4,
+        Hidden = 5,
+        Flicker = 6
     }
 
     public enum ExperimentRuntimeFailureCause
@@ -96,6 +97,7 @@ namespace ColorGateRunner.Core
             int gateCount = 40,
             EchoSettings echoSettings = null,
             CamouflageSettings camouflageSettings = null,
+            HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null)
         {
             if (colorCount < 3 || colorCount > 6)
@@ -120,9 +122,16 @@ namespace ColorGateRunner.Core
                 : EchoSettings.Disabled();
             Camouflage = camouflageSettings ??
                 CamouflageSettings.CreateDefault();
+            Hidden = mechanic == MechanicExperimentType.Hidden
+                ? hiddenSettings ?? HiddenSettings.CreateDefault()
+                : HiddenSettings.Disabled();
             Flicker = mechanic == MechanicExperimentType.Flicker
                 ? flickerSettings ?? FlickerSettings.CreateDefault()
                 : FlickerSettings.Disabled();
+            if (mechanic == MechanicExperimentType.Flicker)
+            {
+                Flicker.ValidateForActiveColorCount(colorCount);
+            }
             StartingSpeed = 16f;
             MaximumSpeed = 22f;
             CadenceStart = 1.45f;
@@ -145,6 +154,7 @@ namespace ColorGateRunner.Core
         public int GateCount { get; }
         public EchoSettings Echo { get; }
         public CamouflageSettings Camouflage { get; }
+        public HiddenSettings Hidden { get; }
         public FlickerSettings Flicker { get; }
         public float StartingSpeed { get; }
         public float MaximumSpeed { get; }
@@ -178,6 +188,46 @@ namespace ColorGateRunner.Core
             Array.Copy(_activeColors, result, result.Length);
             return result;
         }
+
+        public float GetBaseSpeed(int gateIndex)
+        {
+            ValidateGateIndex(gateIndex);
+            float progress = gateIndex /
+                (float)Math.Max(1, GateCount - 1);
+            return Lerp(StartingSpeed, MaximumSpeed, progress);
+        }
+
+        public float GetCadence(int gateIndex)
+        {
+            ValidateGateIndex(gateIndex);
+            float progress = gateIndex /
+                (float)Math.Max(1, GateCount - 1);
+            return Lerp(CadenceStart, CadenceEnd, progress);
+        }
+
+        public float GetSpacing(int gateIndex)
+        {
+            float spacing = GetBaseSpeed(gateIndex) *
+                GetCadence(gateIndex);
+            bool ice =
+                Mechanic == MechanicExperimentType.Ice &&
+                gateIndex >= IceStartGate &&
+                gateIndex <= IceEndGate;
+            return spacing * (ice ? IceSpacingMultiplier : 1f);
+        }
+
+        private void ValidateGateIndex(int gateIndex)
+        {
+            if (gateIndex < 0 || gateIndex >= GateCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(gateIndex));
+            }
+        }
+
+        private static float Lerp(float start, float end, float amount)
+        {
+            return start + ((end - start) * amount);
+        }
     }
 
     public static class ExperimentCatalog
@@ -190,12 +240,14 @@ namespace ColorGateRunner.Core
             int colorCount,
             MechanicExperimentType mechanic,
             uint seed = DefaultSeed,
+            HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null)
         {
             return new ExperimentDefinition(
                 colorCount,
                 mechanic,
                 seed,
+                hiddenSettings: hiddenSettings,
                 flickerSettings: flickerSettings);
         }
 
@@ -214,6 +266,8 @@ namespace ColorGateRunner.Core
 
     public readonly struct ExperimentGatePlan
     {
+        private readonly RunnerColor[] _cycleColors;
+
         public ExperimentGatePlan(
             int gateIndex,
             RunnerColor color,
@@ -222,7 +276,12 @@ namespace ColorGateRunner.Core
             float cadence,
             float spacing,
             MechanicExperimentType mechanic,
-            GateModifier modifier)
+            GateModifier modifier,
+            RunnerColor[] cycleColors = null,
+            float switchIntervalSeconds = 0f,
+            float phaseOffsetSeconds = 0f,
+            float transitionPulseSeconds = 0f,
+            uint selectionSeed = 0u)
         {
             GateId = gateIndex;
             GateIndex = gateIndex;
@@ -233,6 +292,38 @@ namespace ColorGateRunner.Core
             Spacing = spacing;
             Mechanic = mechanic;
             Modifier = modifier;
+            _cycleColors = cycleColors == null
+                ? Array.Empty<RunnerColor>()
+                : (RunnerColor[])cycleColors.Clone();
+            SwitchIntervalSeconds = switchIntervalSeconds;
+            PhaseOffsetSeconds = phaseOffsetSeconds;
+            TransitionPulseSeconds = transitionPulseSeconds;
+            SelectionSeed = selectionSeed;
+            if (modifier.IsFlicker)
+            {
+                if (_cycleColors.Length < 2)
+                {
+                    throw new ArgumentException(
+                        "Flicker plans require at least two cycle colors.",
+                        nameof(cycleColors));
+                }
+                if (switchIntervalSeconds <= 0f)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(switchIntervalSeconds));
+                }
+                if (phaseOffsetSeconds < 0f ||
+                    phaseOffsetSeconds >= switchIntervalSeconds)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(phaseOffsetSeconds));
+                }
+                if (transitionPulseSeconds < 0f)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(transitionPulseSeconds));
+                }
+            }
         }
 
         public int GateId { get; }
@@ -245,11 +336,63 @@ namespace ColorGateRunner.Core
         public float Spacing { get; }
         public MechanicExperimentType Mechanic { get; }
         public GateModifier Modifier { get; }
+        public int CycleColorCount => _cycleColors == null
+            ? 0
+            : _cycleColors.Length;
+        public float SwitchIntervalSeconds { get; }
+        public float PhaseOffsetSeconds { get; }
+        public float TransitionPulseSeconds { get; }
+        public uint SelectionSeed { get; }
         public bool IsCamouflage => Modifier.IsCamouflage;
         public bool IsFog => Modifier.IsFog;
         public bool IsIce => Modifier.IsIce;
         public bool IsEchoProvider => Modifier.IsEchoProvider;
+        public bool IsHidden => Modifier.IsHidden;
         public bool IsFlicker => Modifier.IsFlicker;
+
+        public RunnerColor GetCycleColor(int index)
+        {
+            if (index < 0 || index >= CycleColorCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+            return _cycleColors[index];
+        }
+
+        public RunnerColor[] CopyCycleColors()
+        {
+            RunnerColor[] result = new RunnerColor[CycleColorCount];
+            if (CycleColorCount > 0)
+            {
+                Array.Copy(_cycleColors, result, CycleColorCount);
+            }
+            return result;
+        }
+
+        public FlickerCycleSample GetFlickerSample(float gameplayTimeSeconds)
+        {
+            if (!IsFlicker)
+            {
+                return new FlickerCycleSample(0, 0, 0f);
+            }
+            return FlickerCycleCalculator.Calculate(
+                gameplayTimeSeconds,
+                PhaseOffsetSeconds,
+                SwitchIntervalSeconds,
+                TransitionPulseSeconds,
+                CycleColorCount);
+        }
+
+        public RunnerColor GetJudgmentColor(float gameplayTimeSeconds)
+        {
+            if (!IsFlicker)
+            {
+                return Color;
+            }
+            FlickerCycleSample sample =
+                GetFlickerSample(gameplayTimeSeconds);
+            return GetCycleColor(sample.CycleColorIndex);
+        }
 
         public ExperimentGatePlan WithModifier(GateModifier modifier)
         {
@@ -261,7 +404,12 @@ namespace ColorGateRunner.Core
                 Cadence,
                 Spacing,
                 Mechanic,
-                modifier);
+                modifier,
+                _cycleColors,
+                SwitchIntervalSeconds,
+                PhaseOffsetSeconds,
+                TransitionPulseSeconds,
+                SelectionSeed);
         }
 
         public bool ShouldRevealCamouflage(
@@ -282,7 +430,9 @@ namespace ColorGateRunner.Core
 
     public sealed class DeterministicExperimentGateSequence
     {
+        private const int VisibleGatePoolCount = 6;
         private readonly ExperimentDefinition _definition;
+        private readonly bool[] _hiddenGateMask;
         private readonly bool[] _flickerGateMask;
         private uint _state;
         private int _plannedColorIndex;
@@ -292,6 +442,7 @@ namespace ColorGateRunner.Core
         {
             _definition = definition ??
                 throw new ArgumentNullException(nameof(definition));
+            _hiddenGateMask = new bool[_definition.GateCount];
             _flickerGateMask = new bool[_definition.GateCount];
             Reset();
         }
@@ -321,16 +472,8 @@ namespace ColorGateRunner.Core
 
             _plannedColorIndex =
                 (_plannedColorIndex + taps) % _definition.ColorCount;
-            float progress = (float)authoredGateIndex /
-                Math.Max(1, _definition.GateCount - 1);
-            float speed = Lerp(
-                _definition.StartingSpeed,
-                _definition.MaximumSpeed,
-                progress);
-            float cadence = Lerp(
-                _definition.CadenceStart,
-                _definition.CadenceEnd,
-                progress);
+            float speed = _definition.GetBaseSpeed(authoredGateIndex);
+            float cadence = _definition.GetCadence(authoredGateIndex);
             bool camouflage =
                 _definition.Mechanic == MechanicExperimentType.Camouflage &&
                 authoredGateIndex >= _definition.WarmUpGateCount &&
@@ -344,8 +487,7 @@ namespace ColorGateRunner.Core
                 _definition.Mechanic == MechanicExperimentType.Ice &&
                 authoredGateIndex >= _definition.IceStartGate &&
                 authoredGateIndex <= _definition.IceEndGate;
-            float spacing = speed * cadence *
-                (ice ? _definition.IceSpacingMultiplier : 1f);
+            float spacing = _definition.GetSpacing(authoredGateIndex);
             GateModifier modifier = GateModifier.None;
             if (camouflage)
             {
@@ -359,19 +501,41 @@ namespace ColorGateRunner.Core
             {
                 modifier = modifier.With(GateModifierType.Ice);
             }
+            if (_hiddenGateMask[authoredGateIndex])
+            {
+                modifier = modifier.With(GateModifierType.Hidden);
+            }
+            RunnerColor baseColor =
+                _definition.GetColor(_plannedColorIndex);
+            RunnerColor[] cycleColors = null;
+            float phaseOffset = 0f;
             if (_flickerGateMask[authoredGateIndex])
             {
                 modifier = modifier.With(GateModifierType.Flicker);
+                cycleColors = CreateFlickerCycleColors(
+                    authoredGateIndex,
+                    baseColor);
+                phaseOffset = CreateFlickerPhaseOffset(
+                    authoredGateIndex);
             }
             ExperimentGatePlan plan = new ExperimentGatePlan(
                 gateIndex,
-                _definition.GetColor(_plannedColorIndex),
+                baseColor,
                 taps,
                 speed,
                 cadence,
                 spacing,
                 _definition.Mechanic,
-                modifier);
+                modifier,
+                cycleColors,
+                _flickerGateMask[authoredGateIndex]
+                    ? _definition.Flicker.SwitchIntervalSeconds
+                    : 0f,
+                phaseOffset,
+                _flickerGateMask[authoredGateIndex]
+                    ? _definition.Flicker.TransitionPulseSeconds
+                    : 0f,
+                _definition.Seed);
             Cursor++;
             return plan;
         }
@@ -381,17 +545,18 @@ namespace ColorGateRunner.Core
             _state = DeterministicGateSequence.NormalizeSeed(_definition.Seed);
             _plannedColorIndex = 0;
             Cursor = 0;
+            BuildHiddenGateMask();
             BuildFlickerGateMask();
         }
 
-        private void BuildFlickerGateMask()
+        private void BuildHiddenGateMask()
         {
             Array.Clear(
-                _flickerGateMask,
+                _hiddenGateMask,
                 0,
-                _flickerGateMask.Length);
-            FlickerSettings settings = _definition.Flicker;
-            if (_definition.Mechanic != MechanicExperimentType.Flicker ||
+                _hiddenGateMask.Length);
+            HiddenSettings settings = _definition.Hidden;
+            if (_definition.Mechanic != MechanicExperimentType.Hidden ||
                 !settings.Enabled ||
                 settings.MaxOccurrences == 0)
             {
@@ -433,6 +598,66 @@ namespace ColorGateRunner.Core
                     continue;
                 }
 
+                _hiddenGateMask[gateIndex] = true;
+                selectedCount++;
+                lastSelectedGate = gateIndex;
+                if (selectedCount >= settings.MaxOccurrences)
+                {
+                    break;
+                }
+            }
+        }
+
+        private void BuildFlickerGateMask()
+        {
+            Array.Clear(
+                _flickerGateMask,
+                0,
+                _flickerGateMask.Length);
+            FlickerSettings settings = _definition.Flicker;
+            if (_definition.Mechanic != MechanicExperimentType.Flicker ||
+                !settings.Enabled ||
+                settings.MaxOccurrences == 0)
+            {
+                return;
+            }
+
+            uint selectionState = DeterministicGateSequence.NormalizeSeed(
+                _definition.Seed ^ 0xC01C1E5Fu);
+            int selectedCount = 0;
+            int lastSelectedGate = int.MinValue;
+            for (int gateIndex = 0;
+                gateIndex < _definition.GateCount;
+                gateIndex++)
+            {
+                float progress = gateIndex /
+                    (float)Math.Max(1, _definition.GateCount - 1);
+                if (progress < settings.EligibleStartProgress ||
+                    progress > settings.EligibleEndProgress ||
+                    !MeetsMinimumVisibleCycles(gateIndex, settings))
+                {
+                    continue;
+                }
+                if (lastSelectedGate != int.MinValue &&
+                    gateIndex - lastSelectedGate <=
+                    settings.MinimumGateCooldown)
+                {
+                    continue;
+                }
+
+                selectionState =
+                    DeterministicGateSequence.AdvanceXorshift32(
+                        selectionState);
+                bool guaranteed =
+                    settings.FirstOccurrenceGuaranteed &&
+                    selectedCount == 0;
+                float roll =
+                    (selectionState & 0x00FFFFFFu) / 16777216f;
+                if (!guaranteed && roll >= settings.OccurrenceChance)
+                {
+                    continue;
+                }
+
                 _flickerGateMask[gateIndex] = true;
                 selectedCount++;
                 lastSelectedGate = gateIndex;
@@ -443,9 +668,79 @@ namespace ColorGateRunner.Core
             }
         }
 
-        private static float Lerp(float start, float end, float amount)
+        private bool MeetsMinimumVisibleCycles(
+            int gateIndex,
+            FlickerSettings settings)
         {
-            return start + ((end - start) * amount);
+            int firstVisibleGate = Math.Max(
+                0,
+                gateIndex - VisibleGatePoolCount + 1);
+            float visibleDistance = 0f;
+            for (int index = firstVisibleGate;
+                index <= gateIndex;
+                index++)
+            {
+                visibleDistance += _definition.GetSpacing(index);
+            }
+            float expectedVisibleSeconds =
+                GateEtaEstimator.EstimateSeconds(
+                    visibleDistance,
+                    _definition.MaximumSpeed);
+            return expectedVisibleSeconds >=
+                settings.SwitchIntervalSeconds *
+                settings.MinimumCyclesVisible;
+        }
+
+        private RunnerColor[] CreateFlickerCycleColors(
+            int gateId,
+            RunnerColor baseColor)
+        {
+            int count = _definition.Flicker.CycleColorCount;
+            RunnerColor[] result = new RunnerColor[count];
+            result[0] = baseColor;
+            RunnerColor[] candidates =
+                new RunnerColor[_definition.ColorCount - 1];
+            int candidateCount = 0;
+            for (int index = 0;
+                index < _definition.ColorCount;
+                index++)
+            {
+                RunnerColor candidate = _definition.GetColor(index);
+                if (candidate != baseColor)
+                {
+                    candidates[candidateCount++] = candidate;
+                }
+            }
+
+            uint state = DeterministicGateSequence.NormalizeSeed(
+                _definition.Seed ^
+                ((uint)(gateId + 1) * 0x9E3779B9u) ^
+                0xC1C1E123u);
+            for (int index = 1; index < count; index++)
+            {
+                state = DeterministicGateSequence.AdvanceXorshift32(state);
+                int selected = (int)(state % (uint)candidateCount);
+                result[index] = candidates[selected];
+                candidateCount--;
+                candidates[selected] = candidates[candidateCount];
+            }
+            return result;
+        }
+
+        private float CreateFlickerPhaseOffset(int gateId)
+        {
+            FlickerSettings settings = _definition.Flicker;
+            if (!settings.RandomizePhaseOffset)
+            {
+                return 0f;
+            }
+            uint state = DeterministicGateSequence.NormalizeSeed(
+                _definition.Seed ^
+                ((uint)(gateId + 1) * 0x85EBCA6Bu) ^
+                0xF1A5E0FFu);
+            state = DeterministicGateSequence.AdvanceXorshift32(state);
+            float unit = (state & 0x00FFFFFFu) / 16777216f;
+            return unit * settings.SwitchIntervalSeconds;
         }
     }
 
@@ -501,6 +796,8 @@ namespace ColorGateRunner.Core
             _echoCoordinator.EchoOfferPending;
         public int ActiveEchoOfferGateId =>
             _echoCoordinator.ActiveEchoOfferGateId;
+        public RunnerColor LastJudgmentColor { get; private set; }
+        public bool LastJudgedGateWasFlicker { get; private set; }
 
         public bool CompleteCountdown()
         {
@@ -558,12 +855,23 @@ namespace ColorGateRunner.Core
 
         public bool Resolve(ExperimentGatePlan plan)
         {
+            return Resolve(plan, ElapsedPlayingSeconds);
+        }
+
+        public bool Resolve(
+            ExperimentGatePlan plan,
+            float gameplayTimeSeconds)
+        {
             if (FlowState != StageFlowState.Playing ||
                 plan.GateIndex != GatesPassed)
             {
                 return false;
             }
-            bool playerMatch = CurrentColor == plan.Color;
+            RunnerColor judgmentColor =
+                plan.GetJudgmentColor(gameplayTimeSeconds);
+            LastJudgmentColor = judgmentColor;
+            LastJudgedGateWasFlicker = plan.IsFlicker;
+            bool playerMatch = CurrentColor == judgmentColor;
             if (playerMatch)
             {
                 LastResolution = ExperimentGateResolution.PlayerColorMatch;
@@ -571,11 +879,11 @@ namespace ColorGateRunner.Core
                 {
                     _echoCoordinator.TryAcquire(
                         plan.GateId,
-                        plan.Color,
+                        judgmentColor,
                         true);
                 }
             }
-            else if (_echoCoordinator.TryConsume(plan.Color))
+            else if (_echoCoordinator.TryConsume(judgmentColor))
             {
                 LastResolution = ExperimentGateResolution.EchoColorMatch;
             }
@@ -650,6 +958,8 @@ namespace ColorGateRunner.Core
             _boosterDistanceRemaining = 0f;
             LastFailureCause = ExperimentRuntimeFailureCause.None;
             LastResolution = ExperimentGateResolution.None;
+            LastJudgmentColor = Definition.GetColor(0);
+            LastJudgedGateWasFlicker = false;
             FlowState = StageFlowState.Countdown;
         }
 
@@ -887,6 +1197,7 @@ namespace ColorGateRunner.Core
                     new DeterministicExperimentGateSequence(definition);
                 float time = 0f;
                 bool failed = false;
+                RunnerColor simulatedColor = definition.GetColor(0);
                 bool shieldActive = items.Shield;
                 float boosterDistanceRemaining = items.Booster
                     ? ExperimentItemRules.BoosterDistance
@@ -920,6 +1231,12 @@ namespace ColorGateRunner.Core
                         totalVisible += 2f;
                         fogSamples++;
                     }
+                    RunnerColor judgmentColor =
+                        plan.GetJudgmentColor(time + arrival);
+                    int requiredTapCount = CalculateRequiredTaps(
+                        definition,
+                        simulatedColor,
+                        judgmentColor);
                     float firstReaction = Math.Max(
                         0f,
                         profile.FirstTapReactionTimeMean +
@@ -931,7 +1248,7 @@ namespace ColorGateRunner.Core
                         (NextSigned(ref random) *
                         profile.RepeatedTapIntervalVariance));
                     TapWindowMetrics metric = TapWindowMetrics.Calculate(
-                        plan.RequiredTapCount,
+                        requiredTapCount,
                         recognitionStart,
                         arrival,
                         firstReaction,
@@ -947,22 +1264,23 @@ namespace ColorGateRunner.Core
                         totalIceMargin += metric.PostTapMargin;
                         iceSamples++;
                     }
-                    totalTaps += plan.RequiredTapCount;
+                    totalTaps += requiredTapCount;
                     result.MaximumRequiredTaps = Math.Max(
                         result.MaximumRequiredTaps,
-                        plan.RequiredTapCount);
+                        requiredTapCount);
                     result.LongestTapBurst = Math.Max(
                         result.LongestTapBurst,
-                        plan.RequiredTapCount);
+                        requiredTapCount);
                     result.TapDistribution[
-                        Math.Min(4, plan.RequiredTapCount)]++;
+                        Math.Min(4, requiredTapCount)]++;
                     result.PeakRequiredTapsPerSecond = Math.Max(
                         result.PeakRequiredTapsPerSecond,
-                        arrival <= 0f ? 0f : plan.RequiredTapCount / arrival);
+                        arrival <= 0f ? 0f : requiredTapCount / arrival);
 
                     ExperimentFailureCategory failure = DetermineFailure(
                         profile,
                         plan,
+                        requiredTapCount,
                         metric,
                         gate,
                         ref random);
@@ -981,6 +1299,7 @@ namespace ColorGateRunner.Core
                         ref boosterDistanceRemaining,
                         plan.Spacing);
                     time += arrival;
+                    simulatedColor = judgmentColor;
                     if (failure != ExperimentFailureCategory.None)
                     {
                         entryFailures += entryWindow ? 1 : 0;
@@ -1270,6 +1589,7 @@ namespace ColorGateRunner.Core
         private static ExperimentFailureCategory DetermineFailure(
             SimulatedPlayerProfile profile,
             ExperimentGatePlan plan,
+            int requiredTapCount,
             TapWindowMetrics metric,
             int gate,
             ref uint random)
@@ -1279,7 +1599,7 @@ namespace ColorGateRunner.Core
                 return ExperimentFailureCategory.None;
             }
             if (metric.FirstTapAvailableTime >= metric.GateArrivalTime &&
-                plan.RequiredTapCount > 0)
+                requiredTapCount > 0)
             {
                 return plan.IsCamouflage
                     ? ExperimentFailureCategory.RecognitionDelay
@@ -1292,7 +1612,7 @@ namespace ColorGateRunner.Core
             float fatigue = gate * profile.FatiguePenalty * 0.001f;
             int excess = Math.Max(
                 0,
-                plan.RequiredTapCount - profile.MaximumComfortableTapBurst);
+                requiredTapCount - profile.MaximumComfortableTapBurst);
             float burst = excess * profile.BurstErrorGrowth;
             float roll = Next01(ref random);
             if (roll < profile.BaseMissChance + burst)
@@ -1312,6 +1632,34 @@ namespace ColorGateRunner.Core
                 return ExperimentFailureCategory.Fatigue;
             }
             return ExperimentFailureCategory.None;
+        }
+
+        private static int CalculateRequiredTaps(
+            ExperimentDefinition definition,
+            RunnerColor current,
+            RunnerColor target)
+        {
+            int currentIndex = -1;
+            int targetIndex = -1;
+            for (int index = 0; index < definition.ColorCount; index++)
+            {
+                RunnerColor color = definition.GetColor(index);
+                if (color == current)
+                {
+                    currentIndex = index;
+                }
+                if (color == target)
+                {
+                    targetIndex = index;
+                }
+            }
+            if (currentIndex < 0 || targetIndex < 0)
+            {
+                throw new ArgumentException(
+                    "Simulation colors must belong to the active palette.");
+            }
+            return (targetIndex - currentIndex + definition.ColorCount) %
+                definition.ColorCount;
         }
 
         private static bool IsEntryWindow(

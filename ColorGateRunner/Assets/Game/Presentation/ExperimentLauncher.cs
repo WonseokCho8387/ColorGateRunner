@@ -1,5 +1,6 @@
 using ColorGateRunner.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
@@ -17,26 +18,60 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button toggleBoosterButton;
         [SerializeField] private Button startButton;
         [SerializeField] private Button leaveButton;
-        [SerializeField, Tooltip("Enables Flicker gate selection.")]
-        private bool flickerEnabled = true;
-        [SerializeField, Tooltip("First normalized progress eligible for Flicker.")]
-        private float flickerEligibleStartProgress = 0.15f;
-        [SerializeField, Tooltip("Last normalized progress eligible for Flicker.")]
-        private float flickerEligibleEndProgress = 0.85f;
-        [SerializeField, Tooltip("Deterministic chance after the guaranteed first occurrence.")]
-        private float flickerOccurrenceChance = 0.35f;
-        [SerializeField, Tooltip("Minimum ordinary gates between Flicker occurrences.")]
-        private int flickerMinimumGateCooldown = 2;
-        [SerializeField, Tooltip("Seconds target information must remain visible.")]
-        private float flickerRevealDurationSeconds = 1f;
-        [SerializeField, Tooltip("Effective-speed ETA threshold for hiding.")]
-        private float flickerHideLeadTimeSeconds = 0.65f;
+        [FormerlySerializedAs("flickerEnabled")]
+        [SerializeField, Tooltip("Enables Hidden gate selection.")]
+        private bool hiddenEnabled = true;
+        [FormerlySerializedAs("flickerEligibleStartProgress")]
+        [SerializeField, Tooltip("First normalized progress eligible for Hidden.")]
+        private float hiddenEligibleStartProgress = 0.15f;
+        [FormerlySerializedAs("flickerEligibleEndProgress")]
+        [SerializeField, Tooltip("Last normalized progress eligible for Hidden.")]
+        private float hiddenEligibleEndProgress = 0.85f;
+        [FormerlySerializedAs("flickerOccurrenceChance")]
+        [SerializeField, Tooltip("Deterministic Hidden chance after the guaranteed first occurrence.")]
+        private float hiddenOccurrenceChance = 0.35f;
+        [FormerlySerializedAs("flickerMinimumGateCooldown")]
+        [SerializeField, Tooltip("Minimum ordinary gates between Hidden occurrences.")]
+        private int hiddenMinimumGateCooldown = 2;
+        [FormerlySerializedAs("flickerRevealDurationSeconds")]
+        [SerializeField, Tooltip("Seconds Hidden target information remains visible.")]
+        private float hiddenRevealDurationSeconds = 1f;
+        [FormerlySerializedAs("flickerHideLeadTimeSeconds")]
+        [SerializeField, Tooltip("Effective-speed ETA threshold for Hidden.")]
+        private float hiddenHideLeadTimeSeconds = 0.65f;
+        [FormerlySerializedAs("flickerTransitionSeconds")]
         [SerializeField, Tooltip("Seconds used to hide target information.")]
-        private float flickerTransitionSeconds = 0.12f;
+        private float hiddenTransitionSeconds = 0.12f;
+        [FormerlySerializedAs("flickerMaxOccurrences")]
+        [SerializeField, Tooltip("Maximum Hidden gates in one experiment.")]
+        private int hiddenMaxOccurrences = 4;
+        [FormerlySerializedAs("flickerFirstOccurrenceGuaranteed")]
+        [SerializeField, Tooltip("Guarantees the first eligible Hidden occurrence.")]
+        private bool hiddenFirstOccurrenceGuaranteed = true;
+        [SerializeField, Tooltip("Enables color-cycling Flicker gate selection.")]
+        private bool colorCycleFlickerEnabled = true;
+        [SerializeField, Tooltip("First normalized progress eligible for Flicker.")]
+        private float colorCycleFlickerEligibleStartProgress = 0.15f;
+        [SerializeField, Tooltip("Last normalized progress eligible for Flicker.")]
+        private float colorCycleFlickerEligibleEndProgress = 0.85f;
+        [SerializeField, Tooltip("Deterministic Flicker chance after the guaranteed first occurrence.")]
+        private float colorCycleFlickerOccurrenceChance = 0.30f;
+        [SerializeField, Tooltip("Minimum ordinary gates between Flicker occurrences.")]
+        private int colorCycleFlickerMinimumGateCooldown = 2;
         [SerializeField, Tooltip("Maximum Flicker gates in one experiment.")]
-        private int flickerMaxOccurrences = 4;
-        [SerializeField, Tooltip("Guarantees the first eligible occurrence.")]
-        private bool flickerFirstOccurrenceGuaranteed = true;
+        private int colorCycleFlickerMaxOccurrences = 4;
+        [SerializeField, Tooltip("Guarantees the first eligible Flicker occurrence.")]
+        private bool colorCycleFlickerFirstOccurrenceGuaranteed = true;
+        [SerializeField, Tooltip("Distinct colors in each Flicker cycle; must be 2 or 3.")]
+        private int colorCycleFlickerCycleColorCount = 2;
+        [SerializeField, Tooltip("Seconds between authoritative Flicker color switches.")]
+        private float colorCycleFlickerSwitchIntervalSeconds = 0.50f;
+        [SerializeField, Tooltip("Seconds of visual pulse after a logical color switch.")]
+        private float colorCycleFlickerTransitionPulseSeconds = 0.10f;
+        [SerializeField, Tooltip("Minimum switch intervals visible before crossing.")]
+        private int colorCycleFlickerMinimumCyclesVisible = 3;
+        [SerializeField, Tooltip("Uses a deterministic seed-and-gate phase offset.")]
+        private bool colorCycleFlickerRandomizePhaseOffset = true;
 
         private int _colorCount = 3;
         private MechanicExperimentType _mechanic;
@@ -50,7 +85,9 @@ namespace ColorGateRunner.Presentation
         internal uint Seed => _seed;
         internal bool Shield => _shield;
         internal bool Booster =>
-            _mechanic != MechanicExperimentType.Flicker && _booster;
+            _mechanic != MechanicExperimentType.Hidden &&
+            _mechanic != MechanicExperimentType.Flicker &&
+            _booster;
         internal ExperimentSession Session => _session;
         internal string Label => label.text;
         internal ExperimentDefinition SelectedDefinition =>
@@ -58,6 +95,9 @@ namespace ColorGateRunner.Presentation
                 _colorCount,
                 _mechanic,
                 _seed,
+                _mechanic == MechanicExperimentType.Hidden
+                    ? CreateHiddenSettings()
+                    : null,
                 _mechanic == MechanicExperimentType.Flicker
                     ? CreateFlickerSettings()
                     : null);
@@ -146,7 +186,8 @@ namespace ColorGateRunner.Presentation
             _mechanic = (MechanicExperimentType)(
                 ((int)_mechanic + 1) %
                 ((int)MechanicExperimentType.Flicker + 1));
-            if (_mechanic == MechanicExperimentType.Flicker)
+            if (_mechanic == MechanicExperimentType.Hidden ||
+                _mechanic == MechanicExperimentType.Flicker)
             {
                 _booster = false;
             }
@@ -176,7 +217,8 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleBooster()
         {
-            if (_mechanic == MechanicExperimentType.Flicker)
+            if (_mechanic == MechanicExperimentType.Hidden ||
+                _mechanic == MechanicExperimentType.Flicker)
             {
                 _booster = false;
                 RefreshLabel();
@@ -237,7 +279,9 @@ namespace ColorGateRunner.Presentation
 
         private void RefreshLabel()
         {
-            string items = _mechanic == MechanicExperimentType.Flicker
+            string items =
+                _mechanic == MechanicExperimentType.Hidden ||
+                _mechanic == MechanicExperimentType.Flicker
                 ? _shield
                     ? "SHIELD / BOOSTER DISABLED"
                     : "BOOSTER DISABLED"
@@ -251,19 +295,36 @@ namespace ColorGateRunner.Presentation
                 $"{items}{(_session == null ? string.Empty : " · READY")}";
         }
 
+        private HiddenSettings CreateHiddenSettings()
+        {
+            return new HiddenSettings(
+                hiddenEnabled,
+                hiddenEligibleStartProgress,
+                hiddenEligibleEndProgress,
+                hiddenOccurrenceChance,
+                hiddenMinimumGateCooldown,
+                hiddenRevealDurationSeconds,
+                hiddenHideLeadTimeSeconds,
+                hiddenTransitionSeconds,
+                hiddenMaxOccurrences,
+                hiddenFirstOccurrenceGuaranteed);
+        }
+
         private FlickerSettings CreateFlickerSettings()
         {
             return new FlickerSettings(
-                flickerEnabled,
-                flickerEligibleStartProgress,
-                flickerEligibleEndProgress,
-                flickerOccurrenceChance,
-                flickerMinimumGateCooldown,
-                flickerRevealDurationSeconds,
-                flickerHideLeadTimeSeconds,
-                flickerTransitionSeconds,
-                flickerMaxOccurrences,
-                flickerFirstOccurrenceGuaranteed);
+                colorCycleFlickerEnabled,
+                colorCycleFlickerEligibleStartProgress,
+                colorCycleFlickerEligibleEndProgress,
+                colorCycleFlickerOccurrenceChance,
+                colorCycleFlickerMinimumGateCooldown,
+                colorCycleFlickerMaxOccurrences,
+                colorCycleFlickerFirstOccurrenceGuaranteed,
+                colorCycleFlickerCycleColorCount,
+                colorCycleFlickerSwitchIntervalSeconds,
+                colorCycleFlickerTransitionPulseSeconds,
+                colorCycleFlickerMinimumCyclesVisible,
+                colorCycleFlickerRandomizePhaseOffset);
         }
     }
 }

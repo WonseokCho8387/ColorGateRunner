@@ -58,7 +58,8 @@ namespace ColorGateRunner.Core
         Fog = 1 << 1,
         Ice = 1 << 2,
         EchoProvider = 1 << 3,
-        Flicker = 1 << 4
+        Hidden = 1 << 4,
+        Flicker = 1 << 5
     }
 
     public readonly struct GateModifier
@@ -74,6 +75,7 @@ namespace ColorGateRunner.Core
         public bool IsFog => Has(GateModifierType.Fog);
         public bool IsIce => Has(GateModifierType.Ice);
         public bool IsEchoProvider => Has(GateModifierType.EchoProvider);
+        public bool IsHidden => Has(GateModifierType.Hidden);
         public bool IsFlicker => Has(GateModifierType.Flicker);
 
         public static GateModifier None =>
@@ -219,9 +221,9 @@ namespace ColorGateRunner.Core
         }
     }
 
-    public sealed class FlickerSettings
+    public sealed class HiddenSettings
     {
-        public FlickerSettings(
+        public HiddenSettings(
             bool enabled,
             float eligibleStartProgress,
             float eligibleEndProgress,
@@ -242,7 +244,7 @@ namespace ColorGateRunner.Core
             if (eligibleStartProgress >= eligibleEndProgress)
             {
                 throw new ArgumentException(
-                    "Flicker eligible start must be before eligible end.");
+                    "Hidden eligible start must be before eligible end.");
             }
             ValidateProgress(occurrenceChance, nameof(occurrenceChance));
             if (minimumGateCooldown < 0)
@@ -294,9 +296,9 @@ namespace ColorGateRunner.Core
         public int MaxOccurrences { get; }
         public bool FirstOccurrenceGuaranteed { get; }
 
-        public static FlickerSettings Disabled()
+        public static HiddenSettings Disabled()
         {
-            return new FlickerSettings(
+            return new HiddenSettings(
                 false,
                 0.15f,
                 0.85f,
@@ -309,9 +311,9 @@ namespace ColorGateRunner.Core
                 false);
         }
 
-        public static FlickerSettings CreateDefault()
+        public static HiddenSettings CreateDefault()
         {
-            return new FlickerSettings(
+            return new HiddenSettings(
                 true,
                 0.15f,
                 0.85f,
@@ -333,7 +335,7 @@ namespace ColorGateRunner.Core
         }
     }
 
-    public sealed class FlickerVisibilityState
+    public sealed class HiddenVisibilityState
     {
         public float VisibleElapsed { get; private set; }
         public bool HideStarted { get; private set; }
@@ -344,7 +346,7 @@ namespace ColorGateRunner.Core
         public void Advance(
             float deltaSeconds,
             float estimatedArrivalSeconds,
-            FlickerSettings settings)
+            HiddenSettings settings)
         {
             if (deltaSeconds < 0f)
             {
@@ -380,6 +382,225 @@ namespace ColorGateRunner.Core
             HideStarted = false;
             TransitionProgress = 0f;
             HideStartCount = 0;
+        }
+    }
+
+    public sealed class FlickerSettings
+    {
+        public FlickerSettings(
+            bool enabled,
+            float eligibleStartProgress,
+            float eligibleEndProgress,
+            float occurrenceChance,
+            int minimumGateCooldown,
+            int maxOccurrences,
+            bool firstOccurrenceGuaranteed,
+            int cycleColorCount,
+            float switchIntervalSeconds,
+            float transitionPulseSeconds,
+            int minimumCyclesVisible,
+            bool randomizePhaseOffset)
+        {
+            ValidateProgress(
+                eligibleStartProgress,
+                nameof(eligibleStartProgress));
+            ValidateProgress(
+                eligibleEndProgress,
+                nameof(eligibleEndProgress));
+            if (eligibleStartProgress >= eligibleEndProgress)
+            {
+                throw new ArgumentException(
+                    "Flicker eligible start must be before eligible end.");
+            }
+            ValidateProgress(occurrenceChance, nameof(occurrenceChance));
+            if (minimumGateCooldown < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minimumGateCooldown));
+            }
+            if (maxOccurrences < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxOccurrences));
+            }
+            if (cycleColorCount != 2 && cycleColorCount != 3)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(cycleColorCount),
+                    "Flicker cycle color count must be 2 or 3.");
+            }
+            if (switchIntervalSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(switchIntervalSeconds));
+            }
+            if (transitionPulseSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(transitionPulseSeconds));
+            }
+            if (minimumCyclesVisible < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minimumCyclesVisible));
+            }
+
+            Enabled = enabled;
+            EligibleStartProgress = eligibleStartProgress;
+            EligibleEndProgress = eligibleEndProgress;
+            OccurrenceChance = occurrenceChance;
+            MinimumGateCooldown = minimumGateCooldown;
+            MaxOccurrences = maxOccurrences;
+            FirstOccurrenceGuaranteed = firstOccurrenceGuaranteed;
+            CycleColorCount = cycleColorCount;
+            SwitchIntervalSeconds = switchIntervalSeconds;
+            TransitionPulseSeconds = transitionPulseSeconds;
+            MinimumCyclesVisible = minimumCyclesVisible;
+            RandomizePhaseOffset = randomizePhaseOffset;
+        }
+
+        public bool Enabled { get; }
+        public float EligibleStartProgress { get; }
+        public float EligibleEndProgress { get; }
+        public float OccurrenceChance { get; }
+        public int MinimumGateCooldown { get; }
+        public int MaxOccurrences { get; }
+        public bool FirstOccurrenceGuaranteed { get; }
+        public int CycleColorCount { get; }
+        public float SwitchIntervalSeconds { get; }
+        public float TransitionPulseSeconds { get; }
+        public int MinimumCyclesVisible { get; }
+        public bool RandomizePhaseOffset { get; }
+
+        public static FlickerSettings Disabled()
+        {
+            return new FlickerSettings(
+                false,
+                0.15f,
+                0.85f,
+                0f,
+                0,
+                0,
+                false,
+                2,
+                0.5f,
+                0f,
+                1,
+                false);
+        }
+
+        public static FlickerSettings CreateDefault()
+        {
+            return new FlickerSettings(
+                true,
+                0.15f,
+                0.85f,
+                0.30f,
+                2,
+                4,
+                true,
+                2,
+                0.50f,
+                0.10f,
+                3,
+                true);
+        }
+
+        public void ValidateForActiveColorCount(int activeColorCount)
+        {
+            if (activeColorCount < 2)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(activeColorCount),
+                    "Flicker requires at least two active colors.");
+            }
+            if (CycleColorCount > activeColorCount)
+            {
+                throw new ArgumentException(
+                    "Flicker cycle color count exceeds active colors.",
+                    nameof(activeColorCount));
+            }
+        }
+
+        private static void ValidateProgress(float value, string name)
+        {
+            if (value < 0f || value > 1f)
+            {
+                throw new ArgumentOutOfRangeException(name);
+            }
+        }
+    }
+
+    public readonly struct FlickerCycleSample
+    {
+        public FlickerCycleSample(
+            long phaseIndex,
+            int cycleColorIndex,
+            float transitionPulse)
+        {
+            PhaseIndex = phaseIndex;
+            CycleColorIndex = cycleColorIndex;
+            TransitionPulse = transitionPulse;
+        }
+
+        public long PhaseIndex { get; }
+        public int CycleColorIndex { get; }
+        public float TransitionPulse { get; }
+    }
+
+    public static class FlickerCycleCalculator
+    {
+        public static FlickerCycleSample Calculate(
+            float gameplayTimeSeconds,
+            float phaseOffsetSeconds,
+            float switchIntervalSeconds,
+            float transitionPulseSeconds,
+            int cycleColorCount)
+        {
+            if (gameplayTimeSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(gameplayTimeSeconds));
+            }
+            if (switchIntervalSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(switchIntervalSeconds));
+            }
+            if (phaseOffsetSeconds < 0f ||
+                phaseOffsetSeconds >= switchIntervalSeconds)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(phaseOffsetSeconds));
+            }
+            if (transitionPulseSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(transitionPulseSeconds));
+            }
+            if (cycleColorCount < 2)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(cycleColorCount));
+            }
+
+            double totalSeconds =
+                (double)gameplayTimeSeconds + phaseOffsetSeconds;
+            long phaseIndex = (long)Math.Floor(
+                totalSeconds / switchIntervalSeconds);
+            int cycleColorIndex =
+                (int)(phaseIndex % cycleColorCount);
+            double phaseElapsed =
+                totalSeconds - (phaseIndex * switchIntervalSeconds);
+            float pulse = transitionPulseSeconds <= 0f
+                ? 0f
+                : 1f - Math.Min(
+                    1f,
+                    (float)(phaseElapsed / transitionPulseSeconds));
+            return new FlickerCycleSample(
+                phaseIndex,
+                cycleColorIndex,
+                pulse);
         }
     }
 

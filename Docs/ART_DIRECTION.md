@@ -235,17 +235,17 @@ gate uses the existing frame and an `ECHO` marker. Camouflage keeps provider
 target color and symbol hidden until ETA reveal. Human portrait-mobile review
 is still required for simultaneous Echo/Shield separation and marker size.
 
-## Iteration 6 Flicker presentation
+## Iteration 6 Hidden presentation (originally named Flicker)
 
-- A Flicker gate uses the ordinary pooled gate silhouette, material, target
+- A Hidden gate uses the ordinary pooled gate silhouette, material, target
   color, symbol, and judgment opening.
-- A compact neutral `FLICKER` label is visible before and after target
+- A compact neutral `HIDDEN` label is visible before and after target
   information hides without covering the target symbol.
 - During the short transition, existing material color blending and text
   alpha are reused. No new shader, particle package, post-processing, camera
   effect, or full-screen distortion is introduced.
 - At the end of the transition, the gate frame remains as a neutral
-  silhouette and the `FLICKER` label remains readable, while the target color
+  silhouette and the `HIDDEN` label remains readable, while the target color
   and target symbol are hidden.
 - Gate geometry, collider, judgment opening, position, and scale remain
   visible and stable. Hide never makes the whole gate disappear.
@@ -255,7 +255,37 @@ is still required for simultaneous Echo/Shield separation and marker size.
 
 Implementation result: the existing pooled gate uses its target material and
 symbol during observation, then blends to the existing neutral material while
-the symbol's rich-text alpha reaches zero. `FLICKER` remains visible in the
+the symbol's rich-text alpha reaches zero. `HIDDEN` remains visible in the
 same TextMesh, so no new scene object, material, shader, particle system, or
 package was required. Automated checks confirm retained transform, collider,
 marker, and pooled object; portrait readability remains a human decision.
+
+## Iteration 7 Hidden and color-cycling Flicker presentation
+
+The Iteration 6 presentation is renamed to Hidden. Its visual behavior is not
+redesigned:
+
+- Target color and symbol begin visible.
+- The existing short hide transition removes target information.
+- Neutral silhouette, judgment opening, transform, collider, and a neutral
+  `HIDDEN` marker remain.
+
+The new Flicker remains fully visible and uses a distinct neutral `FLICKER`
+marker. Core supplies one authoritative active color; the View applies that
+color and its existing matching symbol together.
+
+- Logical color changes immediately at the configured boundary.
+- A short brightness or outline pulse may emphasize the boundary without
+  mixing two judgment colors, introducing a neutral interval, hiding the
+  gate, or changing geometry/collider state.
+- The marker persists through every transition and does not imply a fixed
+  target color.
+- Frame skips synchronize immediately to the current Core phase rather than
+  replaying missed transitions.
+- Existing generated materials, symbols, and pooled objects are reused. No
+  shader package, post-processing, large particle treatment, or full-screen
+  effect is added.
+
+Portrait human review must distinguish Camouflage, Hidden, and Flicker; judge
+two- and three-color speed, collision-boundary readability, pulse strength,
+symbol synchronization, Echo/Shield feedback, and 9:16 legibility.

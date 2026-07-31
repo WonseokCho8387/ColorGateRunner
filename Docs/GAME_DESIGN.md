@@ -353,30 +353,30 @@ improved Average/None first-clear rates for Stages 8-10 from
 `21.2/20.0/18.5%` to `31.2/30.5/27.9%`; these figures are mechanical evidence,
 not a claim of fun, fairness, or comfort.
 
-## Iteration 6 Flicker-only Experiment contract
+## Iteration 6 Hidden-only Experiment contract (originally named Flicker)
 
-Flicker is a modifier on an ordinary Experiment judgment gate. It is not a
+Hidden is a modifier on an ordinary Experiment judgment gate. It is not a
 separate gate type and does not alter the target color, transform, sequence,
 completion requirement, or judgment rules.
 
-- A Flicker gate begins fully readable with its target color and symbol.
+- A Hidden gate begins fully readable with its target color and symbol.
 - The target remains readable for at least `RevealDurationSeconds`.
 - Hide begins once, and only when both the minimum readable time has elapsed
   and the shared effective-speed ETA is at or below `HideLeadTimeSeconds`.
 - The hide transition removes only target color and symbol information over
   `TransitionSeconds`. A neutral gate silhouette, the judgment opening, and a
-  persistent `FLICKER` marker remain visible.
+  persistent `HIDDEN` marker remain visible.
 - Hidden target information never reappears before judgment, even if speed or
   ETA later changes.
 - Judgment priority remains Player color, Echo color, Shield, then failure.
-  Flicker introduces no automatic pass, failure exemption, or custom failure
+  Hidden introduces no automatic pass, failure exemption, or custom failure
   flow.
 - Retry and Replay preserve seed, settings, gate order, target colors, and
-  selected Flicker gates while resetting observation, transition, hidden,
+  selected Hidden gates while resetting observation, transition, hidden,
   visual-alpha, and judgment state.
-- The Flicker-only Launcher condition disables Booster. A previously held
+- The Hidden-only Launcher condition disables Booster. A previously held
   Echo or active Shield may still use the existing shared judgment path.
-- Flicker does not combine with Camouflage, Fog, Ice, Echo Provider, or another
+- Hidden does not combine with Camouflage, Fog, Ice, Echo Provider, or another
   new modifier in this iteration. Campaign Stages 1-11 and the existing
   16-condition Step 10 matrix remain unchanged.
 
@@ -385,3 +385,50 @@ occurrence chance `0.35`, minimum cooldown `2` gates, readable duration
 `1.00s`, hide lead `0.65s`, transition `0.12s`, maximum `4`, and guaranteed
 first occurrence enabled. These values are human-play candidates, not final
 balance.
+
+## Iteration 7 Hidden migration and color-cycling Flicker contract
+
+The Iteration 6 mechanic is renamed to **Hidden** without changing its
+behavior. Hidden begins readable, hides color and symbol after the existing
+minimum-observation plus ETA condition, preserves the neutral gate silhouette,
+and continues to judge against the color shown before hiding.
+
+The new **Flicker** is a separate ordinary-gate modifier. It never hides the
+gate. Instead, it cycles through two or three distinct active-palette colors
+and their matching symbols. The color at the exact collision Gameplay Time is
+the authoritative judgment color.
+
+- Camouflage is hidden first, reveals near arrival, then judges.
+- Hidden is visible first, hides near arrival, then judges the memorized
+  pre-hide color.
+- Flicker remains visible and repeatedly changes color; collision-time color
+  judges.
+- Hidden retains the former Flicker enum values and deterministic selected
+  gate IDs. New Flicker receives new enum values, so existing serialized data
+  cannot silently change mechanics.
+- Flicker plans fix the base color, ordered `CycleColors`, cycle count,
+  switch interval, deterministic phase offset, transition pulse, gate ID,
+  and seed-derived selection data before play.
+- The first cycle color is the existing effective base color. Remaining
+  colors are selected without duplication from the active palette. Two-color
+  plans alternate both colors; three-color plans rotate all three.
+- Active color uses the shared pure Core calculation
+  `floor((GameplayTime + PhaseOffset) / SwitchInterval) % CycleColorCount`.
+  An exact switch boundary uses the new color.
+- `ExperimentSession.ElapsedPlayingSeconds` is the only Gameplay Time source.
+  Countdown, Failed, and StageCleared do not advance it; Retry and Replay
+  reset it.
+- Judgment order remains Player → held Echo → Shield → Failure. Player and
+  Echo compare with the collision-time Flicker color, and Echo and Shield
+  cannot both be consumed.
+- Only gates whose deterministic expected pooled-view exposure is at least
+  `SwitchIntervalSeconds * MinimumCyclesVisible` may receive Flicker.
+- Flicker-only runs disable Booster. Goal application, Campaign application,
+  music/BPM/DSP synchronization, speed-adjusted switch intervals, and
+  same-gate modifier combinations remain deferred.
+
+Initial Inspector-authored Flicker values are: enabled, progress `0.15-0.85`,
+chance `0.30`, cooldown `2`, maximum `4`, guaranteed first occurrence,
+two colors, `0.50s` switch interval, `0.10s` pulse, three minimum visible
+cycles, and deterministic randomized phase offset. These are human-play
+candidates rather than final balance.

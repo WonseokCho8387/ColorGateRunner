@@ -15,13 +15,15 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(settings.Enabled, Is.True);
             Assert.That(settings.EligibleStartProgress, Is.EqualTo(0.15f));
             Assert.That(settings.EligibleEndProgress, Is.EqualTo(0.85f));
-            Assert.That(settings.OccurrenceChance, Is.EqualTo(0.35f));
+            Assert.That(settings.OccurrenceChance, Is.EqualTo(0.30f));
             Assert.That(settings.MinimumGateCooldown, Is.EqualTo(2));
-            Assert.That(settings.RevealDurationSeconds, Is.EqualTo(1f));
-            Assert.That(settings.HideLeadTimeSeconds, Is.EqualTo(0.65f));
-            Assert.That(settings.TransitionSeconds, Is.EqualTo(0.12f));
             Assert.That(settings.MaxOccurrences, Is.EqualTo(4));
             Assert.That(settings.FirstOccurrenceGuaranteed, Is.True);
+            Assert.That(settings.CycleColorCount, Is.EqualTo(2));
+            Assert.That(settings.SwitchIntervalSeconds, Is.EqualTo(0.50f));
+            Assert.That(settings.TransitionPulseSeconds, Is.EqualTo(0.10f));
+            Assert.That(settings.MinimumCyclesVisible, Is.EqualTo(3));
+            Assert.That(settings.RandomizePhaseOffset, Is.True);
         }
 
         [Test]
@@ -38,40 +40,64 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(cooldown: -1));
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateSettings(reveal: -0.01f));
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateSettings(lead: -0.01f));
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateSettings(transition: -0.01f));
-            Assert.Throws<ArgumentOutOfRangeException>(
                 () => CreateSettings(maximum: -1));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings(cycleCount: 1));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings(cycleCount: 4));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings(interval: 0f));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings(pulse: -0.01f));
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => CreateSettings(minimumCycles: 0));
+            Assert.Throws<ArgumentException>(
+                () => new ExperimentDefinition(
+                    3,
+                    MechanicExperimentType.Flicker,
+                    1u,
+                    flickerSettings: CreateSettings(cycleCount: 3))
+                    .Flicker.ValidateForActiveColorCount(2));
         }
 
         [Test]
-        public void FlickerSelection_IsDeterministicAndRespectsBoundsCooldownAndMaximum()
+        public void FlickerPlanning_IsDeterministicAndRespectsSelectionRules()
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
                 4,
                 MechanicExperimentType.Flicker,
-                98765u);
-            List<int> first = GetFlickerGateIds(definition);
-            List<int> second = GetFlickerGateIds(definition);
+                98765u,
+                flickerSettings: FlickerSettings.CreateDefault());
+            List<ExperimentGatePlan> first = GetFlickerPlans(definition);
+            List<ExperimentGatePlan> second = GetFlickerPlans(definition);
 
-            Assert.That(first, Is.EqualTo(second));
             Assert.That(first.Count, Is.InRange(1, 4));
+            Assert.That(second.Count, Is.EqualTo(first.Count));
             for (int index = 0; index < first.Count; index++)
             {
-                float progress = first[index] /
+                ExperimentGatePlan a = first[index];
+                ExperimentGatePlan b = second[index];
+                float progress = a.GateIndex /
                     (float)(definition.GateCount - 1);
+                Assert.That(a.GateId, Is.EqualTo(b.GateId));
+                Assert.That(
+                    a.CopyCycleColors(),
+                    Is.EqualTo(b.CopyCycleColors()));
+                Assert.That(
+                    a.PhaseOffsetSeconds,
+                    Is.EqualTo(b.PhaseOffsetSeconds));
                 Assert.That(
                     progress,
                     Is.InRange(
                         definition.Flicker.EligibleStartProgress,
                         definition.Flicker.EligibleEndProgress));
+                Assert.That(
+                    a.Modifier.Types,
+                    Is.EqualTo(GateModifierType.Flicker));
                 if (index > 0)
                 {
                     Assert.That(
-                        first[index] - first[index - 1],
+                        a.GateId - first[index - 1].GateId,
                         Is.GreaterThan(
                             definition.Flicker.MinimumGateCooldown));
                 }
@@ -79,36 +105,57 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void FirstOccurrenceGuaranteed_SelectsOneWhenChanceIsZero()
+        public void FlickerPlanning_CycleStartsAtBaseAndUsesUniqueActiveColors()
         {
-            FlickerSettings settings = CreateSettings(
-                chance: 0f,
-                maximum: 4,
-                guaranteed: true);
             ExperimentDefinition definition = ExperimentCatalog.Get(
                 4,
                 MechanicExperimentType.Flicker,
-                5u,
-                settings);
+                12345u,
+                flickerSettings: CreateSettings(cycleCount: 3));
 
-            Assert.That(GetFlickerGateIds(definition).Count, Is.EqualTo(1));
+            foreach (ExperimentGatePlan plan in GetFlickerPlans(definition))
+            {
+                Assert.That(plan.CycleColorCount, Is.EqualTo(3));
+                Assert.That(plan.GetCycleColor(0), Is.EqualTo(plan.Color));
+                HashSet<RunnerColor> unique = new HashSet<RunnerColor>(
+                    plan.CopyCycleColors());
+                Assert.That(unique.Count, Is.EqualTo(3));
+                foreach (RunnerColor color in unique)
+                {
+                    Assert.That(
+                        (int)color,
+                        Is.InRange(0, definition.ColorCount - 1));
+                }
+            }
         }
 
         [Test]
-        public void NoEligibleGate_IsHandledWithoutFallbackSelection()
+        public void FlickerPlanning_FirstOccurrenceGuaranteeAndNoFallbackAreExplicit()
         {
-            ExperimentDefinition definition = new ExperimentDefinition(
+            ExperimentDefinition guaranteed = ExperimentCatalog.Get(
                 4,
                 MechanicExperimentType.Flicker,
                 5u,
-                gateCount: 1,
-                flickerSettings: FlickerSettings.CreateDefault());
+                flickerSettings: CreateSettings(
+                    chance: 0f,
+                    maximum: 1,
+                    guaranteed: true));
+            ExperimentDefinition insufficientExposure =
+                ExperimentCatalog.Get(
+                    4,
+                    MechanicExperimentType.Flicker,
+                    5u,
+                    flickerSettings: CreateSettings(
+                        chance: 1f,
+                        interval: 10f,
+                        minimumCycles: 3));
 
-            Assert.That(GetFlickerGateIds(definition), Is.Empty);
+            Assert.That(GetFlickerPlans(guaranteed).Count, Is.EqualTo(1));
+            Assert.That(GetFlickerPlans(insufficientExposure), Is.Empty);
         }
 
         [Test]
-        public void FlickerSelection_DoesNotIncreaseGateCountOrMixModifiers()
+        public void FlickerPlanning_DoesNotIncreaseGateCountOrMixModifiers()
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(
                 4,
@@ -134,77 +181,175 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void FlickerVisibility_RequiresObservationAndEtaThenNeverReappears()
+        public void FlickerCycle_TwoColorsUseExactBoundaryAndRepeat()
         {
-            FlickerSettings settings = FlickerSettings.CreateDefault();
-            FlickerVisibilityState state = new FlickerVisibilityState();
+            ExperimentGatePlan plan = CreatePlan(
+                RunnerColor.Red,
+                new[] { RunnerColor.Red, RunnerColor.Blue },
+                0.5f,
+                0f,
+                0.1f);
 
-            state.Advance(0.99f, 0.5f, settings);
-            Assert.That(state.HideStarted, Is.False);
-
-            state.Advance(0.01f, 0.66f, settings);
-            Assert.That(state.HideStarted, Is.False);
-
-            state.Advance(0f, 0.65f, settings);
-            Assert.That(state.HideStarted, Is.True);
-            Assert.That(state.HideStartCount, Is.EqualTo(1));
-
-            state.Advance(settings.TransitionSeconds, 10f, settings);
-            Assert.That(state.TransitionProgress, Is.EqualTo(1f));
-            Assert.That(state.TargetAlpha, Is.Zero);
-
-            state.Advance(5f, float.PositiveInfinity, settings);
-            Assert.That(state.HideStarted, Is.True);
-            Assert.That(state.HideStartCount, Is.EqualTo(1));
-            Assert.That(state.TargetAlpha, Is.Zero);
+            Assert.That(
+                plan.GetJudgmentColor(0f),
+                Is.EqualTo(RunnerColor.Red));
+            Assert.That(
+                plan.GetJudgmentColor(0.4999f),
+                Is.EqualTo(RunnerColor.Red));
+            Assert.That(
+                plan.GetJudgmentColor(0.5f),
+                Is.EqualTo(RunnerColor.Blue));
+            Assert.That(
+                plan.GetJudgmentColor(1f),
+                Is.EqualTo(RunnerColor.Red));
+            Assert.That(
+                plan.GetJudgmentColor(2.5f),
+                Is.EqualTo(RunnerColor.Blue));
         }
 
         [Test]
-        public void FlickerVisibility_ResetClearsRuntimeState()
+        public void FlickerCycle_ThreeColorsUseEveryColorInOrder()
         {
-            FlickerSettings settings = new FlickerSettings(
-                true,
+            ExperimentGatePlan plan = CreatePlan(
+                RunnerColor.Red,
+                new[]
+                {
+                    RunnerColor.Red,
+                    RunnerColor.Blue,
+                    RunnerColor.Green
+                },
+                0.5f,
                 0f,
-                0.9f,
-                1f,
-                0,
-                0f,
-                1f,
-                0f,
-                1,
-                true);
-            FlickerVisibilityState state = new FlickerVisibilityState();
-            state.Advance(0f, 1f, settings);
-            Assert.That(state.HideStarted, Is.True);
+                0.1f);
 
-            state.Reset();
-
-            Assert.That(state.VisibleElapsed, Is.Zero);
-            Assert.That(state.HideStarted, Is.False);
-            Assert.That(state.TransitionProgress, Is.Zero);
-            Assert.That(state.HideStartCount, Is.Zero);
+            Assert.That(
+                plan.GetJudgmentColor(0f),
+                Is.EqualTo(RunnerColor.Red));
+            Assert.That(
+                plan.GetJudgmentColor(0.5f),
+                Is.EqualTo(RunnerColor.Blue));
+            Assert.That(
+                plan.GetJudgmentColor(1f),
+                Is.EqualTo(RunnerColor.Green));
+            Assert.That(
+                plan.GetJudgmentColor(1.5f),
+                Is.EqualTo(RunnerColor.Red));
         }
 
         [Test]
-        public void FlickerPlan_UsesOrdinaryPlayerShieldAndFailurePriority()
+        public void FlickerCycle_PhaseOffsetAndPulseAreDeterministic()
         {
-            ExperimentSession shielded = CreatePlayingFlicker(shield: true);
-            ExperimentGatePlan shieldPlan = CreateCurrentFlickerPlan(
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Flicker,
+                222u,
+                flickerSettings: FlickerSettings.CreateDefault());
+            ExperimentGatePlan first = GetFlickerPlans(definition)[0];
+            ExperimentGatePlan replay = GetFlickerPlans(definition)[0];
+
+            Assert.That(
+                first.PhaseOffsetSeconds,
+                Is.InRange(0f, first.SwitchIntervalSeconds));
+            Assert.That(
+                first.PhaseOffsetSeconds,
+                Is.EqualTo(replay.PhaseOffsetSeconds));
+            Assert.That(
+                first.GetFlickerSample(1.25f).CycleColorIndex,
+                Is.EqualTo(
+                    replay.GetFlickerSample(1.25f).CycleColorIndex));
+            Assert.That(
+                CreatePlan(
+                    RunnerColor.Red,
+                    new[] { RunnerColor.Red, RunnerColor.Blue },
+                    0.5f,
+                    0f,
+                    0.1f)
+                    .GetFlickerSample(0.5f)
+                    .TransitionPulse,
+                Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void FlickerCycle_RandomizePhaseDisabledUsesZero()
+        {
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Flicker,
+                222u,
+                flickerSettings: CreateSettings(randomizePhase: false));
+
+            foreach (ExperimentGatePlan plan in GetFlickerPlans(definition))
+            {
+                Assert.That(plan.PhaseOffsetSeconds, Is.Zero);
+            }
+        }
+
+        [Test]
+        public void FlickerJudgment_UsesCollisionTimeColorInsteadOfBaseColor()
+        {
+            ExperimentSession session = CreatePlayingSession(shield: false);
+            ExperimentGatePlan plan = CreatePlanAtCurrentGate(
+                session,
+                RunnerColor.Red,
+                new[] { RunnerColor.Red, RunnerColor.Blue });
+            MatchColor(session, RunnerColor.Blue);
+
+            Assert.That(session.Resolve(plan, 0.5f), Is.True);
+            Assert.That(
+                session.LastJudgmentColor,
+                Is.EqualTo(RunnerColor.Blue));
+            Assert.That(session.LastJudgedGateWasFlicker, Is.True);
+            Assert.That(
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.PlayerColorMatch));
+        }
+
+        [Test]
+        public void FlickerJudgment_UsesEchoBeforeShield()
+        {
+            ExperimentSession session = AcquireEchoWithShield();
+            RunnerColor echoColor = session.EchoColor;
+            RunnerColor other = GetDifferentColor(session, echoColor);
+            ExperimentGatePlan plan = CreatePlanAtCurrentGate(
+                session,
+                echoColor,
+                new[] { echoColor, other });
+            MatchColor(session, other);
+
+            Assert.That(session.Resolve(plan, 0f), Is.True);
+            Assert.That(
+                session.LastResolution,
+                Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
+            Assert.That(session.EchoActive, Is.False);
+            Assert.That(session.ShieldActive, Is.True);
+        }
+
+        [Test]
+        public void FlickerJudgment_UsesShieldThenOrdinaryFailure()
+        {
+            ExperimentSession shielded = CreatePlayingSession(shield: true);
+            RunnerColor shieldTarget =
+                GetDifferentColor(shielded, shielded.CurrentColor);
+            ExperimentGatePlan shieldPlan = CreatePlanAtCurrentGate(
                 shielded,
-                NextColor(shielded, shielded.CurrentColor));
+                shieldTarget,
+                new[] { shieldTarget, shielded.CurrentColor });
 
-            Assert.That(shielded.Resolve(shieldPlan), Is.True);
+            Assert.That(shielded.Resolve(shieldPlan, 0f), Is.True);
             Assert.That(
                 shielded.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.ShieldDefense));
             Assert.That(shielded.ShieldActive, Is.False);
 
-            ExperimentSession failed = CreatePlayingFlicker(shield: false);
-            ExperimentGatePlan failPlan = CreateCurrentFlickerPlan(
+            ExperimentSession failed = CreatePlayingSession(shield: false);
+            RunnerColor failTarget =
+                GetDifferentColor(failed, failed.CurrentColor);
+            ExperimentGatePlan failPlan = CreatePlanAtCurrentGate(
                 failed,
-                NextColor(failed, failed.CurrentColor));
+                failTarget,
+                new[] { failTarget, failed.CurrentColor });
 
-            Assert.That(failed.Resolve(failPlan), Is.False);
+            Assert.That(failed.Resolve(failPlan, 0f), Is.False);
             Assert.That(
                 failed.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.Failure));
@@ -214,49 +359,61 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void HeldEcho_ResolvesFlickerWithoutConsumingShield()
+        public void FlickerRetry_ResetsGameplayTimeAndReplaysPlans()
         {
-            ExperimentSession session = new ExperimentSession(
-                ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
-                new StartItemSelection(true, false));
-            session.CompleteCountdown();
-            ExperimentGatePlan provider = AdvanceToProvider(session);
-            MatchColor(session, provider.Color);
-            Assert.That(session.Resolve(provider), Is.True);
-            RunnerColor echoColor = session.EchoColor;
-            if (session.CurrentColor == echoColor)
-            {
-                session.TryCycleColor();
-            }
-            ExperimentGatePlan flicker = new ExperimentGatePlan(
-                session.GatesPassed,
-                echoColor,
-                0,
-                session.CurrentSpeed,
-                1f,
-                session.CurrentSpeed,
-                MechanicExperimentType.Flicker,
-                new GateModifier(GateModifierType.Flicker));
+            ExperimentSession session = CreatePlayingSession(shield: false);
+            ExperimentGatePlan first = session.GetPlan(0);
+            session.Advance(1.25f);
 
-            Assert.That(session.Resolve(flicker), Is.True);
+            session.Restart();
+            ExperimentGatePlan replay = session.GetPlan(0);
+
+            Assert.That(session.ElapsedPlayingSeconds, Is.Zero);
+            Assert.That(replay.GateId, Is.EqualTo(first.GateId));
             Assert.That(
-                session.LastResolution,
-                Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
-            Assert.That(session.EchoActive, Is.False);
-            Assert.That(session.ShieldActive, Is.True);
+                replay.CopyCycleColors(),
+                Is.EqualTo(first.CopyCycleColors()));
+            Assert.That(
+                replay.PhaseOffsetSeconds,
+                Is.EqualTo(first.PhaseOffsetSeconds));
+            Assert.That(
+                replay.GetJudgmentColor(0f),
+                Is.EqualTo(first.GetJudgmentColor(0f)));
+        }
+
+        [Test]
+        public void FlickerSimulation_UsesCollisionTimeCycleCalculation()
+        {
+            ExperimentDefinition definition = ExperimentCatalog.Get(
+                4,
+                MechanicExperimentType.Flicker,
+                12345u,
+                flickerSettings: CreateSettings(randomizePhase: false));
+            ExperimentSimulationResult result =
+                ExperimentSimulationRunner.Run(
+                    definition,
+                    SimulatedPlayerProfile.Get(
+                        SimulatedPlayerKind.Perfect),
+                    1,
+                    definition.Seed);
+
+            Assert.That(result.CompletedCount, Is.EqualTo(1));
+            Assert.That(result.RunCount, Is.EqualTo(1));
         }
 
         private static FlickerSettings CreateSettings(
             bool enabled = true,
             float start = 0.15f,
             float end = 0.85f,
-            float chance = 0.35f,
+            float chance = 0.30f,
             int cooldown = 2,
-            float reveal = 1f,
-            float lead = 0.65f,
-            float transition = 0.12f,
             int maximum = 4,
-            bool guaranteed = true)
+            bool guaranteed = true,
+            int cycleCount = 2,
+            float interval = 0.5f,
+            float pulse = 0.1f,
+            int minimumCycles = 3,
+            bool randomizePhase = true)
         {
             return new FlickerSettings(
                 enabled,
@@ -264,17 +421,20 @@ namespace ColorGateRunner.Tests.EditMode
                 end,
                 chance,
                 cooldown,
-                reveal,
-                lead,
-                transition,
                 maximum,
-                guaranteed);
+                guaranteed,
+                cycleCount,
+                interval,
+                pulse,
+                minimumCycles,
+                randomizePhase);
         }
 
-        private static List<int> GetFlickerGateIds(
+        private static List<ExperimentGatePlan> GetFlickerPlans(
             ExperimentDefinition definition)
         {
-            List<int> result = new List<int>();
+            List<ExperimentGatePlan> result =
+                new List<ExperimentGatePlan>();
             DeterministicExperimentGateSequence sequence =
                 new DeterministicExperimentGateSequence(definition);
             for (int index = 0; index < definition.GateCount; index++)
@@ -282,37 +442,88 @@ namespace ColorGateRunner.Tests.EditMode
                 ExperimentGatePlan plan = sequence.GetPlan(index);
                 if (plan.IsFlicker)
                 {
-                    result.Add(plan.GateId);
+                    result.Add(plan);
                 }
             }
             return result;
         }
 
-        private static ExperimentSession CreatePlayingFlicker(bool shield)
+        private static ExperimentGatePlan CreatePlan(
+            RunnerColor baseColor,
+            RunnerColor[] colors,
+            float interval,
+            float phaseOffset,
+            float pulse)
+        {
+            return new ExperimentGatePlan(
+                0,
+                baseColor,
+                0,
+                16f,
+                1f,
+                16f,
+                MechanicExperimentType.Flicker,
+                new GateModifier(GateModifierType.Flicker),
+                colors,
+                interval,
+                phaseOffset,
+                pulse,
+                12345u);
+        }
+
+        private static ExperimentSession CreatePlayingSession(bool shield)
         {
             ExperimentSession session = new ExperimentSession(
-                ExperimentCatalog.Get(4, MechanicExperimentType.Flicker),
+                ExperimentCatalog.Get(
+                    4,
+                    MechanicExperimentType.Flicker,
+                    flickerSettings: CreateSettings(
+                        randomizePhase: false)),
                 new StartItemSelection(shield, false));
             session.CompleteCountdown();
             return session;
         }
 
-        private static ExperimentGatePlan AdvanceToProvider(
-            ExperimentSession session)
+        private static ExperimentGatePlan CreatePlanAtCurrentGate(
+            ExperimentSession session,
+            RunnerColor baseColor,
+            RunnerColor[] colors)
         {
+            return new ExperimentGatePlan(
+                session.GatesPassed,
+                baseColor,
+                0,
+                session.CurrentSpeed,
+                1f,
+                session.CurrentSpeed,
+                MechanicExperimentType.Flicker,
+                new GateModifier(GateModifierType.Flicker),
+                colors,
+                0.5f,
+                0f,
+                0.1f,
+                session.Definition.Seed);
+        }
+
+        private static ExperimentSession AcquireEchoWithShield()
+        {
+            ExperimentSession session = new ExperimentSession(
+                ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
+                new StartItemSelection(true, false));
+            session.CompleteCountdown();
             while (session.GatesPassed < session.Definition.GateCount)
             {
                 ExperimentGatePlan plan =
                     session.GetPlan(session.GatesPassed);
-                if (plan.IsEchoProvider)
-                {
-                    return plan;
-                }
                 MatchColor(session, plan.Color);
                 Assert.That(session.Resolve(plan), Is.True);
+                if (session.EchoActive)
+                {
+                    return session;
+                }
             }
-            Assert.Fail("No Echo provider was generated.");
-            return default;
+            Assert.Fail("No Echo provider was acquired.");
+            return null;
         }
 
         private static void MatchColor(
@@ -327,34 +538,22 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(session.CurrentColor, Is.EqualTo(target));
         }
 
-        private static ExperimentGatePlan CreateCurrentFlickerPlan(
+        private static RunnerColor GetDifferentColor(
             ExperimentSession session,
             RunnerColor color)
         {
-            return new ExperimentGatePlan(
-                session.GatesPassed,
-                color,
-                0,
-                session.CurrentSpeed,
-                1f,
-                session.CurrentSpeed,
-                MechanicExperimentType.Flicker,
-                new GateModifier(GateModifierType.Flicker));
-        }
-
-        private static RunnerColor NextColor(
-            ExperimentSession session,
-            RunnerColor current)
-        {
-            for (int index = 0; index < session.Definition.ColorCount; index++)
+            for (int index = 0;
+                index < session.Definition.ColorCount;
+                index++)
             {
-                RunnerColor color = session.Definition.GetColor(index);
-                if (color != current)
+                RunnerColor candidate = session.Definition.GetColor(index);
+                if (candidate != color)
                 {
-                    return color;
+                    return candidate;
                 }
             }
-            return current;
+            throw new InvalidOperationException(
+                "A different active color was required.");
         }
     }
 }

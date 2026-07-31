@@ -442,7 +442,7 @@ Validation and learning
   work in the original editor. This tooling does not claim device or browser
   compatibility until those outputs are produced and played.
 
-## Iteration 6 Flicker-only Experiment
+## Iteration 6 Hidden-only Experiment (originally named Flicker)
 
 Status
 
@@ -450,11 +450,11 @@ Status
 
 Contract
 
-- Ordinary-gate Flicker modifier, not a separate gate.
+- Ordinary-gate Hidden modifier, not a separate gate.
 - Deterministic selection inside the existing Experiment sequence.
 - Minimum readable duration plus shared effective-speed ETA hide condition.
 - One-way target-color and symbol hide with retained neutral silhouette,
-  judgment opening, and `FLICKER` identity.
+  judgment opening, and `HIDDEN` identity.
 - Existing Player, Echo, Shield, Failure priority.
 - Deterministic Retry/Replay reset.
 - Booster disabled and modifier combinations deferred.
@@ -462,7 +462,7 @@ Contract
 
 Human feedback required
 
-- Flicker concept recognition.
+- Hidden concept recognition.
 - Readable observation duration.
 - Hide lead and memory interval.
 - Transition clarity.
@@ -472,15 +472,15 @@ Human feedback required
 
 Implementation
 
-- Added `Flicker` to the shared modifier and a validated pure-Core
-  `FlickerSettings`.
+- Added the modifier now named `Hidden` and the settings now named
+  `HiddenSettings`.
 - Extended the existing deterministic Experiment sequence with an independent
-  Flicker selection mask so gate count and existing color/spacing PRNG output
+  Hidden selection mask so gate count and existing color/spacing PRNG output
   remain unchanged.
 - Added a pure-Core one-way visibility state used by the pooled gate View.
 - Reused effective-speed ETA, existing materials, rich-text symbol alpha,
   ordinary judgment, failure, Retry/Replay, Launcher, and six-View pool.
-- Disabled Booster only for the Flicker Launcher condition.
+- Disabled Booster only for the Hidden Launcher condition.
 
 Validation and learning
 
@@ -498,8 +498,97 @@ Validation and learning
 
 Deferred
 
-- Campaign Flicker.
-- Flicker combined on a gate with Camouflage, Fog, Ice, or Echo Provider.
-- Color-changing or reappearing Flicker.
+- Campaign Hidden.
+- Hidden combined on a gate with Camouflage, Fog, Ice, or Echo Provider.
+- A color-changing mechanic, implemented later as the distinct Flicker.
 - Repeating flash patterns.
 - New failure flow, input, package, Pattern metadata, or Section metadata.
+
+## Iteration 7 Hidden migration and color-cycling Flicker
+
+Status
+
+- Implemented / Human Review Pending
+
+Play
+
+- The existing memory mechanic must remain intact but its Flicker name
+  conflicts with a newly approved visible color-cycling timing mechanic.
+
+Analyze
+
+- Existing Flicker owns serialized enum values `16` and `5`, deterministic
+  sequence selection, one-way visibility state, ordinary judgment, and pooled
+  presentation.
+- Experiment Gameplay Time already advances only while Playing and resets on
+  Retry/Replay, so it can be the single absolute time source.
+
+Design
+
+- Rename the existing mechanic to Hidden while preserving enum numbers,
+  serialized Launcher fields, seed-selected gate IDs, hide timing, and
+  judgment.
+- Add new numeric values for a visible two-/three-color Flicker modifier.
+- Store deterministic cycle colors and phase in the gate plan; use one pure
+  Core time calculation for View, collision judgment, tests, and simulation.
+- Require minimum pooled-view exposure, retain Player/Echo/Shield/Failure,
+  disable Booster, and defer Campaign, music, and modifier combinations.
+
+Baseline
+
+- Clean worktree; EditMode 262/262; PlayMode 134/134.
+- Echo/former-Flicker targeted cases 12/12.
+- Campaign three hashes and Step 10 five hashes exactly match Iteration 6.
+- Package and ProjectSettings diffs are empty.
+
+Implementation
+
+- Preserved the former modifier/mechanic values `16` and `5` as Hidden and
+  assigned new Flicker values `32` and `6`.
+- Renamed the former settings, runtime visibility state, pooled View state,
+  Launcher choice, marker, tests, and logs to Hidden without changing the
+  hide contract.
+- Mapped every former Launcher field name to Hidden with
+  `FormerlySerializedAs`. New Flicker fields use a separate
+  `colorCycleFlicker` prefix so old serialized values cannot bind to them.
+- Extended the existing deterministic Experiment plan with fixed unique
+  cycle colors, interval, deterministic phase offset, transition pulse,
+  Gate ID, base color, and selection seed.
+- Added one pure-Core absolute Gameplay Time phase calculation shared by
+  presentation, collision judgment, simulator, and tests. Exact boundaries
+  select the new phase.
+- Kept Player, Echo, Shield, and ordinary failure behavior on the shared
+  resolution path. Hidden and Flicker Launcher conditions disable Booster.
+- Reused the fixed six-View pool and existing spacing/speed ETA calculation
+  for minimum visible-cycle eligibility.
+
+Validation
+
+- EditMode 281/281 passed.
+- PlayMode 143/143 passed before scene regeneration.
+- Scene Builder succeeded twice; the regenerated scene then passed PlayMode
+  143/143.
+- Echo 27/27, Shield 29/29, Camouflage 9/9, Hidden 25/25, Flicker 27/27,
+  and Experiment Runtime 5/5 related cases passed.
+- The full Stage 1-11 campaign regression wrote 220 rows, including the
+  requested Stage 1-5 coverage, and reproduced all three baseline hashes.
+- Step 10 wrote 80 rows and 64,016 runs and reproduced all five baseline
+  hashes.
+- Missing MonoBehaviour, required references, pools, duplicate roots, Lab
+  return/re-entry, Package manifest/lock, and ProjectSettings checks passed.
+
+Learning
+
+- `FormerlySerializedAs` is not enough if a new field reuses the exact former
+  name. Keeping the new Flicker serialized namespace distinct is required to
+  make the old-to-Hidden migration unambiguous.
+- A View can be rebound to the next pooled gate immediately after crossing;
+  collision tests must capture the pre-crossing presentation color and compare
+  it with the session's recorded authoritative judgment color.
+
+Human feedback required
+
+- Hidden/Flicker concept separation.
+- Two- and three-color switch speed and collision-boundary comprehension.
+- Pulse, symbol synchronization, Echo/Shield explanation, portrait
+  readability, and minimum observation at speed.

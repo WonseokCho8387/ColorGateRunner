@@ -465,7 +465,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 plan.GateIndex - 2,
                 definition.Camouflage.RevealLeadTimeSeconds + 1f,
                 definition.Camouflage,
-                definition.Flicker);
+                definition.Hidden,
+                definition.Flicker,
+                0f);
             Vector3 before = gate.transform.position;
             Assert.That(gate.SymbolVisible, Is.False);
 
@@ -474,7 +476,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 definition.Camouflage.RevealLeadTimeSeconds,
                 neutral,
                 definition.Camouflage,
+                definition.Hidden,
                 definition.Flicker,
+                0f,
                 definition.Camouflage.RevealTransitionSeconds);
 
             Assert.That(gate.SymbolVisible, Is.True);
@@ -486,7 +490,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 definition.Camouflage.RevealLeadTimeSeconds + 5f,
                 neutral,
                 definition.Camouflage,
+                definition.Hidden,
                 definition.Flicker,
+                0f,
                 0f);
             Assert.That(
                 gate.SymbolVisible,
@@ -525,7 +531,9 @@ namespace ColorGateRunner.Tests.PlayMode
                     definition.FogStartGate,
                     float.PositiveInfinity,
                     definition.Camouflage,
-                    definition.Flicker);
+                    definition.Hidden,
+                    definition.Flicker,
+                    0f);
                 visible += gate.SymbolVisible ? 1 : 0;
             }
 

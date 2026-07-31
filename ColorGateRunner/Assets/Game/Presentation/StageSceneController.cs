@@ -1145,7 +1145,9 @@ namespace ColorGateRunner.Presentation
                 _experimentSession.GatesPassed,
                 EstimateExperimentGateEta(plan, _nextGateZ),
                 _experimentSession.Definition.Camouflage,
-                _experimentSession.Definition.Flicker);
+                _experimentSession.Definition.Hidden,
+                _experimentSession.Definition.Flicker,
+                _experimentSession.ElapsedPlayingSeconds);
             _nextPlanIndex++;
         }
 
@@ -1182,7 +1184,9 @@ namespace ColorGateRunner.Presentation
             }
 
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
-            bool resolved = _experimentSession.Resolve(plan);
+            bool resolved = _experimentSession.Resolve(
+                plan,
+                _experimentSession.ElapsedPlayingSeconds);
             GateOutcome outcome;
             if (resolved)
             {
@@ -1342,7 +1346,9 @@ namespace ColorGateRunner.Presentation
                             gate.transform.position.z),
                         _normalTrackMaterial,
                         _experimentSession.Definition.Camouflage,
+                        _experimentSession.Definition.Hidden,
                         _experimentSession.Definition.Flicker,
+                        _experimentSession.ElapsedPlayingSeconds,
                         deltaSeconds);
                 }
             }

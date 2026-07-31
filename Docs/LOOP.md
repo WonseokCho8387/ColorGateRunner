@@ -175,11 +175,11 @@ human decisions after automation.
 
 ---
 
-Current Flicker Cycle
+Historical Hidden Cycle (originally named Flicker)
 
 Play
 
-Human play approved a standalone Flicker Experiment contract: show target
+Human play approved a standalone Hidden Experiment contract: show target
 information first, hide it once near judgment, then require memory while the
 ordinary gate remains physically readable.
 
@@ -188,7 +188,7 @@ ordinary gate remains physically readable.
 Analyze
 
 The shared Gate Modifier, deterministic Experiment sequence, effective-speed
-ETA, ordinary judgment priority, and six-View pool can support Flicker without
+ETA, ordinary judgment priority, and six-View pool can support Hidden without
 a second gameplay system.
 
 ↓
@@ -212,7 +212,7 @@ Retry/Replay, and judgment.
 
 Tests
 
-262 EditMode and 133 PlayMode passed. The twice-built scene passed all 133
+262 EditMode and 134 PlayMode passed. The twice-built scene passed all 134
 PlayMode tests again. Campaign and all five Step 10 artifacts reproduced exact
 baseline hashes.
 
@@ -223,6 +223,57 @@ Experiment
 Observation duration, hide lead, transition clarity, memory interval, retained
 gate readability, Echo/Shield comprehension, portrait readability, and
 repeat-entry fatigue remain human decisions.
+
+---
+
+Current Hidden / Color-Cycling Flicker Cycle
+
+Play
+
+The current hide-on-approach behavior must remain as a memory mechanic named
+Hidden. A separate visible color-cycle mechanic is approved as Flicker.
+
+↓
+
+Analyze
+
+Existing enum values and serialized Launcher fields require explicit
+migration. Experiment elapsed Playing time, shared judgment, deterministic
+sequence planning, and the fixed View pool already provide the required
+boundaries.
+
+↓
+
+Design
+
+Preserve Hidden values and seed results. Give new Flicker new values,
+deterministic two-/three-color plans, absolute Gameplay Time calculation,
+collision-time judgment, minimum pooled exposure, and a distinct persistent
+marker.
+
+↓
+
+Codex
+
+Implementation preserved former numeric values and seed results as Hidden,
+gave color-cycling Flicker distinct values and serialized field names, and
+reused the deterministic plan, Gameplay Time, shared judgment, and fixed pool.
+
+↓
+
+Tests
+
+Final EditMode is 281/281. PlayMode is 143/143 before and after two successful
+Scene Builder runs. All three campaign and five Step 10 hashes remain exact.
+
+↓
+
+Experiment
+
+Human review now owns concept separation, `0.50s` switching speed, three-color
+difficulty, boundary comprehension, pulse, symbols, Echo/Shield feedback,
+minimum visible cycles, and mobile readability. Automated results do not
+decide those qualities.
 
 ---
 

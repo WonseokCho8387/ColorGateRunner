@@ -2,9 +2,9 @@
 
 Version
 
-Iteration 6
+Iteration 7
 
-(Flicker-only Experiment complete)
+(Hidden migration and color-cycling Flicker implemented / human review pending)
 
 ---
 
@@ -87,19 +87,21 @@ Test Build Tooling
   sequential command. Actual APK and browser output remain manual acceptance
   checks from the original editor.
 
-Authoritative Iteration 6 Result
+Authoritative Iteration 6 Result (now Hidden)
 
-- Flicker is a flag on the shared ordinary-gate `GateModifier`. It adds no
-  gate, generator, collision path, judgment path, or pool object.
-- `FlickerSettings` validates the approved Inspector-authored fields. The
+- The memory mechanic then named Flicker, now named Hidden, is a flag on the
+  shared ordinary-gate `GateModifier`. It adds no gate, generator, collision
+  path, judgment path, or pool object.
+- Its settings, now `HiddenSettings`, validate the approved
+  Inspector-authored fields. The
   Launcher converts its serialized values into the pure-Core settings and
-  disables Booster for Flicker-only runs.
-- The existing deterministic Experiment sequence selects stable Flicker gate
+  disables Booster for Hidden-only runs.
+- The existing deterministic Experiment sequence selects stable Hidden gate
   IDs without changing color/spacing PRNG output, gate count, or Step 10.
 - A pure-Core visibility state requires both minimum readable time and shared
   effective-speed ETA, starts one transition, and never reveals target
   information again before judgment.
-- The pooled View begins with target color/symbol plus a persistent `FLICKER`
+- The pooled View begins with target color/symbol plus a persistent `HIDDEN`
   identity. Hide blends to the existing neutral silhouette and removes only
   target symbol information; geometry, judgment opening, transform, collider,
   and marker remain.
@@ -107,7 +109,7 @@ Authoritative Iteration 6 Result
   Retry/Replay reproduce selection and reset visibility state.
 - Campaign Stages 1-11 and the 16-condition Step 10 matrix are unchanged.
 
-The initial Flicker settings are Inspector-authored human-play candidates:
+The initial Hidden settings are Inspector-authored human-play candidates:
 eligible progress `0.15-0.85`, chance `0.35`, cooldown `2`, visible duration
 `1.00s`, hide lead `0.65s`, transition `0.12s`, maximum `4`, and guaranteed
 first occurrence. Booster is disabled for this standalone condition.
@@ -124,16 +126,84 @@ Iteration 6 Validation
 - Step 10: all five CSV/JSON/summary/comparison/shortlist hashes are
   byte-identical to the approved baseline.
 - Packages and ProjectSettings have no intended feature change. Automated
-  results do not establish Flicker readability, comfort, comprehension,
+  results do not establish Hidden readability, comfort, comprehension,
   fairness, satisfaction, motivation, or fun.
+
+Iteration 7 Baseline
+
+- Clean worktree and `git diff --check`.
+- EditMode 262/262 and PlayMode 134/134.
+- Echo and former-Flicker targeted PlayMode cases 12/12.
+- Campaign Summary/JSON/CSV and all five Step 10 hashes match Iteration 6.
+- Package manifest/lock and ProjectSettings diffs are empty.
+
+Iteration 7 Approved Contract
+
+- Existing `Flicker = 16` gate modifier and mechanic value `5` become Hidden
+  with identical selection, hide, judgment, View, and Retry/Replay behavior.
+- New Flicker uses new enum values and cycles two or three unique active
+  colors. The collision-time color from
+  `ExperimentSession.ElapsedPlayingSeconds` is authoritative.
+- Gate plans fix cycle colors, interval, deterministic phase, pulse, base
+  color, Gate ID, and seed-derived data. View and judgment share the same Core
+  active-color calculation.
+- Minimum visible cycles are checked from existing deterministic speed,
+  spacing, and six-View exposure. Booster is disabled.
+- Player → Echo → Shield → Failure remains unchanged.
+- Campaign, music/BPM/DSP, Hidden/Flicker or other modifier combinations,
+  speed-based interval adjustment, new colors/input, and Stage 6-11 work are
+  out of scope.
+
+Iteration 7 Result
+
+- The old modifier and mechanic numeric values `16` and `5` now deserialize
+  as Hidden. New Flicker uses values `32` and `6`.
+- Every former Launcher field has explicit `FormerlySerializedAs` migration
+  metadata. New Flicker fields use a distinct `colorCycleFlicker` serialized
+  prefix, so no old field name can bind to the new mechanic.
+- Hidden preserves the former seed-selected gate IDs, ETA-based one-way hide,
+  neutral silhouette, ordinary judgment, held Echo/Shield behavior, and
+  Retry/Replay reset.
+- Flicker remains an ordinary gate modifier. Its plan fixes the base color,
+  two or three unique cycle colors, interval, deterministic phase offset,
+  pulse, Gate ID, and selection seed without changing gate count.
+- `FlickerCycleCalculator` is the single pure-Core phase path used by the
+  View, collision-time judgment, simulation, and tests. An exact interval
+  boundary uses the new phase.
+- Experiment Gameplay Time advances only in Playing, freezes in Countdown,
+  Failed, and StageCleared, and resets on Retry/Replay.
+- Collision priority remains Player, held Echo, Booster if already present in
+  a constructed session, Shield, then ordinary failure. The Launcher disables
+  Booster for both Hidden-only and Flicker-only runs.
+- The pooled View shows `HIDDEN` for the memory mechanic and `FLICKER` for the
+  color cycle. Flicker color and symbol derive from the same Core color, with
+  only a short brightness pulse above the immediate logical change.
+
+Iteration 7 Validation
+
+- EditMode: 281/281 passed.
+- PlayMode: 143/143 passed before Scene Builder and 143/143 passed again after
+  two consecutive successful Scene Builder runs.
+- Related passed cases: Echo 27/27, Shield 29/29, Camouflage 9/9, Hidden
+  25/25, Flicker 27/27, and Experiment Runtime 5/5.
+- The full Stage 1-11 campaign regression wrote 220 matrix rows, including
+  the requested Stage 1-5 coverage; Summary, JSON, and CSV hashes are
+  byte-identical to the Iteration 6 baseline.
+- Step 10 wrote 80 rows and 64,016 runs; all five
+  CSV/JSON/summary/comparison/shortlist hashes are byte-identical.
+- The rebuilt scene has no Missing MonoBehaviour, required-reference, pool,
+  duplicate-root, or Lab return/re-entry failure in the final PlayMode suite.
+- Package manifest/lock and ProjectSettings have no intended change.
+- Automated validation does not establish switching comfort, concept
+  comprehension, boundary readability, fairness, satisfaction, or fun.
 
 Next Iteration
 
-After automated validation, perform Flicker human play on portrait mobile and
-browser builds. Record concept recognition, observation duration, hide timing,
-memory interval, transition clarity, retained gate position, Echo/Shield
-comprehension, portrait readability, and repeat-entry fatigue before changing
-balance or expanding scope.
+Perform portrait-device human play review of Hidden/Flicker concept
+separation, `0.50s` two-color timing, three-color difficulty, collision
+boundary comprehension, pulse/symbol clarity, Echo/Shield explanation, and
+minimum observation at speed. Do not apply Flicker to Campaign or combine
+modifiers until that feedback is reviewed.
 
 ---
 
