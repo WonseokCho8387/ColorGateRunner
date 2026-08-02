@@ -2,10 +2,64 @@
 
 Version
 
-Iteration 9
+Iteration 10
 
-(Commercial Flow Foundation: Boot, AppRoot, local Guest, and versioned local
-save implemented / human review pending)
+(Commercial Frontend Shell: Frontend Scene, Title, placeholder Lobby,
+Boot-to-Frontend routing, and Campaign handoff implemented / human review
+pending)
+
+---
+
+Commercial Flow Foundation Frontend Iteration 2 Result
+
+- `Frontend.unity` is Build Index 1 between Boot and the existing Campaign
+  `SampleScene`. Boot serializes Frontend as its destination; Frontend
+  separately serializes the existing active Campaign path. Runtime does not
+  hardcode the `SampleScene` name.
+- One `FrontendPageRouter` owns the Title/Lobby Page, blocking Modal, and
+  Transition state. Page Views do not activate one another or load Scenes.
+- Title shows the initialized Guest display name, truthful `GUEST` state,
+  version, account-unavailable notice, and read-only Settings summary. Empty
+  Terms/Privacy/Support actions are hidden.
+- Placeholder Lobby shows `CONTINUE CAMPAIGN` without reading or estimating
+  Stage progress. Currency, Event, Notification, and Lobby-theme slots remain
+  inactive and consume no layout space.
+- Frontend contains no AppRoot. It captures an immutable display Context from
+  the Boot-initialized AppRoot. Direct Frontend execution without AppRoot
+  displays blocking `BOOT REQUIRED` and disables Campaign entry.
+- Lobby Back returns to Title, Title Back opens Exit Confirmation, a
+  cancellable Modal consumes Back, and Transition state ignores Back and
+  blocks duplicate input.
+- Campaign entry loads the existing Scene once and retains its current Lobby,
+  PreRun, Gameplay, result, progress, and return contracts. No Campaign-to-
+  Frontend route was added.
+- The approved portrait/Input baseline was first restored in isolated commit
+  `c191826`; this Iteration does not modify `ProjectSettings.asset` again.
+
+Iteration 10 Validation
+
+- EditMode: `335/335` passed. PlayMode: `160/160` passed. The same counts pass
+  after all final Builder runs.
+- Frontend Builder succeeded twice, Boot Builder succeeded twice, and the
+  Campaign Builder completed its two-build command successfully. Required
+  references, Safe Area, one EventSystem, one primary Page, unique generated
+  roots, and no Missing Script were validated.
+- Stage 1-13 Campaign simulation remains 260 rows and preserves Summary/JSON/
+  CSV hashes `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 remains 80 rows and preserves all five approved hashes. Package
+  manifest/lock hashes remain unchanged. The only ProjectSettings change in
+  this Iteration is adding Frontend to `EditorBuildSettings.asset`.
+- Human review remains required for 9:16 small-screen readability, Boot-to-
+  Title and Lobby-to-Campaign transition feel, Android Back behavior, UI input
+  leakage on devices, and the intentional new-Lobby/old-Lobby UX handoff.
+
+Deferred after Iteration 10
+
+- Final Lobby, Campaign Page, Stage Detail, Gameplay/Results shells,
+  StageProgressService integration, Campaign-to-Frontend navigation, external
+  account/cloud, economy, events, analytics, ads, IAP, and final visual art.
 
 ---
 

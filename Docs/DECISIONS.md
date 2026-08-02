@@ -859,3 +859,31 @@ Status: Implemented.
 - Until Frontend Iteration 2, successful Boot initialization enters the
   existing Campaign Scene. Title, Lobby redesign, page routing, login/cloud,
   economy, content, events, analytics, ads, and IAP remain deferred.
+
+## Commercial Flow Foundation Frontend 2
+
+Status: Implemented.
+
+- Player entry is now Boot -> Frontend Title -> placeholder Lobby -> existing
+  Campaign Scene. Build Settings contain exactly Boot, Frontend, and Campaign
+  in that order, with independent serialized destination paths.
+- `FrontendPageRouter` is the sole owner of Page, blocking Modal, and
+  Transition state. Primary Page Views neither activate peers nor load Scenes.
+- Frontend contains no AppRoot and creates no fallback service graph. Its Scene
+  composition boundary reads the Boot-initialized AppRoot once and exposes an
+  immutable display Context. Missing AppRoot is a blocking `BOOT REQUIRED`
+  state and Campaign remains unavailable.
+- Placeholder Lobby does not read Stage PlayerPrefs or display guessed Stage
+  numbers/progress. `CONTINUE CAMPAIGN` enters the existing Campaign Lobby,
+  which remains the sole UI reader of current campaign progression.
+- Empty Currency, Event, Notification, Lobby-theme, and legal actions remain
+  hidden. Account linking is reported as unavailable and never as linked.
+- Lobby Back returns to Title; Title Back requests exit confirmation; Modal
+  consumes Back when cancellable; Back and repeated navigation are ignored
+  while transitioning.
+- Campaign Scene, `StageSceneController`, Stage data, gameplay, progression,
+  and Campaign-to-Frontend navigation are unchanged. The temporary transition
+  from the new Lobby to the existing Campaign Lobby is accepted.
+- Existing Product, Core, and Package boundaries remain unchanged. The only
+  Iteration-specific ProjectSettings change is the Frontend entry in
+  `EditorBuildSettings.asset`.

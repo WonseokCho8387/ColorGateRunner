@@ -4,7 +4,8 @@
   "references": [
     "ColorGateRunner.Core",
     "ColorGateRunner.Product",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

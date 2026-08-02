@@ -843,3 +843,83 @@ Human feedback required
 - Confirm local-save error and Retry text are understandable.
 - Confirm Android and WebGL restarts preserve the Guest and existing Stage
   progression, including after a forced close.
+
+## Iteration 10 — Commercial Flow Foundation Frontend 2
+
+### Play
+
+- Iteration 9 entered the existing Campaign Scene directly after Boot. There
+  was no Title, standalone Frontend Scene, Page Router, or product-facing home
+  shell.
+- The Campaign Scene already opened its authoritative Lobby and required no
+  external launch Context.
+
+### Analyze
+
+- Reusing the existing Campaign Lobby inside Frontend would couple new Page
+  state to gameplay presentation. A small Frontend Scene can instead hand off
+  to the unchanged Campaign Scene.
+- Reading Stage PlayerPrefs for a placeholder recommendation would add a new
+  progress reader before the approved progression integration. Generic
+  `CONTINUE CAMPAIGN` avoids false information and duplicate ownership.
+- AppRoot's existing Scene-lifetime boundary can provide a one-time immutable
+  display Context without a new locator, singleton, or Product service.
+
+### Design
+
+- One Router owns Title/Lobby Page, Modal, and Transition state. One Scene
+  Controller binds uGUI Views, Back input, AppRoot Context, and serialized
+  Scene loading.
+- Direct Frontend execution has no hidden bootstrap. It shows blocking
+  `BOOT REQUIRED` and disables Campaign.
+- Builder selection resolves Campaign from active Build Settings before
+  producing exact Boot/Frontend/Campaign order and serializing both routing
+  edges.
+
+### Implementation
+
+- Added `Frontend.unity`, pure Router and display Context, Frontend Scene
+  Controller, uGUI Title/Lobby/Modal/Loading/blocker shell, and one EventSystem.
+- Added truthful Guest/account/settings presentation, hidden empty legal and
+  future slots, Back rules, duplicate transition protection, and typed Scene
+  load failure display.
+- Added an idempotent Frontend Builder and explicit Boot destination overload.
+  Existing Campaign Scene and `StageSceneController` were not modified.
+
+### Validation
+
+- EditMode `335/335`; PlayMode `160/160`. Both counts pass after final Builder
+  runs.
+- Frontend Builder twice, Boot Builder twice, and Campaign Builder's two-build
+  command succeeded. No duplicate root, Camera, Canvas, EventSystem, Page,
+  listener, Missing Script, or Missing Reference was found.
+- Campaign remains 260 rows with all three hashes unchanged. Step 10 remains
+  80 rows with all five hashes unchanged.
+- Package manifest/lock retain approved hashes. `ProjectSettings.asset` is
+  unchanged after baseline commit `c191826`; `EditorBuildSettings.asset` adds
+  Frontend at Index 1 only.
+
+### Learning
+
+- A placeholder frontend is safest when it admits missing information instead
+  of becoming a temporary progress authority.
+- A Scene boundary may resolve the one persistent composition root and then
+  immediately reduce it to an immutable View Context; Pages need no service
+  access.
+- Explicit serialized routing edges keep Boot and Frontend independently
+  testable while avoiding runtime Scene-name inference.
+
+### Deferred
+
+- Final Lobby, Campaign Page, Stage Detail, Gameplay/Results shell,
+  StageProgressService, Campaign-to-Frontend navigation, account/cloud,
+  economy, events, analytics, ads, IAP, and final art.
+
+### Human Review
+
+- Confirm Boot -> Title and Lobby -> existing Campaign Lobby transitions feel
+  understandable rather than repetitive.
+- Confirm Guest/account/settings wording and primary actions are readable at
+  9:16 small mobile sizes.
+- Confirm Android Back, rapid taps, Modal dismissal, and UI-to-gameplay input
+  isolation on Android and WebGL devices.

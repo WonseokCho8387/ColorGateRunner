@@ -15,7 +15,7 @@ namespace ColorGateRunner.Tests.PlayMode
     public sealed class ProductBootPlayModeTests
     {
         private const string BootPath = "Assets/Scenes/Boot.unity";
-        private const string CampaignPath = "Assets/Scenes/SampleScene.unity";
+        private const string FrontendPath = "Assets/Scenes/Frontend.unity";
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -61,7 +61,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Object.FindFirstObjectByType<BootSceneController>();
             Assert.That(controller, Is.Not.Null);
             Assert.That(controller.DestinationScenePath,
-                Is.EqualTo(CampaignPath));
+                Is.EqualTo(FrontendPath));
             Assert.That(controller.DestinationScenePath,
                 Is.Not.EqualTo(BootPath));
             Assert.That(controller.ErrorPanel.activeSelf, Is.True);
@@ -69,7 +69,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator SuccessfulBoot_LoadsProfileBeforeCampaignTransition()
+        public IEnumerator SuccessfulBoot_LoadsProfileBeforeFrontendTransition()
         {
             var save = new FixedSaveService(CreateSavedProfile());
             AppRoot.SetTestGraphFactory(() => CreateGraph(save));
@@ -77,10 +77,10 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync(
                 BootPath,
                 LoadSceneMode.Single);
-            yield return WaitForScene(CampaignPath);
+            yield return WaitForScene(FrontendPath);
 
             Assert.That(SceneManager.GetActiveScene().path,
-                Is.EqualTo(CampaignPath));
+                Is.EqualTo(FrontendPath));
             AppRoot root = Object.FindFirstObjectByType<AppRoot>();
             Assert.That(root, Is.Not.Null);
             Assert.That(root.Graph.Profile.Current.ProfileId,
@@ -115,7 +115,7 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return null;
 
             Assert.That(loader.LoadCount, Is.EqualTo(1));
-            Assert.That(loader.LastPath, Is.EqualTo(CampaignPath));
+            Assert.That(loader.LastPath, Is.EqualTo(FrontendPath));
             Assert.That(controller.ErrorPanel.activeSelf, Is.False);
             Assert.That(graphCount, Is.EqualTo(1));
             Assert.That(

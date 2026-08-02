@@ -741,6 +741,10 @@ Implementation status: Completed in Iteration 9.
 - Existing Stage PlayerPrefs remain the single progression owner. The new save
   has no Stage section and performs no read, write, copy, reset, or migration
   of Stage data. Product Iteration 2 remains separately deferred.
+- Frontend Iteration 2 now consumes the initialized AppRoot graph only at its
+  Scene composition boundary and converts Profile, Account, and Settings into
+  an immutable display Context. It creates no service, writes no Product or
+  Stage data, and blocks direct Campaign entry when AppRoot is absent.
 
 ## Product Iteration 2 — Progression integration
 

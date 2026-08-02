@@ -20,7 +20,14 @@ namespace ColorGateRunner.Editor
         [MenuItem("Tools/Color Gate Runner/Build Boot Scene", priority = 20)]
         public static void BuildBootScene()
         {
-            string destinationPath = SelectDestinationScenePath(
+            BuildBootScene(SelectDestinationScenePath(
+                EditorBuildSettings.scenes));
+        }
+
+        internal static void BuildBootScene(string destinationPath)
+        {
+            ValidateExplicitDestination(
+                destinationPath,
                 EditorBuildSettings.scenes);
             Scene scene = EditorSceneManager.NewScene(
                 NewSceneSetup.EmptyScene,
@@ -117,6 +124,35 @@ namespace ColorGateRunner.Editor
             }
 
             return result.ToArray();
+        }
+
+        internal static void ValidateExplicitDestination(
+            string destinationPath,
+            EditorBuildSettingsScene[] scenes)
+        {
+            if (string.IsNullOrWhiteSpace(destinationPath) ||
+                PathsEqual(destinationPath, ScenePath))
+            {
+                throw new InvalidOperationException(
+                    "Boot destination must be an explicit non-Boot Scene.");
+            }
+            if (scenes == null)
+            {
+                throw new InvalidOperationException(
+                    "Build Settings scenes are unavailable.");
+            }
+
+            for (int index = 0; index < scenes.Length; index++)
+            {
+                if (scenes[index].enabled &&
+                    PathsEqual(scenes[index].path, destinationPath))
+                {
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "The explicit Boot destination is not active.");
         }
 
         private static void EnsureBootFirstInBuildSettings()

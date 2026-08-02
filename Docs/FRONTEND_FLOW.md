@@ -2,7 +2,9 @@
 
 ## Status
 
-Approved commercial-flow design baseline. Implementation pending.
+Approved commercial-flow design baseline. Frontend Iterations 1 and 2 are
+implemented; later Lobby, Campaign, Stage Detail, Gameplay, and Results work
+remains pending.
 
 This document defines the target player-facing Scene, page, overlay, and
 navigation structure. It does not change gameplay, balance, Stage data,
@@ -633,6 +635,19 @@ Implementation status: Completed in Iteration 9.
 - Safe Area.
 - Back handling.
 - Transition blocker.
+
+Implementation status: Completed in Iteration 10.
+
+- `Assets/Scenes/Frontend.unity` contains Title and placeholder Lobby as its
+  only primary Pages. One Router owns Page, Modal, and Transition state.
+- Boot enters Frontend, and Frontend uses a separately serialized active
+  Campaign path. Build Settings are Boot, Frontend, Campaign.
+- The shell reads an immutable Guest/Account/Settings display Context from the
+  existing AppRoot. Missing AppRoot produces blocking `BOOT REQUIRED`; no
+  alternate service graph is created.
+- Placeholder Lobby deliberately does not read Stage progression and shows
+  only `CONTINUE CAMPAIGN`. Empty future slots and legal actions are hidden.
+- Existing Campaign Lobby and navigation remain authoritative after entry.
 
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 

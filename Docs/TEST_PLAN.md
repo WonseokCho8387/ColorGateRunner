@@ -1457,3 +1457,68 @@ Any mismatch blocks implementation.
   close recovery behavior, and preservation of real Stage progress.
 - Automation does not claim visual polish, messaging comprehension, device-
   specific persistence durability, or transition satisfaction.
+
+## Iteration 10 — Commercial Flow Foundation Frontend 2
+
+### EditMode contract
+
+- Router initial Page is Title; Title and Lobby transitions are exclusive and
+  same-Page requests are safe.
+- Scene Transition rejects duplicate Page, Back, and Scene requests and clears
+  its blocker on completion or failure.
+- Modal owns Back before Page navigation; Lobby Back reaches Title and Title
+  Back requests Exit Confirmation.
+- Guest Profile, Account state, version, and Settings bind to an immutable
+  display Context. Missing Profile is `BOOT REQUIRED`; missing optional
+  Settings produces a hidden feature rather than a null action.
+- Frontend Campaign selection uses the first active non-Boot/non-Frontend
+  Scene without a `SampleScene` name dependency. Final Build Settings are
+  exactly Boot, Frontend, Campaign and all are enabled and unique.
+- Explicit Boot destination accepts active Frontend and rejects Boot, disabled,
+  or empty paths.
+
+### PlayMode contract
+
+- Successful Boot creates one AppRoot, loads Frontend once, shows Title, Guest
+  state, version, one primary Page, and one EventSystem.
+- Title -> Lobby, repeated input, Lobby Back, Account notice, Settings/Modal
+  Back, Exit Confirmation, and hidden legal/future slots remain stable.
+- Direct Frontend entry has no AppRoot, shows blocking `BOOT REQUIRED`, and
+  cannot load Campaign.
+- Failed Campaign load clears Loading and Transition blocker, reports one
+  error Modal, and does not repeat the load.
+- Campaign entry loads the existing Scene once, initializes its existing Lobby,
+  preserves Stage PlayerPrefs, and retains one persistent AppRoot.
+- Frontend re-entry does not duplicate AppRoot, EventSystem, Router listener,
+  or primary Page; repeated Title/Lobby navigation remains stable.
+
+### Final automated evidence
+
+- EditMode `335/335`; PlayMode `160/160`. Post-Builder results are also
+  `335/335` and `160/160`.
+- Frontend Builder run 1 and 2, Boot Builder run 1 and 2, and Campaign
+  Builder's two-build command all succeeded.
+- Campaign simulation remains 260 rows. Summary/JSON/CSV hashes are
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 remains 80 rows. CSV/JSON/Summary/Comparison/Shortlist hashes are
+  `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`,
+  `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`,
+  `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`,
+  `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`,
+  and `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`.
+- Package manifest/lock hashes remain
+  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+  and `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`.
+  `ProjectSettings.asset` is unchanged after the approved baseline restore;
+  only `EditorBuildSettings.asset` adds Frontend at Index 1.
+
+### Human acceptance
+
+- Check Boot -> Title and Lobby -> existing Campaign Lobby transition clarity.
+- Check 9:16 small-screen hierarchy, Guest/account/settings wording, Back
+  behavior, rapid-tap blocking, and no UI-to-gameplay input leakage on Android
+  and WebGL.
+- Automation does not claim final visual polish, transition satisfaction,
+  wording comprehension, or device-specific Back/input quality.

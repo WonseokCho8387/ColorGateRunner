@@ -101,5 +101,42 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(reordered.Any(scene =>
                 scene.enabled && scene.path == serializedDestination), Is.True);
         }
+
+        [Test]
+        public void ExplicitDestination_AcceptsActiveFrontendScene()
+        {
+            var scenes = new[]
+            {
+                new EditorBuildSettingsScene("Assets/Scenes/Boot.unity", true),
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/Frontend.unity",
+                    true),
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/Campaign.unity",
+                    true)
+            };
+
+            Assert.DoesNotThrow(() =>
+                BootSceneBuilder.ValidateExplicitDestination(
+                    "Assets/Scenes/Frontend.unity",
+                    scenes));
+        }
+
+        [TestCase("Assets/Scenes/Boot.unity")]
+        [TestCase("Assets/Scenes/Disabled.unity")]
+        [TestCase("")]
+        public void ExplicitDestination_RejectsInvalidScene(string path)
+        {
+            var scenes = new[]
+            {
+                new EditorBuildSettingsScene("Assets/Scenes/Boot.unity", true),
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/Disabled.unity",
+                    false)
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+                BootSceneBuilder.ValidateExplicitDestination(path, scenes));
+        }
     }
 }
