@@ -1,5 +1,139 @@
 # Test Plan
 
+## How to use this document
+
+`CURRENT_STATUS.md` owns the latest approved counts, hashes, Build Settings,
+and persistence snapshots. This file owns **what must be validated**.
+
+For every iteration:
+
+1. Apply the Standard Regression Suite below according to the change type.
+2. Add only the new feature-specific acceptance tests to the relevant
+   iteration section.
+3. Record final counts and artifact evidence in `CURRENT_STATUS.md` and the
+   iteration's final-evidence section.
+4. Do not copy the entire historical acceptance catalog into a Codex prompt.
+
+## Standard Regression Suite
+
+### A. Baseline gate — every iteration
+
+Before implementation:
+
+- verify `git status --short` and `git diff --check`;
+- verify the repository matches the Authoritative Baseline in
+  `CURRENT_STATUS.md`;
+- run the current full EditMode and PlayMode suites required by that baseline;
+- verify Package manifest/lock and `ProjectSettings.asset` against the
+  documented baseline;
+- preserve the Product save, Guest ID, and real Editor Campaign PlayerPrefs;
+- stop before implementation if the baseline differs unexpectedly.
+
+After implementation:
+
+- run targeted tests for the new or changed behavior;
+- run the full EditMode suite;
+- run the full PlayMode suite;
+- run `git diff --check`;
+- verify no Missing Script or Missing Reference;
+- verify no unrelated Package or ProjectSettings change;
+- compare persistence snapshots before and after tests;
+- update documentation only after validation succeeds.
+
+### B. Scene, UI, navigation, or Builder changes
+
+Additionally:
+
+- run every affected Builder twice consecutively;
+- run the full PlayMode suite after the final Builder runs;
+- verify one expected generated root per Builder-owned structure;
+- verify required serialized references;
+- verify EventSystem, AppRoot, router, overlay, and listener counts as
+  applicable;
+- verify Safe Area and portrait layout contracts;
+- verify Build Settings order, enabled state, uniqueness, and serialized Scene
+  destinations;
+- verify repeated navigation does not duplicate persistent or Scene objects;
+- verify UI input does not leak into gameplay.
+
+### C. Gameplay, deterministic content, stage data, timing, or balance changes
+
+Additionally:
+
+- run the complete Campaign deterministic simulation defined by the latest
+  baseline;
+- run Step 10's complete matrix and compare all required artifacts;
+- run all applicable player profiles and start-item combinations;
+- preserve deterministic seed, Retry, Replay, and stable Stage-ID contracts;
+- verify Gate and Track pools do not grow unexpectedly;
+- change only values explicitly approved as balance-tunable;
+- report mechanical results without claiming fun, fairness, readability, or
+  satisfaction.
+
+A pure presentation, product-shell, test-isolation, or documentation change
+may reuse the existing simulation artifacts only when Phase A proves that no
+simulation input or gameplay rule changed. The final report must still confirm
+that the approved hashes remain reproducible when the Standard Iteration
+Protocol requires a full regression run.
+
+### D. Product save, Profile, Settings, or account-state changes
+
+Additionally:
+
+- test default creation, validation, dirty state, roundtrip, and reload;
+- test supported migration and future-schema rejection;
+- test corrupt-primary and backup recovery according to
+  `PRODUCT_SYSTEMS.md`;
+- verify Guest ID stability unless identity replacement is explicitly
+  approved;
+- verify Campaign PlayerPrefs are not copied, reset, migrated, or written by
+  Product services unless a dedicated progression migration is approved;
+- verify save failures are reported truthfully and do not appear successful;
+- verify Frontend and Gameplay use the same authoritative Settings state when
+  both expose settings.
+
+### E. Campaign PlayerPrefs safety — every PlayMode fixture that can touch progress
+
+- Capture the complete Campaign key set before setup work:
+  `ColorGateRunner.Stage.HighestUnlocked` and Stage Records 1 through 13.
+- Preserve each key's existence and exact integer/string value.
+- Restore the snapshot in exception-safe cleanup after success, setup failure,
+  test failure, and teardown failure.
+- Delete only keys that did not exist before the fixture.
+- Call `PlayerPrefs.Save()` after restoration.
+- Compare the real Editor before/after snapshot count and SHA-256 when running
+  the full PlayMode suite.
+- Never use unconditional cleanup deletion or guessed defaults.
+
+### F. Documentation-only changes
+
+- No Unity runtime implementation is required unless the documentation claim
+  needs verification.
+- Run formatting/link/path checks appropriate to the edited files.
+- Do not update runtime test counts or hashes without executing the relevant
+  suites.
+- Preserve historical evidence.
+
+### G. Human review policy
+
+Automation can validate state, timing, bounds, hierarchy, visibility flags,
+and deterministic results. Human review is still required for:
+
+- fun, fairness, pacing feel, cognitive load, and satisfaction;
+- mobile readability, notch/rounded-corner comfort, and touch ergonomics;
+- transition feel, wording comprehension, and visual hierarchy;
+- whether Pause dimming prevents useful future-Gate scouting;
+- Android/WebGL platform-specific Back, focus, audio, vibration, and input
+  behavior;
+- final visual polish.
+
+Human review findings must be recorded separately from automated acceptance.
+
+## Feature and Historical Acceptance Catalog
+
+The sections below retain detailed tests and evidence for implemented features
+and past iterations. They are not a checklist to paste into every prompt.
+
 ## EditMode automated
 
 ### Initial and restart values

@@ -1,5 +1,104 @@
 # Current Status
 
+## Authoritative Baseline
+
+This section is the single current baseline for routine Codex iterations.
+Historical counts and hashes later in this file remain evidence for their own
+iterations but do not override this section.
+
+### Repository
+
+- Approved HEAD: `5ee40c49ea07030d0c46a36a1e7a78847a8abe10`
+- Commit: `fix: isolate campaign progress playmode tests`
+- Branch at completion: `main`
+- Expected working tree: clean
+- Push status at completion: not pushed
+
+### Current product state
+
+- Current completed iteration: **Iteration 11 — Campaign Progress Restore Test
+  Isolation Hotfix**.
+- Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
+- Frontend currently contains Title and Placeholder Lobby. It does not contain
+  an AppRoot and reuses the Boot-created persistent AppRoot.
+- Campaign progress remains device-wide `PlayerPrefs` owned solely by
+  `PlayerPrefsStageProgressStore`; it is not scoped to Product Guest identity.
+- Product save schema remains version 1 and owns Profile and Settings only.
+- Account-choice completion, returning-run automatic Lobby entry, editable
+  Settings UI, Gameplay Pause, and Campaign-to-Frontend Lobby return are not
+  implemented yet.
+
+### Automated validation
+
+- EditMode: `335/335`
+- PlayMode: `167/167`
+- Post-Builder PlayMode: `167/167`
+- Frontend Builder: 2 consecutive successful runs
+- Boot Builder: 2 consecutive successful runs
+- Campaign Builder: 2 consecutive successful runs
+- Missing Script / Missing Reference / duplicate generated object failures:
+  none
+
+### Build Settings
+
+1. `Assets/Scenes/Boot.unity`
+2. `Assets/Scenes/Frontend.unity`
+3. `Assets/Scenes/SampleScene.unity`
+
+All three entries are expected to be enabled and unique.
+
+### Campaign simulation baseline
+
+- Rows: `260`
+- Summary SHA-256:
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`
+- JSON SHA-256:
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`
+- CSV SHA-256:
+  `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`
+
+### Step 10 simulation baseline
+
+- Report rows: `80`
+- Simulation runs: `64,016`
+- CSV SHA-256:
+  `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`
+- JSON SHA-256:
+  `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`
+- Summary SHA-256:
+  `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`
+- Comparison SHA-256:
+  `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`
+- Shortlist SHA-256:
+  `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
+
+### Persistence safety baseline
+
+- Campaign PlayerPrefs snapshot contains Highest Unlocked plus Stage Record
+  keys 1-13 when present and must be restored exactly after tests.
+- Actual Editor snapshot at Iteration 11 completion:
+  - existing entries: `11`
+  - SHA-256:
+    `2A8AF71352FCCF9D80C8BDCB9BDC89FC3F61A7B356633C3423A847F576D0B6C9`
+- Product save hash and Guest ID must remain unchanged unless the approved
+  iteration explicitly changes Product save data.
+- Values deleted before Iteration 11 are unknown and must not be guessed.
+
+### Package and ProjectSettings baseline
+
+- `Packages/manifest.json` SHA-256:
+  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+- `Packages/packages-lock.json` SHA-256:
+  `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`
+- `ProjectSettings/ProjectSettings.asset` must match the approved portrait,
+  custom WebGL template, and Input Actions preload baseline restored by
+  `c191826`.
+- Routine iterations must not redefine these values. Any intended Package or
+  ProjectSettings change requires explicit approval and a new documented
+  baseline.
+
+## Latest Iteration Result and History
+
 Version
 
 Iteration 11
