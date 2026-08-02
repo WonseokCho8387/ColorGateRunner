@@ -923,3 +923,80 @@ Human feedback required
   9:16 small mobile sizes.
 - Confirm Android Back, rapid taps, Modal dismissal, and UI-to-gameplay input
   isolation on Android and WebGL devices.
+
+## Iteration 11 — Campaign Progress Restore Test Isolation Hotfix
+
+### Play
+
+- In Unity Editor, Campaign could first show Stage 1 and later return to an
+  older Stage 11 progression state. Product Guest and Campaign persistence
+  were already separate by contract.
+- Current Editor storage was partial: prior Records remained while Highest
+  Unlocked and Stage 6 Record were absent. Their deleted values were unknown.
+
+### Analyze
+
+- Runtime Campaign entry synchronously reloads one device-wide
+  `PlayerPrefsStageProgressStore`, selects the lowest uncleared unlocked Stage,
+  and carries the displayed Stage's stable ID into PreRun and Gameplay.
+- Two PlayMode fixtures deleted Highest Unlocked and Stage 6 Record in setup or
+  teardown without snapshotting prior values. Windows Editor project copies
+  with the same Company/Product names share that PlayerPrefs namespace.
+- One stable PlayerPrefs snapshot cannot independently produce Stage 1 and
+  Stage 11 across re-entry; the observed sequence requires state mutation.
+  The confirmed mutation source was test cleanup, so runtime storage was not
+  changed without a separate failing runtime regression.
+
+### Design
+
+- A test-assembly-only snapshot owns Highest plus Records 1-13 for each test.
+  It captures existence and typed value, restores existing keys, deletes only
+  originally absent keys, saves, and is idempotent through `IDisposable`.
+- Fixture setup uses a guarded `finally` so an exception before setup completes
+  restores immediately. Teardown also restores from `finally`, even if Scene
+  or AppRoot cleanup fails.
+- Production Campaign and Product persistence remain completely unchanged.
+
+### Implementation
+
+- Added the shared `CampaignPlayerPrefsSnapshot` and focused tests for existing
+  integer/string keys, absent keys, all 13 Records, and exception restoration.
+- Replaced destructive cleanup in Frontend and Product Boot PlayMode fixtures
+  with full Campaign snapshot/restore.
+- Added production-path PlayMode regression for Stage 11 first/re-entry,
+  stable-ID parity, fresh Stage 1 clear and Stage 2 recreation, new Guest
+  preservation, and missing/corrupt Highest fallback.
+
+### Validation
+
+- Focused Snapshot Utility `3/3`; focused Campaign restore `4/4`.
+- Full EditMode `335/335`; full PlayMode `167/167`; post-Builder PlayMode
+  `167/167`.
+- Frontend Builder twice, Boot Builder twice, and Campaign Builder twice all
+  succeeded without Missing Script/Reference or duplicate generation.
+- Actual Editor Campaign PlayerPrefs remained 11 entries with identical hash
+  `2A8AF71352FCCF9D80C8BDCB9BDC89FC3F61A7B356633C3423A847F576D0B6C9`
+  before and after tests. Product save hash remained identical, so Guest ID was
+  preserved.
+- Campaign retained its three 260-row hashes. Step 10 retained all five hashes
+  across 80 rows and 64,016 runs.
+- Package manifest/lock, `ProjectSettings.asset`, Scenes, runtime Campaign
+  code, Product Save Schema, Stage Catalog, and balance have no Hotfix change.
+
+### Learning
+
+- A separate project directory is not PlayerPrefs isolation in Unity Editor;
+  Company/Product identity determines the shared namespace.
+- Preservation tests are unsafe if cleanup destroys the state they claim to
+  preserve. Test fixtures must restore the prior world, not reset it.
+- A minimal test-only Hotfix can close the confirmed data-loss path without
+  inventing a second save owner or changing runtime behavior without evidence.
+
+### Deferred
+
+- Previously deleted Highest and Stage 6 values cannot be recovered safely and
+  are not synthesized.
+- Profile-scoped Campaign persistence and migration remain a future
+  `StageProgressService` Iteration.
+- Full dependency injection of an in-memory Campaign store for Scene tests is
+  a future testability improvement.

@@ -887,3 +887,29 @@ Status: Implemented.
 - Existing Product, Core, and Package boundaries remain unchanged. The only
   Iteration-specific ProjectSettings change is the Frontend entry in
   `EditorBuildSettings.asset`.
+
+## Campaign Progress Restore Test Isolation Hotfix
+
+Status: Implemented.
+
+- Campaign progression remains device-wide `PlayerPrefs` owned exclusively by
+  `PlayerPrefsStageProgressStore`. Product Guest creation does not create,
+  reset, copy, migrate, or scope Campaign progress.
+- PlayMode tests must never unconditionally delete real Editor Campaign keys.
+  Tests that touch progression capture Highest Unlocked and all Stage 1-13
+  Records before setup, then restore exact existence and values and call
+  `PlayerPrefs.Save()` on success or failure.
+- The prior cleanup behavior that deleted Highest Unlocked and Stage 6 Record
+  is classified as a test-isolation defect, not authority to change runtime
+  load behavior or the Campaign save format.
+- Unknown values deleted before the defect was discovered are not guessed,
+  synthesized, migrated, or automatically repaired.
+- Stage 11 restore, fresh Stage 1 -> 2 restart, new Guest preservation, stable
+  Stage ID parity, and missing/corrupt Highest fallback are required PlayMode
+  regressions.
+- Runtime `StageProgressStore`, `StageSceneController`, PlayerPrefs keys,
+  Record format, Product Save Schema, Guest Profile, Stage Catalog, Scenes,
+  balance, ProjectSettings, and Packages remain unchanged.
+- Profile-scoped progression remains deferred to a separately approved
+  `StageProgressService` Iteration. An injected memory store for Campaign tests
+  is a future testability option, not part of this Hotfix.

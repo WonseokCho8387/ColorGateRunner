@@ -1522,3 +1522,54 @@ Any mismatch blocks implementation.
   and WebGL.
 - Automation does not claim final visual polish, transition satisfaction,
   wording comprehension, or device-specific Back/input quality.
+
+## Iteration 11 — Campaign Progress Restore Test Isolation Hotfix
+
+### Persistence isolation contract
+
+- Every PlayMode fixture that can touch Campaign progression captures the
+  complete device-wide Campaign PlayerPrefs set before setup work:
+  `ColorGateRunner.Stage.HighestUnlocked` and Stage Records 1 through 13.
+- The snapshot stores key existence plus the integer Highest value or string
+  Record value. Cleanup restores existing keys to their exact values, deletes
+  only keys absent before the test, and calls `PlayerPrefs.Save()`.
+- Setup failure and teardown failure paths must still restore the snapshot.
+  Unconditional cleanup deletion and replacement with guessed defaults are
+  forbidden.
+- Snapshot Utility tests cover an existing integer key, existing string key,
+  absent key, all 13 Records, and an exception thrown inside the protected
+  scope. The outer fixture snapshot must also preserve the real Editor state.
+
+### Campaign restore regression contract
+
+- Highest 11 with cleared Records 1-10 selects Stage 11 on first entry and
+  re-entry. Lobby, PreRun, and Gameplay use the same stable Stage ID.
+- A completely fresh Campaign selects Stage 1. Clearing Stage 1 and recreating
+  the Campaign controller selects Stage 2 and never jumps to Stage 11.
+- Creating a new Product Guest neither changes Campaign keys nor changes first
+  entry/re-entry selection. Campaign progress remains device-wide and separate
+  from Product Guest identity in this Iteration.
+- Missing or corrupt Highest safely falls back to Stage 1 and does not delete
+  otherwise valid Stage Records.
+
+### Final automated evidence
+
+- Snapshot Utility `3/3`; restore scenarios `4/4`; full EditMode `335/335`;
+  full PlayMode `167/167`; post-Builder PlayMode `167/167`.
+- Frontend Builder run 1/2, Boot Builder run 1/2, and Campaign Builder run 1/2
+  succeed with no Missing Script, Missing Reference, or duplicate generation.
+- Before/after actual Editor Campaign PlayerPrefs snapshots must have identical
+  key counts and SHA-256. Product save hash and Guest identity must remain
+  unchanged.
+- Campaign Summary/JSON/CSV and Step 10 CSV/JSON/Summary/Comparison/Shortlist
+  must retain all eight approved hashes.
+- `ProjectSettings.asset`, Packages, Scenes, runtime progression code, Product
+  Save Schema, Stage Catalog, and Campaign balance must have no Hotfix diff.
+
+### Deferred
+
+- Unknown values deleted before the Hotfix are not reconstructed or guessed.
+- Profile-scoped Campaign progress and migration remain deferred to a separate
+  `StageProgressService` Iteration.
+- Fully replacing real PlayerPrefs with an injected memory store during tests
+  is a future testability improvement, not part of this minimal Hotfix.

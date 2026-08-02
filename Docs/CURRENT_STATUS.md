@@ -2,11 +2,52 @@
 
 Version
 
-Iteration 10
+Iteration 11
 
-(Commercial Frontend Shell: Frontend Scene, Title, placeholder Lobby,
-Boot-to-Frontend routing, and Campaign handoff implemented / human review
-pending)
+(Campaign Progress Restore Hotfix: PlayMode PlayerPrefs isolation and
+restart/re-entry regression coverage implemented)
+
+---
+
+Campaign Progress Restore Hotfix Result
+
+- Campaign progress remains device-wide Unity `PlayerPrefs` owned only by
+  `PlayerPrefsStageProgressStore`. It is not linked to the Product Guest and
+  is not copied, reset, migrated, or written into `product-save.json`.
+- Investigation found that two PlayMode fixtures deleted the real Editor
+  `HighestUnlocked` and Stage 6 Record keys during cleanup without preserving
+  their previous values. Windows Editor project copies share this PlayerPrefs
+  namespace when Company and Product names match.
+- All Campaign-affecting PlayMode fixtures now capture Highest Unlocked plus
+  every Stage 1-13 Record before setup work and restore exact key existence,
+  integer/string values, and `PlayerPrefs.Save()` in exception-safe cleanup.
+- Regression coverage now proves Stage 11 first entry and re-entry, Lobby /
+  PreRun / Gameplay stable-ID parity, fresh Stage 1 clear followed by Stage 2
+  after controller recreation, new Guest preservation of existing Campaign
+  progress, and missing/corrupt Highest fallback without Record deletion.
+- Values deleted before this investigation cannot be reconstructed from
+  evidence. The missing prior Highest Unlocked and Stage 6 Record are not
+  guessed or automatically repaired.
+- Profile-scoped Campaign progress remains deferred to the separately approved
+  `StageProgressService` Iteration. A future testability improvement may inject
+  an in-memory Campaign store, but this Hotfix does not alter runtime storage.
+
+Iteration 11 Validation
+
+- Snapshot Utility tests: `3/3`; Campaign restore regression tests: `4/4`.
+- EditMode: `335/335`; PlayMode: `167/167`; post-Builder PlayMode: `167/167`.
+- Frontend Builder, Boot Builder, and Campaign Builder each succeeded twice.
+  Builder and PlayMode validation found no duplicate generated objects,
+  Missing Script, Missing Reference, or required-reference failure.
+- The actual Editor Campaign PlayerPrefs snapshot retained 11 existing entries
+  and SHA-256
+  `2A8AF71352FCCF9D80C8BDCB9BDC89FC3F61A7B356633C3423A847F576D0B6C9`
+  before and after the test runs. The Product save file hash also remained
+  unchanged, preserving the current Guest ID.
+- Campaign simulation remains 260 rows with all three approved hashes. Step 10
+  remains 80 rows / 64,016 runs with all five approved hashes.
+- `ProjectSettings.asset`, Package manifest/lock, Scene assets, runtime
+  Campaign code, Stage Catalog, balance, and Product Save Schema are unchanged.
 
 ---
 

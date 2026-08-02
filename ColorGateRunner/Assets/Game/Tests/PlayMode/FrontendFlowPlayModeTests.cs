@@ -21,23 +21,41 @@ namespace ColorGateRunner.Tests.PlayMode
             "ColorGateRunner.Stage.HighestUnlocked";
         private const string RecordKey =
             "ColorGateRunner.Stage.Record.6";
+        private CampaignPlayerPrefsSnapshot _campaignProgressSnapshot;
 
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            yield return DestroyAllAppRoots();
-            AppRoot.ClearTestState();
-            PlayerPrefs.DeleteKey(UnlockKey);
-            PlayerPrefs.DeleteKey(RecordKey);
+            _campaignProgressSnapshot =
+                CampaignPlayerPrefsSnapshot.Capture();
+            bool completed = false;
+            try
+            {
+                yield return DestroyAllAppRoots();
+                AppRoot.ClearTestState();
+                completed = true;
+            }
+            finally
+            {
+                if (!completed)
+                {
+                    RestoreCampaignProgress();
+                }
+            }
         }
 
         [UnityTearDown]
         public IEnumerator TearDown()
         {
-            yield return DestroyAllAppRoots();
-            AppRoot.ClearTestState();
-            PlayerPrefs.DeleteKey(UnlockKey);
-            PlayerPrefs.DeleteKey(RecordKey);
+            try
+            {
+                yield return DestroyAllAppRoots();
+                AppRoot.ClearTestState();
+            }
+            finally
+            {
+                RestoreCampaignProgress();
+            }
         }
 
         [UnityTest]
@@ -279,6 +297,12 @@ namespace ColorGateRunner.Tests.PlayMode
                 Object.Destroy(roots[index].gameObject);
             }
             yield return null;
+        }
+
+        private void RestoreCampaignProgress()
+        {
+            _campaignProgressSnapshot?.Dispose();
+            _campaignProgressSnapshot = null;
         }
 
         private static AppServiceGraph CreateGraph()
