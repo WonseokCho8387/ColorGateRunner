@@ -76,6 +76,30 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void Pause_FreezesHiddenObservationAndHideTransition()
+        {
+            StartHidden(
+                CreateFastHiddenSettings(
+                    revealDuration: 1f,
+                    transitionDuration: 0.2f),
+                shield: false);
+            EnterPlaying();
+            StageGateView gate = FindGate(0);
+            _controller.Tick(0.4f);
+            float visibleElapsed = gate.HiddenVisibleElapsed;
+            float transition = gate.HiddenTransitionProgress;
+
+            _controller.RequestPause();
+            _controller.Tick(1f);
+
+            Assert.That(gate.HiddenVisibleElapsed,
+                Is.EqualTo(visibleElapsed));
+            Assert.That(gate.HiddenTransitionProgress,
+                Is.EqualTo(transition));
+            Assert.That(gate.HiddenHideStarted, Is.False);
+        }
+
+        [Test]
         public void Hidden_HidesTargetOnlyAfterObservationAndEtaConditions()
         {
             HiddenSettings settings = CreateFastHiddenSettings(

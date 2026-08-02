@@ -37,6 +37,34 @@ namespace ColorGateRunner.Product
             new ProductError(ProductErrorCode.None, string.Empty, false);
     }
 
+    public readonly struct ProductMutationResult
+    {
+        private ProductMutationResult(
+            bool succeeded,
+            bool changed,
+            ProductError error)
+        {
+            Succeeded = succeeded;
+            Changed = changed;
+            Error = error;
+        }
+
+        public bool Succeeded { get; }
+        public bool Changed { get; }
+        public ProductError Error { get; }
+
+        public static ProductMutationResult Success(bool changed) =>
+            new ProductMutationResult(true, changed, ProductError.None);
+
+        public static ProductMutationResult Failure(ProductError error) =>
+            new ProductMutationResult(false, false, error);
+    }
+
+    public interface IAccountProviderAvailability
+    {
+        bool IsAvailable(string provider);
+    }
+
     public interface IClockService
     {
         DateTime UtcNow { get; }

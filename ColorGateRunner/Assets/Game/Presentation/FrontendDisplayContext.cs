@@ -11,13 +11,17 @@ namespace ColorGateRunner.Presentation
             string accountLabel,
             string settingsSummary,
             string versionLabel,
-            bool settingsAvailable)
+            bool settingsAvailable,
+            bool accountChoiceCompleted,
+            bool googleProviderAvailable)
         {
             DisplayName = displayName;
             AccountLabel = accountLabel;
             SettingsSummary = settingsSummary;
             VersionLabel = versionLabel;
             SettingsAvailable = settingsAvailable;
+            AccountChoiceCompleted = accountChoiceCompleted;
+            GoogleProviderAvailable = googleProviderAvailable;
         }
 
         public string DisplayName { get; }
@@ -25,6 +29,8 @@ namespace ColorGateRunner.Presentation
         public string SettingsSummary { get; }
         public string VersionLabel { get; }
         public bool SettingsAvailable { get; }
+        public bool AccountChoiceCompleted { get; }
+        public bool GoogleProviderAvailable { get; }
 
         public static bool TryCreate(
             AppServiceGraph graph,
@@ -58,7 +64,9 @@ namespace ColorGateRunner.Presentation
                 "v" + (string.IsNullOrWhiteSpace(applicationVersion)
                     ? "0.0.0"
                     : applicationVersion.Trim()),
-                settingsAvailable);
+                settingsAvailable,
+                profile.AccountChoiceCompleted,
+                graph.Account.IsProviderAvailable("google"));
             error = string.Empty;
             return true;
         }

@@ -16,6 +16,7 @@ namespace ColorGateRunner.Product
         public string LastPlayedUtc;
         public string DisplayName;
         public LocalAccountState AccountState;
+        public bool AccountChoiceCompleted;
         public long SaveRevision;
 
         public LocalProfileData Clone()
@@ -27,6 +28,7 @@ namespace ColorGateRunner.Product
                 LastPlayedUtc = LastPlayedUtc,
                 DisplayName = DisplayName,
                 AccountState = AccountState,
+                AccountChoiceCompleted = AccountChoiceCompleted,
                 SaveRevision = SaveRevision
             };
         }

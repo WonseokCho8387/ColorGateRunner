@@ -127,12 +127,18 @@ The local profile owns:
 - Last played time.
 - Display name.
 - Guest / linked state.
+- Account-choice onboarding completion.
 - Tutorial acknowledgement.
 - Required consent versions when implemented.
 - Save revision.
 - Optional provider references after integration.
 
 Profile identity is separate from Unity device identifiers.
+
+`AccountChoiceCompleted` is Profile/Account onboarding state, not a user
+setting. Schema-1 saves written before this field existed interpret it as
+`false`, so those users see Account Choice once. Repairing or resetting only
+the Settings section must not change this value.
 
 ## 4.2 Account states
 
@@ -475,7 +481,7 @@ Recommended settings:
 - Language.
 - Accessibility preferences.
 - Reduced effects when implemented.
-- First-run flags.
+- Settings-specific first-run flags only; account onboarding is Profile state.
 - Title-skip preference when approved.
 
 Conceptual interface:
@@ -487,6 +493,12 @@ ISettingsService
 - ResetDefaults()
 - Save()
 ```
+
+The implemented settings panel persists Master, Music, SFX, and Vibration.
+Master is currently applied through `AudioListener.volume`. Music and SFX are
+stored for future content-specific audio targets and do not yet change a
+runtime mixer or source. A disabled Vibration setting prevents the existing
+Booster haptic request from being issued at all.
 
 ## 10.2 Audio service
 
@@ -656,6 +668,7 @@ Provider tokens or personal information never appear in logs.
 | Campaign unlock | StageProgressService |
 | Best times | StageProgressService / Save |
 | Local profile | ProfileService |
+| Account-choice onboarding | ProfileService |
 | Account-link state | AccountService |
 | Currency balance | EconomyService |
 | Lobby modules | ContentService |
@@ -745,6 +758,17 @@ Implementation status: Completed in Iteration 9.
   Scene composition boundary and converts Profile, Account, and Settings into
   an immutable display Context. It creates no service, writes no Product or
   Stage data, and blocks direct Campaign entry when AppRoot is absent.
+- Iteration 12 adds a thin `LocalProductSession` coordinator. It clones the
+  current Product snapshot, asks the existing Save service to persist the
+  candidate, and publishes Profile/Settings state through one rebind path only
+  after success. Failed writes leave all public state unchanged, so the
+  session is not a second save authority.
+- `AccountChoiceCompleted` is an optional schema-1 Profile field. The schema
+  version does not increase, older files read it as `false`, and Settings
+  validation or repair is independent from onboarding state.
+- Frontend and Gameplay share the same Settings mutation path. Master Volume
+  and Booster vibration have runtime consumers; Music/SFX remain persistence-
+  only until real audio content exists.
 
 ## Product Iteration 2 — Progression integration
 

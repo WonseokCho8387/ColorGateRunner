@@ -40,6 +40,8 @@ namespace ColorGateRunner.Editor
         [MenuItem("Tools/Color Gate Runner/Build Graybox Scene")]
         public static void BuildGrayboxScene()
         {
+            string frontendPath = SelectFrontendScenePath(
+                EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
                 StageCatalogAssetBuilder.EnsureAndConfigure();
             EnsureAssetFolder(GeneratedMaterialsFolder);
@@ -243,6 +245,26 @@ namespace ColorGateRunner.Editor
                 out retryButton,
                 out failLobbyButton);
 
+            CreatePauseUi(
+                canvas.transform,
+                hud.transform,
+                out Button pauseButton,
+                out GameObject pauseOverlayRoot,
+                out Image pauseDim,
+                out GameObject pausePanel,
+                out Button pauseResumeButton,
+                out Button pauseRestartButton,
+                out Button pauseSettingsButton,
+                out Button pauseLobbyButton,
+                out GameObject pauseModalRoot,
+                out Text pauseModalTitle,
+                out Text pauseModalMessage,
+                out Button pauseModalConfirm,
+                out Text pauseModalConfirmText,
+                out Button pauseModalCancel,
+                out SettingsPanelController pauseSettingsPanel,
+                out GameObject pauseTransitionBlocker);
+
             CreateEventSystem(root.transform);
             tapSurface.Configure(controller);
             controller.Configure(
@@ -320,6 +342,25 @@ namespace ColorGateRunner.Editor
                 continueButton,
                 retryButton,
                 failLobbyButton);
+            controller.ConfigurePause(
+                pauseButton,
+                pauseOverlayRoot,
+                pauseDim,
+                pausePanel,
+                pauseResumeButton,
+                pauseRestartButton,
+                pauseSettingsButton,
+                pauseLobbyButton,
+                pauseModalRoot,
+                pauseModalTitle,
+                pauseModalMessage,
+                pauseModalConfirm,
+                pauseModalConfirmText,
+                pauseModalCancel,
+                pauseSettingsPanel,
+                pauseTransitionBlocker,
+                new[] { successParticles, speedLines },
+                frontendPath);
 
             for (int index = 0; index < flowRoots.Length; index++)
             {
@@ -332,6 +373,11 @@ namespace ColorGateRunner.Editor
             hud.SetActive(true);
             clearPanel.SetActive(true);
             failPanel.SetActive(true);
+            pauseOverlayRoot.SetActive(false);
+            pausePanel.SetActive(false);
+            pauseModalRoot.SetActive(false);
+            pauseSettingsPanel.gameObject.SetActive(false);
+            pauseTransitionBlocker.SetActive(false);
             goal.SetActive(false);
             shieldVisual.SetActive(false);
             unlockAllButton.gameObject.SetActive(false);
@@ -352,6 +398,31 @@ namespace ColorGateRunner.Editor
             BuildGrayboxScene();
             BuildGrayboxScene();
             ValidateGeneratedScene();
+        }
+
+        internal static string SelectFrontendScenePath(
+            EditorBuildSettingsScene[] scenes)
+        {
+            if (scenes == null)
+            {
+                throw new InvalidOperationException(
+                    "Build Settings scenes are unavailable.");
+            }
+
+            for (int index = 0; index < scenes.Length; index++)
+            {
+                EditorBuildSettingsScene candidate = scenes[index];
+                if (candidate.enabled &&
+                    !string.IsNullOrWhiteSpace(candidate.path) &&
+                    !PathsEqual(candidate.path, BootSceneBuilder.ScenePath) &&
+                    !PathsEqual(candidate.path, ScenePath))
+                {
+                    return candidate.path;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "Campaign requires one active Frontend Scene.");
         }
 
         public static void ValidateGeneratedScene()
@@ -399,6 +470,25 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Stage controller is duplicated, incomplete, or legacy mode is exposed.");
+            }
+            RectTransform pauseDimRect =
+                controllers[0].PauseDim.GetComponent<RectTransform>();
+            if (pauseDimRect.anchorMin != Vector2.zero ||
+                pauseDimRect.anchorMax != Vector2.one ||
+                !controllers[0].PauseDim.raycastTarget ||
+                !Mathf.Approximately(
+                    controllers[0].PauseDim.color.a,
+                    0.85f))
+            {
+                throw new InvalidOperationException(
+                    "Pause Dim must cover and block the full viewport at alpha 0.85.");
+            }
+            if (!PathsEqual(
+                controllers[0].FrontendScenePath,
+                SelectFrontendScenePath(EditorBuildSettings.scenes)))
+            {
+                throw new InvalidOperationException(
+                    "Campaign Frontend destination is not the active serialized Scene.");
             }
             if (cameras.Length != 1 || eventSystems.Length != 1)
             {
@@ -481,6 +571,21 @@ namespace ColorGateRunner.Editor
                 "ContinueButton",
                 "ReplayButton",
                 "RetryButton",
+                "PauseButton",
+                "PauseOverlayRoot",
+                "PauseDim",
+                "PausePanel",
+                "PauseResumeButton",
+                "PauseRestartButton",
+                "PauseSettingsButton",
+                "PauseLobbyButton",
+                "PauseModalRoot",
+                "PauseModalConfirmButton",
+                "PauseModalCancelButton",
+                "SettingsPanel",
+                "SettingsApplyButton",
+                "SettingsCancelButton",
+                "PauseTransitionBlocker",
                 "SuccessParticles",
                 "BoosterSpeedLines",
                 "BoosterSpeedLinesLeft",
@@ -1678,6 +1783,299 @@ namespace ColorGateRunner.Editor
                 out selectLabel);
         }
 
+        private static void CreatePauseUi(
+            Transform canvas,
+            Transform hud,
+            out Button pauseButton,
+            out GameObject overlayRoot,
+            out Image dim,
+            out GameObject panel,
+            out Button resume,
+            out Button restart,
+            out Button settings,
+            out Button lobby,
+            out GameObject modalRoot,
+            out Text modalTitle,
+            out Text modalMessage,
+            out Button modalConfirm,
+            out Text modalConfirmText,
+            out Button modalCancel,
+            out SettingsPanelController settingsPanel,
+            out GameObject transitionBlocker)
+        {
+            pauseButton = CreateButton(
+                "PauseButton",
+                hud,
+                "II",
+                new Vector2(0.83f, 0.89f),
+                new Vector2(0.96f, 0.97f),
+                out _);
+
+            overlayRoot = CreateUiObject("PauseOverlayRoot", canvas);
+            Stretch(overlayRoot.GetComponent<RectTransform>());
+            GameObject dimObject = CreatePanel(
+                "PauseDim",
+                overlayRoot.transform,
+                new Color(0f, 0f, 0f, 0.85f));
+            dim = dimObject.GetComponent<Image>();
+            dim.raycastTarget = true;
+
+            GameObject safeArea = CreateUiObject(
+                "PauseSafeAreaRoot",
+                overlayRoot.transform);
+            Stretch(safeArea.GetComponent<RectTransform>());
+            safeArea.AddComponent<SafeAreaLayout>();
+
+            panel = CreateAnchoredPanel(
+                "PausePanel",
+                safeArea.transform,
+                new Vector2(0.10f, 0.16f),
+                new Vector2(0.90f, 0.84f),
+                new Color(0.06f, 0.09f, 0.16f, 0.98f));
+            CreateText(
+                "PauseTitle",
+                panel.transform,
+                "PAUSED",
+                38,
+                new Vector2(0.08f, 0.80f),
+                new Vector2(0.92f, 0.95f));
+            resume = CreateButton(
+                "PauseResumeButton",
+                panel.transform,
+                "RESUME",
+                new Vector2(0.12f, 0.61f),
+                new Vector2(0.88f, 0.75f),
+                out _);
+            restart = CreateButton(
+                "PauseRestartButton",
+                panel.transform,
+                "RESTART",
+                new Vector2(0.12f, 0.44f),
+                new Vector2(0.88f, 0.58f),
+                out _);
+            settings = CreateButton(
+                "PauseSettingsButton",
+                panel.transform,
+                "SETTINGS",
+                new Vector2(0.12f, 0.27f),
+                new Vector2(0.88f, 0.41f),
+                out _);
+            lobby = CreateButton(
+                "PauseLobbyButton",
+                panel.transform,
+                "LOBBY",
+                new Vector2(0.12f, 0.10f),
+                new Vector2(0.88f, 0.24f),
+                out _);
+
+            modalRoot = CreateAnchoredPanel(
+                "PauseModalRoot",
+                safeArea.transform,
+                new Vector2(0.08f, 0.25f),
+                new Vector2(0.92f, 0.75f),
+                new Color(0.08f, 0.12f, 0.20f, 1f));
+            modalTitle = CreateText(
+                "PauseModalTitle",
+                modalRoot.transform,
+                "CONFIRM",
+                30,
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.94f));
+            modalMessage = CreateText(
+                "PauseModalMessage",
+                modalRoot.transform,
+                string.Empty,
+                18,
+                new Vector2(0.08f, 0.34f),
+                new Vector2(0.92f, 0.70f));
+            modalConfirm = CreateButton(
+                "PauseModalConfirmButton",
+                modalRoot.transform,
+                "CONFIRM",
+                new Vector2(0.08f, 0.08f),
+                new Vector2(0.48f, 0.29f),
+                out modalConfirmText);
+            modalCancel = CreateButton(
+                "PauseModalCancelButton",
+                modalRoot.transform,
+                "CANCEL",
+                new Vector2(0.52f, 0.08f),
+                new Vector2(0.92f, 0.29f),
+                out _);
+
+            settingsPanel = CreatePauseSettingsPanel(safeArea.transform);
+            transitionBlocker = CreatePanel(
+                "PauseTransitionBlocker",
+                overlayRoot.transform,
+                new Color(0f, 0f, 0f, 0.01f));
+            transitionBlocker.GetComponent<Image>().raycastTarget = true;
+        }
+
+        private static SettingsPanelController CreatePauseSettingsPanel(
+            Transform parent)
+        {
+            GameObject panel = CreateAnchoredPanel(
+                "SettingsPanel",
+                parent,
+                new Vector2(0.07f, 0.12f),
+                new Vector2(0.93f, 0.88f),
+                new Color(0.09f, 0.13f, 0.21f, 1f));
+            SettingsPanelController controller =
+                panel.AddComponent<SettingsPanelController>();
+            CreateText(
+                "SettingsTitle",
+                panel.transform,
+                "SETTINGS",
+                30,
+                new Vector2(0.08f, 0.88f),
+                new Vector2(0.92f, 0.98f));
+
+            Slider master = CreatePauseSettingSlider(
+                "MasterSlider",
+                panel.transform,
+                "MASTER",
+                0.73f,
+                out Text masterValue);
+            Slider music = CreatePauseSettingSlider(
+                "MusicSlider",
+                panel.transform,
+                "MUSIC",
+                0.57f,
+                out Text musicValue);
+            Slider sfx = CreatePauseSettingSlider(
+                "SfxSlider",
+                panel.transform,
+                "SFX",
+                0.41f,
+                out Text sfxValue);
+            Toggle vibration = CreatePauseSettingToggle(
+                panel.transform);
+            Text status = CreateText(
+                "SettingsStatusText",
+                panel.transform,
+                string.Empty,
+                13,
+                new Vector2(0.08f, 0.16f),
+                new Vector2(0.92f, 0.23f));
+            Button apply = CreateButton(
+                "SettingsApplyButton",
+                panel.transform,
+                "APPLY",
+                new Vector2(0.08f, 0.04f),
+                new Vector2(0.48f, 0.14f),
+                out _);
+            Button cancel = CreateButton(
+                "SettingsCancelButton",
+                panel.transform,
+                "CANCEL",
+                new Vector2(0.52f, 0.04f),
+                new Vector2(0.92f, 0.14f),
+                out _);
+            controller.Configure(
+                master,
+                music,
+                sfx,
+                vibration,
+                masterValue,
+                musicValue,
+                sfxValue,
+                status,
+                apply,
+                cancel);
+            return controller;
+        }
+
+        private static Slider CreatePauseSettingSlider(
+            string name,
+            Transform parent,
+            string label,
+            float top,
+            out Text valueText)
+        {
+            CreateText(
+                name + "Label",
+                parent,
+                label,
+                16,
+                new Vector2(0.08f, top),
+                new Vector2(0.35f, top + 0.09f));
+            valueText = CreateText(
+                name + "Value",
+                parent,
+                "100%",
+                16,
+                new Vector2(0.72f, top),
+                new Vector2(0.92f, top + 0.09f));
+            GameObject sliderObject = CreateAnchoredPanel(
+                name,
+                parent,
+                new Vector2(0.34f, top + 0.025f),
+                new Vector2(0.70f, top + 0.065f),
+                new Color(0.15f, 0.19f, 0.28f, 1f));
+            Slider slider = sliderObject.AddComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 1f;
+            GameObject fill = CreatePanel(
+                "Fill",
+                sliderObject.transform,
+                BlueColor);
+            GameObject handle = CreateAnchoredPanel(
+                "Handle",
+                sliderObject.transform,
+                new Vector2(0f, -0.35f),
+                new Vector2(0.08f, 1.35f),
+                Color.white);
+            slider.fillRect = fill.GetComponent<RectTransform>();
+            slider.handleRect = handle.GetComponent<RectTransform>();
+            slider.targetGraphic = handle.GetComponent<Image>();
+            return slider;
+        }
+
+        private static Toggle CreatePauseSettingToggle(Transform parent)
+        {
+            GameObject toggleObject = CreateAnchoredPanel(
+                "VibrationToggle",
+                parent,
+                new Vector2(0.10f, 0.24f),
+                new Vector2(0.90f, 0.34f),
+                new Color(0.15f, 0.19f, 0.28f, 1f));
+            Toggle toggle = toggleObject.AddComponent<Toggle>();
+            CreateText(
+                "Label",
+                toggleObject.transform,
+                "VIBRATION",
+                17,
+                Vector2.zero,
+                new Vector2(0.78f, 1f));
+            Text check = CreateText(
+                "Checkmark",
+                toggleObject.transform,
+                "ON",
+                17,
+                new Vector2(0.78f, 0f),
+                Vector2.one);
+            toggle.targetGraphic = toggleObject.GetComponent<Image>();
+            toggle.graphic = check;
+            toggle.isOn = true;
+            return toggle;
+        }
+
+        private static GameObject CreateAnchoredPanel(
+            string name,
+            Transform parent,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Color color)
+        {
+            GameObject panel = CreatePanel(name, parent, color);
+            SetAnchors(
+                panel.GetComponent<RectTransform>(),
+                anchorMin,
+                anchorMax);
+            return panel;
+        }
+
         private static void CreateEventSystem(Transform parent)
         {
             GameObject eventSystem = new GameObject(
@@ -1857,6 +2255,14 @@ namespace ColorGateRunner.Editor
                 }
             }
             return false;
+        }
+
+        private static bool PathsEqual(string left, string right)
+        {
+            return string.Equals(
+                left?.Replace('\\', '/'),
+                right?.Replace('\\', '/'),
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private static Color FromHex(int rgb)

@@ -74,5 +74,44 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.Throws<InvalidOperationException>(() =>
                 FrontendSceneBuilder.CreateFrontendSceneList(path));
         }
+
+        [Test]
+        public void CampaignBuilder_SelectsSerializedFrontendWithoutNameHardcode()
+        {
+            var scenes = new[]
+            {
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/Boot.unity",
+                    true),
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/ProductShell.unity",
+                    true),
+                new EditorBuildSettingsScene(
+                    GrayboxSceneBuilder.ScenePath,
+                    true)
+            };
+
+            string path = GrayboxSceneBuilder.SelectFrontendScenePath(scenes);
+
+            Assert.That(path, Is.EqualTo("Assets/Scenes/ProductShell.unity"));
+            Assert.That(path, Does.Not.Contain("Frontend"));
+        }
+
+        [Test]
+        public void CampaignBuilder_RejectsBootOrSelfAsFrontend()
+        {
+            var scenes = new[]
+            {
+                new EditorBuildSettingsScene(
+                    "Assets/Scenes/Boot.unity",
+                    true),
+                new EditorBuildSettingsScene(
+                    GrayboxSceneBuilder.ScenePath,
+                    true)
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+                GrayboxSceneBuilder.SelectFrontendScenePath(scenes));
+        }
     }
 }

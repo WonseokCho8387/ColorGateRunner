@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ColorGateRunner.Presentation
 {
-    public sealed class AppRoot : MonoBehaviour
+    public sealed class AppRoot : MonoBehaviour, IProductSettingsHost
     {
         internal const string SaveFileName = "product-save.json";
 
@@ -16,6 +16,10 @@ namespace ColorGateRunner.Presentation
 
         public bool IsPrimary => _active == this;
         public AppServiceGraph Graph => _graph;
+        public LocalSettingsData CurrentSettings => _graph?.Settings?.Current;
+        public bool AccountChoiceCompleted =>
+            _graph?.Profile?.Current?.AccountChoiceCompleted == true;
+        public bool VibrationEnabled => CurrentSettings?.Vibration ?? true;
 
         private void Awake()
         {
@@ -59,7 +63,59 @@ namespace ColorGateRunner.Presentation
                         true));
             }
 
-            return _graph.Initialization.Initialize();
+            AppInitializationResult result =
+                _graph.Initialization.Initialize();
+            if (result.Succeeded)
+            {
+                UnityProductSettingsRuntime.ApplyMasterVolume(
+                    _graph.Settings.Current);
+            }
+            return result;
+        }
+
+        public ProductMutationResult CompleteGuestAccountChoice()
+        {
+            return _graph == null
+                ? ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.Initialization,
+                        "The AppRoot service graph is unavailable.",
+                        true))
+                : _graph.ProductSession.CompleteGuestAccountChoice();
+        }
+
+        public ProductMutationResult ApplySettings(
+            float masterVolume,
+            float musicVolume,
+            float sfxVolume,
+            bool vibration)
+        {
+            if (_graph == null)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.Initialization,
+                        "The AppRoot service graph is unavailable.",
+                        true));
+            }
+
+            ProductMutationResult result = _graph.ProductSession.ApplySettings(
+                masterVolume,
+                musicVolume,
+                sfxVolume,
+                vibration);
+            if (result.Succeeded)
+            {
+                UnityProductSettingsRuntime.ApplyMasterVolume(
+                    _graph.Settings.Current);
+            }
+            return result;
+        }
+
+        public bool IsAccountProviderAvailable(string provider)
+        {
+            return _graph != null &&
+                _graph.Account.IsProviderAvailable(provider);
         }
 
         internal static bool TryGetActive(out AppRoot appRoot)
@@ -143,5 +199,6 @@ namespace ColorGateRunner.Presentation
         public SettingsService Settings { get; }
         public ILocalSaveService Save { get; }
         public AppInitializationPipeline Initialization { get; }
+        public LocalProductSession ProductSession => Initialization.Session;
     }
 }

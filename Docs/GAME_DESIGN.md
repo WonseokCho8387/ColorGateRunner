@@ -477,3 +477,21 @@ Campaign expands without changing Stages 1-11:
 - Retry reproduces modifier targets, cycles, offsets, and gate order while
   resetting Gameplay Time and all per-View visibility/pulse state.
 - These values are human-play candidates, not a claim of final balance.
+
+## Iteration 12 Gameplay Pause contract
+
+- Pause is available during Countdown, Playing, and Shield Recovery. It does
+  not advance attempt Gameplay Time or alter the deterministic gate plan.
+- While paused, player movement and color input, gate recycling, judgment,
+  mechanic timing/presentation, camera feedback, and registered attempt VFX
+  are frozen. Global `Time.timeScale` is not used.
+- A gate cannot resolve merely because its trigger or manual judgment was
+  already queued in the same frame; the shared Pause coordinator is checked
+  immediately before result mutation.
+- Resume continues the same Attempt. Restart confirms before using the
+  existing Retry-to-PreRun path. Lobby confirmation leaves without recording
+  clear or failure.
+- Focus loss requests Pause where the state permits it. Focus gain never
+  resumes automatically.
+- Pause changes no Campaign balance, gate timing, modifier rules, item rules,
+  Stage progress format, or deterministic simulation result.

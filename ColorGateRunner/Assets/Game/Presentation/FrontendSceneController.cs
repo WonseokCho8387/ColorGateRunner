@@ -1,7 +1,7 @@
 using System;
+using ColorGateRunner.Product;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
@@ -36,16 +36,18 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text modalConfirmText;
         [SerializeField] private Button modalCancelButton;
         [SerializeField] private Text modalCancelText;
+        [SerializeField] private SettingsPanelController settingsPanel;
         [SerializeField] private string campaignScenePath;
 
         private FrontendPageRouter _router;
         private FrontendDisplayContext _context;
-        private IFrontendSceneLoader _sceneLoader;
+        private ISceneTransitionLoader _sceneLoader;
         private IFrontendExitHandler _exitHandler;
         private FrontendDisplayContext _injectedContext;
-        private FrontendPage _initialPage = FrontendPage.Title;
+        private FrontendPage _initialPage = FrontendPage.AccountChoice;
         private bool _listenersBound;
         private bool _productReady;
+        private AppRoot _appRoot;
 
         internal FrontendPageRouter Router => _router;
         internal string CampaignScenePath => campaignScenePath;
@@ -67,21 +69,27 @@ namespace ColorGateRunner.Presentation
         internal Button TitleAccountButton => titleAccountButton;
         internal Button LobbyPlayButton => lobbyPlayButton;
         internal Button LobbyBackButton => lobbyBackButton;
+        internal Button LobbySettingsButton => lobbySettingsButton;
+        internal SettingsPanelController SettingsPanel => settingsPanel;
         internal Button ModalConfirmButton => modalConfirmButton;
         internal Button ModalCancelButton => modalCancelButton;
 
         private void Awake()
         {
             ValidateRequiredReferences();
-            _sceneLoader ??= new UnityFrontendSceneLoader();
+            _sceneLoader ??= new UnitySceneTransitionLoader();
             _exitHandler ??= new UnityFrontendExitHandler();
+            BindProductContext();
             _router ??= new FrontendPageRouter(_initialPage);
             BindListeners();
             ApplyPermanentVisibilityPolicy();
             ApplyPage(_router.CurrentPage);
             ApplyTransition(_router.IsTransitioning);
             ApplyModal(_router.CurrentModal);
-            BindProductContext();
+            if (!_productReady)
+            {
+                _router.TryShowModal(FrontendModal.BootRequired);
+            }
         }
 
         private void Update()
@@ -132,6 +140,7 @@ namespace ColorGateRunner.Presentation
             Text modalConfirmLabel,
             Button modalCancel,
             Text modalCancelLabel,
+            SettingsPanelController sharedSettingsPanel,
             string campaignPath)
         {
             titlePageRoot = titleRoot;
@@ -162,14 +171,15 @@ namespace ColorGateRunner.Presentation
             modalConfirmText = modalConfirmLabel;
             modalCancelButton = modalCancel;
             modalCancelText = modalCancelLabel;
+            settingsPanel = sharedSettingsPanel;
             campaignScenePath = campaignPath;
         }
 
         internal void SetDependenciesForTests(
             FrontendDisplayContext context,
-            IFrontendSceneLoader sceneLoader,
+            ISceneTransitionLoader sceneLoader,
             IFrontendExitHandler exitHandler,
-            FrontendPage initialPage = FrontendPage.Title)
+            FrontendPage initialPage = FrontendPage.AccountChoice)
         {
             _injectedContext = context;
             _sceneLoader = sceneLoader;
@@ -177,7 +187,7 @@ namespace ColorGateRunner.Presentation
             _initialPage = initialPage;
         }
 
-        internal void SetSceneLoaderForTests(IFrontendSceneLoader sceneLoader)
+        internal void SetSceneLoaderForTests(ISceneTransitionLoader sceneLoader)
         {
             _sceneLoader = sceneLoader ??
                 throw new ArgumentNullException(nameof(sceneLoader));
@@ -206,6 +216,7 @@ namespace ColorGateRunner.Presentation
                 modalTitleText != null && modalMessageText != null &&
                 modalConfirmButton != null && modalConfirmText != null &&
                 modalCancelButton != null && modalCancelText != null &&
+                settingsPanel != null && settingsPanel.HasRequiredReferences() &&
                 !string.IsNullOrWhiteSpace(campaignScenePath) &&
                 campaignScenePath != gameObject.scene.path;
         }
@@ -244,10 +255,11 @@ namespace ColorGateRunner.Presentation
             {
                 _productReady = false;
                 lobbyPlayButton.interactable = false;
-                _router.TryShowModal(FrontendModal.BootRequired);
+                _initialPage = FrontendPage.AccountChoice;
                 return;
             }
 
+            _appRoot = appRoot;
             ApplyContext(context);
         }
 
@@ -255,12 +267,17 @@ namespace ColorGateRunner.Presentation
         {
             _context = context;
             _productReady = true;
+            _initialPage = context.AccountChoiceCompleted
+                ? FrontendPage.Lobby
+                : FrontendPage.AccountChoice;
             titleProfileText.text = context.DisplayName;
             titleAccountText.text = context.AccountLabel;
             titleVersionText.text = context.VersionLabel;
             lobbyProfileText.text = context.DisplayName;
             lobbyAccountText.text = context.AccountLabel;
-            titleSettingsButton.gameObject.SetActive(context.SettingsAvailable);
+            titleSettingsButton.gameObject.SetActive(false);
+            titleAccountButton.gameObject.SetActive(
+                context.GoogleProviderAvailable);
             lobbySettingsButton.gameObject.SetActive(context.SettingsAvailable);
             lobbyPlayButton.interactable = true;
         }
@@ -287,14 +304,16 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
-            titleStartButton.onClick.AddListener(ShowLobby);
+            titleStartButton.onClick.AddListener(ChooseGuest);
             titleAccountButton.onClick.AddListener(ShowAccountUnavailable);
             titleSettingsButton.onClick.AddListener(ShowSettings);
             lobbyPlayButton.onClick.AddListener(PlayCampaign);
-            lobbyBackButton.onClick.AddListener(ShowTitle);
+            lobbyBackButton.onClick.AddListener(ShowAccountUnavailable);
             lobbySettingsButton.onClick.AddListener(ShowSettings);
             modalConfirmButton.onClick.AddListener(ConfirmModal);
             modalCancelButton.onClick.AddListener(CancelModal);
+            settingsPanel.ApplySucceeded += CloseSettings;
+            settingsPanel.CancelRequested += CloseSettings;
             _router.PageEntered += ApplyPage;
             _router.ModalChanged += ApplyModal;
             _router.TransitionChanged += ApplyTransition;
@@ -308,28 +327,51 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
-            titleStartButton.onClick.RemoveListener(ShowLobby);
+            titleStartButton.onClick.RemoveListener(ChooseGuest);
             titleAccountButton.onClick.RemoveListener(ShowAccountUnavailable);
             titleSettingsButton.onClick.RemoveListener(ShowSettings);
             lobbyPlayButton.onClick.RemoveListener(PlayCampaign);
-            lobbyBackButton.onClick.RemoveListener(ShowTitle);
+            lobbyBackButton.onClick.RemoveListener(ShowAccountUnavailable);
             lobbySettingsButton.onClick.RemoveListener(ShowSettings);
             modalConfirmButton.onClick.RemoveListener(ConfirmModal);
             modalCancelButton.onClick.RemoveListener(CancelModal);
+            settingsPanel.ApplySucceeded -= CloseSettings;
+            settingsPanel.CancelRequested -= CloseSettings;
             _router.PageEntered -= ApplyPage;
             _router.ModalChanged -= ApplyModal;
             _router.TransitionChanged -= ApplyTransition;
             _listenersBound = false;
         }
 
-        private void ShowLobby()
+        private void ChooseGuest()
         {
-            _router.TryShowPage(FrontendPage.Lobby);
-        }
+            if (!_productReady || _appRoot == null)
+            {
+                _router.TryShowModal(FrontendModal.BootRequired);
+                return;
+            }
 
-        private void ShowTitle()
-        {
-            _router.TryShowPage(FrontendPage.Title);
+            ProductMutationResult result =
+                _appRoot.CompleteGuestAccountChoice();
+            if (!result.Succeeded)
+            {
+                modalMessageText.text = string.IsNullOrWhiteSpace(
+                    result.Error.Diagnostic)
+                    ? "ACCOUNT CHOICE SAVE FAILED"
+                    : result.Error.Diagnostic;
+                _router.TryShowModal(FrontendModal.SaveError);
+                return;
+            }
+
+            if (FrontendDisplayContext.TryCreate(
+                _appRoot.Graph,
+                Application.version,
+                out FrontendDisplayContext refreshed,
+                out _))
+            {
+                ApplyContext(refreshed);
+            }
+            _router.TryShowPage(FrontendPage.Lobby);
         }
 
         private void ShowAccountUnavailable()
@@ -339,9 +381,19 @@ namespace ColorGateRunner.Presentation
 
         private void ShowSettings()
         {
-            if (_context != null && _context.SettingsAvailable)
+            if (_context != null && _context.SettingsAvailable &&
+                _appRoot != null &&
+                _router.TryShowModal(FrontendModal.Settings))
             {
-                _router.TryShowModal(FrontendModal.Settings);
+                settingsPanel.Open(_appRoot);
+            }
+        }
+
+        private void CloseSettings()
+        {
+            if (_router.CurrentModal == FrontendModal.Settings)
+            {
+                _router.CloseModal();
             }
         }
 
@@ -361,7 +413,7 @@ namespace ColorGateRunner.Presentation
             _sceneLoader.LoadScene(campaignScenePath, OnSceneLoadCompleted);
         }
 
-        private void OnSceneLoadCompleted(FrontendSceneLoadResult result)
+        private void OnSceneLoadCompleted(SceneTransitionResult result)
         {
             if (this == null)
             {
@@ -398,7 +450,7 @@ namespace ColorGateRunner.Presentation
 
         private void ApplyPage(FrontendPage page)
         {
-            titlePageRoot.SetActive(page == FrontendPage.Title);
+            titlePageRoot.SetActive(page == FrontendPage.AccountChoice);
             lobbyPageRoot.SetActive(page == FrontendPage.Lobby);
         }
 
@@ -410,13 +462,17 @@ namespace ColorGateRunner.Presentation
         private void ApplyModal(FrontendModal modal)
         {
             popupRoot.SetActive(modal != FrontendModal.None);
+            settingsPanel.gameObject.SetActive(modal == FrontendModal.Settings);
             if (modal == FrontendModal.None)
             {
                 return;
             }
 
+            bool settingsVisible = modal == FrontendModal.Settings;
+            modalTitleText.gameObject.SetActive(!settingsVisible);
+            modalMessageText.gameObject.SetActive(!settingsVisible);
             bool confirmVisible = false;
-            bool cancelVisible = true;
+            bool cancelVisible = !settingsVisible;
             string title;
             string message;
             string cancelLabel = "CLOSE";
@@ -428,8 +484,7 @@ namespace ColorGateRunner.Presentation
                     break;
                 case FrontendModal.Settings:
                     title = "SETTINGS";
-                    message = _context?.SettingsSummary ??
-                        "SETTINGS UNAVAILABLE";
+                    message = string.Empty;
                     break;
                 case FrontendModal.ExitConfirmation:
                     title = "EXIT GAME?";
@@ -448,6 +503,12 @@ namespace ColorGateRunner.Presentation
                         ? "CAMPAIGN LOAD FAILED"
                         : modalMessageText.text;
                     break;
+                case FrontendModal.SaveError:
+                    title = "SAVE FAILED";
+                    message = string.IsNullOrWhiteSpace(modalMessageText.text)
+                        ? "ACCOUNT CHOICE SAVE FAILED"
+                        : modalMessageText.text;
+                    break;
                 default:
                     title = "NOTICE";
                     message = string.Empty;
@@ -460,60 +521,6 @@ namespace ColorGateRunner.Presentation
             modalConfirmText.text = "EXIT";
             modalCancelButton.gameObject.SetActive(cancelVisible);
             modalCancelText.text = cancelLabel;
-        }
-    }
-
-    internal readonly struct FrontendSceneLoadResult
-    {
-        private FrontendSceneLoadResult(bool succeeded, string error)
-        {
-            Succeeded = succeeded;
-            Error = error;
-        }
-
-        public bool Succeeded { get; }
-        public string Error { get; }
-
-        public static FrontendSceneLoadResult Success() =>
-            new FrontendSceneLoadResult(true, string.Empty);
-
-        public static FrontendSceneLoadResult Failure(string error) =>
-            new FrontendSceneLoadResult(false, error);
-    }
-
-    internal interface IFrontendSceneLoader
-    {
-        void LoadScene(
-            string scenePath,
-            Action<FrontendSceneLoadResult> completed);
-    }
-
-    internal sealed class UnityFrontendSceneLoader : IFrontendSceneLoader
-    {
-        public void LoadScene(
-            string scenePath,
-            Action<FrontendSceneLoadResult> completed)
-        {
-            try
-            {
-                AsyncOperation operation = SceneManager.LoadSceneAsync(
-                    scenePath,
-                    LoadSceneMode.Single);
-                if (operation == null)
-                {
-                    completed?.Invoke(FrontendSceneLoadResult.Failure(
-                        "CAMPAIGN LOAD COULD NOT START"));
-                    return;
-                }
-
-                operation.completed += _ =>
-                    completed?.Invoke(FrontendSceneLoadResult.Success());
-            }
-            catch (Exception exception)
-            {
-                completed?.Invoke(FrontendSceneLoadResult.Failure(
-                    "CAMPAIGN LOAD FAILED: " + exception.Message));
-            }
         }
     }
 

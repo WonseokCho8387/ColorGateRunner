@@ -2,6 +2,7 @@ using System;
 using ColorGateRunner.Core;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
@@ -110,6 +111,25 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button retryButton;
         [SerializeField] private Button failLobbyButton;
 
+        [SerializeField] private Button pauseButton;
+        [SerializeField] private GameObject pauseOverlayRoot;
+        [SerializeField] private Image pauseDim;
+        [SerializeField] private GameObject pausePanel;
+        [SerializeField] private Button pauseResumeButton;
+        [SerializeField] private Button pauseRestartButton;
+        [SerializeField] private Button pauseSettingsButton;
+        [SerializeField] private Button pauseLobbyButton;
+        [SerializeField] private GameObject pauseModalRoot;
+        [SerializeField] private Text pauseModalTitleText;
+        [SerializeField] private Text pauseModalMessageText;
+        [SerializeField] private Button pauseModalConfirmButton;
+        [SerializeField] private Text pauseModalConfirmText;
+        [SerializeField] private Button pauseModalCancelButton;
+        [SerializeField] private SettingsPanelController pauseSettingsPanel;
+        [SerializeField] private GameObject pauseTransitionBlocker;
+        [SerializeField] private ParticleSystem[] attemptEffects;
+        [SerializeField] private string frontendScenePath;
+
         private StageSession _session;
         private IStageProgressStore _progressStore;
         private IHapticFeedback _haptics;
@@ -148,6 +168,10 @@ namespace ColorGateRunner.Presentation
         private Vector2[] _colorStackStartPositions;
         private Vector3[] _colorStackStartScales;
         private UnityAction[] _stageButtonListeners;
+        private GameplayPauseCoordinator _pauseCoordinator;
+        private ISceneTransitionLoader _sceneTransitionLoader;
+        private bool[] _pausedEffectWasPlaying;
+        private string _pauseSceneLoadError = string.Empty;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -252,11 +276,23 @@ namespace ColorGateRunner.Presentation
         internal ExperimentSession ExperimentSession => _experimentSession;
         internal Vector3 NormalCameraPosition => _cameraStartPosition;
         internal Quaternion NormalCameraRotation => _cameraStartRotation;
+        internal GameplayPauseCoordinator PauseCoordinator => _pauseCoordinator;
+        internal GameObject PauseOverlayRoot => pauseOverlayRoot;
+        internal Image PauseDim => pauseDim;
+        internal Button PauseButton => pauseButton;
+        internal SettingsPanelController PauseSettingsPanel => pauseSettingsPanel;
+        internal string FrontendScenePath => frontendScenePath;
 
         internal bool IsPlayerCollider(Collider other)
         {
             return other.transform == player ||
                 other.transform.IsChildOf(player);
+        }
+
+        private static bool IsVibrationEnabled()
+        {
+            return !AppRoot.TryGetActive(out AppRoot root) ||
+                root.VibrationEnabled;
         }
 
         private void Awake()
@@ -270,8 +306,11 @@ namespace ColorGateRunner.Presentation
                 StageCatalogProvider.EnsureConfigured();
             }
             ValidateRequiredReferences();
+            _pauseCoordinator = new GameplayPauseCoordinator();
+            _sceneTransitionLoader ??= new UnitySceneTransitionLoader();
+            _pausedEffectWasPlaying = new bool[attemptEffects.Length];
             _progressStore = new PlayerPrefsStageProgressStore();
-            _haptics = new UnityHapticFeedback();
+            _haptics = new UnityHapticFeedback(IsVibrationEnabled);
             _telemetry = new DevelopmentTelemetry(developmentTelemetryEnabled);
             _highestUnlocked = _progressStore.LoadHighestUnlocked();
             _selectedStageId =
@@ -295,11 +334,20 @@ namespace ColorGateRunner.Presentation
 
         private void Update()
         {
+            if (Keyboard.current != null &&
+                Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                HandleBack();
+            }
             Tick(Time.deltaTime);
         }
 
         internal void Tick(float deltaTime)
         {
+            if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
+            {
+                return;
+            }
             TickGateReactions(deltaTime);
             TickOutcomePresentation(deltaTime);
             TickColorStackAnimation(deltaTime);
@@ -358,7 +406,8 @@ namespace ColorGateRunner.Presentation
 
         internal void TickMovement(float deltaTime)
         {
-            if (_session == null ||
+            if ((_pauseCoordinator != null && _pauseCoordinator.IsPaused) ||
+                _session == null ||
                 (_session.FlowState != StageFlowState.Playing &&
                 _session.FlowState != StageFlowState.ShieldRecovery &&
                 _session.FlowState != StageFlowState.StageFinishing))
@@ -404,6 +453,10 @@ namespace ColorGateRunner.Presentation
 
         internal void HandleGameplayTap()
         {
+            if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
+            {
+                return;
+            }
             if (_experimentActive)
             {
                 if (_experimentSession.TryCycleColor())
@@ -427,6 +480,144 @@ namespace ColorGateRunner.Presentation
                     0f);
             }
             SynchronizeViews();
+        }
+
+        internal void RequestPause()
+        {
+            if (_pauseCoordinator == null ||
+                !_pauseCoordinator.TryPause(GetCurrentFlowState()))
+            {
+                return;
+            }
+
+            PauseAttemptEffects();
+            ApplyPausePresentation();
+        }
+
+        internal void RequestResume()
+        {
+            if (_pauseCoordinator == null || !_pauseCoordinator.TryResume())
+            {
+                return;
+            }
+
+            ResumeAttemptEffects();
+            ApplyPausePresentation();
+        }
+
+        internal void HandleBack()
+        {
+            if (_pauseCoordinator == null)
+            {
+                return;
+            }
+
+            bool wasPaused = _pauseCoordinator.IsPaused;
+            GameplayPauseBackResult result =
+                _pauseCoordinator.HandleBack(GetCurrentFlowState());
+            if (result == GameplayPauseBackResult.Paused && !wasPaused)
+            {
+                PauseAttemptEffects();
+            }
+            else if (result == GameplayPauseBackResult.Resumed)
+            {
+                ResumeAttemptEffects();
+            }
+            ApplyPausePresentation();
+        }
+
+        internal void RequestPauseRestart()
+        {
+            if (_pauseCoordinator != null &&
+                _pauseCoordinator.TryShowModal(
+                    GameplayPauseModal.RestartConfirmation))
+            {
+                ApplyPausePresentation();
+            }
+        }
+
+        internal void RequestPauseSettings()
+        {
+            if (_pauseCoordinator == null ||
+                !_pauseCoordinator.TryShowModal(GameplayPauseModal.Settings))
+            {
+                return;
+            }
+
+            pauseSettingsPanel.Open(
+                AppRoot.TryGetActive(out AppRoot root) ? root : null);
+            ApplyPausePresentation();
+        }
+
+        internal void RequestPauseLobby()
+        {
+            if (_pauseCoordinator != null &&
+                _pauseCoordinator.TryShowModal(
+                    GameplayPauseModal.LeaveConfirmation))
+            {
+                ApplyPausePresentation();
+            }
+        }
+
+        internal void ConfirmPauseModal()
+        {
+            if (_pauseCoordinator == null)
+            {
+                return;
+            }
+
+            if (_pauseCoordinator.CurrentModal ==
+                GameplayPauseModal.RestartConfirmation)
+            {
+                _pauseCoordinator.Clear();
+                RetryToItemSelection();
+                ApplyPausePresentation();
+                return;
+            }
+            if (_pauseCoordinator.CurrentModal ==
+                GameplayPauseModal.LeaveConfirmation &&
+                _pauseCoordinator.TryBeginTransition())
+            {
+                _pauseSceneLoadError = string.Empty;
+                ApplyPausePresentation();
+                _sceneTransitionLoader.LoadScene(
+                    frontendScenePath,
+                    OnFrontendSceneLoadCompleted);
+            }
+        }
+
+        internal void CancelPauseModal()
+        {
+            if (_pauseCoordinator != null &&
+                _pauseCoordinator.TryCloseModal())
+            {
+                ApplyPausePresentation();
+            }
+        }
+
+        private StageFlowState GetCurrentFlowState()
+        {
+            if (_experimentActive && _experimentSession != null)
+            {
+                return _experimentSession.FlowState;
+            }
+            return _session?.FlowState ?? StageFlowState.Lobby;
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                RequestPause();
+            }
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus)
+            {
+                RequestPause();
+            }
         }
 
         internal void PlayFromLobby()
@@ -538,6 +729,10 @@ namespace ColorGateRunner.Presentation
 
         internal GateOutcome HandleGateCrossed(StageGateView gate)
         {
+            if (!CanResolveGate())
+            {
+                return GateOutcome.Invulnerable;
+            }
             if (_experimentActive && gate.HasExperimentPlan)
             {
                 return HandleExperimentGateCrossed(gate);
@@ -584,9 +779,25 @@ namespace ColorGateRunner.Presentation
 
         internal bool CanResolveExperimentGate()
         {
-            return _experimentActive &&
+            return (_pauseCoordinator == null || !_pauseCoordinator.IsPaused) &&
+                _experimentActive &&
                 _experimentSession != null &&
                 _experimentSession.FlowState == StageFlowState.Playing;
+        }
+
+        internal bool CanResolveGate()
+        {
+            if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
+            {
+                return false;
+            }
+            if (_experimentActive)
+            {
+                return CanResolveExperimentGate();
+            }
+            return _session != null &&
+                (_session.FlowState == StageFlowState.Playing ||
+                 _session.FlowState == StageFlowState.ShieldRecovery);
         }
 
         internal void ContinueAfterFailure()
@@ -739,6 +950,53 @@ namespace ColorGateRunner.Presentation
             _haptics = haptics;
         }
 
+        internal void SetSceneTransitionLoaderForTests(
+            ISceneTransitionLoader loader)
+        {
+            _sceneTransitionLoader = loader ??
+                throw new ArgumentNullException(nameof(loader));
+        }
+
+        internal void ConfigurePause(
+            Button hudPauseButton,
+            GameObject overlayRoot,
+            Image fullScreenDim,
+            GameObject panel,
+            Button resume,
+            Button restart,
+            Button settings,
+            Button lobby,
+            GameObject modalRoot,
+            Text modalTitle,
+            Text modalMessage,
+            Button modalConfirm,
+            Text modalConfirmLabel,
+            Button modalCancel,
+            SettingsPanelController sharedSettingsPanel,
+            GameObject transitionBlocker,
+            ParticleSystem[] registeredAttemptEffects,
+            string frontendPath)
+        {
+            pauseButton = hudPauseButton;
+            pauseOverlayRoot = overlayRoot;
+            pauseDim = fullScreenDim;
+            pausePanel = panel;
+            pauseResumeButton = resume;
+            pauseRestartButton = restart;
+            pauseSettingsButton = settings;
+            pauseLobbyButton = lobby;
+            pauseModalRoot = modalRoot;
+            pauseModalTitleText = modalTitle;
+            pauseModalMessageText = modalMessage;
+            pauseModalConfirmButton = modalConfirm;
+            pauseModalConfirmText = modalConfirmLabel;
+            pauseModalCancelButton = modalCancel;
+            pauseSettingsPanel = sharedSettingsPanel;
+            pauseTransitionBlocker = transitionBlocker;
+            attemptEffects = registeredAttemptEffects;
+            frontendScenePath = frontendPath;
+        }
+
         internal void StartDevelopmentExperiment(
             ExperimentDefinition definition,
             StartItemSelection items)
@@ -840,7 +1098,23 @@ namespace ColorGateRunner.Presentation
                 replayButton == null || clearLobbyButton == null ||
                 failPanel == null || failTitleText == null ||
                 failDetailsText == null || continueButton == null ||
-                retryButton == null || failLobbyButton == null)
+                retryButton == null || failLobbyButton == null ||
+                pauseButton == null || pauseOverlayRoot == null ||
+                pauseDim == null || pausePanel == null ||
+                pauseResumeButton == null || pauseRestartButton == null ||
+                pauseSettingsButton == null || pauseLobbyButton == null ||
+                pauseModalRoot == null || pauseModalTitleText == null ||
+                pauseModalMessageText == null ||
+                pauseModalConfirmButton == null ||
+                pauseModalConfirmText == null ||
+                pauseModalCancelButton == null ||
+                pauseSettingsPanel == null ||
+                !pauseSettingsPanel.HasRequiredReferences() ||
+                pauseTransitionBlocker == null || attemptEffects == null ||
+                attemptEffects.Length != 2 || attemptEffects[0] == null ||
+                attemptEffects[1] == null ||
+                string.IsNullOrWhiteSpace(frontendScenePath) ||
+                frontendScenePath == gameObject.scene.path)
             {
                 return false;
             }
@@ -1034,6 +1308,15 @@ namespace ColorGateRunner.Presentation
             clearContinueButton.onClick.AddListener(ShowLobby);
             clearLobbyButton.onClick.AddListener(LeaveResultFlow);
             failLobbyButton.onClick.AddListener(LeaveResultFlow);
+            pauseButton.onClick.AddListener(RequestPause);
+            pauseResumeButton.onClick.AddListener(RequestResume);
+            pauseRestartButton.onClick.AddListener(RequestPauseRestart);
+            pauseSettingsButton.onClick.AddListener(RequestPauseSettings);
+            pauseLobbyButton.onClick.AddListener(RequestPauseLobby);
+            pauseModalConfirmButton.onClick.AddListener(ConfirmPauseModal);
+            pauseModalCancelButton.onClick.AddListener(CancelPauseModal);
+            pauseSettingsPanel.ApplySucceeded += ClosePauseSettings;
+            pauseSettingsPanel.CancelRequested += ClosePauseSettings;
         }
 
         private void RemoveListeners()
@@ -1069,6 +1352,15 @@ namespace ColorGateRunner.Presentation
             clearContinueButton.onClick.RemoveListener(ShowLobby);
             clearLobbyButton.onClick.RemoveListener(LeaveResultFlow);
             failLobbyButton.onClick.RemoveListener(LeaveResultFlow);
+            pauseButton.onClick.RemoveListener(RequestPause);
+            pauseResumeButton.onClick.RemoveListener(RequestResume);
+            pauseRestartButton.onClick.RemoveListener(RequestPauseRestart);
+            pauseSettingsButton.onClick.RemoveListener(RequestPauseSettings);
+            pauseLobbyButton.onClick.RemoveListener(RequestPauseLobby);
+            pauseModalConfirmButton.onClick.RemoveListener(ConfirmPauseModal);
+            pauseModalCancelButton.onClick.RemoveListener(CancelPauseModal);
+            pauseSettingsPanel.ApplySucceeded -= ClosePauseSettings;
+            pauseSettingsPanel.CancelRequested -= ClosePauseSettings;
         }
 
         private void LeaveResultFlow()
@@ -1233,7 +1525,8 @@ namespace ColorGateRunner.Presentation
 
         private void TickExperimentRuntime(float deltaTime)
         {
-            if (_experimentSession == null)
+            if ((_pauseCoordinator != null && _pauseCoordinator.IsPaused) ||
+                _experimentSession == null)
             {
                 return;
             }
@@ -1599,6 +1892,8 @@ namespace ColorGateRunner.Presentation
 
         private void ResetRunPresentation()
         {
+            _pauseCoordinator?.Clear();
+            _pauseSceneLoadError = string.Empty;
             _clearRecorded = false;
             _cameraShakeRemaining = 0f;
             _failureDelayRemaining = 0f;
@@ -1635,6 +1930,121 @@ namespace ColorGateRunner.Presentation
             {
                 gates[index].Deactivate();
             }
+            ApplyPausePresentation();
+        }
+
+        private void PauseAttemptEffects()
+        {
+            for (int index = 0; index < attemptEffects.Length; index++)
+            {
+                ParticleSystem effect = attemptEffects[index];
+                _pausedEffectWasPlaying[index] = effect.isPlaying;
+                if (_pausedEffectWasPlaying[index])
+                {
+                    effect.Pause(true);
+                }
+            }
+        }
+
+        private void ResumeAttemptEffects()
+        {
+            for (int index = 0; index < attemptEffects.Length; index++)
+            {
+                ParticleSystem effect = attemptEffects[index];
+                if (_pausedEffectWasPlaying[index] && effect.isPaused)
+                {
+                    effect.Play(true);
+                }
+                _pausedEffectWasPlaying[index] = false;
+            }
+        }
+
+        private void ApplyPausePresentation()
+        {
+            if (_pauseCoordinator == null || pauseOverlayRoot == null)
+            {
+                return;
+            }
+
+            bool paused = _pauseCoordinator.IsPaused;
+            GameplayPauseModal modal = _pauseCoordinator.CurrentModal;
+            pauseOverlayRoot.SetActive(paused);
+            pausePanel.SetActive(paused &&
+                modal == GameplayPauseModal.None &&
+                !_pauseCoordinator.IsTransitioning);
+            pauseSettingsPanel.gameObject.SetActive(
+                paused && modal == GameplayPauseModal.Settings);
+            bool confirmation = paused &&
+                (modal == GameplayPauseModal.RestartConfirmation ||
+                 modal == GameplayPauseModal.LeaveConfirmation ||
+                 modal == GameplayPauseModal.SceneLoadError);
+            pauseModalRoot.SetActive(confirmation);
+            pauseTransitionBlocker.SetActive(
+                paused && _pauseCoordinator.IsTransitioning);
+
+            if (confirmation)
+            {
+                bool restart =
+                    modal == GameplayPauseModal.RestartConfirmation;
+                bool leave = modal == GameplayPauseModal.LeaveConfirmation;
+                pauseModalTitleText.text = restart
+                    ? "RESTART STAGE?"
+                    : leave
+                        ? "RETURN TO LOBBY?"
+                        : "LOBBY LOAD FAILED";
+                pauseModalMessageText.text = restart
+                    ? "RESTART THIS ATTEMPT USING THE EXISTING RETRY RULES?"
+                    : leave
+                        ? "CURRENT PLAY WILL NOT BE SAVED. RETURN TO LOBBY?"
+                        : string.IsNullOrWhiteSpace(_pauseSceneLoadError)
+                            ? "THE ATTEMPT REMAINS PAUSED. RESUME OR TRY AGAIN."
+                            : _pauseSceneLoadError;
+                pauseModalConfirmButton.gameObject.SetActive(restart || leave);
+                pauseModalConfirmText.text = restart ? "RESTART" : "LEAVE";
+                SetButtonLabel(pauseModalCancelButton,
+                    modal == GameplayPauseModal.SceneLoadError
+                        ? "CLOSE"
+                        : "CANCEL");
+            }
+
+            RefreshPauseButtonVisibility();
+        }
+
+        private void RefreshPauseButtonVisibility()
+        {
+            if (pauseButton == null)
+            {
+                return;
+            }
+
+            pauseButton.gameObject.SetActive(
+                _pauseCoordinator != null &&
+                !_pauseCoordinator.IsPaused &&
+                GameplayPauseCoordinator.IsPauseAllowed(
+                    GetCurrentFlowState()) &&
+                (_uiFlow == MobileUiFlow.Countdown ||
+                 _uiFlow == MobileUiFlow.Gameplay));
+        }
+
+        private void ClosePauseSettings()
+        {
+            CancelPauseModal();
+        }
+
+        private void OnFrontendSceneLoadCompleted(SceneTransitionResult result)
+        {
+            if (this == null)
+            {
+                return;
+            }
+
+            _pauseCoordinator.CompleteTransition(result.Succeeded);
+            if (!result.Succeeded &&
+                !string.IsNullOrWhiteSpace(result.Error))
+            {
+                _pauseSceneLoadError = result.Error;
+            }
+            ApplyPausePresentation();
         }
 
         private void ApplyItemPresentation()
@@ -1752,6 +2162,7 @@ namespace ColorGateRunner.Presentation
             {
                 player.localScale = Vector3.one;
             }
+            RefreshPauseButtonVisibility();
         }
 
         private void SynchronizeItemSelection()
@@ -1891,7 +2302,8 @@ namespace ColorGateRunner.Presentation
 
         private void ResolveCrossedGatePlanes()
         {
-            if (_session == null ||
+            if ((_pauseCoordinator != null && _pauseCoordinator.IsPaused) ||
+                _session == null ||
                 (_session.FlowState != StageFlowState.Playing &&
                  _session.FlowState != StageFlowState.ShieldRecovery))
             {
@@ -2124,6 +2536,7 @@ namespace ColorGateRunner.Presentation
             {
                 failPanel.SetActive(false);
             }
+            RefreshPauseButtonVisibility();
         }
 
         private void SynchronizeColorHud()
@@ -2215,6 +2628,7 @@ namespace ColorGateRunner.Presentation
                 boosterMeterFill.fillAmount);
             boosterWarning.SetActive(false);
             SynchronizeColorHud();
+            RefreshPauseButtonVisibility();
         }
 
         private void SnapColorStack(int activeCount)

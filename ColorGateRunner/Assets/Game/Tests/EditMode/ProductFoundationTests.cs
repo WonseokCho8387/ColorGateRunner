@@ -317,6 +317,172 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(result.IsError, Is.True);
         }
 
+        [Test]
+        public void SchemaOneWithoutAccountChoiceField_DefaultsToIncomplete()
+        {
+            const string json =
+                "{\"SchemaVersion\":1,\"SaveRevision\":2," +
+                "\"Profile\":{\"ProfileId\":\"legacy\"," +
+                "\"CreatedUtc\":\"2026-08-01T00:00:00.0000000Z\"," +
+                "\"LastPlayedUtc\":\"2026-08-01T00:00:00.0000000Z\"," +
+                "\"DisplayName\":\"GUEST\",\"AccountState\":0," +
+                "\"SaveRevision\":2}," +
+                "\"Settings\":{\"MasterVolume\":1," +
+                "\"MusicVolume\":1,\"SfxVolume\":1," +
+                "\"Vibration\":true,\"Language\":\"system\"}," +
+                "\"LastWriteUtc\":\"2026-08-01T00:00:00.0000000Z\"}";
+            var serializer = new UnityJsonSaveDocumentSerializer();
+
+            bool parsed = serializer.TryDeserialize(
+                json,
+                out LocalSaveData data,
+                out string diagnostic);
+
+            Assert.That(parsed, Is.True, diagnostic);
+            Assert.That(data.SchemaVersion, Is.EqualTo(1));
+            Assert.That(data.Profile.AccountChoiceCompleted, Is.False);
+        }
+
+        [Test]
+        public void InvalidSettingsReset_DoesNotResetAccountChoice()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Profile.AccountChoiceCompleted = true;
+            data.Settings.MasterVolume = 2f;
+            File.WriteAllText(
+                _paths.Primary,
+                new UnityJsonSaveDocumentSerializer().Serialize(data));
+
+            LocalSaveLoadResult load = CreateSave(
+                new MutableClock(_firstUtc)).Load();
+
+            Assert.That(load.Succeeded, Is.True);
+            Assert.That(load.Data.Settings.MasterVolume, Is.EqualTo(1f));
+            Assert.That(load.Data.Profile.AccountChoiceCompleted, Is.True);
+        }
+
+        [Test]
+        public void ProductSession_SaveFailureLeavesAllPublishedStateUntouched()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            var clock = new MutableClock(_firstUtc);
+            var profile = new ProfileService(
+                clock,
+                new CountingIdGenerator("unused"));
+            var settings = new SettingsService();
+            var account = new LocalAccountService();
+            var pipeline = new AppInitializationPipeline(
+                save,
+                profile,
+                settings,
+                account);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            LocalProfileData publishedProfile = profile.Current;
+            LocalSettingsData publishedSettings = settings.Current;
+            save.FailWrites = true;
+
+            ProductMutationResult accountResult =
+                pipeline.Session.CompleteGuestAccountChoice();
+            ProductMutationResult settingsResult =
+                pipeline.Session.ApplySettings(0.2f, 0.3f, 0.4f, false);
+
+            Assert.That(accountResult.Succeeded, Is.False);
+            Assert.That(settingsResult.Succeeded, Is.False);
+            Assert.That(profile.Current, Is.SameAs(publishedProfile));
+            Assert.That(settings.Current, Is.SameAs(publishedSettings));
+            Assert.That(profile.Current.AccountChoiceCompleted, Is.False);
+            Assert.That(settings.Current.MasterVolume, Is.EqualTo(1f));
+            Assert.That(settings.Current.Vibration, Is.True);
+            Assert.That(account.CurrentProfileId, Is.EqualTo("guest-1"));
+        }
+
+        [Test]
+        public void ProductSession_SuccessRebindsOnceAndPersistsClampedSettings()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            var clock = new MutableClock(_firstUtc);
+            var profile = new ProfileService(
+                clock,
+                new CountingIdGenerator("unused"));
+            var settings = new SettingsService();
+            var account = new LocalAccountService();
+            var pipeline = new AppInitializationPipeline(
+                save,
+                profile,
+                settings,
+                account);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult accountResult =
+                pipeline.Session.CompleteGuestAccountChoice();
+            ProductMutationResult settingsResult =
+                pipeline.Session.ApplySettings(-1f, 0.35f, 2f, false);
+
+            Assert.That(accountResult.Succeeded, Is.True);
+            Assert.That(settingsResult.Succeeded, Is.True);
+            Assert.That(profile.Current.AccountChoiceCompleted, Is.True);
+            Assert.That(settings.Current.MasterVolume, Is.Zero);
+            Assert.That(settings.Current.MusicVolume, Is.EqualTo(0.35f));
+            Assert.That(settings.Current.SfxVolume, Is.EqualTo(1f));
+            Assert.That(settings.Current.Vibration, Is.False);
+            Assert.That(save.Stored.Profile.ProfileId, Is.EqualTo("guest-1"));
+            Assert.That(save.Stored.Profile.AccountChoiceCompleted, Is.True);
+            Assert.That(save.Stored.Settings.Vibration, Is.False);
+        }
+
+        [Test]
+        public void ProductSession_AccountAndSettingsSurviveSaveReload()
+        {
+            var clock = new MutableClock(_firstUtc);
+            LocalSaveService save = CreateSave(clock);
+            var firstProfile = new ProfileService(
+                clock,
+                new CountingIdGenerator("stable-guest"));
+            var firstSettings = new SettingsService();
+            var firstAccount = new LocalAccountService();
+            var firstPipeline = new AppInitializationPipeline(
+                save,
+                firstProfile,
+                firstSettings,
+                firstAccount);
+            Assert.That(firstPipeline.Initialize().Succeeded, Is.True);
+            Assert.That(
+                firstPipeline.Session.CompleteGuestAccountChoice().Succeeded,
+                Is.True);
+            Assert.That(
+                firstPipeline.Session.ApplySettings(
+                    0.2f,
+                    0.3f,
+                    0.4f,
+                    false).Succeeded,
+                Is.True);
+
+            var reloadedProfile = new ProfileService(
+                clock,
+                new CountingIdGenerator("must-not-be-used"));
+            var reloadedSettings = new SettingsService();
+            var reloadedAccount = new LocalAccountService();
+            var reloadedPipeline = new AppInitializationPipeline(
+                save,
+                reloadedProfile,
+                reloadedSettings,
+                reloadedAccount);
+
+            Assert.That(reloadedPipeline.Initialize().Succeeded, Is.True);
+            Assert.That(reloadedProfile.Current.ProfileId,
+                Is.EqualTo("stable-guest"));
+            Assert.That(
+                reloadedProfile.Current.AccountChoiceCompleted,
+                Is.True);
+            Assert.That(reloadedSettings.Current.MasterVolume,
+                Is.EqualTo(0.2f));
+            Assert.That(reloadedSettings.Current.MusicVolume,
+                Is.EqualTo(0.3f));
+            Assert.That(reloadedSettings.Current.SfxVolume,
+                Is.EqualTo(0.4f));
+            Assert.That(reloadedSettings.Current.Vibration, Is.False);
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,
@@ -416,6 +582,38 @@ namespace ColorGateRunner.Tests.EditMode
             {
                 data.SaveRevision++;
                 data.Profile.SaveRevision = data.SaveRevision;
+                return LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
+            }
+        }
+
+        private sealed class MutableSessionSaveService : ILocalSaveService
+        {
+            public MutableSessionSaveService(LocalSaveData data)
+            {
+                Stored = data.Clone();
+            }
+
+            public LocalSaveData Stored { get; private set; }
+            public bool FailWrites { get; set; }
+
+            public LocalSaveLoadResult Load() =>
+                LocalSaveLoadResult.Success(Stored.Clone(), false, false);
+
+            public LocalSaveWriteResult Save(LocalSaveData data)
+            {
+                if (FailWrites)
+                {
+                    return LocalSaveWriteResult.Failure(
+                        new ProductError(
+                            ProductErrorCode.SaveWrite,
+                            "planned",
+                            true));
+                }
+
+                data.SaveRevision++;
+                data.Profile.SaveRevision = data.SaveRevision;
+                Stored = data.Clone();
                 return LocalSaveWriteResult.Success(
                     SaveReplacementResult.Recoverable);
             }

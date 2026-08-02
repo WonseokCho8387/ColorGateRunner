@@ -54,10 +54,24 @@ namespace ColorGateRunner.Product
             Current = data.Profile;
             return true;
         }
+
+        internal void Bind(LocalProfileData profile)
+        {
+            Current = profile ?? throw new ArgumentNullException(nameof(profile));
+        }
     }
 
     public sealed class LocalAccountService
     {
+        private readonly IAccountProviderAvailability _providerAvailability;
+
+        public LocalAccountService(
+            IAccountProviderAvailability providerAvailability = null)
+        {
+            _providerAvailability = providerAvailability ??
+                new UnavailableAccountProviderAvailability();
+        }
+
         public LocalAccountState CurrentState { get; private set; } =
             LocalAccountState.Guest;
 
@@ -81,6 +95,20 @@ namespace ColorGateRunner.Product
                 "External account providers are deferred.",
                 false);
         }
+
+        public bool IsProviderAvailable(string provider)
+        {
+            return _providerAvailability.IsAvailable(provider);
+        }
+    }
+
+    public sealed class UnavailableAccountProviderAvailability :
+        IAccountProviderAvailability
+    {
+        public bool IsAvailable(string provider)
+        {
+            return false;
+        }
     }
 
     public sealed class SettingsService
@@ -98,6 +126,152 @@ namespace ColorGateRunner.Product
             data.Settings ??= LocalSettingsData.CreateDefaults();
             Current = data.Settings;
             return created;
+        }
+
+        internal void Bind(LocalSettingsData settings)
+        {
+            Current = settings ?? throw new ArgumentNullException(nameof(settings));
+        }
+    }
+
+
+    public sealed class LocalProductSession
+    {
+        private readonly ILocalSaveService _saveService;
+        private readonly ProfileService _profileService;
+        private readonly SettingsService _settingsService;
+        private readonly LocalAccountService _accountService;
+        private LocalSaveData _current;
+
+        public LocalProductSession(
+            ILocalSaveService saveService,
+            ProfileService profileService,
+            SettingsService settingsService,
+            LocalAccountService accountService)
+        {
+            _saveService = saveService ??
+                throw new ArgumentNullException(nameof(saveService));
+            _profileService = profileService ??
+                throw new ArgumentNullException(nameof(profileService));
+            _settingsService = settingsService ??
+                throw new ArgumentNullException(nameof(settingsService));
+            _accountService = accountService ??
+                throw new ArgumentNullException(nameof(accountService));
+        }
+
+        public bool IsReady => _current != null;
+
+        internal void Bind(LocalSaveData data)
+        {
+            _current = data ?? throw new ArgumentNullException(nameof(data));
+            RebindServices();
+        }
+
+        public ProductMutationResult CompleteGuestAccountChoice()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (_current.Profile.AccountChoiceCompleted)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.Profile.AccountChoiceCompleted = true;
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult ApplySettings(
+            float masterVolume,
+            float musicVolume,
+            float sfxVolume,
+            bool vibration)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (!IsFinite(masterVolume) || !IsFinite(musicVolume) ||
+                !IsFinite(sfxVolume))
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "Settings volumes must be finite values.",
+                        true));
+            }
+
+            float master = Clamp01(masterVolume);
+            float music = Clamp01(musicVolume);
+            float sfx = Clamp01(sfxVolume);
+            LocalSettingsData current = _current.Settings;
+            if (current.MasterVolume == master &&
+                current.MusicVolume == music &&
+                current.SfxVolume == sfx &&
+                current.Vibration == vibration)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.Settings.MasterVolume = master;
+            candidate.Settings.MusicVolume = music;
+            candidate.Settings.SfxVolume = sfx;
+            candidate.Settings.Vibration = vibration;
+            return Commit(candidate);
+        }
+
+        private ProductMutationResult Commit(LocalSaveData candidate)
+        {
+            LocalSaveWriteResult write = _saveService.Save(candidate);
+            if (!write.Succeeded)
+            {
+                return ProductMutationResult.Failure(write.Error);
+            }
+
+            _current.CopyFrom(candidate);
+            RebindServices();
+            return ProductMutationResult.Success(true);
+        }
+
+        private bool TryGetReady(out ProductMutationResult failure)
+        {
+            if (_current != null && _current.Profile != null &&
+                _current.Settings != null)
+            {
+                failure = default;
+                return true;
+            }
+
+            failure = ProductMutationResult.Failure(
+                new ProductError(
+                    ProductErrorCode.Initialization,
+                    "The local product session is not initialized.",
+                    true));
+            return false;
+        }
+
+        private void RebindServices()
+        {
+            _profileService.Bind(_current.Profile);
+            _settingsService.Bind(_current.Settings);
+            _accountService.Load(_current.Profile);
+        }
+
+        private static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
+
+        private static float Clamp01(float value)
+        {
+            if (value < 0f)
+            {
+                return 0f;
+            }
+            return value > 1f ? 1f : value;
         }
     }
 }

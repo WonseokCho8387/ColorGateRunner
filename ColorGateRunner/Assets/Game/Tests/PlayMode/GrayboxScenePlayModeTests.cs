@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
@@ -5,6 +6,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace ColorGateRunner.Tests.PlayMode
 {
@@ -1572,6 +1574,131 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(CountNamed("EventSystem"), Is.EqualTo(1));
             Assert.That(CountNamed("ColorHudPanel"), Is.EqualTo(1));
             Assert.That(CountNamed("BoosterMeter"), Is.EqualTo(1));
+            Assert.That(CountNamed("PauseOverlayRoot"), Is.EqualTo(1));
+            Assert.That(CountNamed("SettingsPanel"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PauseDuringCountdown_FreezesCountdownUntilResume()
+        {
+            SelectItemsAndStart(false, false);
+            _controller.RequestPause();
+
+            _controller.Tick(4f);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.PauseOverlayRoot.activeSelf, Is.True);
+            Assert.That(_controller.PauseDim.color.a, Is.EqualTo(0.85f));
+
+            _controller.RequestResume();
+            _controller.Tick(3.1f);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+        }
+
+        [Test]
+        public void PauseDuringPlaying_FreezesTimeMovementInputAndJudgment()
+        {
+            StartPlaying(false, false);
+            float elapsed = _controller.Session.ElapsedPlayingSeconds;
+            Vector3 position = _controller.PlayerTransform.position;
+            StageGateView gate = _controller.GetGate(0);
+            Match(gate.AssignedColor);
+            RunnerColor color = _controller.Session.CurrentColor;
+
+            _controller.RequestPause();
+            _controller.Tick(1f);
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.Session.ElapsedPlayingSeconds,
+                Is.EqualTo(elapsed));
+            Assert.That(_controller.PlayerTransform.position,
+                Is.EqualTo(position));
+            Assert.That(_controller.Session.CurrentColor,
+                Is.EqualTo(color));
+            Assert.That(gate.TryResolveCrossing(), Is.False);
+            Assert.That(gate.HasResolved, Is.False);
+
+            _controller.RequestResume();
+            Assert.That(gate.TryResolveCrossing(), Is.True);
+        }
+
+        [Test]
+        public void Pause_OnlyPausesRegisteredAttemptEffectAndResumesOnce()
+        {
+            StartPlaying(false, true);
+            Assert.That(_controller.SpeedLines.isPlaying, Is.True);
+
+            _controller.RequestPause();
+            _controller.RequestPause();
+            Assert.That(_controller.SpeedLines.isPaused, Is.True);
+
+            _controller.RequestResume();
+            Assert.That(_controller.SpeedLines.isPlaying, Is.True);
+        }
+
+        [Test]
+        public void PauseRestart_UsesExistingRetryPathAndClearsPause()
+        {
+            StartPlaying(false, false);
+            _controller.RequestPause();
+            _controller.RequestPauseRestart();
+            _controller.ConfirmPauseModal();
+
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.False);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.UiFlow,
+                Is.EqualTo(MobileUiFlow.PreRun));
+        }
+
+        [Test]
+        public void PauseLobbyLoadFailure_StaysPausedAndShowsError()
+        {
+            StartPlaying(false, false);
+            var loader = new FailingSceneTransitionLoader();
+            _controller.SetSceneTransitionLoaderForTests(loader);
+
+            _controller.RequestPause();
+            _controller.RequestPauseLobby();
+            _controller.ConfirmPauseModal();
+
+            Assert.That(loader.LoadCount, Is.EqualTo(1));
+            Assert.That(loader.LastPath,
+                Is.EqualTo(_controller.FrontendScenePath));
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.True);
+            Assert.That(_controller.PauseCoordinator.CurrentModal,
+                Is.EqualTo(GameplayPauseModal.SceneLoadError));
+            Assert.That(_controller.PauseOverlayRoot.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void FocusLossPausesOnceAndFocusGainDoesNotAutoResume()
+        {
+            StartPlaying(false, false);
+
+            _controller.SendMessage("OnApplicationFocus", false);
+            _controller.SendMessage("OnApplicationFocus", false);
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.True);
+
+            _controller.SendMessage("OnApplicationFocus", true);
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.True);
+        }
+
+        [Test]
+        public void GameplayBackPausesAndPauseBackResumesSameAttempt()
+        {
+            StartPlaying(false, false);
+            StageSession session = _controller.Session;
+
+            _controller.HandleBack();
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.True);
+            _controller.HandleBack();
+
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.False);
+            Assert.That(_controller.Session, Is.SameAs(session));
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
         }
 
         private void StartPlaying(bool shield, bool booster)
@@ -1839,6 +1966,22 @@ namespace ColorGateRunner.Tests.PlayMode
             public void RequestBoosterLaunch()
             {
                 RequestCount++;
+            }
+        }
+
+        private sealed class FailingSceneTransitionLoader :
+            ISceneTransitionLoader
+        {
+            internal int LoadCount { get; private set; }
+            internal string LastPath { get; private set; }
+
+            public void LoadScene(
+                string scenePath,
+                Action<SceneTransitionResult> completed)
+            {
+                LoadCount++;
+                LastPath = scenePath;
+                completed(SceneTransitionResult.Failure("PLANNED"));
             }
         }
 

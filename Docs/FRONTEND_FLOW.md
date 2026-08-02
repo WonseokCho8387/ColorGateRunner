@@ -2,9 +2,9 @@
 
 ## Status
 
-Approved commercial-flow design baseline. Frontend Iterations 1 and 2 are
-implemented; later Lobby, Campaign, Stage Detail, Gameplay, and Results work
-remains pending.
+Approved commercial-flow design baseline. Frontend Iterations 1 and 2 plus the
+Account Onboarding / Settings / Gameplay Pause UX slice are implemented.
+Campaign Page, Stage Detail, final Lobby, and Results work remains pending.
 
 This document defines the target player-facing Scene, page, overlay, and
 navigation structure. It does not change gameplay, balance, Stage data,
@@ -19,7 +19,7 @@ gameplay state.
 ```text
 App Start
 -> Boot
--> Title
+-> Account Choice (first run only)
 -> Lobby
 -> Campaign
 -> Stage Detail
@@ -106,7 +106,7 @@ Boot must not contain campaign or gameplay logic.
 
 Pages:
 
-- Title.
+- Account Choice.
 - Lobby.
 - Campaign.
 - Stage Detail.
@@ -159,8 +159,8 @@ Experiment Lab remains development-only.
 ```text
 Boot
 -> Create local Guest profile
--> Required consent page or popup
--> Title
+-> Account Choice
+-> Save Guest choice completion
 -> Lobby
 -> Campaign or recommended first Stage
 ```
@@ -179,7 +179,6 @@ Rules:
 Boot
 -> Load local profile and settings
 -> Resolve optional account state
--> Title
 -> Lobby
 ```
 
@@ -202,27 +201,25 @@ Recoverable actions may include:
 - Restore the latest valid local backup.
 - Open support information.
 
-# 3. Title Page
+# 3. Account Choice Page
 
 ## Required components
 
-- Game logo.
-- `Tap to Start` or equivalent.
-- Account state: Guest, Linked, Offline, or Sync Warning.
-- Account-link entry.
-- Settings.
-- Terms.
-- Privacy.
-- Support.
-- App version.
+- Game title and version.
+- Working `Start as Guest` action.
+- Provider-backed account actions only when a real provider adapter reports
+  availability.
 
 ## Rules
 
 - Empty or nonfunctional service buttons remain hidden.
-- Title input must not trigger underlying gameplay input.
-- Account linking returns without losing navigation state.
-- External account providers are deferred; initial implementation is Guest
-  only.
+- Account Choice input must not trigger underlying gameplay input.
+- The Guest action reaches Lobby only after Product Save success.
+- Save failure remains on Account Choice and displays a truthful error.
+- External account providers are deferred; the current implementation is Guest
+  only and never presents a fake Linked state.
+- Existing schema-1 users without the optional completion field intentionally
+  see Account Choice once.
 
 # 4. Lobby Page
 
@@ -546,7 +543,7 @@ Only one blocking modal is active at a time.
 
 # 14. Navigation and Back rules
 
-- Title: platform-appropriate exit confirmation.
+- Account Choice: platform-appropriate exit confirmation.
 - Lobby: exit confirmation.
 - Campaign: return to Lobby.
 - Stage Detail: return to Campaign and preserve Stage focus.
@@ -648,6 +645,31 @@ Implementation status: Completed in Iteration 10.
 - Placeholder Lobby deliberately does not read Stage progression and shows
   only `CONTINUE CAMPAIGN`. Empty future slots and legal actions are hidden.
 - Existing Campaign Lobby and navigation remain authoritative after entry.
+
+## Implemented UX slice — Account Choice, Settings, and Gameplay Pause
+
+- Iteration 12 replaces the implemented Title Page with first-run Account
+  Choice. `AccountChoiceCompleted=false` selects Account Choice; `true` selects
+  Lobby before the first rendered frame.
+- Frontend still contains no AppRoot. Direct Scene execution shows blocking
+  `BOOT REQUIRED` and cannot save a choice or enter Campaign.
+- Lobby no longer routes back to Title. Its Account action truthfully reports
+  the deferred provider state, while system Back opens Exit Confirmation.
+- Frontend and Gameplay instantiate the same `SettingsPanelController`
+  contract. Apply persists all four values; Cancel closes without saving draft
+  slider values. Save failure remains open with an error.
+- Gameplay Pause is available in Countdown, Playing, and Shield Recovery.
+  Back opens Pause; Back from the base Pause panel resumes; Back from Settings
+  or a confirmation closes that layer. Focus loss requests Pause, and focus
+  gain never resumes automatically.
+- The full-screen Pause Dim covers the viewport, blocks raycasts, uses alpha
+  0.85, and is drawn above gameplay guidance. The Pause panel remains inside
+  Safe Area.
+- Resume preserves the same Attempt. Restart confirmation delegates to the
+  existing Retry-to-PreRun contract. Lobby confirmation loads the
+  Builder-serialized Frontend Scene and records no attempt result.
+- Scene-load failure leaves the Attempt paused and offers a recoverable close;
+  transition input and repeated requests are blocked.
 
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 

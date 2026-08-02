@@ -1707,3 +1707,83 @@ Any mismatch blocks implementation.
   `StageProgressService` Iteration.
 - Fully replacing real PlayerPrefs with an injected memory store during tests
   is a future testability improvement, not part of this minimal Hotfix.
+
+## Iteration 12 — Account Onboarding, Settings, and Gameplay Pause UX
+
+### Product and onboarding acceptance
+
+- Schema-1 Profile roundtrip preserves `AccountChoiceCompleted`; a missing
+  field remains backward-compatible `false` without a schema-version change.
+- Settings validation/repair cannot reset onboarding completion.
+- Guest choice saves before navigation. Save failure leaves Profile, Settings,
+  onboarding, Page, and public service state unchanged and exposes retryable
+  feedback.
+- The thin Product session publishes the saved snapshot through one rebind
+  path and does not become a second persistence authority.
+- Provider absence hides the release action and cannot claim a linked state.
+- First entry shows Account Choice; successful Guest choice reaches Lobby;
+  re-entry with completed onboarding goes directly to Lobby without a Title
+  flash. Direct Frontend entry without AppRoot remains `BOOT REQUIRED`.
+
+### Settings acceptance
+
+- Frontend and Gameplay use the same Settings panel contract. Cancel discards
+  draft UI values; Apply persists Master, Music, SFX, and Vibration.
+- Master alone updates `AudioListener.volume`. Music and SFX roundtrip without
+  pretending to control unavailable content targets.
+- Vibration false prevents the Booster haptic callback itself; true permits
+  the existing callback.
+- Failed persistence keeps the panel open and retains prior public Settings.
+
+### Gameplay Pause acceptance
+
+- The coordinator owns exactly one base Pause state, nested Settings or
+  confirmation modal, and transition state. Repeated Back/tap requests do not
+  duplicate layers or Scene loads.
+- Countdown, Playing, and Shield Recovery can pause. Attempt time, movement,
+  input, judgment, recycling, Flicker/Hidden timing and presentation, camera
+  feedback, and registered attempt VFX remain frozen.
+- A same-frame queued manual or physics judgment checks Pause immediately
+  before mutation and records no result.
+- Resume preserves the Attempt; confirmed Restart uses existing Retry-to-
+  PreRun; confirmed Lobby uses the serialized Frontend path and records no
+  result. Load failure remains paused and recoverable.
+- Only the Campaign Builder's explicit attempt Effect Root registrations are
+  paused. Scene-wide ParticleSystem discovery is prohibited.
+- Focus loss requests Pause; focus gain does not resume automatically.
+
+### Final automated evidence
+
+- Full EditMode `352/352`; full post-Builder PlayMode `179/179`.
+- Frontend Builder twice, Boot Builder twice, and Campaign Builder twice all
+  succeeded. Missing Script, Missing Reference, duplicate generated roots,
+  EventSystem duplication, and pooled-state regressions were not reported.
+- Campaign remains 260 rows with approved Summary/JSON/CSV hashes
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 remains 80 rows and 64,016 runs with approved CSV/JSON/Summary/
+  Comparison/Shortlist hashes
+  `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`,
+  `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`,
+  `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`,
+  `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`,
+  and `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`.
+- Actual Editor Campaign PlayerPrefs remained 12 entries with canonical hash
+  `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`.
+  Product save hash remained
+  `69AA916EF1295FECE34A4DD9A1EC13A525DFDF477EC3EBAF9A7E85898AFF0191`
+  and the existing Guest ID was unchanged.
+- Package manifest/lock retain hashes
+  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+  and `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`.
+  `ProjectSettings.asset` has no Iteration 12 change.
+
+### Human acceptance and deferred scope
+
+- Review first-run Account Choice clarity, Guest trust, direct-to-Lobby
+  continuity, Settings readability, Pause Dim coverage, confirmation wording,
+  rapid Back/tap handling, and Android background behavior at 9:16.
+- Music/SFX audible effect, Google/account linking, cloud/profile-scoped
+  Campaign progress, final Lobby/Campaign/Stage Detail/Results, economy,
+  events, analytics, ads, and IAP remain deferred.

@@ -38,7 +38,7 @@ namespace ColorGateRunner.Editor
             CreateSharedHeader(sharedHeader.transform);
 
             GameObject titleRoot = CreateFlowRoot(
-                "TitlePageRoot",
+                "AccountChoicePageRoot",
                 safeArea.transform);
             CreateTitlePage(
                 titleRoot.transform,
@@ -78,6 +78,8 @@ namespace ColorGateRunner.Editor
                 out Text modalConfirmText,
                 out Button modalCancel,
                 out Text modalCancelText);
+            SettingsPanelController settingsPanel =
+                CreateSettingsPanel(popupRoot.transform);
 
             GameObject loadingRoot = CreateOverlayRoot(
                 "LoadingRoot",
@@ -103,7 +105,7 @@ namespace ColorGateRunner.Editor
             CreateText(
                 "DevelopmentLabel",
                 developmentDebug.transform,
-                "FRONTEND SHELL",
+                "GOOGLE PROVIDER NOT INSTALLED",
                 12,
                 new Vector2(0.02f, 0.01f),
                 new Vector2(0.28f, 0.05f));
@@ -138,11 +140,13 @@ namespace ColorGateRunner.Editor
                 modalConfirmText,
                 modalCancel,
                 modalCancelText,
+                settingsPanel,
                 campaignPath);
 
             titleRoot.SetActive(true);
             lobbyRoot.SetActive(false);
             popupRoot.SetActive(false);
+            settingsPanel.gameObject.SetActive(false);
             loadingRoot.SetActive(false);
             transitionBlocker.SetActive(false);
             developmentDebug.SetActive(false);
@@ -273,14 +277,15 @@ namespace ColorGateRunner.Editor
             string[] uniqueNames =
             {
                 "FrontendCamera", "FrontendCanvas", "SafeAreaRoot",
-                "SharedHeaderRoot", "TitlePageRoot", "LobbyPageRoot",
+                "SharedHeaderRoot", "AccountChoicePageRoot", "LobbyPageRoot",
                 "PopupRoot", "LoadingRoot", "TransitionBlockerRoot",
                 "DevelopmentDebugRoot", "EventSystem",
-                "TitleStartButton", "TitleAccountButton",
+                "GuestStartButton", "GoogleProviderButton",
                 "TitleSettingsButton", "LobbyPlayCampaignButton",
-                "LobbyBackButton", "LobbySettingsButton",
+                "LobbyAccountButton", "LobbySettingsButton",
                 "CurrencySlotRoot", "EventModuleSlotRoot",
-                "NotificationSlotRoot", "LobbyThemeRoot"
+                "NotificationSlotRoot", "LobbyThemeRoot",
+                "SettingsPanel"
             };
             for (int index = 0; index < uniqueNames.Length; index++)
             {
@@ -460,38 +465,38 @@ namespace ColorGateRunner.Editor
             out GameObject legalRoot)
         {
             CreateText(
-                "TitleLogo",
+                "AccountChoiceTitle",
                 parent,
-                "COLOR GATE\nRUNNER",
-                54,
+                "CHOOSE ACCOUNT",
+                42,
                 new Vector2(0.08f, 0.59f),
                 new Vector2(0.92f, 0.82f));
             profile = CreateText(
-                "TitleProfileText",
+                "AccountChoiceProfileText",
                 parent,
                 "GUEST",
                 20,
                 new Vector2(0.16f, 0.49f),
                 new Vector2(0.84f, 0.55f));
             account = CreateText(
-                "TitleAccountText",
+                "AccountChoiceDescriptionText",
                 parent,
-                "GUEST",
+                "PLAY LOCALLY AS A GUEST",
                 14,
                 new Vector2(0.16f, 0.45f),
                 new Vector2(0.84f, 0.49f));
             start = CreateButton(
-                "TitleStartButton",
+                "GuestStartButton",
                 parent,
-                "TAP TO START",
+                "START AS GUEST",
                 new Vector2(0.12f, 0.29f),
                 new Vector2(0.88f, 0.40f),
                 FromHex(0x2D7FF9),
                 out _);
             accountAction = CreateButton(
-                "TitleAccountButton",
+                "GoogleProviderButton",
                 parent,
-                "PROTECT PROGRESS",
+                "CONTINUE WITH GOOGLE",
                 new Vector2(0.12f, 0.19f),
                 new Vector2(0.49f, 0.26f),
                 FromHex(0x253047),
@@ -564,9 +569,9 @@ namespace ColorGateRunner.Editor
                 FromHex(0x22C55E),
                 out _);
             back = CreateButton(
-                "LobbyBackButton",
+                "LobbyAccountButton",
                 parent,
-                "BACK TO TITLE",
+                "ACCOUNT",
                 new Vector2(0.10f, 0.17f),
                 new Vector2(0.49f, 0.24f),
                 FromHex(0x253047),
@@ -632,6 +637,170 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.92f, 0.27f),
                 FromHex(0x2D7FF9),
                 out cancelText);
+        }
+
+        private static SettingsPanelController CreateSettingsPanel(
+            Transform parent)
+        {
+            GameObject panel = CreatePanel(
+                "SettingsPanel",
+                parent,
+                new Vector2(0.07f, 0.12f),
+                new Vector2(0.93f, 0.88f),
+                FromHex(0x172033));
+            SettingsPanelController controller =
+                panel.AddComponent<SettingsPanelController>();
+            CreateText(
+                "SettingsTitle",
+                panel.transform,
+                "SETTINGS",
+                30,
+                new Vector2(0.08f, 0.88f),
+                new Vector2(0.92f, 0.98f));
+
+            Slider master = CreateSettingSlider(
+                "MasterSlider",
+                panel.transform,
+                "MASTER",
+                0.73f,
+                out Text masterValue);
+            Slider music = CreateSettingSlider(
+                "MusicSlider",
+                panel.transform,
+                "MUSIC",
+                0.57f,
+                out Text musicValue);
+            Slider sfx = CreateSettingSlider(
+                "SfxSlider",
+                panel.transform,
+                "SFX",
+                0.41f,
+                out Text sfxValue);
+            Toggle vibration = CreateSettingToggle(
+                "VibrationToggle",
+                panel.transform,
+                "VIBRATION",
+                new Vector2(0.10f, 0.24f),
+                new Vector2(0.90f, 0.34f));
+            Text status = CreateText(
+                "SettingsStatusText",
+                panel.transform,
+                string.Empty,
+                13,
+                new Vector2(0.08f, 0.16f),
+                new Vector2(0.92f, 0.23f));
+            Button apply = CreateButton(
+                "SettingsApplyButton",
+                panel.transform,
+                "APPLY",
+                new Vector2(0.08f, 0.04f),
+                new Vector2(0.48f, 0.14f),
+                FromHex(0x22C55E),
+                out _);
+            Button cancel = CreateButton(
+                "SettingsCancelButton",
+                panel.transform,
+                "CANCEL",
+                new Vector2(0.52f, 0.04f),
+                new Vector2(0.92f, 0.14f),
+                FromHex(0x253047),
+                out _);
+            controller.Configure(
+                master,
+                music,
+                sfx,
+                vibration,
+                masterValue,
+                musicValue,
+                sfxValue,
+                status,
+                apply,
+                cancel);
+            return controller;
+        }
+
+        private static Slider CreateSettingSlider(
+            string name,
+            Transform parent,
+            string label,
+            float top,
+            out Text valueText)
+        {
+            CreateText(
+                name + "Label",
+                parent,
+                label,
+                16,
+                new Vector2(0.08f, top),
+                new Vector2(0.35f, top + 0.09f));
+            valueText = CreateText(
+                name + "Value",
+                parent,
+                "100%",
+                16,
+                new Vector2(0.72f, top),
+                new Vector2(0.92f, top + 0.09f));
+            GameObject sliderObject = CreatePanel(
+                name,
+                parent,
+                new Vector2(0.34f, top + 0.025f),
+                new Vector2(0.70f, top + 0.065f),
+                FromHex(0x253047));
+            Slider slider = sliderObject.AddComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 1f;
+
+            GameObject fill = CreatePanel(
+                "Fill",
+                sliderObject.transform,
+                Vector2.zero,
+                Vector2.one,
+                FromHex(0x2D7FF9));
+            GameObject handle = CreatePanel(
+                "Handle",
+                sliderObject.transform,
+                new Vector2(0f, -0.35f),
+                new Vector2(0.08f, 1.35f),
+                Color.white);
+            slider.fillRect = fill.GetComponent<RectTransform>();
+            slider.handleRect = handle.GetComponent<RectTransform>();
+            slider.targetGraphic = handle.GetComponent<Image>();
+            return slider;
+        }
+
+        private static Toggle CreateSettingToggle(
+            string name,
+            Transform parent,
+            string label,
+            Vector2 anchorMin,
+            Vector2 anchorMax)
+        {
+            GameObject toggleObject = CreatePanel(
+                name,
+                parent,
+                anchorMin,
+                anchorMax,
+                FromHex(0x253047));
+            Toggle toggle = toggleObject.AddComponent<Toggle>();
+            CreateText(
+                "Label",
+                toggleObject.transform,
+                label,
+                17,
+                Vector2.zero,
+                new Vector2(0.78f, 1f));
+            Text check = CreateText(
+                "Checkmark",
+                toggleObject.transform,
+                "ON",
+                17,
+                new Vector2(0.78f, 0f),
+                Vector2.one);
+            toggle.targetGraphic = toggleObject.GetComponent<Image>();
+            toggle.graphic = check;
+            toggle.isOn = true;
+            return toggle;
         }
 
         private static GameObject CreatePanel(

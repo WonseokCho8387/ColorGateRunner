@@ -913,3 +913,36 @@ Status: Implemented.
 - Profile-scoped progression remains deferred to a separately approved
   `StageProgressService` Iteration. An injected memory store for Campaign tests
   is a future testability option, not part of this Hotfix.
+
+## Account Onboarding, Settings, and Gameplay Pause UX
+
+Status: Implemented / Human Review Pending.
+
+- `AccountChoiceCompleted` is an optional schema-1 `LocalProfileData` field.
+  It is not a Settings field, so Settings repair/reset cannot reopen account
+  onboarding. Older schema-1 saves intentionally interpret absence as false
+  and show Account Choice once.
+- `LocalProductSession` is a thin mutation coordinator, not a persistence
+  authority. It clones the current Product snapshot, delegates to the existing
+  Save service, and publishes/rebinds Profile and Settings only after success.
+  A failed write changes no public Profile, Settings, or onboarding state.
+- Account Choice cannot enter Lobby until Guest choice persistence succeeds.
+  No external provider is integrated; unavailable Google UI is hidden rather
+  than pretending success.
+- Returning users skip Account Choice and enter the placeholder Lobby. Lobby
+  system Back requests exit confirmation and does not return to Title.
+- Frontend and Gameplay use the same Settings panel and mutation path. Master,
+  Music, SFX, and Vibration persist; only Master has an audio runtime target.
+  Vibration false blocks the Booster haptic request itself.
+- `GameplayPauseCoordinator` exclusively owns Pause, nested modal, and Scene
+  transition state. Pause is allowed during Countdown, Playing, and Shield
+  Recovery and freezes attempt-owned time, movement, input, judgment, mechanic
+  presentation, camera feedback, and registered effects without `timeScale`.
+- Judgment checks the coordinator immediately before resolving, including
+  manually queued same-frame paths. Only Builder-registered attempt effects
+  are paused; Scene-wide ParticleSystem discovery is forbidden.
+- Resume preserves the Attempt. Restart uses the existing Retry-to-PreRun
+  path. Confirmed Lobby loads the Builder-serialized Frontend destination and
+  records no result; load failure remains paused and recoverable.
+- Campaign progression ownership, Product schema version, balance, Packages,
+  and `ProjectSettings.asset` remain unchanged.

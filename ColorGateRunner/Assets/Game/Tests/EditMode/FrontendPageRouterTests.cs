@@ -7,11 +7,11 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class FrontendPageRouterTests
     {
         [Test]
-        public void InitialPage_IsTitle()
+        public void InitialPage_IsAccountChoice()
         {
             var router = new FrontendPageRouter();
 
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Title));
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.AccountChoice));
             Assert.That(router.CurrentModal, Is.EqualTo(FrontendModal.None));
             Assert.That(router.IsTransitioning, Is.False);
         }
@@ -31,8 +31,8 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(entered, Is.EqualTo(1));
             Assert.That(exited, Is.EqualTo(1));
 
-            Assert.That(router.TryShowPage(FrontendPage.Title), Is.True);
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Title));
+            Assert.That(router.TryShowPage(FrontendPage.AccountChoice), Is.True);
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.AccountChoice));
             Assert.That(entered, Is.EqualTo(2));
             Assert.That(exited, Is.EqualTo(2));
         }
@@ -48,7 +48,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 router.HandleBack(),
                 Is.EqualTo(FrontendBackResult.Ignored));
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Title));
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.AccountChoice));
         }
 
         [Test]
@@ -72,14 +72,16 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void BackFromLobby_ReturnsToTitle()
+        public void BackFromLobby_RequestsExitConfirmation()
         {
             var router = new FrontendPageRouter(FrontendPage.Lobby);
 
             Assert.That(
                 router.HandleBack(),
-                Is.EqualTo(FrontendBackResult.NavigatedToTitle));
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendBackResult.ExitConfirmationRequested));
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(router.CurrentModal,
+                Is.EqualTo(FrontendModal.ExitConfirmation));
         }
 
         [Test]
@@ -114,7 +116,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void TitleBack_RequestsExitConfirmation()
+        public void AccountChoiceBack_RequestsExitConfirmation()
         {
             var router = new FrontendPageRouter();
 

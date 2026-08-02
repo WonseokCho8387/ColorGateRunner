@@ -80,8 +80,7 @@ namespace ColorGateRunner.Presentation
             {
                 return false;
             }
-            if (_hasExperimentPlan &&
-                !controller.CanResolveExperimentGate())
+            if (!controller.CanResolveGate())
             {
                 return false;
             }

@@ -1000,3 +1000,96 @@ Human feedback required
   `StageProgressService` Iteration.
 - Full dependency injection of an in-memory Campaign store for Scene tests is
   a future testability improvement.
+
+## Iteration 12 — Account Onboarding, Settings, and Gameplay Pause UX
+
+### Play
+
+- Boot entered a placeholder Title before Lobby, while first-run account
+  choice, shared Settings, and an in-game Pause shell were not yet playable.
+- Product Profile and Settings already had one recoverable schema-1 save owner;
+  Campaign progression remained a separate device-wide PlayerPrefs system.
+- Gameplay already exposed the deterministic attempt state, existing Retry,
+  Booster haptic, pooled gate Views, and two attempt-owned ParticleSystems.
+
+### Analyze
+
+- Account choice completion describes Profile onboarding, not a preference.
+  Keeping it outside Settings prevents Settings repair from reopening the flow.
+- Publishing mutable service state before a save would create partial success.
+  The minimum safe boundary is clone, mutate candidate, save, then perform one
+  successful rebind.
+- Pause cannot be presentation-only: a queued same-frame trigger could still
+  resolve unless the judgment path checks coordinator state at mutation time.
+- Scene-wide ParticleSystem search would capture unrelated effects. The
+  Campaign Builder can serialize the two attempt-owned effects explicitly.
+
+### Design
+
+- Add optional `AccountChoiceCompleted` to schema-1 Profile; missing remains
+  false and no schema bump is required.
+- Keep `LocalProductSession` as a Unity-independent coordinator over the
+  existing services, with no second disk or in-memory authority.
+- Reuse one Settings panel contract in Frontend and Gameplay. Persist all four
+  values, apply only Master to current audio, and gate Booster haptic calls at
+  the source.
+- Give one coordinator ownership of Pause, nested modal, and transition state.
+  Freeze attempt-owned systems without `timeScale`; serialize Frontend return
+  and registered effects through the Builder.
+
+### Implementation
+
+- Added Profile onboarding persistence, provider-availability truth, typed
+  mutation results, transactional session mutation, and one AppRoot rebind.
+- Reworked Frontend routing and Builder output for Account Choice, automatic
+  returning-user Lobby, Account status, shared Settings, save errors, exit
+  confirmation, and generic serialized Scene transition.
+- Added shared runtime Settings application, Gameplay Pause coordination,
+  full-screen blocker/Dim, confirmation and error layers, focus/Back rules,
+  exact judgment guards, registered effect pause/resume, and Frontend return.
+- Kept Campaign PlayerPrefs, Product schema version, Stage data, balance,
+  packages, and `ProjectSettings.asset` unchanged.
+
+### Validation
+
+- Full EditMode `352/352`; full post-Builder PlayMode `179/179`.
+- Frontend and Boot Builders each passed two consecutive runs. The Campaign
+  Builder's two-build command passed, including generated-reference and Scene
+  structure checks.
+- Campaign remained 260 rows with all three approved hashes. Step 10 remained
+  80 rows and 64,016 runs with all five approved hashes.
+- Actual Editor Campaign PlayerPrefs remained 12 entries with hash
+  `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`.
+  Product save and Guest identity remained unchanged; its file hash was
+  `69AA916EF1295FECE34A4DD9A1EC13A525DFDF477EC3EBAF9A7E85898AFF0191`.
+- Package manifest/lock retained approved hashes. No Iteration 12
+  `ProjectSettings.asset` change or deterministic artifact change occurred.
+
+### Learning
+
+- Backward-compatible optional fields can extend schema 1 safely when the
+  missing-value behavior is intentional and independently validated.
+- Clone-save-publish makes UI persistence failure atomic from the user's point
+  of view without replacing existing service ownership.
+- A small explicit Pause coordinator gives both UI routing and gameplay
+  mutation paths one auditable authority while avoiding global time changes.
+
+### Deferred
+
+- Google or another provider, account linking, cloud sync, and profile-scoped
+  Campaign progress.
+- Audible Music/SFX targets, final Lobby/Campaign/Stage Detail/Results,
+  Campaign-to-Frontend polish, economy, events, analytics, ads, and IAP.
+- Final art, animation, localization, accessibility extensions, and device-
+  specific audio/background integration.
+
+### Human Review
+
+- Confirm first-run Account Choice is clear and Guest feels trustworthy;
+  returning-user auto-Lobby entry should not flash an intermediate page.
+- Confirm Master feedback and four Settings controls are readable at 9:16.
+  Music/SFX currently persist but intentionally produce no audible change.
+- Confirm Pause button placement, alpha-0.85 full-screen concealment, Resume,
+  Restart/Lobby confirmations, rapid Back/taps, and focus loss on devices.
+- Confirm no gameplay or modifier motion visibly leaks through Pause and that
+  continuing the same Attempt feels coherent after Resume.

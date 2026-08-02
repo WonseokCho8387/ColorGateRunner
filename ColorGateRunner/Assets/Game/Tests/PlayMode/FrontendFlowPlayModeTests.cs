@@ -59,14 +59,14 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator BootToFrontend_StartsAtTitleWithOneAppRootAndEventSystem()
+        public IEnumerator BootToFrontend_StartsAtAccountChoiceWithOneAppRootAndEventSystem()
         {
             yield return LoadFrontendThroughBoot();
 
             FrontendSceneController controller = RequireController();
             Assert.That(controller.HasRequiredReferences(), Is.True);
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.AccountChoice));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
             Assert.That(controller.TitlePageRoot.activeSelf, Is.True);
             Assert.That(controller.LobbyPageRoot.activeSelf, Is.False);
@@ -84,7 +84,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator TitleLobbyAndBack_KeepOnePrimaryPageAndHideEmptySlots()
+        public IEnumerator GuestChoicePersistsThenLobbyBackRequestsExit()
         {
             yield return LoadFrontendThroughBoot();
             FrontendSceneController controller = RequireController();
@@ -101,12 +101,104 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.EventModuleSlotRoot.activeSelf, Is.False);
             Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
                 Is.True);
+            Assert.That(controller.TitleAccountButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(
+                AppRoot.TryGetActive(out AppRoot activeRoot),
+                Is.True);
+            Assert.That(activeRoot.Graph.Profile.Current.ProfileId,
+                Is.EqualTo("frontend-playmode-guest"));
+            Assert.That(
+                activeRoot.Graph.Profile.Current.AccountChoiceCompleted,
+                Is.True);
+            Assert.That(
+                _campaignProgressSnapshot.MatchesCurrentState(),
+                Is.True);
 
             controller.HandleBack();
             yield return null;
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.Router.CurrentModal,
+                Is.EqualTo(FrontendModal.ExitConfirmation));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator CompletedAccountChoice_StartsDirectlyAtLobby()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+
+            FrontendSceneController controller = RequireController();
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.TitlePageRoot.activeSelf, Is.False);
+            Assert.That(controller.LobbyPageRoot.activeSelf, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator AccountChoiceSaveFailure_RemainsOnChoicePage()
+        {
+            AppServiceGraph graph = null;
+            yield return LoadFrontendThroughBoot(() =>
+            {
+                graph = CreateGraph(new FailSecondWriteSaveService());
+                return graph;
+            });
+
+            FrontendSceneController controller = RequireController();
+            controller.TitleStartButton.onClick.Invoke();
+            yield return null;
+
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.AccountChoice));
+            Assert.That(controller.Router.CurrentModal,
+                Is.EqualTo(FrontendModal.SaveError));
+            Assert.That(
+                graph.Profile.Current.AccountChoiceCompleted,
+                Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator SharedSettings_SaveAllValuesAndApplyOnlyMasterVolume()
+        {
+            float originalVolume = AudioListener.volume;
+            try
+            {
+                yield return LoadFrontendThroughBoot();
+                FrontendSceneController controller = RequireController();
+                controller.TitleStartButton.onClick.Invoke();
+                controller.LobbySettingsButton.onClick.Invoke();
+                yield return null;
+
+                SettingsPanelController panel = controller.SettingsPanel;
+                panel.MasterSlider.value = 0.25f;
+                panel.MusicSlider.value = 0.35f;
+                panel.SfxSlider.value = 0.45f;
+                panel.VibrationToggle.isOn = false;
+                panel.ApplyButton.onClick.Invoke();
+                yield return null;
+
+                Assert.That(controller.Router.CurrentModal,
+                    Is.EqualTo(FrontendModal.None));
+                Assert.That(AudioListener.volume, Is.EqualTo(0.25f));
+                Assert.That(
+                    AppRoot.TryGetActive(out AppRoot root),
+                    Is.True);
+                Assert.That(root.CurrentSettings.MusicVolume,
+                    Is.EqualTo(0.35f));
+                Assert.That(root.CurrentSettings.SfxVolume,
+                    Is.EqualTo(0.45f));
+                Assert.That(root.VibrationEnabled, Is.False);
+                Assert.That(
+                    _campaignProgressSnapshot.MatchesCurrentState(),
+                    Is.True);
+            }
+            finally
+            {
+                AudioListener.volume = originalVolume;
+            }
         }
 
         [UnityTest]
@@ -128,12 +220,14 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.Router.CurrentModal,
                 Is.EqualTo(FrontendModal.None));
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.AccountChoice));
 
             controller.TitleStartButton.onClick.Invoke();
             controller.HandleBack();
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.Router.CurrentModal,
+                Is.EqualTo(FrontendModal.ExitConfirmation));
         }
 
         [UnityTest]
@@ -165,7 +259,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             FrontendSceneController controller = RequireController();
             var loader = new RecordingSceneLoader(
-                FrontendSceneLoadResult.Success());
+                SceneTransitionResult.Success());
             controller.SetSceneLoaderForTests(loader);
             Assert.That(controller.ProductReady, Is.False);
             Assert.That(controller.Router.CurrentModal,
@@ -183,7 +277,7 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return LoadFrontendThroughBoot();
             FrontendSceneController controller = RequireController();
             var loader = new RecordingSceneLoader(
-                FrontendSceneLoadResult.Failure("PLANNED LOAD FAILURE"));
+                SceneTransitionResult.Failure("PLANNED LOAD FAILURE"));
             controller.SetSceneLoaderForTests(loader);
             controller.TitleStartButton.onClick.Invoke();
 
@@ -233,6 +327,8 @@ namespace ColorGateRunner.Tests.PlayMode
         public IEnumerator FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects()
         {
             yield return LoadFrontendThroughBoot();
+            RequireController().TitleStartButton.onClick.Invoke();
+            yield return null;
             yield return SceneManager.LoadSceneAsync(
                 FrontendPath,
                 LoadSceneMode.Single);
@@ -240,7 +336,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             FrontendSceneController controller = RequireController();
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.Lobby));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
             Assert.That(
                 Object.FindObjectsByType<AppRoot>().Length,
@@ -251,17 +347,18 @@ namespace ColorGateRunner.Tests.PlayMode
 
             for (int index = 0; index < 5; index++)
             {
-                controller.TitleStartButton.onClick.Invoke();
-                controller.LobbyBackButton.onClick.Invoke();
+                controller.LobbySettingsButton.onClick.Invoke();
+                controller.HandleBack();
             }
             Assert.That(controller.Router.CurrentPage,
-                Is.EqualTo(FrontendPage.Title));
+                Is.EqualTo(FrontendPage.Lobby));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
         }
 
-        private static IEnumerator LoadFrontendThroughBoot()
+        private static IEnumerator LoadFrontendThroughBoot(
+            Func<AppServiceGraph> graphFactory = null)
         {
-            AppRoot.SetTestGraphFactory(CreateGraph);
+            AppRoot.SetTestGraphFactory(graphFactory ?? CreateGraph);
             yield return SceneManager.LoadSceneAsync(
                 BootPath,
                 LoadSceneMode.Single);
@@ -307,11 +404,15 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private static AppServiceGraph CreateGraph()
         {
+            return CreateGraph(new ExistingGuestSaveService());
+        }
+
+        private static AppServiceGraph CreateGraph(ILocalSaveService save)
+        {
             var clock = new FixedClock();
             var profile = new ProfileService(clock, new FixedIdGenerator());
             var account = new LocalAccountService();
             var settings = new SettingsService();
-            var save = new ExistingGuestSaveService();
             return new AppServiceGraph(
                 clock,
                 profile,
@@ -338,6 +439,14 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private sealed class ExistingGuestSaveService : ILocalSaveService
         {
+            private readonly bool _accountChoiceCompleted;
+
+            public ExistingGuestSaveService(
+                bool accountChoiceCompleted = false)
+            {
+                _accountChoiceCompleted = accountChoiceCompleted;
+            }
+
             public LocalSaveLoadResult Load()
             {
                 const string utc = "2026-08-02T00:00:00.0000000Z";
@@ -355,6 +464,7 @@ namespace ColorGateRunner.Tests.PlayMode
                             LastPlayedUtc = utc,
                             DisplayName = "GUEST",
                             AccountState = LocalAccountState.Guest,
+                            AccountChoiceCompleted = _accountChoiceCompleted,
                             SaveRevision = 1
                         }
                     },
@@ -367,11 +477,37 @@ namespace ColorGateRunner.Tests.PlayMode
                     SaveReplacementResult.Recoverable);
         }
 
-        private sealed class RecordingSceneLoader : IFrontendSceneLoader
+        private sealed class FailSecondWriteSaveService : ILocalSaveService
         {
-            private readonly FrontendSceneLoadResult _result;
+            private int _writeCount;
 
-            public RecordingSceneLoader(FrontendSceneLoadResult result)
+            public LocalSaveLoadResult Load() =>
+                new ExistingGuestSaveService().Load();
+
+            public LocalSaveWriteResult Save(LocalSaveData data)
+            {
+                _writeCount++;
+                if (_writeCount >= 2)
+                {
+                    return LocalSaveWriteResult.Failure(
+                        new ProductError(
+                            ProductErrorCode.SaveWrite,
+                            "PLANNED ACCOUNT SAVE FAILURE",
+                            true));
+                }
+
+                data.SaveRevision++;
+                data.Profile.SaveRevision = data.SaveRevision;
+                return LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
+            }
+        }
+
+        private sealed class RecordingSceneLoader : ISceneTransitionLoader
+        {
+            private readonly SceneTransitionResult _result;
+
+            public RecordingSceneLoader(SceneTransitionResult result)
             {
                 _result = result;
             }
@@ -380,7 +516,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             public void LoadScene(
                 string scenePath,
-                Action<FrontendSceneLoadResult> completed)
+                Action<SceneTransitionResult> completed)
             {
                 LoadCount++;
                 completed(_result);

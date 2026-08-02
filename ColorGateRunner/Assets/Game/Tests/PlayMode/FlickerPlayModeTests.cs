@@ -73,6 +73,28 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
         }
 
+        [Test]
+        public void Pause_FreezesFlickerGameplayTimeAndDisplayedPhase()
+        {
+            StartFlicker(CreateSettings());
+            EnterPlaying();
+            StageGateView gate = FindGate(0);
+            _controller.Tick(0.2f);
+            float elapsed =
+                _controller.ExperimentSession.ElapsedPlayingSeconds;
+            long phase = gate.FlickerPhaseIndex;
+            RunnerColor color = gate.AssignedColor;
+
+            _controller.RequestPause();
+            _controller.Tick(1f);
+
+            Assert.That(
+                _controller.ExperimentSession.ElapsedPlayingSeconds,
+                Is.EqualTo(elapsed));
+            Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(phase));
+            Assert.That(gate.AssignedColor, Is.EqualTo(color));
+        }
+
         [TestCase(3)]
         [TestCase(6)]
         public void ActivePaletteFlicker_UpdatesColorAndSymbolFromSamePhase(

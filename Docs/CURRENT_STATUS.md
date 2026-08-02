@@ -8,31 +8,42 @@ iterations but do not override this section.
 
 ### Repository
 
-- Approved HEAD: `5ee40c49ea07030d0c46a36a1e7a78847a8abe10`
-- Commit: `fix: isolate campaign progress playmode tests`
+- Implementation base HEAD:
+  `73c3dc4acccf5b4f4e6cf871b1abc868c4d72e09`
+- Base commit: `docs: standardize iteration workflow and baseline`
+- Completion commit: the commit containing this baseline; its exact hash is
+  recorded in the Iteration 12 final report.
 - Branch at completion: `main`
 - Expected working tree: clean
 - Push status at completion: not pushed
 
 ### Current product state
 
-- Current completed iteration: **Iteration 11 — Campaign Progress Restore Test
-  Isolation Hotfix**.
+- Current completed iteration: **Iteration 12 — Account Onboarding, Settings,
+  and Gameplay Pause UX**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
-- Frontend currently contains Title and Placeholder Lobby. It does not contain
-  an AppRoot and reuses the Boot-created persistent AppRoot.
+- Frontend contains first-run Account Choice and Placeholder Lobby. It does
+  not contain an AppRoot and reuses the Boot-created persistent AppRoot.
+- `LocalProfileData.AccountChoiceCompleted` owns onboarding completion.
+  Returning users enter Lobby directly; schema-1 saves without the field
+  intentionally see Account Choice once.
+- Google integration remains absent, its release action is hidden, and no
+  linked state is simulated.
+- Frontend and Gameplay Pause share Product Settings. Master Volume applies
+  through `AudioListener.volume`; Music and SFX persist without a current
+  content-specific target. Vibration gates the existing Booster haptic call.
+- Gameplay Pause freezes attempt time, movement, input, judgment, recycling,
+  mechanic timing, camera feedback, and registered attempt VFX. Resume,
+  existing Retry, Settings, and confirmed Frontend Lobby return are available.
 - Campaign progress remains device-wide `PlayerPrefs` owned solely by
   `PlayerPrefsStageProgressStore`; it is not scoped to Product Guest identity.
 - Product save schema remains version 1 and owns Profile and Settings only.
-- Account-choice completion, returning-run automatic Lobby entry, editable
-  Settings UI, Gameplay Pause, and Campaign-to-Frontend Lobby return are not
-  implemented yet.
 
 ### Automated validation
 
-- EditMode: `335/335`
-- PlayMode: `167/167`
-- Post-Builder PlayMode: `167/167`
+- EditMode: `352/352`
+- PlayMode: `179/179`
+- Post-Builder PlayMode: `179/179`
 - Frontend Builder: 2 consecutive successful runs
 - Boot Builder: 2 consecutive successful runs
 - Campaign Builder: 2 consecutive successful runs
@@ -76,10 +87,14 @@ All three entries are expected to be enabled and unique.
 
 - Campaign PlayerPrefs snapshot contains Highest Unlocked plus Stage Record
   keys 1-13 when present and must be restored exactly after tests.
-- Actual Editor snapshot at Iteration 11 completion:
-  - existing entries: `11`
-  - SHA-256:
-    `2A8AF71352FCCF9D80C8BDCB9BDC89FC3F61A7B356633C3423A847F576D0B6C9`
+- Actual Editor snapshot at Iteration 12 completion:
+  - existing Campaign entries: `12`
+  - canonical SHA-256:
+    `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
+- Product save SHA-256 remained
+  `69AA916EF1295FECE34A4DD9A1EC13A525DFDF477EC3EBAF9A7E85898AFF0191`;
+  the existing Guest ID is unchanged. The live legacy schema-1 file does not
+  contain the new optional field, so it will show Account Choice once.
 - Product save hash and Guest ID must remain unchanged unless the approved
   iteration explicitly changes Product save data.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
@@ -98,6 +113,39 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 12
+
+(Account Onboarding / Auto Lobby / Settings / Gameplay Pause UX implemented)
+
+---
+
+Account Onboarding, Settings, and Gameplay Pause Result
+
+- `AccountChoiceCompleted` is Profile onboarding state, not a Settings value.
+  Missing schema-1 fields decode as `false`; Settings repair cannot reset it.
+- A thin `LocalProductSession` clones the current save, delegates persistence
+  to the existing Save service, and publishes/rebinds state only after write
+  success. Failed account or Settings writes leave public state unchanged.
+- Account Choice offers a working local Guest path. Lobby has no Back-to-Title
+  route; system Back requests exit confirmation. The unavailable Google action
+  is hidden in release UI.
+- One `SettingsPanelController` contract is used in Frontend and Gameplay.
+  Apply persists Master/Music/SFX/Vibration; Music and SFX await real content
+  targets, while Master and Booster vibration are applied now.
+- `GameplayPauseCoordinator` is the sole Pause/modal/transition owner. Pause
+  uses a full-screen raycast-blocking 0.85 alpha Dim and only pauses the two
+  Builder-registered attempt ParticleSystems.
+- Campaign-to-Frontend return uses a Builder-serialized active Scene path.
+  Load failure stays paused with a recoverable error instead of recording a
+  Stage result.
+- Full EditMode `352/352`, post-Builder PlayMode `179/179`, all three Builders
+  twice, Campaign 260-row hashes, and Step 10 80-row/64,016-run hashes passed.
+  Packages and ProjectSettings are unchanged.
+
+---
 
 Version
 

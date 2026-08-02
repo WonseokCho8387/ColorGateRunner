@@ -4,7 +4,7 @@ namespace ColorGateRunner.Presentation
 {
     public enum FrontendPage
     {
-        Title = 0,
+        AccountChoice = 0,
         Lobby = 1
     }
 
@@ -15,23 +15,23 @@ namespace ColorGateRunner.Presentation
         Settings = 2,
         ExitConfirmation = 3,
         BootRequired = 4,
-        SceneLoadError = 5
+        SceneLoadError = 5,
+        SaveError = 6
     }
 
     public enum FrontendBackResult
     {
         Ignored = 0,
         ModalClosed = 1,
-        NavigatedToTitle = 2,
-        ExitConfirmationRequested = 3
+        ExitConfirmationRequested = 2
     }
 
     public sealed class FrontendPageRouter
     {
         public FrontendPageRouter(
-            FrontendPage initialPage = FrontendPage.Title)
+            FrontendPage initialPage = FrontendPage.AccountChoice)
         {
-            if (initialPage != FrontendPage.Title &&
+            if (initialPage != FrontendPage.AccountChoice &&
                 initialPage != FrontendPage.Lobby)
             {
                 throw new ArgumentOutOfRangeException(nameof(initialPage));
@@ -51,7 +51,8 @@ namespace ColorGateRunner.Presentation
 
         public bool TryShowPage(FrontendPage page)
         {
-            if (page != FrontendPage.Title && page != FrontendPage.Lobby)
+            if (page != FrontendPage.AccountChoice &&
+                page != FrontendPage.Lobby)
             {
                 throw new ArgumentOutOfRangeException(nameof(page));
             }
@@ -137,12 +138,6 @@ namespace ColorGateRunner.Presentation
                     ? FrontendBackResult.ModalClosed
                     : FrontendBackResult.Ignored;
             }
-            if (CurrentPage == FrontendPage.Lobby)
-            {
-                TryShowPage(FrontendPage.Title);
-                return FrontendBackResult.NavigatedToTitle;
-            }
-
             TryShowModal(FrontendModal.ExitConfirmation);
             return FrontendBackResult.ExitConfirmationRequested;
         }

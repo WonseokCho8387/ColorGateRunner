@@ -307,3 +307,22 @@ legibility.
 - Portrait human review must confirm that Stage 12's longer memory window and
   Stage 13's three-color rotation remain readable at their authored speed
   curves and while Booster is offered.
+
+## Iteration 12 Account, Settings, and Pause presentation
+
+- Account Choice presents the working Guest action as primary. An unavailable
+  provider action is hidden in release presentation and may appear only as a
+  truthful diagnostic in development.
+- Frontend and Gameplay reuse one compact Settings panel layout for Master,
+  Music, SFX, and Vibration, plus Apply and Cancel. A save error remains on the
+  panel instead of implying success.
+- Gameplay Pause uses a full-viewport, raycast-blocking black Dim at alpha
+  `0.85`, drawn above gameplay guidance. The interactive panel stays within
+  portrait Safe Area and offers Resume, Restart, Settings, and Lobby.
+- Restart and Lobby require confirmation. A load error is readable without
+  exposing gameplay interaction underneath it.
+- The pause treatment uses existing uGUI primitives and generated assets. It
+  adds no blur, post-processing, shader, package, or Scene-wide VFX search.
+- Human review owns 9:16 hierarchy, Account Choice trust and clarity, slider
+  readability, Dim coverage, rapid Back/tap behavior, and background/foreground
+  feel. Music/SFX sliders currently persist but have no audible target.

@@ -24,9 +24,15 @@ namespace ColorGateRunner.Product
                 throw new ArgumentNullException(nameof(settingsService));
             _accountService = accountService ??
                 throw new ArgumentNullException(nameof(accountService));
+            Session = new LocalProductSession(
+                _saveService,
+                _profileService,
+                _settingsService,
+                _accountService);
         }
 
         public int AttemptCount { get; private set; }
+        public LocalProductSession Session { get; }
 
         public AppInitializationResult Initialize()
         {
@@ -66,6 +72,8 @@ namespace ColorGateRunner.Product
                             write.Error);
                     }
                 }
+
+                Session.Bind(data);
 
                 steps.Add(InitializationStep.Complete);
                 return AppInitializationResult.Success(data, steps);
