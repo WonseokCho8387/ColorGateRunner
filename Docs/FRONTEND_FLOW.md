@@ -671,7 +671,40 @@ Implementation status: Completed in Iteration 10.
 - Scene-load failure leaves the Attempt paused and offers a recoverable close;
   transition input and repeated requests are blocked.
 
+## Implemented UX slice - Consolidated Lobby and Settings access
+
+- The Frontend Lobby now reads the existing Campaign store through a
+  read-only `IStageProgressReader`. It displays the recommended stable Stage
+  ID as number, title, mechanic, and cleared count without exposing any
+  progression write operation.
+- `START STAGE` queues one non-persistent launch request in the existing
+  AppRoot, loads the Builder-serialized Campaign Scene, and consumes the
+  request before Campaign Lobby activation. The destination opens the existing
+  PreRun and item-selection flow with the same Stage seed and gate plan.
+- A failed or cancelled Scene load removes the pending request. Missing or
+  invalid context falls back to the existing Campaign Lobby; direct
+  SampleScene, development, and Experiment Lab entry remain unchanged.
+- Frontend and Pause instantiate the same Settings panel and controller for
+  Notifications, Music, SFX, Vibration, Terms, Privacy, and Support. Pages do
+  not activate peers or load Scenes directly; their existing router and Pause
+  coordinator remain the only state owners.
+- Music and SFX toggles persist zero when OFF and restore the last non-zero
+  value when ON. Master remains persisted and applied but hidden. Notification
+  is preference-only and clearly says delivery is not implemented.
+- One `ProductLinkConfiguration` supplies HTTPS-only destinations. Empty
+  prototype values disable the development buttons and open no browser.
+- The Pause button is generated under `GameplayHudRoot` in the upper-right
+  Safe Area with a minimum 44 by 44 hit region, outside Stage/Shield HUD and
+  above the gameplay tap surface.
+
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
+
+Implementation status: Partially completed by Iteration 13.
+
+- Consolidated recommended-Stage Lobby, read-only Campaign progress, and
+  direct existing-PreRun launch are implemented.
+- Full Campaign page, Stage Detail, Campaign-to-Frontend return, and data-
+  driven expansion modules remain deferred.
 
 - Data-driven Lobby modules.
 - Lobby theme slot.

@@ -161,7 +161,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator SharedSettings_SaveAllValuesAndApplyOnlyMasterVolume()
+        public IEnumerator SharedSettings_SaveTogglesAndPreserveMasterVolume()
         {
             float originalVolume = AudioListener.volume;
             try
@@ -173,24 +173,49 @@ namespace ColorGateRunner.Tests.PlayMode
                 yield return null;
 
                 SettingsPanelController panel = controller.SettingsPanel;
-                panel.MasterSlider.value = 0.25f;
-                panel.MusicSlider.value = 0.35f;
-                panel.SfxSlider.value = 0.45f;
+                panel.NotificationToggle.isOn = true;
+                panel.MusicToggle.isOn = false;
+                panel.SfxToggle.isOn = false;
                 panel.VibrationToggle.isOn = false;
                 panel.ApplyButton.onClick.Invoke();
                 yield return null;
 
                 Assert.That(controller.Router.CurrentModal,
                     Is.EqualTo(FrontendModal.None));
-                Assert.That(AudioListener.volume, Is.EqualTo(0.25f));
+                Assert.That(AudioListener.volume, Is.EqualTo(1f));
                 Assert.That(
                     AppRoot.TryGetActive(out AppRoot root),
                     Is.True);
                 Assert.That(root.CurrentSettings.MusicVolume,
-                    Is.EqualTo(0.35f));
+                    Is.Zero);
                 Assert.That(root.CurrentSettings.SfxVolume,
-                    Is.EqualTo(0.45f));
+                    Is.Zero);
+                Assert.That(root.CurrentSettings.LastNonZeroMusicVolume,
+                    Is.EqualTo(1f));
+                Assert.That(root.CurrentSettings.LastNonZeroSfxVolume,
+                    Is.EqualTo(1f));
+                Assert.That(root.CurrentSettings.NotificationEnabled,
+                    Is.True);
                 Assert.That(root.VibrationEnabled, Is.False);
+                Assert.That(panel.NotificationNoticeText.text,
+                    Does.Contain("NOT SENT YET"));
+                Assert.That(panel.TermsButton.interactable, Is.False);
+                Assert.That(panel.PrivacyButton.interactable, Is.False);
+                Assert.That(panel.SupportButton.interactable, Is.False);
+                Assert.That(panel.LinkStatusText.text,
+                    Is.EqualTo("URL NOT CONFIGURED"));
+
+                controller.LobbySettingsButton.onClick.Invoke();
+                panel.MusicToggle.isOn = true;
+                panel.SfxToggle.isOn = true;
+                panel.ApplyButton.onClick.Invoke();
+                yield return null;
+                Assert.That(root.CurrentSettings.MusicVolume,
+                    Is.EqualTo(1f));
+                Assert.That(root.CurrentSettings.SfxVolume,
+                    Is.EqualTo(1f));
+                Assert.That(root.CurrentSettings.MasterVolume,
+                    Is.EqualTo(1f));
                 Assert.That(
                     _campaignProgressSnapshot.MatchesCurrentState(),
                     Is.True);
@@ -293,19 +318,40 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendModal.SceneLoadError));
             Assert.That(controller.ModalMessageText.text,
                 Is.EqualTo("PLANNED LOAD FAILURE"));
+            Assert.That(
+                AppRoot.TryGetActive(out AppRoot activeRoot),
+                Is.True);
+            Assert.That(activeRoot.TryConsumeCampaignLaunch(out _), Is.False);
         }
 
         [UnityTest]
-        public IEnumerator PlayCampaign_LoadsExistingLobbyAndPreservesProgress()
+        public IEnumerator StartStage_BypassesCampaignLobbyAndPreservesProgress()
         {
             const string record = "1|12.34|11.11|4|2";
+            for (int stage = 1;
+                stage <= CampaignPlayerPrefsSnapshot.StageCount;
+                stage++)
+            {
+                PlayerPrefs.DeleteKey(
+                    CampaignPlayerPrefsSnapshot.RecordKey(stage));
+            }
             PlayerPrefs.SetInt(UnlockKey, 8);
+            for (int stage = 1; stage <= 5; stage++)
+            {
+                PlayerPrefs.SetString(
+                    "ColorGateRunner.Stage.Record." + stage,
+                    "1|20|19|1|0");
+            }
             PlayerPrefs.SetString(RecordKey, record);
             PlayerPrefs.Save();
             yield return LoadFrontendThroughBoot();
             FrontendSceneController controller = RequireController();
 
             controller.TitleStartButton.onClick.Invoke();
+            Assert.That(controller.LobbyStageText.text,
+                Is.EqualTo("STAGE 7"));
+            Assert.That(controller.LobbyStageTitleText.text,
+                Is.EqualTo("BOOSTER TIMING"));
             controller.LobbyPlayButton.onClick.Invoke();
             yield return WaitForScene(CampaignPath);
             yield return null;
@@ -313,8 +359,10 @@ namespace ColorGateRunner.Tests.PlayMode
             StageSceneController campaign =
                 Object.FindFirstObjectByType<StageSceneController>();
             Assert.That(campaign, Is.Not.Null);
-            Assert.That(campaign.LobbyRoot.activeSelf, Is.True);
-            Assert.That(campaign.UiFlow, Is.EqualTo(MobileUiFlow.Lobby));
+            Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
+            Assert.That(campaign.PreRunRoot.activeSelf, Is.True);
+            Assert.That(campaign.UiFlow, Is.EqualTo(MobileUiFlow.PreRun));
+            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(7));
             Assert.That(PlayerPrefs.GetInt(UnlockKey, -1), Is.EqualTo(8));
             Assert.That(PlayerPrefs.GetString(RecordKey, string.Empty),
                 Is.EqualTo(record));

@@ -344,6 +344,40 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void SchemaOneWithoutUnifiedSettingsFields_UsesSafeDefaults()
+        {
+            const string json =
+                "{\"SchemaVersion\":1,\"SaveRevision\":2," +
+                "\"Profile\":{\"ProfileId\":\"legacy\"," +
+                "\"CreatedUtc\":\"2026-08-01T00:00:00.0000000Z\"," +
+                "\"LastPlayedUtc\":\"2026-08-01T00:00:00.0000000Z\"," +
+                "\"DisplayName\":\"GUEST\",\"AccountState\":0," +
+                "\"AccountChoiceCompleted\":true,\"SaveRevision\":2}," +
+                "\"Settings\":{\"MasterVolume\":0.8," +
+                "\"MusicVolume\":0.35,\"SfxVolume\":0," +
+                "\"Vibration\":false,\"Language\":\"system\"}," +
+                "\"LastWriteUtc\":\"2026-08-01T00:00:00.0000000Z\"}";
+            File.WriteAllText(_paths.Primary, json);
+
+            LocalSaveLoadResult load = CreateSave(
+                new MutableClock(_firstUtc)).Load();
+
+            Assert.That(load.Succeeded, Is.True);
+            Assert.That(load.Dirty, Is.False);
+            Assert.That(load.Data.Settings.MasterVolume, Is.EqualTo(0.8f));
+            Assert.That(load.Data.Settings.MusicVolume, Is.EqualTo(0.35f));
+            Assert.That(load.Data.Settings.SfxVolume, Is.Zero);
+            Assert.That(load.Data.Settings.LastNonZeroMusicVolume,
+                Is.EqualTo(1f));
+            Assert.That(load.Data.Settings.LastNonZeroSfxVolume,
+                Is.EqualTo(1f));
+            Assert.That(load.Data.Settings.NotificationEnabled, Is.False);
+            Assert.That(load.Data.Settings.Vibration, Is.False);
+            Assert.That(load.Data.Profile.AccountChoiceCompleted, Is.True);
+            Assert.That(load.Data.Profile.ProfileId, Is.EqualTo("legacy"));
+        }
+
+        [Test]
         public void InvalidSettingsReset_DoesNotResetAccountChoice()
         {
             LocalSaveData data = CreateValidData();
@@ -428,6 +462,50 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(save.Stored.Profile.ProfileId, Is.EqualTo("guest-1"));
             Assert.That(save.Stored.Profile.AccountChoiceCompleted, Is.True);
             Assert.That(save.Stored.Settings.Vibration, Is.False);
+        }
+
+        [Test]
+        public void ProductSession_DisablingVolumesPreservesLastNonZeroValues()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            var clock = new MutableClock(_firstUtc);
+            var profile = new ProfileService(
+                clock,
+                new CountingIdGenerator("unused"));
+            var settings = new SettingsService();
+            var account = new LocalAccountService();
+            var pipeline = new AppInitializationPipeline(
+                save,
+                profile,
+                settings,
+                account);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(
+                pipeline.Session.ApplySettings(
+                    0.8f,
+                    0.35f,
+                    0.45f,
+                    true,
+                    true).Succeeded,
+                Is.True);
+
+            ProductMutationResult disabled =
+                pipeline.Session.ApplySettings(
+                    0.8f,
+                    0f,
+                    0f,
+                    false,
+                    true);
+
+            Assert.That(disabled.Succeeded, Is.True);
+            Assert.That(settings.Current.MasterVolume, Is.EqualTo(0.8f));
+            Assert.That(settings.Current.MusicVolume, Is.Zero);
+            Assert.That(settings.Current.SfxVolume, Is.Zero);
+            Assert.That(settings.Current.LastNonZeroMusicVolume,
+                Is.EqualTo(0.35f));
+            Assert.That(settings.Current.LastNonZeroSfxVolume,
+                Is.EqualTo(0.45f));
+            Assert.That(settings.Current.NotificationEnabled, Is.True);
         }
 
         [Test]

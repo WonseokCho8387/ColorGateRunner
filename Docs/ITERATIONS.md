@@ -1093,3 +1093,90 @@ Human feedback required
   Restart/Lobby confirmations, rapid Back/taps, and focus loss on devices.
 - Confirm no gameplay or modifier motion visibly leaks through Pause and that
   continuing the same Attempt feels coherent after Resume.
+
+## Iteration 13 — Lobby Consolidation and Unified Settings Access
+
+### Play
+
+- Returning users reached a placeholder Frontend Lobby and then saw the older
+  Campaign Lobby again before PreRun. Pause existed but its button was outside
+  the intended Gameplay HUD coordinate space.
+- Settings exposed sliders whose current content-specific Music/SFX effects do
+  not yet exist, while Notifications and product links had no truthful shell.
+
+### Analyze
+
+- Campaign PlayerPrefs must remain the only progression authority, so
+  Frontend needs a narrow reader rather than store ownership.
+- A Scene transition request must survive the Frontend-to-Campaign load but
+  must not become persistent data or a global mutable locator. AppRoot is the
+  existing lifecycle boundary suited to one-shot ownership.
+- Reusing the existing PreRun/item selection and Pause coordinator avoids
+  duplicate gameplay, navigation, and persistence systems.
+
+### Design
+
+- Add `IStageProgressReader`, a Frontend read model, and an AppRoot-owned
+  one-shot stable Stage ID request consumed before Campaign Lobby activation.
+- Compose one Settings panel for Frontend and Pause with Notifications,
+  Music, SFX, Vibration, and HTTPS-only configured links. Preserve hidden
+  Master and last non-zero Music/SFX values in schema 1.
+- Move the existing Pause action under `GameplayHudRoot` within Safe Area and
+  prove it does not overlap Stage/Shield HUD or gameplay input.
+
+### Implementation
+
+- Frontend Lobby now shows recommended Stage number, title, mechanic, cleared
+  count, and `START STAGE`. Production launch enters existing PreRun directly;
+  direct/development/Experiment/fallback routes retain Campaign Lobby.
+- Product Settings gained backward-compatible Notification and last-non-zero
+  fields. Toggle save remains transactional through the existing Product
+  session, with Master as the only current audio runtime target.
+- Added one `ProductLinkConfiguration`, HTTPS validation, replaceable URL
+  opener, truthful unconfigured state, and a notification-not-delivered note.
+- Both Builders use one Settings panel composition. Campaign Builder places
+  Pause in the Gameplay HUD coordinate system without changing its coordinator.
+
+### Validation
+
+- Focused EditMode `31/31`; focused PlayMode `114/114`; isolated launch
+  regression `1/1`.
+- Full EditMode `361/361`; full post-Builder PlayMode `180/180`.
+- Frontend, Boot, and Campaign Builders each passed twice. Missing Script,
+  Missing Reference, duplicate generated root, EventSystem, pool, and listener
+  regressions were not reported.
+- Campaign reproduced 260 rows and all three approved hashes. Step 10
+  reproduced 80 rows / 64,016 runs and all five approved hashes.
+- Campaign PlayerPrefs retained Highest plus 12 records. Product save and the
+  existing Guest identity were not written by validation. Packages remained
+  unchanged.
+- Package-managed WebGL defines may vary between `APP_UI_EDITOR_ONLY` and
+  `SENTIS_ANALYTICS_ENABLED`; this volatility is excluded from the feature
+  commit while all other ProjectSettings semantic changes remain failures.
+
+### Learning
+
+- A one-shot request at the composition root can bridge Scenes without turning
+  navigation intent into saved state or a parallel service graph.
+- A read-only adapter lets Frontend present authoritative progression without
+  expanding its write authority.
+- Toggle UI is more truthful than inactive precision sliders when no separate
+  Music/SFX sources exist, provided persistence and current limitations remain
+  explicit.
+
+### Deferred
+
+- Real notification permission/scheduling/delivery and real Music/SFX source
+  routing.
+- Production Terms, Privacy, and Support URLs.
+- Campaign-to-Frontend return, Stage Detail, economy, events, analytics, ads,
+  IAP, cloud/account linking, and profile-scoped Campaign progression.
+
+### Human Review
+
+- Confirm recommended Stage information is immediately understandable and the
+  direct transition to PreRun does not feel abrupt.
+- Confirm toggle wording, unconfigured-link truth, Pause button reachability,
+  HUD separation, and 9:16 Android/WebGL readability.
+- Automation does not determine visual polish, wording comprehension, audio
+  expectation, transition satisfaction, or touch ergonomics.

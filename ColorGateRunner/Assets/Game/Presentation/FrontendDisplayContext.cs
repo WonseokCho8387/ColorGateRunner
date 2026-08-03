@@ -82,11 +82,11 @@ namespace ColorGateRunner.Presentation
         {
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "MASTER {0:0}%\nMUSIC {1:0}%\nSFX {2:0}%\nVIBRATION {3}\nLANGUAGE {4}",
-                settings.MasterVolume * 100f,
-                settings.MusicVolume * 100f,
-                settings.SfxVolume * 100f,
+                "MUSIC {0}\nSFX {1}\nVIBRATION {2}\nNOTIFICATIONS {3}\nLANGUAGE {4}",
+                settings.MusicVolume > 0f ? "ON" : "OFF",
+                settings.SfxVolume > 0f ? "ON" : "OFF",
                 settings.Vibration ? "ON" : "OFF",
+                settings.NotificationEnabled ? "ON" : "OFF",
                 string.IsNullOrWhiteSpace(settings.Language)
                     ? "SYSTEM"
                     : settings.Language.ToUpperInvariant());

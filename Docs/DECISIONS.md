@@ -946,3 +946,36 @@ Status: Implemented / Human Review Pending.
   records no result; load failure remains paused and recoverable.
 - Campaign progression ownership, Product schema version, balance, Packages,
   and `ProjectSettings.asset` remain unchanged.
+
+## Lobby consolidation and unified Settings access
+
+Status: Implemented / Human Review Pending.
+
+- Frontend reads Campaign progression through `IStageProgressReader`; write
+  operations remain available only through the existing
+  `PlayerPrefsStageProgressStore` authority in Campaign.
+- The consolidated Frontend Lobby recommends the lowest uncleared unlocked
+  stable Stage ID and starts the existing Campaign PreRun/item-selection flow
+  through an AppRoot-owned, non-persistent, one-shot launch request.
+- The Campaign Lobby remains intact for direct Scene execution, development,
+  Experiment Lab, and missing-context fallback. Production launch consumes
+  the request before Campaign Lobby activation, so no intermediate Lobby frame
+  is shown.
+- Frontend and Pause use one Settings panel composition: Notifications,
+  Music, SFX, Vibration, Terms, Privacy, and Support. Master Volume remains
+  persisted and applied but is intentionally hidden from this UI.
+- Music/SFX OFF writes zero; ON restores the last non-zero value or `1.0`.
+  There are still no content-specific audio sources, so these values persist
+  without an audible Music/SFX target.
+- Notification preference persists with schema-1 default `false`, but no
+  notification package, permission, scheduling, or delivery is implemented.
+- One `ProductLinkConfiguration` owns external destinations. Only absolute
+  HTTPS URLs are accepted; unconfigured prototype actions are disabled and do
+  not open a browser.
+- The existing Pause coordinator remains authoritative. The Pause button is
+  placed inside the Gameplay HUD Safe Area, does not overlap Shield/HUD, and
+  does not create a second pause or input system.
+- `APP_UI_EDITOR_ONLY` and `SENTIS_ANALYTICS_ENABLED` are package-managed
+  volatile WebGL defines. Their environment-dependent presence or ordering is
+  allowed but excluded from feature commits; every other ProjectSettings
+  semantic difference remains a failure.

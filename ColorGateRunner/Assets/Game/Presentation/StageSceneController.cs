@@ -323,7 +323,10 @@ namespace ColorGateRunner.Presentation
             _colorStackStartPositions = new Vector2[colorTiles.Length];
             _colorStackStartScales = new Vector3[colorTiles.Length];
             AddListeners();
-            ShowLobby();
+            if (!TryEnterExternalCampaignLaunch())
+            {
+                ShowLobby();
+            }
         }
 
         private void OnDestroy()
@@ -646,6 +649,11 @@ namespace ColorGateRunner.Presentation
 
         internal void SelectStageById(string stageId)
         {
+            TrySelectStageById(stageId);
+        }
+
+        private bool TrySelectStageById(string stageId)
+        {
             StageDefinition definition;
             try
             {
@@ -653,11 +661,11 @@ namespace ColorGateRunner.Presentation
             }
             catch (ArgumentException)
             {
-                return;
+                return false;
             }
             if (definition.DisplayNumber > _highestUnlocked)
             {
-                return;
+                return false;
             }
             int displayNumber = definition.DisplayNumber;
             _selectedStageNumber = displayNumber;
@@ -669,6 +677,14 @@ namespace ColorGateRunner.Presentation
             selectedStageText.text =
                 $"STAGE {displayNumber}\n{_session.Stage.Title}";
             SynchronizeItemSelection();
+            return true;
+        }
+
+        private bool TryEnterExternalCampaignLaunch()
+        {
+            return AppRoot.TryGetActive(out AppRoot root) &&
+                root.TryConsumeCampaignLaunch(out CampaignLaunchRequest request) &&
+                TrySelectStageById(request.StageId);
         }
 
         internal void ToggleShieldSelection()

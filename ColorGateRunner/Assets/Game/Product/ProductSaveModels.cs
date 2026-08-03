@@ -40,7 +40,10 @@ namespace ColorGateRunner.Product
         public float MasterVolume = 1f;
         public float MusicVolume = 1f;
         public float SfxVolume = 1f;
+        public float LastNonZeroMusicVolume = 1f;
+        public float LastNonZeroSfxVolume = 1f;
         public bool Vibration = true;
+        public bool NotificationEnabled;
         public string Language = "system";
 
         public static LocalSettingsData CreateDefaults()
@@ -55,7 +58,10 @@ namespace ColorGateRunner.Product
                 MasterVolume = MasterVolume,
                 MusicVolume = MusicVolume,
                 SfxVolume = SfxVolume,
+                LastNonZeroMusicVolume = LastNonZeroMusicVolume,
+                LastNonZeroSfxVolume = LastNonZeroSfxVolume,
                 Vibration = Vibration,
+                NotificationEnabled = NotificationEnabled,
                 Language = Language
             };
         }

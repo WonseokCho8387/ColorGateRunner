@@ -11,7 +11,8 @@ namespace ColorGateRunner.Presentation
             float masterVolume,
             float musicVolume,
             float sfxVolume,
-            bool vibration);
+            bool vibration,
+            bool notificationEnabled);
     }
 
     internal static class UnityProductSettingsRuntime

@@ -87,6 +87,13 @@ Phase A unless the user explicitly requests a documentation-only iteration.
 - If the current repository does not match the documented baseline, stop and
   report the exact difference before implementation.
 - Do not silently redefine a changed baseline.
+- `APP_UI_EDITOR_ONLY` and `SENTIS_ANALYTICS_ENABLED` are package-managed
+  WebGL scripting defines. Their environment-dependent presence, absence,
+  combination, or ordering is an allowed volatile difference, but they must
+  never be staged in a feature commit.
+- Any other scripting define or ProjectSettings semantic change remains a
+  baseline failure, including resolution, WebGL template, Input Actions,
+  preloaded assets, PlayerSettings, Graphics, Quality, or Android settings.
 - Tests must not destroy or rewrite the user's Editor Campaign PlayerPrefs,
   Product save, Guest identity, or other local development data.
 - Campaign-affecting PlayMode fixtures must use the documented snapshot and

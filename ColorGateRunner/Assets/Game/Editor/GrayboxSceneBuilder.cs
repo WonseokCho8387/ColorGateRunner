@@ -247,7 +247,7 @@ namespace ColorGateRunner.Editor
 
             CreatePauseUi(
                 canvas.transform,
-                hud.transform,
+                flowRoots[2].transform,
                 out Button pauseButton,
                 out GameObject pauseOverlayRoot,
                 out Image pauseDim,
@@ -1807,8 +1807,8 @@ namespace ColorGateRunner.Editor
                 "PauseButton",
                 hud,
                 "II",
-                new Vector2(0.83f, 0.89f),
-                new Vector2(0.96f, 0.97f),
+                new Vector2(0.83f, 0.76f),
+                new Vector2(0.96f, 0.84f),
                 out _);
 
             overlayRoot = CreateUiObject("PauseOverlayRoot", canvas);
@@ -1914,75 +1914,7 @@ namespace ColorGateRunner.Editor
         private static SettingsPanelController CreatePauseSettingsPanel(
             Transform parent)
         {
-            GameObject panel = CreateAnchoredPanel(
-                "SettingsPanel",
-                parent,
-                new Vector2(0.07f, 0.12f),
-                new Vector2(0.93f, 0.88f),
-                new Color(0.09f, 0.13f, 0.21f, 1f));
-            SettingsPanelController controller =
-                panel.AddComponent<SettingsPanelController>();
-            CreateText(
-                "SettingsTitle",
-                panel.transform,
-                "SETTINGS",
-                30,
-                new Vector2(0.08f, 0.88f),
-                new Vector2(0.92f, 0.98f));
-
-            Slider master = CreatePauseSettingSlider(
-                "MasterSlider",
-                panel.transform,
-                "MASTER",
-                0.73f,
-                out Text masterValue);
-            Slider music = CreatePauseSettingSlider(
-                "MusicSlider",
-                panel.transform,
-                "MUSIC",
-                0.57f,
-                out Text musicValue);
-            Slider sfx = CreatePauseSettingSlider(
-                "SfxSlider",
-                panel.transform,
-                "SFX",
-                0.41f,
-                out Text sfxValue);
-            Toggle vibration = CreatePauseSettingToggle(
-                panel.transform);
-            Text status = CreateText(
-                "SettingsStatusText",
-                panel.transform,
-                string.Empty,
-                13,
-                new Vector2(0.08f, 0.16f),
-                new Vector2(0.92f, 0.23f));
-            Button apply = CreateButton(
-                "SettingsApplyButton",
-                panel.transform,
-                "APPLY",
-                new Vector2(0.08f, 0.04f),
-                new Vector2(0.48f, 0.14f),
-                out _);
-            Button cancel = CreateButton(
-                "SettingsCancelButton",
-                panel.transform,
-                "CANCEL",
-                new Vector2(0.52f, 0.04f),
-                new Vector2(0.92f, 0.14f),
-                out _);
-            controller.Configure(
-                master,
-                music,
-                sfx,
-                vibration,
-                masterValue,
-                musicValue,
-                sfxValue,
-                status,
-                apply,
-                cancel);
-            return controller;
+            return UnifiedSettingsPanelBuilder.Create(parent);
         }
 
         private static Slider CreatePauseSettingSlider(

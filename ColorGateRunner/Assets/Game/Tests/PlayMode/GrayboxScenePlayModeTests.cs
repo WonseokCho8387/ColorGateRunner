@@ -4,8 +4,10 @@ using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace ColorGateRunner.Tests.PlayMode
@@ -1597,6 +1599,47 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void PauseButton_IsVisibleClickableInsideSafeAreaAndDoesNotOverlapHud()
+        {
+            StartPlaying(false, false);
+            Canvas.ForceUpdateCanvases();
+            Button button = _controller.PauseButton;
+            RectTransform buttonRect =
+                button.GetComponent<RectTransform>();
+            RectTransform safeArea = FindTransform("SafeAreaRoot")
+                .GetComponent<RectTransform>();
+            RectTransform stageHud = _controller.StageHud
+                .GetComponent<RectTransform>();
+            RectTransform shield = FindTransform("ShieldIcon")
+                .GetComponent<RectTransform>();
+            shield.gameObject.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+
+            Assert.That(button.gameObject.activeInHierarchy, Is.True);
+            Assert.That(buttonRect.rect.width, Is.GreaterThanOrEqualTo(44f));
+            Assert.That(buttonRect.rect.height, Is.GreaterThanOrEqualTo(44f));
+            Assert.That(IsInside(buttonRect, safeArea), Is.True);
+            Assert.That(Overlaps(buttonRect, stageHud), Is.False);
+            Assert.That(Overlaps(buttonRect, shield), Is.False);
+            RunnerColor before = _controller.Session.CurrentColor;
+
+            var click = new PointerEventData(EventSystem.current);
+            ExecuteEvents.Execute<IPointerClickHandler>(
+                button.gameObject,
+                click,
+                ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute<IPointerClickHandler>(
+                button.gameObject,
+                click,
+                ExecuteEvents.pointerClickHandler);
+
+            Assert.That(_controller.PauseOverlayRoot.activeSelf, Is.True);
+            Assert.That(_controller.PauseCoordinator.IsPaused, Is.True);
+            Assert.That(_controller.Session.CurrentColor, Is.EqualTo(before));
+            Assert.That(CountNamed("PauseOverlayRoot"), Is.EqualTo(1));
+        }
+
+        [Test]
         public void PauseDuringPlaying_FreezesTimeMovementInputAndJudgment()
         {
             StartPlaying(false, false);
@@ -1635,6 +1678,36 @@ namespace ColorGateRunner.Tests.PlayMode
 
             _controller.RequestResume();
             Assert.That(_controller.SpeedLines.isPlaying, Is.True);
+        }
+
+        private static bool IsInside(
+            RectTransform child,
+            RectTransform parent)
+        {
+            Rect childRect = WorldRect(child);
+            Rect parentRect = WorldRect(parent);
+            return parentRect.xMin <= childRect.xMin &&
+                parentRect.xMax >= childRect.xMax &&
+                parentRect.yMin <= childRect.yMin &&
+                parentRect.yMax >= childRect.yMax;
+        }
+
+        private static bool Overlaps(
+            RectTransform first,
+            RectTransform second)
+        {
+            return WorldRect(first).Overlaps(WorldRect(second));
+        }
+
+        private static Rect WorldRect(RectTransform rect)
+        {
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            return Rect.MinMaxRect(
+                corners[0].x,
+                corners[0].y,
+                corners[2].x,
+                corners[2].y);
         }
 
         [Test]

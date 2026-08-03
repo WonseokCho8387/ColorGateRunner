@@ -57,6 +57,10 @@ namespace ColorGateRunner.Editor
                 lobbyRoot.transform,
                 out Text lobbyProfile,
                 out Text lobbyAccount,
+                out Text lobbyStage,
+                out Text lobbyStageTitle,
+                out Text lobbyStageMechanic,
+                out Text lobbyProgress,
                 out Button lobbyPlay,
                 out Button lobbyBack,
                 out Button lobbySettings,
@@ -127,6 +131,10 @@ namespace ColorGateRunner.Editor
                 legalRoot,
                 lobbyProfile,
                 lobbyAccount,
+                lobbyStage,
+                lobbyStageTitle,
+                lobbyStageMechanic,
+                lobbyProgress,
                 lobbyPlay,
                 lobbyBack,
                 lobbySettings,
@@ -524,6 +532,10 @@ namespace ColorGateRunner.Editor
             Transform parent,
             out Text profile,
             out Text account,
+            out Text stage,
+            out Text stageTitle,
+            out Text stageMechanic,
+            out Text progress,
             out Button play,
             out Button back,
             out Button settings,
@@ -553,35 +565,56 @@ namespace ColorGateRunner.Editor
                 14,
                 new Vector2(0.14f, 0.58f),
                 new Vector2(0.86f, 0.62f));
-            CreateText(
-                "LobbyCampaignHint",
+            stage = CreateText(
+                "LobbyRecommendedStageText",
                 parent,
-                "YOUR CAMPAIGN IS READY",
-                18,
-                new Vector2(0.12f, 0.43f),
-                new Vector2(0.88f, 0.50f));
+                "STAGE 1",
+                22,
+                new Vector2(0.12f, 0.49f),
+                new Vector2(0.88f, 0.55f));
+            stageTitle = CreateText(
+                "LobbyStageTitleText",
+                parent,
+                "TWO-COLOR BASICS",
+                28,
+                new Vector2(0.10f, 0.42f),
+                new Vector2(0.90f, 0.49f));
+            stageMechanic = CreateText(
+                "LobbyStageMechanicText",
+                parent,
+                "COLOR MATCH",
+                16,
+                new Vector2(0.12f, 0.37f),
+                new Vector2(0.88f, 0.42f));
+            progress = CreateText(
+                "LobbyProgressText",
+                parent,
+                "0 / 13 CLEARED",
+                14,
+                new Vector2(0.12f, 0.33f),
+                new Vector2(0.88f, 0.37f));
             play = CreateButton(
                 "LobbyPlayCampaignButton",
                 parent,
-                "CONTINUE CAMPAIGN",
-                new Vector2(0.10f, 0.28f),
-                new Vector2(0.90f, 0.40f),
+                "START STAGE",
+                new Vector2(0.10f, 0.22f),
+                new Vector2(0.90f, 0.33f),
                 FromHex(0x22C55E),
                 out _);
             back = CreateButton(
                 "LobbyAccountButton",
                 parent,
                 "ACCOUNT",
-                new Vector2(0.10f, 0.17f),
-                new Vector2(0.49f, 0.24f),
+                new Vector2(0.10f, 0.12f),
+                new Vector2(0.49f, 0.19f),
                 FromHex(0x253047),
                 out _);
             settings = CreateButton(
                 "LobbySettingsButton",
                 parent,
                 "SETTINGS",
-                new Vector2(0.51f, 0.17f),
-                new Vector2(0.90f, 0.24f),
+                new Vector2(0.51f, 0.12f),
+                new Vector2(0.90f, 0.19f),
                 FromHex(0x253047),
                 out _);
             currencySlot = CreateFlowRoot("CurrencySlotRoot", parent);
@@ -642,81 +675,7 @@ namespace ColorGateRunner.Editor
         private static SettingsPanelController CreateSettingsPanel(
             Transform parent)
         {
-            GameObject panel = CreatePanel(
-                "SettingsPanel",
-                parent,
-                new Vector2(0.07f, 0.12f),
-                new Vector2(0.93f, 0.88f),
-                FromHex(0x172033));
-            SettingsPanelController controller =
-                panel.AddComponent<SettingsPanelController>();
-            CreateText(
-                "SettingsTitle",
-                panel.transform,
-                "SETTINGS",
-                30,
-                new Vector2(0.08f, 0.88f),
-                new Vector2(0.92f, 0.98f));
-
-            Slider master = CreateSettingSlider(
-                "MasterSlider",
-                panel.transform,
-                "MASTER",
-                0.73f,
-                out Text masterValue);
-            Slider music = CreateSettingSlider(
-                "MusicSlider",
-                panel.transform,
-                "MUSIC",
-                0.57f,
-                out Text musicValue);
-            Slider sfx = CreateSettingSlider(
-                "SfxSlider",
-                panel.transform,
-                "SFX",
-                0.41f,
-                out Text sfxValue);
-            Toggle vibration = CreateSettingToggle(
-                "VibrationToggle",
-                panel.transform,
-                "VIBRATION",
-                new Vector2(0.10f, 0.24f),
-                new Vector2(0.90f, 0.34f));
-            Text status = CreateText(
-                "SettingsStatusText",
-                panel.transform,
-                string.Empty,
-                13,
-                new Vector2(0.08f, 0.16f),
-                new Vector2(0.92f, 0.23f));
-            Button apply = CreateButton(
-                "SettingsApplyButton",
-                panel.transform,
-                "APPLY",
-                new Vector2(0.08f, 0.04f),
-                new Vector2(0.48f, 0.14f),
-                FromHex(0x22C55E),
-                out _);
-            Button cancel = CreateButton(
-                "SettingsCancelButton",
-                panel.transform,
-                "CANCEL",
-                new Vector2(0.52f, 0.04f),
-                new Vector2(0.92f, 0.14f),
-                FromHex(0x253047),
-                out _);
-            controller.Configure(
-                master,
-                music,
-                sfx,
-                vibration,
-                masterValue,
-                musicValue,
-                sfxValue,
-                status,
-                apply,
-                cancel);
-            return controller;
+            return UnifiedSettingsPanelBuilder.Create(parent);
         }
 
         private static Slider CreateSettingSlider(

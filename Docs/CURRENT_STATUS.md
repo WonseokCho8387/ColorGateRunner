@@ -9,8 +9,8 @@ iterations but do not override this section.
 ### Repository
 
 - Implementation base HEAD:
-  `73c3dc4acccf5b4f4e6cf871b1abc868c4d72e09`
-- Base commit: `docs: standardize iteration workflow and baseline`
+  `3257452`
+- Base commit: `chore: normalize package-managed webgl defines`
 - Completion commit: the commit containing this baseline; its exact hash is
   recorded in the Iteration 12 final report.
 - Branch at completion: `main`
@@ -19,19 +19,25 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 12 — Account Onboarding, Settings,
-  and Gameplay Pause UX**.
+- Current completed iteration: **Iteration 13 — Lobby Consolidation, Gameplay
+  Settings Entry, and Unified Settings Access**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
-- Frontend contains first-run Account Choice and Placeholder Lobby. It does
-  not contain an AppRoot and reuses the Boot-created persistent AppRoot.
+- Frontend contains first-run Account Choice and the consolidated Campaign
+  Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
+  AppRoot.
 - `LocalProfileData.AccountChoiceCompleted` owns onboarding completion.
   Returning users enter Lobby directly; schema-1 saves without the field
   intentionally see Account Choice once.
 - Google integration remains absent, its release action is hidden, and no
   linked state is simulated.
-- Frontend and Gameplay Pause share Product Settings. Master Volume applies
-  through `AudioListener.volume`; Music and SFX persist without a current
-  content-specific target. Vibration gates the existing Booster haptic call.
+- Frontend and Gameplay Pause share Notifications, Music, SFX, Vibration, and
+  configured-link Settings. Master Volume remains hidden and applies through
+  `AudioListener.volume`; Music and SFX persist without a current content-
+  specific target. Vibration gates the existing Booster haptic call.
+- Frontend reads Campaign progression through `IStageProgressReader` and
+  queues one non-persistent stable-ID launch request. Production entry opens
+  the existing PreRun/item selection without briefly showing Campaign Lobby;
+  direct/development/fallback entry retains that Lobby.
 - Gameplay Pause freezes attempt time, movement, input, judgment, recycling,
   mechanic timing, camera feedback, and registered attempt VFX. Resume,
   existing Retry, Settings, and confirmed Frontend Lobby return are available.
@@ -41,9 +47,9 @@ iterations but do not override this section.
 
 ### Automated validation
 
-- EditMode: `352/352`
-- PlayMode: `179/179`
-- Post-Builder PlayMode: `179/179`
+- EditMode: `361/361`
+- PlayMode: `180/180`
+- Post-Builder PlayMode: `180/180`
 - Frontend Builder: 2 consecutive successful runs
 - Boot Builder: 2 consecutive successful runs
 - Campaign Builder: 2 consecutive successful runs
@@ -91,10 +97,11 @@ All three entries are expected to be enabled and unique.
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- Product save SHA-256 remained
-  `69AA916EF1295FECE34A4DD9A1EC13A525DFDF477EC3EBAF9A7E85898AFF0191`;
-  the existing Guest ID is unchanged. The live legacy schema-1 file does not
-  contain the new optional field, so it will show Account Choice once.
+- Product save SHA-256 observed after validation is
+  `10BE5F39A1E69E2596A708C59F187C8FB714C35AC8D03AEC39BF4F84183422FD`;
+  the existing Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged by
+  tests. The file predates this validation run and already contains completed
+  Account Choice state.
 - Product save hash and Guest ID must remain unchanged unless the approved
   iteration explicitly changes Product save data.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
@@ -105,14 +112,50 @@ All three entries are expected to be enabled and unique.
   `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
 - `Packages/packages-lock.json` SHA-256:
   `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`
-- `ProjectSettings/ProjectSettings.asset` must match the approved portrait,
-  custom WebGL template, and Input Actions preload baseline restored by
-  `c191826`.
+- `ProjectSettings/ProjectSettings.asset` must retain the approved portrait,
+  custom WebGL template, Input Actions preload, and all other semantic
+  baselines.
+- Package-managed WebGL defines `APP_UI_EDITOR_ONLY` and
+  `SENTIS_ANALYTICS_ENABLED` may vary by environment in presence, combination,
+  or order. They are never staged in a feature commit. Any other scripting
+  define or ProjectSettings semantic difference is a baseline failure.
 - Routine iterations must not redefine these values. Any intended Package or
   ProjectSettings change requires explicit approval and a new documented
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 13
+
+(Lobby Consolidation / Gameplay Settings Entry / Unified Settings Access)
+
+---
+
+- Frontend now recommends the current Campaign Stage from the existing
+  device-wide PlayerPrefs store through a read-only adapter. The AppRoot-owned
+  one-shot stable-ID request enters the existing PreRun/item-selection flow
+  without displaying Campaign Lobby in production.
+- Direct Campaign, development, Experiment Lab, and missing-context entry keep
+  the existing Campaign Lobby as a safe fallback.
+- Frontend and Pause share Notifications, Music, SFX, Vibration, and external-
+  link Settings. Master stays hidden/preserved; Music/SFX restore their last
+  non-zero values; notification delivery and content-specific audio remain
+  unimplemented and are presented truthfully.
+- Pause remains owned by the existing coordinator. Its generated HUD button
+  is inside Safe Area, at least 44 by 44, clear of Stage/Shield HUD, and does
+  not leak clicks to gameplay.
+- Full EditMode `361/361` and post-Builder PlayMode `180/180` passed. Frontend,
+  Boot, and Campaign Builders each passed twice with no Missing Script,
+  Missing Reference, duplicate root, or EventSystem regression.
+- Campaign remained 260 rows and Step 10 remained 80 rows / 64,016 runs with
+  all eight approved hashes unchanged. Package hashes are unchanged.
+- WebGL `APP_UI_EDITOR_ONLY` and `SENTIS_ANALYTICS_ENABLED` are recorded as
+  package-managed volatile defines and excluded from the feature commit; no
+  other ProjectSettings semantic change is allowed.
+
+---
 
 Version
 

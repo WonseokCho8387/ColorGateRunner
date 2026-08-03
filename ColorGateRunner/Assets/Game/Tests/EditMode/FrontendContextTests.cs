@@ -23,14 +23,16 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(context.AccountLabel, Is.EqualTo("GUEST"));
             Assert.That(context.VersionLabel, Is.EqualTo("v1.2.3"));
             Assert.That(context.SettingsAvailable, Is.True);
-            Assert.That(context.SettingsSummary, Does.Contain("MASTER 100%"));
+            Assert.That(context.SettingsSummary, Does.Contain("MUSIC ON"));
+            Assert.That(context.SettingsSummary,
+                Does.Contain("NOTIFICATIONS OFF"));
             Assert.That(context.AccountChoiceCompleted, Is.False);
             Assert.That(context.GoogleProviderAvailable, Is.False);
 
             graph.Profile.Current.DisplayName = "MUTATED";
             graph.Settings.Current.MasterVolume = 0f;
             Assert.That(context.DisplayName, Is.EqualTo("GUEST"));
-            Assert.That(context.SettingsSummary, Does.Contain("MASTER 100%"));
+            Assert.That(context.SettingsSummary, Does.Contain("MUSIC ON"));
         }
 
         [Test]

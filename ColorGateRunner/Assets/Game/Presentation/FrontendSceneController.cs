@@ -1,4 +1,5 @@
 using System;
+using ColorGateRunner.Core;
 using ColorGateRunner.Product;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,6 +24,10 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject titleLegalRoot;
         [SerializeField] private Text lobbyProfileText;
         [SerializeField] private Text lobbyAccountText;
+        [SerializeField] private Text lobbyStageText;
+        [SerializeField] private Text lobbyStageTitleText;
+        [SerializeField] private Text lobbyStageMechanicText;
+        [SerializeField] private Text lobbyProgressText;
         [SerializeField] private Button lobbyPlayButton;
         [SerializeField] private Button lobbyBackButton;
         [SerializeField] private Button lobbySettingsButton;
@@ -48,6 +53,9 @@ namespace ColorGateRunner.Presentation
         private bool _listenersBound;
         private bool _productReady;
         private AppRoot _appRoot;
+        private ICampaignLaunchHost _campaignLaunchHost;
+        private CampaignLobbyReadModel _campaignLobby;
+        private string _queuedStageId;
 
         internal FrontendPageRouter Router => _router;
         internal string CampaignScenePath => campaignScenePath;
@@ -63,6 +71,10 @@ namespace ColorGateRunner.Presentation
         internal Text TitleAccountText => titleAccountText;
         internal Text TitleVersionText => titleVersionText;
         internal Text LobbyProfileText => lobbyProfileText;
+        internal Text LobbyStageText => lobbyStageText;
+        internal Text LobbyStageTitleText => lobbyStageTitleText;
+        internal Text LobbyStageMechanicText => lobbyStageMechanicText;
+        internal Text LobbyProgressText => lobbyProgressText;
         internal Text ModalMessageText => modalMessageText;
         internal GameObject TitleLegalRoot => titleLegalRoot;
         internal Button TitleStartButton => titleStartButton;
@@ -127,6 +139,10 @@ namespace ColorGateRunner.Presentation
             GameObject legalRoot,
             Text lobbyProfile,
             Text lobbyAccount,
+            Text lobbyStage,
+            Text lobbyStageTitle,
+            Text lobbyStageMechanic,
+            Text lobbyProgress,
             Button lobbyPlay,
             Button lobbyBack,
             Button lobbySettings,
@@ -158,6 +174,10 @@ namespace ColorGateRunner.Presentation
             titleLegalRoot = legalRoot;
             lobbyProfileText = lobbyProfile;
             lobbyAccountText = lobbyAccount;
+            lobbyStageText = lobbyStage;
+            lobbyStageTitleText = lobbyStageTitle;
+            lobbyStageMechanicText = lobbyStageMechanic;
+            lobbyProgressText = lobbyProgress;
             lobbyPlayButton = lobbyPlay;
             lobbyBackButton = lobbyBack;
             lobbySettingsButton = lobbySettings;
@@ -209,7 +229,10 @@ namespace ColorGateRunner.Presentation
                 titleVersionText != null && titleStartButton != null &&
                 titleAccountButton != null && titleSettingsButton != null &&
                 titleLegalRoot != null && lobbyProfileText != null &&
-                lobbyAccountText != null && lobbyPlayButton != null &&
+                lobbyAccountText != null && lobbyStageText != null &&
+                lobbyStageTitleText != null &&
+                lobbyStageMechanicText != null &&
+                lobbyProgressText != null && lobbyPlayButton != null &&
                 lobbyBackButton != null && lobbySettingsButton != null &&
                 currencySlotRoot != null && eventModuleSlotRoot != null &&
                 notificationSlotRoot != null && lobbyThemeRoot != null &&
@@ -260,6 +283,24 @@ namespace ColorGateRunner.Presentation
             }
 
             _appRoot = appRoot;
+            _campaignLaunchHost = appRoot;
+            try
+            {
+                StageCatalogProvider.EnsureConfigured();
+                _campaignLobby = new FrontendCampaignProgressReader(
+                    new PlayerPrefsStageProgressStore(),
+                    StageCatalog.Current).Read();
+            }
+            catch (Exception exception)
+            {
+                _productReady = false;
+                lobbyPlayButton.interactable = false;
+                lobbyStageText.text = "CAMPAIGN UNAVAILABLE";
+                lobbyStageTitleText.text = exception.Message;
+                lobbyStageMechanicText.text = string.Empty;
+                lobbyProgressText.text = string.Empty;
+                return;
+            }
             ApplyContext(context);
         }
 
@@ -275,6 +316,17 @@ namespace ColorGateRunner.Presentation
             titleVersionText.text = context.VersionLabel;
             lobbyProfileText.text = context.DisplayName;
             lobbyAccountText.text = context.AccountLabel;
+            if (_campaignLobby != null)
+            {
+                lobbyStageText.text =
+                    $"STAGE {_campaignLobby.DisplayNumber}";
+                lobbyStageTitleText.text = _campaignLobby.Title;
+                lobbyStageMechanicText.text =
+                    _campaignLobby.MechanicLabel;
+                lobbyProgressText.text =
+                    $"{_campaignLobby.ClearedCount} / " +
+                    $"{_campaignLobby.TotalStageCount} CLEARED";
+            }
             titleSettingsButton.gameObject.SetActive(false);
             titleAccountButton.gameObject.SetActive(
                 context.GoogleProviderAvailable);
@@ -399,13 +451,24 @@ namespace ColorGateRunner.Presentation
 
         private void PlayCampaign()
         {
-            if (!_productReady)
+            if (!_productReady || _campaignLobby == null ||
+                _campaignLaunchHost == null)
             {
                 _router.TryShowModal(FrontendModal.BootRequired);
                 return;
             }
             if (!_router.TryBeginSceneTransition())
             {
+                return;
+            }
+
+            _queuedStageId = _campaignLobby.StageId;
+            if (!_campaignLaunchHost.TryQueueCampaignLaunch(_queuedStageId))
+            {
+                _queuedStageId = null;
+                _router.CompleteSceneTransition();
+                modalMessageText.text = "CAMPAIGN LAUNCH IS ALREADY PENDING";
+                _router.TryShowModal(FrontendModal.SceneLoadError);
                 return;
             }
 
@@ -424,6 +487,8 @@ namespace ColorGateRunner.Presentation
             _router.CompleteSceneTransition();
             if (!result.Succeeded)
             {
+                _campaignLaunchHost?.TryCancelCampaignLaunch(_queuedStageId);
+                _queuedStageId = null;
                 modalMessageText.text = string.IsNullOrWhiteSpace(result.Error)
                     ? "CAMPAIGN LOAD FAILED"
                     : result.Error;

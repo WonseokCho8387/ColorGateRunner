@@ -326,3 +326,20 @@ legibility.
 - Human review owns 9:16 hierarchy, Account Choice trust and clarity, slider
   readability, Dim coverage, rapid Back/tap behavior, and background/foreground
   feel. Music/SFX sliders currently persist but have no audible target.
+
+## Lobby consolidation presentation
+
+- The Frontend Lobby shows one recommended Stage number, title, mechanic, and
+  cleared count above a dominant `START STAGE` action. It does not expose a
+  Stage picker or duplicate the existing Campaign Lobby.
+- The shared Settings panel uses four clear toggles: Notifications, Music,
+  SFX, and Vibration. Master Volume is hidden. A visible prototype notice says
+  notifications are not sent yet.
+- Terms, Privacy, and Support use one visual treatment. In development,
+  missing URLs remain visible but disabled with `URL NOT CONFIGURED`; release
+  presentation hides unavailable actions.
+- The Pause button belongs to `GameplayHudRoot` and sits in the upper-right
+  Safe Area below the Stage HUD, clear of Shield state and the gameplay tap
+  surface. Its minimum interactive size is 44 by 44 UI units.
+- Human review owns portrait hierarchy, wording, toggle comprehension, link
+  discoverability, and Pause-button reachability on Android and WebGL.

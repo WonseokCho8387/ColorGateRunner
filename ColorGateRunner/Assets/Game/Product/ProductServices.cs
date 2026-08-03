@@ -189,6 +189,23 @@ namespace ColorGateRunner.Product
             float sfxVolume,
             bool vibration)
         {
+            bool notification =
+                _current?.Settings?.NotificationEnabled ?? false;
+            return ApplySettings(
+                masterVolume,
+                musicVolume,
+                sfxVolume,
+                vibration,
+                notification);
+        }
+
+        public ProductMutationResult ApplySettings(
+            float masterVolume,
+            float musicVolume,
+            float sfxVolume,
+            bool vibration,
+            bool notificationEnabled)
+        {
             if (!TryGetReady(out ProductMutationResult failure))
             {
                 return failure;
@@ -210,16 +227,36 @@ namespace ColorGateRunner.Product
             if (current.MasterVolume == master &&
                 current.MusicVolume == music &&
                 current.SfxVolume == sfx &&
-                current.Vibration == vibration)
+                current.Vibration == vibration &&
+                current.NotificationEnabled == notificationEnabled)
             {
                 return ProductMutationResult.Success(false);
             }
 
             LocalSaveData candidate = _current.Clone();
             candidate.Settings.MasterVolume = master;
+            if (music > 0f)
+            {
+                candidate.Settings.LastNonZeroMusicVolume = music;
+            }
+            else if (current.MusicVolume > 0f)
+            {
+                candidate.Settings.LastNonZeroMusicVolume =
+                    current.MusicVolume;
+            }
+            if (sfx > 0f)
+            {
+                candidate.Settings.LastNonZeroSfxVolume = sfx;
+            }
+            else if (current.SfxVolume > 0f)
+            {
+                candidate.Settings.LastNonZeroSfxVolume =
+                    current.SfxVolume;
+            }
             candidate.Settings.MusicVolume = music;
             candidate.Settings.SfxVolume = sfx;
             candidate.Settings.Vibration = vibration;
+            candidate.Settings.NotificationEnabled = notificationEnabled;
             return Commit(candidate);
         }
 

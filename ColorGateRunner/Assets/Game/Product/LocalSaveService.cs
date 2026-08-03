@@ -383,6 +383,26 @@ namespace ColorGateRunner.Product
                 dirty = true;
             }
 
+            if (data.Settings != null)
+            {
+                if (data.Settings.LastNonZeroMusicVolume == 0f)
+                {
+                    data.Settings.LastNonZeroMusicVolume =
+                        data.Settings.MusicVolume > 0f
+                            ? data.Settings.MusicVolume
+                            : 1f;
+                    dirty = true;
+                }
+                if (data.Settings.LastNonZeroSfxVolume == 0f)
+                {
+                    data.Settings.LastNonZeroSfxVolume =
+                        data.Settings.SfxVolume > 0f
+                            ? data.Settings.SfxVolume
+                            : 1f;
+                    dirty = true;
+                }
+            }
+
             if (!SettingsAreValid(data.Settings))
             {
                 data.Settings = LocalSettingsData.CreateDefaults();
@@ -444,7 +464,14 @@ namespace ColorGateRunner.Product
                 IsVolume(settings.MasterVolume) &&
                 IsVolume(settings.MusicVolume) &&
                 IsVolume(settings.SfxVolume) &&
+                IsActiveVolume(settings.LastNonZeroMusicVolume) &&
+                IsActiveVolume(settings.LastNonZeroSfxVolume) &&
                 !string.IsNullOrWhiteSpace(settings.Language);
+        }
+
+        private static bool IsActiveVolume(float value)
+        {
+            return IsVolume(value) && value > 0f;
         }
 
         private static bool IsVolume(float value)

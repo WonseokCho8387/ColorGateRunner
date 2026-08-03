@@ -3,10 +3,14 @@ using UnityEngine;
 
 namespace ColorGateRunner.Presentation
 {
-    internal interface IStageProgressStore
+    internal interface IStageProgressReader
     {
         int LoadHighestUnlocked();
         StageRecord LoadRecord(int stageNumber);
+    }
+
+    internal interface IStageProgressStore : IStageProgressReader
+    {
         void SaveHighestUnlocked(int stageNumber);
         void SaveRecord(int stageNumber, StageRecord record);
         void ClearGameplayProgress();

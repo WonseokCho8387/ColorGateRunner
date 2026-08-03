@@ -1787,3 +1787,56 @@ Any mismatch blocks implementation.
 - Music/SFX audible effect, Google/account linking, cloud/profile-scoped
   Campaign progress, final Lobby/Campaign/Stage Detail/Results, economy,
   events, analytics, ads, and IAP remain deferred.
+
+## Iteration 13 — Lobby Consolidation and Unified Settings
+
+### Focused acceptance
+
+- A read-only Frontend progress adapter selects the lowest uncleared unlocked
+  stable Stage ID and cannot write PlayerPrefs.
+- The AppRoot launch request queues once, cancels only the matching request,
+  consumes once, and is never serialized.
+- Production `START STAGE` bypasses Campaign Lobby and opens existing PreRun
+  for the same Stage ID. Missing context keeps the existing Lobby fallback.
+- Failed Scene loading removes the pending launch request and reports one
+  recoverable error.
+- Frontend and Pause use one Settings controller and field set. Music/SFX OFF
+  writes zero; ON restores last non-zero or `1.0`; Master remains preserved.
+- Schema-1 saves missing Notification and last-non-zero fields use `false`,
+  `1.0`, and `1.0` without changing Profile/onboarding state.
+- Product links accept only absolute HTTPS, use an injectable opener, and do
+  not open when unconfigured. Notification UI states that delivery is absent.
+- Pause button is active under Gameplay HUD, at least 44 by 44, inside Safe
+  Area, clear of Stage/Shield HUD, and does not mutate player color through the
+  gameplay tap surface.
+
+### Final automated evidence
+
+- Focused EditMode `31/31`; focused Frontend/Gameplay PlayMode `114/114` after
+  isolating Stage 1-13 records; targeted stable-ID launch regression `1/1`.
+- Full EditMode `361/361`; full post-Builder PlayMode `180/180`.
+- Frontend Builder run 1/2 and 2/2, Boot Builder run 1/2 and 2/2, and Campaign
+  Builder's two-build command succeeded. Build Settings remain Boot,
+  Frontend, Campaign with unique enabled entries.
+- No Missing Script, required-reference, duplicate-root, EventSystem, pooled-
+  state, or repeated-listener failure was reported.
+- Campaign simulation reproduced 260 rows and Summary/JSON/CSV hashes
+  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`,
+  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`,
+  and `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`.
+- Step 10 reproduced 80 rows / 64,016 runs and all five approved hashes.
+- Campaign PlayerPrefs still contains Highest plus 12 existing Stage records;
+  PlayMode snapshot tests restored exact state. Product save file timestamp and
+  Guest ID were unchanged by validation.
+- Package hashes remain approved. Only environment-dependent presence/order
+  of `APP_UI_EDITOR_ONLY` and `SENTIS_ANALYTICS_ENABLED` is allowed in WebGL
+  defines, and `ProjectSettings.asset` is excluded from the feature commit.
+
+### Human review and deferred
+
+- Review recommended-Stage hierarchy, transition directly into PreRun,
+  Notifications/Music/SFX/Vibration wording, disabled prototype links, Pause
+  reachability, and 9:16 Android/WebGL layout.
+- Notification delivery, real Music/SFX AudioSources, configured legal/support
+  URLs, Campaign-to-Frontend return, Stage Detail, economy, events, analytics,
+  ads, IAP, and profile-scoped Campaign progress remain deferred.

@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace ColorGateRunner.Presentation
 {
-    public sealed class AppRoot : MonoBehaviour, IProductSettingsHost
+    public sealed class AppRoot : MonoBehaviour,
+        IProductSettingsHost,
+        ICampaignLaunchHost
     {
         internal const string SaveFileName = "product-save.json";
 
@@ -12,6 +14,8 @@ namespace ColorGateRunner.Presentation
         private static Func<AppServiceGraph> _testGraphFactory;
 
         private AppServiceGraph _graph;
+        private readonly CampaignLaunchContext _campaignLaunch =
+            new CampaignLaunchContext();
         private bool _ownsActiveSlot;
 
         public bool IsPrimary => _active == this;
@@ -88,7 +92,8 @@ namespace ColorGateRunner.Presentation
             float masterVolume,
             float musicVolume,
             float sfxVolume,
-            bool vibration)
+            bool vibration,
+            bool notificationEnabled)
         {
             if (_graph == null)
             {
@@ -103,7 +108,8 @@ namespace ColorGateRunner.Presentation
                 masterVolume,
                 musicVolume,
                 sfxVolume,
-                vibration);
+                vibration,
+                notificationEnabled);
             if (result.Succeeded)
             {
                 UnityProductSettingsRuntime.ApplyMasterVolume(
@@ -116,6 +122,38 @@ namespace ColorGateRunner.Presentation
         {
             return _graph != null &&
                 _graph.Account.IsProviderAvailable(provider);
+        }
+
+        internal bool TryQueueCampaignLaunch(string stageId)
+        {
+            return IsPrimary && _campaignLaunch.TrySet(stageId);
+        }
+
+        internal bool TryConsumeCampaignLaunch(
+            out CampaignLaunchRequest request)
+        {
+            if (!IsPrimary)
+            {
+                request = default;
+                return false;
+            }
+
+            return _campaignLaunch.TryConsume(out request);
+        }
+
+        internal bool TryCancelCampaignLaunch(string stageId)
+        {
+            return IsPrimary && _campaignLaunch.TryCancel(stageId);
+        }
+
+        bool ICampaignLaunchHost.TryQueueCampaignLaunch(string stageId)
+        {
+            return TryQueueCampaignLaunch(stageId);
+        }
+
+        bool ICampaignLaunchHost.TryCancelCampaignLaunch(string stageId)
+        {
+            return TryCancelCampaignLaunch(stageId);
         }
 
         internal static bool TryGetActive(out AppRoot appRoot)

@@ -769,8 +769,28 @@ Implementation status: Completed in Iteration 9.
 - Frontend and Gameplay share the same Settings mutation path. Master Volume
   and Booster vibration have runtime consumers; Music/SFX remain persistence-
   only until real audio content exists.
+- Schema 1 Settings also persist `NotificationEnabled` plus
+  `LastNonZeroMusicVolume` and `LastNonZeroSfxVolume`. Missing fields use
+  `false`, `1.0`, and `1.0` without a schema bump. Settings repair remains
+  independent from Profile onboarding.
+- Music/SFX toggles write zero when disabled and restore their last non-zero
+  value when enabled. Master is preserved and remains the only value applied
+  to `AudioListener.volume`; it is not exposed by the consolidated Settings
+  UI.
+- Frontend receives only `IStageProgressReader`; it cannot save or clear
+  Campaign progress. `PlayerPrefsStageProgressStore` remains the sole runtime
+  authority and Product Save receives no Stage section.
+- AppRoot owns a non-persistent one-shot Campaign launch request containing a
+  stable Stage ID. It is neither serialized nor exposed as a global mutable
+  locator and is consumed by Campaign before Lobby activation.
+- External product destinations are Presentation configuration, not Product
+  state. One `ProductLinkConfiguration` accepts absolute HTTPS only, and an
+  injectable URL opener keeps tests and unavailable prototype links truthful.
 
 ## Product Iteration 2 — Progression integration
+
+Implementation status: Frontend read-only adapter completed; write-service
+integration remains deferred.
 
 - StageProgressService.
 - Stage result ingestion.
