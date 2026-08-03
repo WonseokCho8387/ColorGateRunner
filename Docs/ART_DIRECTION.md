@@ -343,3 +343,11 @@ legibility.
   surface. Its minimum interactive size is 44 by 44 UI units.
 - Human review owns portrait hierarchy, wording, toggle comprehension, link
   discoverability, and Pause-button reachability on Android and WebGL.
+
+## Iteration 14 toggle-state correction
+
+- Toggle state uses one right-aligned label per row. The same label changes
+  between green `ON` and neutral `OFF`; two state words must never overlap or
+  remain together in the hierarchy.
+- Notifications, Music, SFX, and Vibration use the same typography, alignment,
+  color rule, and immediate state-change response in Frontend and Pause.

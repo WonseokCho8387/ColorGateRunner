@@ -1180,3 +1180,64 @@ Human feedback required
   HUD separation, and 9:16 Android/WebGL readability.
 - Automation does not determine visual polish, wording comprehension, audio
   expectation, transition satisfaction, or touch ergonomics.
+
+## Iteration 14 — PreRun Back and Settings Toggle Hotfix
+
+### Play
+
+- Frontend-launched PreRun Back exposed the older Campaign Lobby instead of
+  returning to the consolidated Frontend Lobby.
+- Toggle ON rendered over an always-visible OFF label, while OFF alone looked
+  correct.
+
+### Analyze
+
+- PreRun Back was directly bound to `ShowLobby` and discarded the already
+  consumed launch origin.
+- Builder output created two coincident state Text objects and relied on
+  Toggle graphic visibility for only the ON object.
+
+### Design
+
+- Record a Scene-local Frontend origin only after one-shot context consumption
+  and reuse the existing serialized Frontend transition path.
+- Replace the paired state objects with one shared-controller-owned label per
+  toggle and one synchronization method for all four settings.
+
+### Implementation
+
+- PreRun Back now branches on the recorded origin. Frontend return blocks
+  duplicate input; failure stays in PreRun, exposes its diagnostic, restores
+  the Back button, and permits retry. Direct/development fallback is unchanged.
+- The shared Builder emits `StateLabel` only. Settings refreshes all four
+  labels after open, click, successful Apply, re-entry, and save reload.
+
+### Validation
+
+- EditMode `361/361`; post-Builder PlayMode `184/184`.
+- Frontend/Boot Builder completed twice and Campaign Builder completed its
+  internal two-pass validation. No legacy toggle state object, Missing Script,
+  Missing Reference, duplicate root, EventSystem, or listener regression was
+  reported.
+- Campaign 260-row hashes and Step 10 80-row / 64,016-run hashes all match.
+  Campaign progress, Product Guest identity, Packages, and non-volatile
+  ProjectSettings semantics remain preserved.
+
+### Learning
+
+- A consumed navigation request can provide a precise transient return origin
+  without Scene-name inference or persistent transport.
+- Toggle state should have one visual owner; overlapping complementary labels
+  make the valid ON state inherently ambiguous.
+
+### Deferred
+
+- Clear/Failure result navigation, final Campaign/Stage Detail pages, real
+  notification delivery, and content-specific Music/SFX routing are unchanged.
+
+### Human Review
+
+- Verify Frontend is the first visible frame after PreRun Back and rapid taps
+  do not feel stuck.
+- Verify ON/OFF color, spacing, and touch readability on portrait Android and
+  WebGL. Automation does not judge those qualities.

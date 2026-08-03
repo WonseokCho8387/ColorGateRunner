@@ -172,6 +172,9 @@ namespace ColorGateRunner.Presentation
         private ISceneTransitionLoader _sceneTransitionLoader;
         private bool[] _pausedEffectWasPlaying;
         private string _pauseSceneLoadError = string.Empty;
+        private bool _enteredFromFrontendLaunch;
+        private bool _preRunReturnTransitioning;
+        private string _preRunReturnError = string.Empty;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -282,6 +285,10 @@ namespace ColorGateRunner.Presentation
         internal Button PauseButton => pauseButton;
         internal SettingsPanelController PauseSettingsPanel => pauseSettingsPanel;
         internal string FrontendScenePath => frontendScenePath;
+        internal Button PreRunBackButton => backButton;
+        internal bool EnteredFromFrontendLaunch => _enteredFromFrontendLaunch;
+        internal bool PreRunReturnTransitioning => _preRunReturnTransitioning;
+        internal string PreRunReturnError => _preRunReturnError;
 
         internal bool IsPlayerCollider(Collider other)
         {
@@ -649,10 +656,12 @@ namespace ColorGateRunner.Presentation
 
         internal void SelectStageById(string stageId)
         {
-            TrySelectStageById(stageId);
+            TrySelectStageById(stageId, false);
         }
 
-        private bool TrySelectStageById(string stageId)
+        private bool TrySelectStageById(
+            string stageId,
+            bool enteredFromFrontendLaunch)
         {
             StageDefinition definition;
             try
@@ -670,6 +679,9 @@ namespace ColorGateRunner.Presentation
             int displayNumber = definition.DisplayNumber;
             _selectedStageNumber = displayNumber;
             _selectedStageId = definition.StageId;
+            _enteredFromFrontendLaunch = enteredFromFrontendLaunch;
+            _preRunReturnTransitioning = false;
+            _preRunReturnError = string.Empty;
             _session = new StageSession(definition);
             _shieldSelected = false;
             _boosterSelected = false;
@@ -682,9 +694,54 @@ namespace ColorGateRunner.Presentation
 
         private bool TryEnterExternalCampaignLaunch()
         {
-            return AppRoot.TryGetActive(out AppRoot root) &&
-                root.TryConsumeCampaignLaunch(out CampaignLaunchRequest request) &&
-                TrySelectStageById(request.StageId);
+            if (!AppRoot.TryGetActive(out AppRoot root) ||
+                !root.TryConsumeCampaignLaunch(
+                    out CampaignLaunchRequest request))
+            {
+                return false;
+            }
+
+            return TrySelectStageById(request.StageId, true);
+        }
+
+        internal void HandlePreRunBack()
+        {
+            if (_uiFlow != MobileUiFlow.PreRun ||
+                _preRunReturnTransitioning)
+            {
+                return;
+            }
+
+            if (!_enteredFromFrontendLaunch)
+            {
+                ShowLobby();
+                return;
+            }
+
+            _preRunReturnTransitioning = true;
+            _preRunReturnError = string.Empty;
+            backButton.interactable = false;
+            _sceneTransitionLoader.LoadScene(
+                frontendScenePath,
+                OnPreRunFrontendLoadCompleted);
+        }
+
+        private void OnPreRunFrontendLoadCompleted(
+            SceneTransitionResult result)
+        {
+            if (this == null || result.Succeeded)
+            {
+                return;
+            }
+
+            _preRunReturnTransitioning = false;
+            _preRunReturnError = string.IsNullOrWhiteSpace(result.Error)
+                ? "FRONTEND LOAD FAILED"
+                : result.Error;
+            backButton.interactable = true;
+            selectedStageText.text =
+                $"STAGE {_selectedStageNumber}\n{_session.Stage.Title}\n" +
+                _preRunReturnError;
         }
 
         internal void ToggleShieldSelection()
@@ -854,6 +911,10 @@ namespace ColorGateRunner.Presentation
 
         internal void ShowLobby()
         {
+            _enteredFromFrontendLaunch = false;
+            _preRunReturnTransitioning = false;
+            _preRunReturnError = string.Empty;
+            backButton.interactable = true;
             _experimentActive = false;
             _experimentSession = null;
             if (_normalTrackMaterial != null)
@@ -1317,7 +1378,7 @@ namespace ColorGateRunner.Presentation
             shieldToggleButton.onClick.AddListener(ToggleShieldSelection);
             boosterToggleButton.onClick.AddListener(ToggleBoosterSelection);
             startButton.onClick.AddListener(StartSelectedStage);
-            backButton.onClick.AddListener(ShowLobby);
+            backButton.onClick.AddListener(HandlePreRunBack);
             continueButton.onClick.AddListener(ContinueAfterFailure);
             retryButton.onClick.AddListener(RetryToItemSelection);
             replayButton.onClick.AddListener(RetryToItemSelection);
@@ -1361,7 +1422,7 @@ namespace ColorGateRunner.Presentation
             shieldToggleButton.onClick.RemoveListener(ToggleShieldSelection);
             boosterToggleButton.onClick.RemoveListener(ToggleBoosterSelection);
             startButton.onClick.RemoveListener(StartSelectedStage);
-            backButton.onClick.RemoveListener(ShowLobby);
+            backButton.onClick.RemoveListener(HandlePreRunBack);
             continueButton.onClick.RemoveListener(ContinueAfterFailure);
             retryButton.onClick.RemoveListener(RetryToItemSelection);
             replayButton.onClick.RemoveListener(RetryToItemSelection);

@@ -774,3 +774,17 @@ Additional acceptance:
 - Experiment Lab remains isolated.
 - No package, provider SDK, ad, IAP, or network dependency is added without
   separate approval.
+
+## Iteration 14 — PreRun Back and toggle-state hotfix
+
+- Campaign records a Frontend entry origin only when the AppRoot-owned launch
+  context is successfully consumed. It is Scene-local and is never inferred
+  from Scene names or active UI.
+- PreRun Back from that origin reuses the Builder-serialized Frontend path and
+  existing Scene transition loader. The legacy Campaign Lobby never activates
+  during the return. Load failure stays in PreRun, releases the input block,
+  and permits retry.
+- Without a launch context, direct SampleScene, development, and Experiment
+  navigation retain the existing Campaign Lobby and Lab paths.
+- Each shared Settings toggle owns one state label that switches between
+  `ON` and `OFF`; separate overlapping state objects are forbidden.

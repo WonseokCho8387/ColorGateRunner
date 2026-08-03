@@ -8,19 +8,21 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD:
-  `3257452`
-- Base commit: `chore: normalize package-managed webgl defines`
-- Completion commit: the commit containing this baseline; its exact hash is
-  recorded in the Iteration 12 final report.
+- Pre-hotfix implementation base HEAD:
+  `54502f7`
+- Base commit: `feat: consolidate lobby and unify settings access`
+- Authoritative completion HEAD: the commit named
+  `fix: correct pre-run back navigation and settings toggles`; its exact hash
+  is recorded in the Iteration 14 final report because a commit cannot contain
+  its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
 - Push status at completion: not pushed
 
 ### Current product state
 
-- Current completed iteration: **Iteration 13 — Lobby Consolidation, Gameplay
-  Settings Entry, and Unified Settings Access**.
+- Current completed iteration: **Iteration 14 — PreRun Back Navigation and
+  Settings Toggle Presentation Hotfix**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -38,6 +40,11 @@ iterations but do not override this section.
   queues one non-persistent stable-ID launch request. Production entry opens
   the existing PreRun/item selection without briefly showing Campaign Lobby;
   direct/development/fallback entry retains that Lobby.
+- Campaign records the non-persistent Frontend entry origin only after it
+  consumes that launch request. PreRun Back returns that path directly to the
+  Frontend Lobby; direct/development entry still returns to Campaign Lobby.
+- Every Settings toggle uses one `StateLabel`, showing exactly one of `ON` or
+  `OFF`. Frontend and Pause share the same immediate synchronization path.
 - Gameplay Pause freezes attempt time, movement, input, judgment, recycling,
   mechanic timing, camera feedback, and registered attempt VFX. Resume,
   existing Retry, Settings, and confirmed Frontend Lobby return are available.
@@ -48,8 +55,8 @@ iterations but do not override this section.
 ### Automated validation
 
 - EditMode: `361/361`
-- PlayMode: `180/180`
-- Post-Builder PlayMode: `180/180`
+- PlayMode: `184/184`
+- Post-Builder PlayMode: `184/184`
 - Frontend Builder: 2 consecutive successful runs
 - Boot Builder: 2 consecutive successful runs
 - Campaign Builder: 2 consecutive successful runs
@@ -97,11 +104,11 @@ All three entries are expected to be enabled and unique.
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- Product save SHA-256 observed after validation is
-  `10BE5F39A1E69E2596A708C59F187C8FB714C35AC8D03AEC39BF4F84183422FD`;
+- Product save SHA-256 observed after Hotfix validation is
+  `7FC5C845EC444F85996B271ED0C8860488E1673A16FEF8CB2AA6CCD7DCACFE5B`;
   the existing Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged by
-  tests. The file predates this validation run and already contains completed
-  Account Choice state.
+  tests. Its write timestamp predates this validation run and it already
+  contains completed Account Choice state.
 - Product save hash and Guest ID must remain unchanged unless the approved
   iteration explicitly changes Product save data.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
@@ -124,6 +131,33 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 14
+
+(PreRun Back Navigation / Settings Toggle Presentation Hotfix)
+
+---
+
+- A successfully consumed Frontend Campaign launch records a Scene-local,
+  non-persistent entry origin. PreRun Back reuses the serialized Frontend path
+  and existing Scene loader without activating the legacy Campaign Lobby.
+- Missing launch context, direct SampleScene, development, and Experiment
+  paths retain their existing Campaign Lobby behavior.
+- Return input is blocked while loading. Failure stays in PreRun, reports the
+  error, restores the Back action, and permits one clean retry.
+- The shared Settings Builder now creates one `StateLabel` per toggle. The
+  controller updates its text and color on open, click, save, re-entry, and
+  save reload; legacy overlapping `OnLabel` and `OffLabel` objects are absent.
+- EditMode `361/361` and post-Builder PlayMode `184/184` passed. Frontend and
+  Boot were rebuilt twice through the Frontend Builder, and Campaign Builder's
+  internal two-pass build succeeded.
+- Campaign remains 260 rows and Step 10 remains 80 rows / 64,016 runs with all
+  eight approved hashes unchanged. Packages and non-volatile ProjectSettings
+  semantics are unchanged.
+
+---
 
 Version
 

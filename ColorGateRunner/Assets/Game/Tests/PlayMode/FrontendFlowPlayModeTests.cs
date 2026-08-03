@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace ColorGateRunner.Tests.PlayMode
@@ -173,10 +174,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 yield return null;
 
                 SettingsPanelController panel = controller.SettingsPanel;
+                SetAllToggles(panel, true);
+                AssertTogglePresentation(panel, true, true, true, true);
+                SetAllToggles(panel, false);
+                AssertTogglePresentation(panel, false, false, false, false);
                 panel.NotificationToggle.isOn = true;
                 panel.MusicToggle.isOn = false;
                 panel.SfxToggle.isOn = false;
                 panel.VibrationToggle.isOn = false;
+                AssertTogglePresentation(panel, true, false, false, false);
                 panel.ApplyButton.onClick.Invoke();
                 yield return null;
 
@@ -206,6 +212,11 @@ namespace ColorGateRunner.Tests.PlayMode
                     Is.EqualTo("URL NOT CONFIGURED"));
 
                 controller.LobbySettingsButton.onClick.Invoke();
+                AssertTogglePresentation(panel, true, false, false, false);
+                SetAllToggles(panel, true);
+                panel.CancelButton.onClick.Invoke();
+                controller.LobbySettingsButton.onClick.Invoke();
+                AssertTogglePresentation(panel, true, false, false, false);
                 panel.MusicToggle.isOn = true;
                 panel.SfxToggle.isOn = true;
                 panel.ApplyButton.onClick.Invoke();
@@ -372,6 +383,124 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator FrontendPreRunBack_ReturnsDirectlyToFrontendLobby()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+            FrontendSceneController frontend = RequireController();
+            Assert.That(frontend.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+
+            frontend.LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+            Assert.That(campaign, Is.Not.Null);
+            Assert.That(campaign.EnteredFromFrontendLaunch, Is.True);
+            Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
+            Assert.That(campaign.PreRunRoot.activeSelf, Is.True);
+            Assert.That(
+                AppRoot.TryGetActive(out AppRoot root),
+                Is.True);
+            Assert.That(root.TryConsumeCampaignLaunch(out _), Is.False);
+
+            campaign.PreRunBackButton.onClick.Invoke();
+            float timeout = Time.realtimeSinceStartup + 5f;
+            while (SceneManager.GetActiveScene().path == CampaignPath &&
+                Time.realtimeSinceStartup < timeout)
+            {
+                Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
+                yield return null;
+            }
+
+            Assert.That(SceneManager.GetActiveScene().path,
+                Is.EqualTo(FrontendPath));
+            FrontendSceneController returned = RequireController();
+            Assert.That(returned.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(returned.LobbyPageRoot.activeSelf, Is.True);
+            Assert.That(returned.ActivePrimaryPageCount(), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator FrontendPreRunBack_FailureStaysAndAllowsOneRetry()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+            RequireController().LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+            var loader = new DeferredSceneLoader();
+            campaign.SetSceneTransitionLoaderForTests(loader);
+
+            campaign.PreRunBackButton.onClick.Invoke();
+            campaign.HandlePreRunBack();
+
+            Assert.That(loader.LoadCount, Is.EqualTo(1));
+            Assert.That(loader.LastPath, Is.EqualTo(campaign.FrontendScenePath));
+            Assert.That(campaign.PreRunReturnTransitioning, Is.True);
+            Assert.That(campaign.PreRunBackButton.interactable, Is.False);
+            Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
+
+            loader.Complete(SceneTransitionResult.Failure("PLANNED"));
+
+            Assert.That(campaign.UiFlow, Is.EqualTo(MobileUiFlow.PreRun));
+            Assert.That(campaign.PreRunRoot.activeSelf, Is.True);
+            Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
+            Assert.That(campaign.PreRunReturnTransitioning, Is.False);
+            Assert.That(campaign.PreRunBackButton.interactable, Is.True);
+            Assert.That(campaign.PreRunReturnError, Is.EqualTo("PLANNED"));
+
+            campaign.PreRunBackButton.onClick.Invoke();
+            Assert.That(loader.LoadCount, Is.EqualTo(2));
+        }
+
+        [UnityTest]
+        public IEnumerator TogglePresentation_MatchesAfterSaveReloadAndInPause()
+        {
+            var save = new RoundtripSaveService();
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            FrontendSceneController frontend = RequireController();
+            frontend.LobbySettingsButton.onClick.Invoke();
+            SettingsPanelController panel = frontend.SettingsPanel;
+            panel.NotificationToggle.isOn = true;
+            panel.MusicToggle.isOn = false;
+            panel.SfxToggle.isOn = true;
+            panel.VibrationToggle.isOn = false;
+            AssertTogglePresentation(panel, true, false, true, false);
+            panel.ApplyButton.onClick.Invoke();
+
+            yield return DestroyAllAppRoots();
+            AppRoot.ClearTestState();
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            frontend = RequireController();
+            Assert.That(frontend.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            frontend.LobbySettingsButton.onClick.Invoke();
+            panel = frontend.SettingsPanel;
+            AssertTogglePresentation(panel, true, false, true, false);
+            panel.CancelButton.onClick.Invoke();
+
+            frontend.LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+            campaign.StartSelectedStage();
+            campaign.RequestPause();
+            campaign.RequestPauseSettings();
+
+            Assert.That(campaign.PauseSettingsPanel.gameObject.activeSelf,
+                Is.True);
+            AssertTogglePresentation(
+                campaign.PauseSettingsPanel,
+                true,
+                false,
+                true,
+                false);
+        }
+
+        [UnityTest]
         public IEnumerator FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects()
         {
             yield return LoadFrontendThroughBoot();
@@ -420,6 +549,64 @@ namespace ColorGateRunner.Tests.PlayMode
                 Object.FindFirstObjectByType<FrontendSceneController>();
             Assert.That(controller, Is.Not.Null);
             return controller;
+        }
+
+        private static void SetAllToggles(
+            SettingsPanelController panel,
+            bool value)
+        {
+            panel.NotificationToggle.isOn = value;
+            panel.MusicToggle.isOn = value;
+            panel.SfxToggle.isOn = value;
+            panel.VibrationToggle.isOn = value;
+        }
+
+        private static void AssertTogglePresentation(
+            SettingsPanelController panel,
+            bool notifications,
+            bool music,
+            bool sfx,
+            bool vibration)
+        {
+            AssertTogglePresentation(
+                panel.NotificationToggle,
+                panel.NotificationStateText,
+                notifications);
+            AssertTogglePresentation(
+                panel.MusicToggle,
+                panel.MusicStateText,
+                music);
+            AssertTogglePresentation(
+                panel.SfxToggle,
+                panel.SfxStateText,
+                sfx);
+            AssertTogglePresentation(
+                panel.VibrationToggle,
+                panel.VibrationStateText,
+                vibration);
+        }
+
+        private static void AssertTogglePresentation(
+            Toggle toggle,
+            Text stateText,
+            bool expected)
+        {
+            Assert.That(toggle.isOn, Is.EqualTo(expected));
+            Assert.That(stateText.text, Is.EqualTo(expected ? "ON" : "OFF"));
+            Assert.That(toggle.transform.Find("StateLabel"),
+                Is.SameAs(stateText.transform));
+            Assert.That(toggle.transform.Find("OnLabel"), Is.Null);
+            Assert.That(toggle.transform.Find("OffLabel"), Is.Null);
+            int stateLabelCount = 0;
+            Text[] labels = toggle.GetComponentsInChildren<Text>(true);
+            for (int index = 0; index < labels.Length; index++)
+            {
+                if (labels[index].name == "StateLabel")
+                {
+                    stateLabelCount++;
+                }
+            }
+            Assert.That(stateLabelCount, Is.EqualTo(1));
         }
 
         private static IEnumerator WaitForScene(string path)
@@ -568,6 +755,53 @@ namespace ColorGateRunner.Tests.PlayMode
             {
                 LoadCount++;
                 completed(_result);
+            }
+        }
+
+        private sealed class DeferredSceneLoader : ISceneTransitionLoader
+        {
+            private Action<SceneTransitionResult> _completed;
+
+            public int LoadCount { get; private set; }
+            public string LastPath { get; private set; }
+
+            public void LoadScene(
+                string scenePath,
+                Action<SceneTransitionResult> completed)
+            {
+                LoadCount++;
+                LastPath = scenePath;
+                _completed = completed;
+            }
+
+            public void Complete(SceneTransitionResult result)
+            {
+                Action<SceneTransitionResult> completed = _completed;
+                _completed = null;
+                completed?.Invoke(result);
+            }
+        }
+
+        private sealed class RoundtripSaveService : ILocalSaveService
+        {
+            private LocalSaveData _data;
+
+            public RoundtripSaveService()
+            {
+                _data = new ExistingGuestSaveService(true).Load().Data.Clone();
+            }
+
+            public LocalSaveLoadResult Load() =>
+                LocalSaveLoadResult.Success(
+                    _data.Clone(),
+                    false,
+                    false);
+
+            public LocalSaveWriteResult Save(LocalSaveData data)
+            {
+                _data = data.Clone();
+                return LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
             }
         }
 

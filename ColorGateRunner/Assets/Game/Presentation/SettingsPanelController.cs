@@ -11,6 +11,10 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Toggle musicToggle;
         [SerializeField] private Toggle sfxToggle;
         [SerializeField] private Toggle vibrationToggle;
+        [SerializeField] private Text notificationStateText;
+        [SerializeField] private Text musicStateText;
+        [SerializeField] private Text sfxStateText;
+        [SerializeField] private Text vibrationStateText;
         [SerializeField] private Text notificationNoticeText;
         [SerializeField] private Button termsButton;
         [SerializeField] private Button privacyButton;
@@ -32,6 +36,10 @@ namespace ColorGateRunner.Presentation
         internal Toggle MusicToggle => musicToggle;
         internal Toggle SfxToggle => sfxToggle;
         internal Toggle VibrationToggle => vibrationToggle;
+        internal Text NotificationStateText => notificationStateText;
+        internal Text MusicStateText => musicStateText;
+        internal Text SfxStateText => sfxStateText;
+        internal Text VibrationStateText => vibrationStateText;
         internal Text NotificationNoticeText => notificationNoticeText;
         internal Button TermsButton => termsButton;
         internal Button PrivacyButton => privacyButton;
@@ -58,6 +66,10 @@ namespace ColorGateRunner.Presentation
             Toggle music,
             Toggle sfx,
             Toggle vibration,
+            Text notificationState,
+            Text musicState,
+            Text sfxState,
+            Text vibrationState,
             Text notificationNotice,
             Button terms,
             Button privacy,
@@ -72,6 +84,10 @@ namespace ColorGateRunner.Presentation
             musicToggle = music;
             sfxToggle = sfx;
             vibrationToggle = vibration;
+            notificationStateText = notificationState;
+            musicStateText = musicState;
+            sfxStateText = sfxState;
+            vibrationStateText = vibrationState;
             notificationNoticeText = notificationNotice;
             termsButton = terms;
             privacyButton = privacy;
@@ -100,6 +116,7 @@ namespace ColorGateRunner.Presentation
             musicToggle.SetIsOnWithoutNotify(settings.MusicVolume > 0f);
             sfxToggle.SetIsOnWithoutNotify(settings.SfxVolume > 0f);
             vibrationToggle.SetIsOnWithoutNotify(settings.Vibration);
+            RefreshTogglePresentation();
             notificationNoticeText.text =
                 "PREFERENCE ONLY - NOTIFICATIONS ARE NOT SENT YET";
             statusText.text = string.Empty;
@@ -116,6 +133,8 @@ namespace ColorGateRunner.Presentation
         {
             return notificationToggle != null && musicToggle != null &&
                 sfxToggle != null && vibrationToggle != null &&
+                notificationStateText != null && musicStateText != null &&
+                sfxStateText != null && vibrationStateText != null &&
                 notificationNoticeText != null && termsButton != null &&
                 privacyButton != null && supportButton != null &&
                 linkStatusText != null && statusText != null &&
@@ -158,6 +177,7 @@ namespace ColorGateRunner.Presentation
             }
 
             statusText.text = result.Changed ? "SAVED" : "NO CHANGES";
+            RefreshTogglePresentation();
             ApplySucceeded?.Invoke();
         }
 
@@ -178,6 +198,11 @@ namespace ColorGateRunner.Presentation
             termsButton.onClick.AddListener(OpenTerms);
             privacyButton.onClick.AddListener(OpenPrivacy);
             supportButton.onClick.AddListener(OpenSupport);
+            notificationToggle.onValueChanged.AddListener(
+                HandleToggleChanged);
+            musicToggle.onValueChanged.AddListener(HandleToggleChanged);
+            sfxToggle.onValueChanged.AddListener(HandleToggleChanged);
+            vibrationToggle.onValueChanged.AddListener(HandleToggleChanged);
             _listenersBound = true;
         }
 
@@ -193,7 +218,35 @@ namespace ColorGateRunner.Presentation
             termsButton.onClick.RemoveListener(OpenTerms);
             privacyButton.onClick.RemoveListener(OpenPrivacy);
             supportButton.onClick.RemoveListener(OpenSupport);
+            notificationToggle.onValueChanged.RemoveListener(
+                HandleToggleChanged);
+            musicToggle.onValueChanged.RemoveListener(HandleToggleChanged);
+            sfxToggle.onValueChanged.RemoveListener(HandleToggleChanged);
+            vibrationToggle.onValueChanged.RemoveListener(
+                HandleToggleChanged);
             _listenersBound = false;
+        }
+
+        private void HandleToggleChanged(bool _)
+        {
+            RefreshTogglePresentation();
+        }
+
+        private void RefreshTogglePresentation()
+        {
+            SetTogglePresentation(notificationToggle, notificationStateText);
+            SetTogglePresentation(musicToggle, musicStateText);
+            SetTogglePresentation(sfxToggle, sfxStateText);
+            SetTogglePresentation(vibrationToggle, vibrationStateText);
+        }
+
+        private static void SetTogglePresentation(Toggle toggle, Text label)
+        {
+            bool enabled = toggle.isOn;
+            label.text = enabled ? "ON" : "OFF";
+            label.color = enabled
+                ? new Color(0.32f, 0.90f, 0.56f, 1f)
+                : new Color(1f, 1f, 1f, 0.82f);
         }
 
         private void OpenTerms() => OpenLink(ProductLinkType.Terms);

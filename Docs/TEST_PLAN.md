@@ -1840,3 +1840,42 @@ Any mismatch blocks implementation.
 - Notification delivery, real Music/SFX AudioSources, configured legal/support
   URLs, Campaign-to-Frontend return, Stage Detail, economy, events, analytics,
   ads, IAP, and profile-scoped Campaign progress remain deferred.
+
+## Iteration 14 — PreRun Back and Settings Toggle Hotfix
+
+### Focused acceptance
+
+- Frontend `START STAGE` consumes its one-shot stable Stage request once,
+  enters PreRun, and Back loads the serialized Frontend destination without a
+  frame of legacy Campaign Lobby.
+- Missing context and direct SampleScene entry return PreRun Back to the
+  existing Campaign Lobby. Development and Experiment paths are unchanged.
+- Repeated Back while a Frontend return is pending produces one load. Failure
+  keeps PreRun active, restores Back, and permits retry without fallback.
+- Notifications, Music, SFX, and Vibration each contain exactly one
+  `StateLabel`. ON shows only `ON`; OFF shows only `OFF`; opening, clicking,
+  applying, cancelling/re-entering, Frontend/Pause movement, and save reload
+  synchronize immediately.
+- Two Builder passes leave no `OnLabel`, `OffLabel`, duplicate state label,
+  duplicate listener, root, or EventSystem.
+
+### Final automated evidence
+
+- Full EditMode `361/361`; full post-Builder PlayMode `184/184`.
+- Frontend Builder completed twice and rebuilt Boot twice; Campaign Builder's
+  internal two-pass build and validation completed successfully.
+- Frontend and Campaign Scenes each contain four `StateLabel` objects and zero
+  legacy `OnLabel`/`OffLabel` objects. Missing Script/Reference scans are clean.
+- Campaign simulation reproduced 260 rows and all three approved hashes.
+  Step 10 reproduced 80 rows / 64,016 runs and all five approved hashes.
+- Campaign PlayerPrefs snapshot tests restored exact state. Product save
+  timestamp predates validation, its Guest ID is unchanged, and Package hashes
+  remain approved. Only allowed package-managed WebGL define volatility was
+  observed in ProjectSettings.
+
+### Human review
+
+- Confirm PreRun Back feels immediate, the Frontend Lobby is the first visible
+  return state, and ON/OFF text remains readable at 9:16 on Android and WebGL.
+- Automation does not determine transition feel, visual polish, or touch
+  ergonomics.

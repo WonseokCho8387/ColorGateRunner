@@ -33,22 +33,26 @@ namespace ColorGateRunner.Editor
                 "NotificationToggle",
                 panel.transform,
                 "NOTIFICATIONS",
-                0.75f);
+                0.75f,
+                out Text notificationState);
             Toggle music = CreateToggle(
                 "MusicToggle",
                 panel.transform,
                 "MUSIC",
-                0.63f);
+                0.63f,
+                out Text musicState);
             Toggle sfx = CreateToggle(
                 "SfxToggle",
                 panel.transform,
                 "SFX",
-                0.51f);
+                0.51f,
+                out Text sfxState);
             Toggle vibration = CreateToggle(
                 "VibrationToggle",
                 panel.transform,
                 "VIBRATION",
-                0.39f);
+                0.39f,
+                out Text vibrationState);
             Text notificationNotice = CreateText(
                 "NotificationNoticeText",
                 panel.transform,
@@ -108,6 +112,10 @@ namespace ColorGateRunner.Editor
                 music,
                 sfx,
                 vibration,
+                notificationState,
+                musicState,
+                sfxState,
+                vibrationState,
                 notificationNotice,
                 terms,
                 privacy,
@@ -141,7 +149,8 @@ namespace ColorGateRunner.Editor
             string name,
             Transform parent,
             string label,
-            float bottom)
+            float bottom,
+            out Text stateLabel)
         {
             GameObject root = CreatePanel(
                 name,
@@ -157,23 +166,16 @@ namespace ColorGateRunner.Editor
                 17,
                 Vector2.zero,
                 new Vector2(0.72f, 1f));
-            CreateText(
-                "OffLabel",
-                root.transform,
-                "OFF",
-                16,
-                new Vector2(0.72f, 0f),
-                Vector2.one);
-            Text onLabel = CreateText(
-                "OnLabel",
+            stateLabel = CreateText(
+                "StateLabel",
                 root.transform,
                 "ON",
                 16,
                 new Vector2(0.72f, 0f),
                 Vector2.one);
-            onLabel.color = new Color(0.32f, 0.90f, 0.56f, 1f);
+            stateLabel.color = new Color(0.32f, 0.90f, 0.56f, 1f);
             toggle.targetGraphic = root.GetComponent<Image>();
-            toggle.graphic = onLabel;
+            toggle.graphic = null;
             toggle.isOn = true;
             return toggle;
         }

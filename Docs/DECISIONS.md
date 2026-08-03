@@ -979,3 +979,18 @@ Status: Implemented / Human Review Pending.
   volatile WebGL defines. Their environment-dependent presence or ordering is
   allowed but excluded from feature commits; every other ProjectSettings
   semantic difference remains a failure.
+
+## PreRun Back and Settings state-label hotfix
+
+Status: Implemented / Human Review Pending.
+
+- Frontend-origin PreRun is identified only by successful consumption of the
+  existing one-shot Campaign launch context. The origin is Scene-local and
+  non-persistent; Scene name and UI visibility are not inference inputs.
+- Its Back action reuses the serialized Frontend path and existing transition
+  loader. A pending load rejects repeated Back input, while failure preserves
+  PreRun and restores retry. No launch context keeps the legacy Campaign Lobby
+  fallback for direct and development entry.
+- All four shared Settings toggles use the same one-label presentation path.
+  One `StateLabel` changes between `ON` and `OFF`; Builder output contains no
+  legacy state-label pair and no separate Toggle system.

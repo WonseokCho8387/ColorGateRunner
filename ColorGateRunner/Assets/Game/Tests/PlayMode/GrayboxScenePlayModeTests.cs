@@ -46,6 +46,19 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void DirectCampaignPreRunBack_ReturnsToCampaignLobby()
+        {
+            _controller.PlayFromLobby();
+
+            Assert.That(_controller.EnteredFromFrontendLaunch, Is.False);
+            _controller.HandlePreRunBack();
+
+            Assert.That(_controller.UiFlow, Is.EqualTo(MobileUiFlow.Lobby));
+            Assert.That(_controller.LobbyRoot.activeSelf, Is.True);
+            Assert.That(_controller.PreRunRoot.activeSelf, Is.False);
+        }
+
+        [Test]
         public void StagesOneThroughFive_ShowLockedItemsAndRejectToggles()
         {
             _store.HighestUnlocked = 5;
