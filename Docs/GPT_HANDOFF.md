@@ -1,0 +1,178 @@
+# Color Gate Runner — GPT Handoff
+
+이 문서에 적힌 커밋, 완료 기능, 남은 작업은 인수인계 시점의 요약이다.
+저장소의 CURRENT_STATUS.md와 충돌하면 CURRENT_STATUS.md를 우선한다.
+
+## 1. GPT의 역할
+
+GPT는 Game Director 및 Product/UX 설계자로 행동한다.
+
+- 직접 구현하지 않는다.
+- 사용자 플레이 피드백을 분석한다.
+- 다음 Iteration의 범위와 설계 계약을 정한다.
+- Codex가 실행할 짧은 프롬프트를 작성한다.
+- 기존 문서와 구현 계약을 존중한다.
+- 확인되지 않은 구현 상태를 추측하지 않는다.
+
+## 2. 프로젝트
+
+- Unity 기반 모바일 Portrait 게임
+- 핵심 플레이: 플레이어 색상을 바꾸며 다가오는 Gate를 통과
+- 현재 Campaign Stage 1–13 구현
+- 주요 기믹:
+  Shield, Booster, Camouflage, Fog, Ice, Echo, Hidden, Flicker
+- 목표 플랫폼:
+  Android와 WebGL
+- 기본 화면비:
+  9:16 Portrait
+
+## 3. 현재 Git 상태
+
+- 브랜치: main
+- 인수인계 작성 시점의 완료 커밋: c202aa9
+- 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
+  fix: correct pre-run back navigation and settings toggles
+
+최신 HEAD와 테스트 수는 항상 저장소의
+Docs/CURRENT_STATUS.md를 권위자로 사용한다.
+
+## 4. 현재 제품 흐름
+
+첫 실행:
+
+Boot
+→ Account Choice
+→ Guest로 시작
+→ Frontend Lobby
+→ START STAGE
+→ PreRun / Item Selection
+→ Gameplay
+
+이후 실행:
+
+Boot
+→ Frontend Lobby
+→ START STAGE
+→ PreRun / Item Selection
+→ Gameplay
+
+Frontend에서 진입하면 기존 Campaign Lobby는 우회한다.
+
+직접 SampleScene 실행이나 개발 진입에서는 기존 Campaign Lobby를
+fallback으로 유지한다.
+
+## 5. 현재 구현된 제품 기능
+
+- Boot Scene
+- Persistent AppRoot
+- Local Guest Profile
+- Account Choice 완료 상태
+- 이후 실행 시 Lobby 자동 진입
+- Frontend 통합 Lobby
+- 추천 Stage 읽기 전용 표시
+- Stable Stage ID 기반 one-shot Campaign Launch Context
+- Product Save 및 Settings
+- Gameplay Pause
+- Pause Dim
+- Resume / Restart / Lobby 복귀
+- Frontend와 Pause 공용 Settings UI
+- 알림, 음악, 효과음, 진동 설정 저장
+- 이용약관, 개인정보, 지원 링크 Configuration 경계
+- PlayMode 테스트의 Campaign PlayerPrefs 격리
+
+## 6. 최근 해결한 문제
+
+- Frontend Lobby와 Campaign Lobby가 연속으로 나타나던 문제
+- Gameplay Pause 버튼이 거의 보이지 않던 좌표계 문제
+- PreRun Back이 항상 기존 Campaign Lobby로 가던 문제
+- Settings ON/OFF 라벨이 겹치던 문제
+- PlayMode 테스트가 실제 Editor Campaign 진행을 삭제하던 문제
+- Unity Package가 관리하는 WebGL define 때문에 작업이 반복 중단되던 문제
+
+## 7. 현재 저장 정책
+
+- Product Profile과 Settings:
+  versioned product-save.json
+- Campaign 진행:
+  기존 PlayerPrefsStageProgressStore
+- Campaign 진행은 아직 Profile별 저장이 아님
+- 새 Guest도 같은 기기의 기존 Campaign 진행을 이어받음
+- StageProgressService와 Migration은 연기 상태
+
+## 8. 현재 Settings 상태
+
+표시 항목:
+
+- 알림 ON/OFF
+- 배경음악 ON/OFF
+- 효과음 ON/OFF
+- 진동 ON/OFF
+- 이용약관
+- 개인정보 보호정책
+- 지원
+
+현재 한계:
+
+- 실제 모바일 알림 미구현
+- 실제 Music/SFX AudioSource와 음원 미구현
+- 법률 및 지원 URL 미확정
+- Master Volume 데이터는 유지하지만 사용자 UI에서는 숨김
+
+## 9. 지켜야 할 핵심 계약
+
+- Gameplay Core는 Unity 비의존 구조를 유지한다.
+- Stage 1–13 데이터와 결정론적 결과를 임의로 변경하지 않는다.
+- Campaign 진행의 저장 권위자를 중복 생성하지 않는다.
+- PlayerPrefs를 Scene 이동 Payload로 사용하지 않는다.
+- Scene 이름이나 Build Index를 런타임에서 하드코딩하지 않는다.
+- AppRoot와 EventSystem을 중복 생성하지 않는다.
+- 새로운 Package와 ProjectSettings 변경은 명시적 승인 없이는 금지한다.
+- 공통 절차와 검증은 저장소의 AGENTS.md와 TEST_PLAN.md가 소유한다.
+- 현재 구현 상태와 테스트 기준은 CURRENT_STATUS.md가 소유한다.
+
+## 10. 주요 저장소 문서
+
+- AGENTS.md
+- Docs/CURRENT_STATUS.md
+- Docs/GAME_DESIGN.md
+- Docs/FRONTEND_FLOW.md
+- Docs/PRODUCT_SYSTEMS.md
+- Docs/ART_DIRECTION.md
+- Docs/DECISIONS.md
+- Docs/TEST_PLAN.md
+- Docs/ITERATIONS.md
+
+GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최신 문서를
+요청한다.
+
+## 11. 아직 남은 주요 작업
+
+- 실제 BGM과 SFX 연결
+- 실제 모바일 알림과 권한 처리
+- 이용약관, 개인정보, 지원 URL 확정
+- Profile별 Campaign Progress
+- StageProgressService와 Migration
+- Stage 선택 또는 Campaign Page 필요성 검토
+- Result 및 Stage Clear 이후 제품 흐름 개선
+- Lobby, PreRun, Gameplay의 최종 비주얼
+- 실제 Android/WebGL 기기 검증
+
+## 12. GPT 응답 방식
+
+사용자의 플레이 피드백을 우선 분석한다.
+
+새 기능을 바로 Codex 프롬프트로 만들기 전에:
+
+1. 문제가 버그인지 UX 문제인지 구분
+2. 기존 기능과 중복되는지 확인
+3. 가장 작은 다음 Iteration을 제안
+4. 사용자 승인 후 Codex 프롬프트 작성
+
+Codex 프롬프트에는 반복적인 Git, 테스트, Builder 규칙을 길게 복사하지
+않는다.
+
+대신 다음을 참조한다.
+
+- AGENTS.md의 Standard Iteration Protocol
+- CURRENT_STATUS.md의 Authoritative Baseline
+- TEST_PLAN.md의 Standard Regression Suite
