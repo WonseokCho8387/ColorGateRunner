@@ -1241,3 +1241,67 @@ Human feedback required
   do not feel stuck.
 - Verify ON/OFF color, spacing, and touch readability on portrait Android and
   WebGL. Automation does not judge those qualities.
+
+## Iteration 15 — Automatic Lobby Progression Foundation
+
+### Play
+
+- The deterministic Stage loop was stable, but clearing a Stage did not feed a
+  visible long-term home progression. Campaign progress also remained in a
+  legacy device-wide store separate from Product save.
+
+### Analyze
+
+- Building 36 Stages before establishing reward and Lobby ownership would
+  multiply migration risk. The smallest launch-oriented slice is one atomic
+  progression authority plus a visible automatic milestone loop.
+
+### Design
+
+- Upgrade Product save to schema 2 and import legacy PlayerPrefs once without
+  deleting them. Store Campaign records by stable Stage ID.
+- Apply first-clear and even-Stage Lobby rewards with transaction IDs. Separate
+  reward application from one-time presentation acknowledgement.
+- Show three planned themes, six visible steps per theme, Coins, inventory and
+  the next target. Keep visuals structural until the art iteration.
+
+### Implementation
+
+- Added Campaign, Economy and Lobby save sections, migration/validation/clone
+  support, a Progression service and atomic Product session mutations.
+- Added Product-backed Campaign read/write adapter. Stage clear now saves
+  record, unlock and rewards together; production Boot performs one-time
+  legacy import.
+- Added generated Lobby progression presentation and Frontend-origin result
+  return so earned progress is visible immediately.
+
+### Validation
+
+- Product-focused EditMode `25/25`; Frontend PlayMode `16/16`.
+- Full EditMode `365/365`; full post-Builder PlayMode `186/186`.
+- Frontend Builder completed twice. Missing Script/reference, duplicate root,
+  EventSystem and Build Settings validation passed.
+- Tier 2 omitted deterministic simulations because Stage data, generation,
+  timing, judgment and balance inputs did not change.
+- Campaign PlayerPrefs fixtures restored exact state. The real Editor Product
+  save remained schema 1/revision 18 during validation and kept its Guest ID;
+  migration will occur on the next production Boot.
+
+### Learning
+
+- Reward application and reward presentation must be separate persisted facts;
+  otherwise reopening Lobby risks duplicate grants or lost celebration state.
+- Stable transaction IDs make both legacy backfill and repeated result events
+  safe without a second economy authority.
+
+### Deferred
+
+- Stage 14-36 authoring, final Lobby art/animation, Continue pricing and ad
+  policy, item consumption, Hearts, Shop/IAP, analytics and providers.
+
+### Human Review
+
+- Confirm the placeholder Lobby hierarchy makes Coins, next upgrade and the
+  newly unlocked step immediately understandable at portrait 9:16.
+- Confirm automatic rewards feel meaningful; exact values remain tunable and
+  automation does not establish motivation, polish or economy satisfaction.

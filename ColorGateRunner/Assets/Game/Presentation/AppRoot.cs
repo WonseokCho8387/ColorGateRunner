@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using ColorGateRunner.Core;
 using ColorGateRunner.Product;
 using UnityEngine;
 
@@ -71,6 +73,14 @@ namespace ColorGateRunner.Presentation
                 _graph.Initialization.Initialize();
             if (result.Succeeded)
             {
+                ProductMutationResult migration =
+                    MigrateLegacyCampaignIfRequired();
+                if (!migration.Succeeded)
+                {
+                    return AppInitializationResult.Failure(
+                        result.Steps,
+                        migration.Error);
+                }
                 UnityProductSettingsRuntime.ApplyMasterVolume(
                     _graph.Settings.Current);
             }
@@ -116,6 +126,17 @@ namespace ColorGateRunner.Presentation
                     _graph.Settings.Current);
             }
             return result;
+        }
+
+        public ProductMutationResult AcknowledgeLobbyMilestones()
+        {
+            return _graph == null
+                ? ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.Initialization,
+                        "The AppRoot service graph is unavailable.",
+                        true))
+                : _graph.ProductSession.AcknowledgeLobbyMilestones();
         }
 
         public bool IsAccountProviderAvailable(string provider)
@@ -181,6 +202,7 @@ namespace ColorGateRunner.Presentation
                 clock,
                 new GuidProfileIdGenerator());
             var settings = new SettingsService();
+            var progression = new ProgressionService();
             var account = new LocalAccountService();
             var paths = new LocalSavePaths(
                 Application.persistentDataPath,
@@ -195,17 +217,56 @@ namespace ColorGateRunner.Presentation
                 clock,
                 paths,
                 policy);
+            var initialization = new AppInitializationPipeline(
+                save,
+                profile,
+                settings,
+                account,
+                progression);
             return new AppServiceGraph(
                 clock,
                 profile,
                 account,
                 settings,
                 save,
-                new AppInitializationPipeline(
-                    save,
-                    profile,
-                    settings,
-                    account));
+                initialization,
+                true);
+        }
+
+        private ProductMutationResult MigrateLegacyCampaignIfRequired()
+        {
+            if (_graph == null || !_graph.LegacyCampaignMigrationEnabled ||
+                _graph.Progression.Campaign.LegacyMigrationCompleted)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            StageCatalogProvider.EnsureConfigured();
+            IStageCatalog catalog = StageCatalog.Current;
+            var legacy = new PlayerPrefsStageProgressStore();
+            int highestNumber = legacy.LoadHighestUnlocked();
+            StageDefinition highest =
+                catalog.GetByDisplayNumber(highestNumber);
+            var entries = new List<CampaignProgressImportEntry>(catalog.Count);
+            for (int index = 0; index < catalog.Count; index++)
+            {
+                StageDefinition stage = catalog.GetByIndex(index);
+                StageRecord record = legacy.LoadRecord(stage.DisplayNumber);
+                entries.Add(new CampaignProgressImportEntry(
+                    stage.DisplayNumber,
+                    new LocalStageProgressData
+                    {
+                        StageId = stage.StageId,
+                        Cleared = record.Cleared,
+                        BestTime = record.BestTime,
+                        BestNoItemTime = record.BestNoItemTime,
+                        ClearCount = record.ClearCount,
+                        ContinuedClearCount = record.ContinuedClearCount
+                    }));
+            }
+            return _graph.ProductSession.ImportLegacyCampaign(
+                highest.StageId,
+                entries);
         }
     }
 
@@ -218,6 +279,25 @@ namespace ColorGateRunner.Presentation
             SettingsService settings,
             ILocalSaveService save,
             AppInitializationPipeline initialization)
+            : this(
+                clock,
+                profile,
+                account,
+                settings,
+                save,
+                initialization,
+                false)
+        {
+        }
+
+        public AppServiceGraph(
+            IClockService clock,
+            ProfileService profile,
+            LocalAccountService account,
+            SettingsService settings,
+            ILocalSaveService save,
+            AppInitializationPipeline initialization,
+            bool legacyCampaignMigrationEnabled)
         {
             Clock = clock ?? throw new ArgumentNullException(nameof(clock));
             Profile = profile ??
@@ -229,6 +309,7 @@ namespace ColorGateRunner.Presentation
             Save = save ?? throw new ArgumentNullException(nameof(save));
             Initialization = initialization ??
                 throw new ArgumentNullException(nameof(initialization));
+            LegacyCampaignMigrationEnabled = legacyCampaignMigrationEnabled;
         }
 
         public IClockService Clock { get; }
@@ -238,5 +319,7 @@ namespace ColorGateRunner.Presentation
         public ILocalSaveService Save { get; }
         public AppInitializationPipeline Initialization { get; }
         public LocalProductSession ProductSession => Initialization.Session;
+        public ProgressionService Progression => Initialization.Progression;
+        public bool LegacyCampaignMigrationEnabled { get; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace ColorGateRunner.Product
@@ -370,7 +371,6 @@ namespace ColorGateRunner.Product
             bool dirty = false;
             if (data.SchemaVersion == 0)
             {
-                data.SchemaVersion = LocalSaveData.CurrentSchemaVersion;
                 data.Settings ??= LocalSettingsData.CreateDefaults();
                 if (data.Profile != null)
                 {
@@ -380,6 +380,16 @@ namespace ColorGateRunner.Product
                 {
                     data.LastWriteUtc = data.Profile?.LastPlayedUtc;
                 }
+                dirty = true;
+            }
+            if (data.SchemaVersion <= 1)
+            {
+                data.SchemaVersion = LocalSaveData.CurrentSchemaVersion;
+                data.CampaignProgress ??=
+                    LocalCampaignProgressData.CreateDefaults();
+                data.Economy ??= LocalEconomyData.CreateDefaults();
+                data.LobbyProgress ??=
+                    LocalLobbyProgressData.CreateDefaults();
                 dirty = true;
             }
 
@@ -406,6 +416,22 @@ namespace ColorGateRunner.Product
             if (!SettingsAreValid(data.Settings))
             {
                 data.Settings = LocalSettingsData.CreateDefaults();
+                dirty = true;
+            }
+            if (data.CampaignProgress == null)
+            {
+                data.CampaignProgress =
+                    LocalCampaignProgressData.CreateDefaults();
+                dirty = true;
+            }
+            if (data.Economy == null)
+            {
+                data.Economy = LocalEconomyData.CreateDefaults();
+                dirty = true;
+            }
+            if (data.LobbyProgress == null)
+            {
+                data.LobbyProgress = LocalLobbyProgressData.CreateDefaults();
                 dirty = true;
             }
 
@@ -454,6 +480,13 @@ namespace ColorGateRunner.Product
             {
                 return Error("The settings section is invalid.");
             }
+            if (!ProgressionIsValid(
+                    data.CampaignProgress,
+                    data.Economy,
+                    data.LobbyProgress))
+            {
+                return Error("The progression section is invalid.");
+            }
 
             return ProductError.None;
         }
@@ -467,6 +500,64 @@ namespace ColorGateRunner.Product
                 IsActiveVolume(settings.LastNonZeroMusicVolume) &&
                 IsActiveVolume(settings.LastNonZeroSfxVolume) &&
                 !string.IsNullOrWhiteSpace(settings.Language);
+        }
+
+        private static bool ProgressionIsValid(
+            LocalCampaignProgressData campaign,
+            LocalEconomyData economy,
+            LocalLobbyProgressData lobby)
+        {
+            if (campaign == null || economy == null || lobby == null ||
+                string.IsNullOrWhiteSpace(
+                    campaign.HighestUnlockedStageId) ||
+                campaign.StageRecords == null ||
+                economy.AppliedTransactionIds == null ||
+                economy.Coins < 0 || economy.ShieldCount < 0 ||
+                economy.BoosterCount < 0 ||
+                lobby.AppliedMilestoneCount < 0 ||
+                lobby.AppliedMilestoneCount > 18 ||
+                lobby.PresentedMilestoneCount < 0 ||
+                lobby.PresentedMilestoneCount >
+                    lobby.AppliedMilestoneCount)
+            {
+                return false;
+            }
+
+            var stageIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0; index < campaign.StageRecords.Count; index++)
+            {
+                LocalStageProgressData record = campaign.StageRecords[index];
+                if (record == null ||
+                    string.IsNullOrWhiteSpace(record.StageId) ||
+                    !stageIds.Add(record.StageId) ||
+                    !IsNonNegativeFinite(record.BestTime) ||
+                    !IsNonNegativeFinite(record.BestNoItemTime) ||
+                    record.ClearCount < 0 ||
+                    record.ContinuedClearCount < 0)
+                {
+                    return false;
+                }
+            }
+
+            var transactions = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = 0;
+                index < economy.AppliedTransactionIds.Count;
+                index++)
+            {
+                string transaction = economy.AppliedTransactionIds[index];
+                if (string.IsNullOrWhiteSpace(transaction) ||
+                    !transactions.Add(transaction))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static bool IsNonNegativeFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value) &&
+                value >= 0f;
         }
 
         private static bool IsActiveVolume(float value)

@@ -994,3 +994,28 @@ Status: Implemented / Human Review Pending.
 - All four shared Settings toggles use the same one-label presentation path.
   One `StateLabel` changes between `ON` and `OFF`; Builder output contains no
   legacy state-label pair and no separate Toggle system.
+
+## Automatic Lobby progression foundation
+
+Status: Implemented / balance tunable.
+
+- Product save schema 2 is the single runtime authority for Profile, Settings,
+  stable-ID Campaign progress, Economy, and Lobby milestone state.
+- Legacy Campaign PlayerPrefs are imported once on production Boot and are not
+  deleted. No dual-write or shadow-read path is allowed after successful
+  migration.
+- One Stage clear mutation owns record, unlock, first-clear reward, and Lobby
+  milestone application. Clone-save-publish atomicity and transaction IDs
+  prevent partial state and duplicate rewards.
+- Lobby progression is automatic and requires no player placement action.
+  Eighteen milestones occur at even first-cleared Stages through Stage 36,
+  grouped into three themes with six visible upgrades each.
+- Starter rewards are 100 Coins per first clear; milestone rewards are 200
+  Coins, or 300 at every third milestone, plus deterministic Shield/Booster
+  inventory. These values remain explicitly balance-tunable.
+- Lobby presentation acknowledgement is separate from reward application.
+  Entering Lobby may mark milestones as presented but never reapply rewards.
+- Frontend-origin results return to Frontend Lobby. Direct Scene, development,
+  and Experiment paths keep their existing destinations.
+- Ads, IAP, Hearts, Continue economy, item consumption, final Lobby art, and
+  Stage 14-36 content are outside this Iteration.

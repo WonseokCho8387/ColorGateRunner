@@ -2,9 +2,10 @@
 
 ## Status
 
-Approved commercial-flow design baseline. Frontend Iterations 1 and 2 plus the
-Account Onboarding / Settings / Gameplay Pause UX slice are implemented.
-Campaign Page, Stage Detail, final Lobby, and Results work remains pending.
+Approved commercial-flow design baseline. The Account Onboarding, consolidated
+Lobby, Settings, Gameplay Pause, and automatic Lobby progression foundation
+are implemented. Campaign Page, Stage Detail, final result presentation, and
+release-quality Lobby art remain pending.
 
 This document defines the target player-facing Scene, page, overlay, and
 navigation structure. It does not change gameplay, balance, Stage data,
@@ -697,14 +698,31 @@ Implementation status: Completed in Iteration 10.
   Safe Area with a minimum 44 by 44 hit region, outside Stage/Shield HUD and
   above the gameplay tap surface.
 
+## Implemented UX slice — Automatic Lobby progression foundation
+
+- Lobby reads schema-2 Product progression rather than PlayerPrefs and shows
+  Coins, Shield/Booster inventory, theme identity, unlocked visual steps, next
+  automatic upgrade target, and a pending reward summary.
+- Every two first-cleared Stages advances one milestone. There are 18 stable
+  milestones across the planned 36-Stage campaign, grouped as six visible
+  upgrades in each of three themes.
+- Milestones apply automatically; the player does not spend or place an
+  upgrade. Opening Lobby acknowledges presentation only and cannot grant the
+  reward again.
+- Frontend-origin Clear and Failure home actions load Frontend Lobby. Direct
+  SampleScene and development paths still return to Campaign Lobby.
+- Theme color blocks and upgrade panels are structural placeholders for human
+  flow validation, not final art or proof of visual quality.
+
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 
-Implementation status: Partially completed by Iteration 13.
+Implementation status: Partially completed through Iteration 15.
 
 - Consolidated recommended-Stage Lobby, read-only Campaign progress, and
   direct existing-PreRun launch are implemented.
-- Full Campaign page, Stage Detail, Campaign-to-Frontend return, and data-
-  driven expansion modules remain deferred.
+- Automatic Lobby progression and result-to-Frontend return are implemented.
+  Full Campaign page, Stage Detail, final theme art, and data-driven expansion
+  modules remain deferred.
 
 - Data-driven Lobby modules.
 - Lobby theme slot.

@@ -8,12 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Pre-hotfix implementation base HEAD:
-  `54502f7`
-- Base commit: `feat: consolidate lobby and unify settings access`
+- Implementation base HEAD: `fc46379`
+- Base commit: `docs: reorganize validation guidance and history`
 - Authoritative completion HEAD: the commit named
-  `fix: correct pre-run back navigation and settings toggles`; its exact hash
-  is recorded in the Iteration 14 final report because a commit cannot contain
+  `feat: add automatic lobby progression foundation`; its exact hash is
+  recorded in the Iteration 15 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -21,8 +20,8 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 14 — PreRun Back Navigation and
-  Settings Toggle Presentation Hotfix**.
+- Current completed iteration: **Iteration 15 — Automatic Lobby Progression
+  Foundation**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -36,7 +35,7 @@ iterations but do not override this section.
   configured-link Settings. Master Volume remains hidden and applies through
   `AudioListener.volume`; Music and SFX persist without a current content-
   specific target. Vibration gates the existing Booster haptic call.
-- Frontend reads Campaign progression through `IStageProgressReader` and
+- Frontend reads Campaign progression through the schema-2 Product save and
   queues one non-persistent stable-ID launch request. Production entry opens
   the existing PreRun/item selection without briefly showing Campaign Lobby;
   direct/development/fallback entry retains that Lobby.
@@ -48,18 +47,28 @@ iterations but do not override this section.
 - Gameplay Pause freezes attempt time, movement, input, judgment, recycling,
   mechanic timing, camera feedback, and registered attempt VFX. Resume,
   existing Retry, Settings, and confirmed Frontend Lobby return are available.
-- Campaign progress remains device-wide `PlayerPrefs` owned solely by
-  `PlayerPrefsStageProgressStore`; it is not scoped to Product Guest identity.
-- Product save schema remains version 1 and owns Profile and Settings only.
+- Product save schema 2 owns Profile, Settings, stable-ID Campaign records,
+  Economy inventory, transaction IDs, and Lobby milestone presentation.
+- On the first production launch after upgrade, legacy device-wide Campaign
+  PlayerPrefs are imported once. Legacy keys remain for rollback safety, but
+  Product save becomes the runtime write authority.
+- First Stage clear grants 100 Coins once. Every even first-cleared Stage up
+  to Stage 36 applies one automatic Lobby milestone and an idempotent reward.
+  The starter reward policy grants 200 Coins, or 300 at every third milestone,
+  plus alternating Shield/Booster inventory.
+- Frontend Lobby displays Coins, inventory, current theme, visible upgrades,
+  the next clear target, and a one-time reward summary. Frontend-origin result
+  actions return there; direct/development entry keeps Campaign Lobby fallback.
 
 ### Automated validation
 
-- EditMode: `361/361`
-- PlayMode: `184/184`
-- Post-Builder PlayMode: `184/184`
+- EditMode: `365/365`
+- PlayMode: `186/186`
+- Post-Builder PlayMode: `186/186`
 - Frontend Builder: 2 consecutive successful runs
-- Boot Builder: 2 consecutive successful runs
-- Campaign Builder: 2 consecutive successful runs
+- Boot regeneration from Frontend Builder was restored because its semantic
+  output was unchanged
+- Campaign Builder: not required; Campaign Scene composition did not change
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -104,13 +113,12 @@ All three entries are expected to be enabled and unique.
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- Product save SHA-256 observed after Hotfix validation is
-  `7FC5C845EC444F85996B271ED0C8860488E1673A16FEF8CB2AA6CCD7DCACFE5B`;
-  the existing Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged by
-  tests. Its write timestamp predates this validation run and it already
-  contains completed Account Choice state.
-- Product save hash and Guest ID must remain unchanged unless the approved
-  iteration explicitly changes Product save data.
+- The pre-migration Editor Product save observed before final validation is
+  schema 1, revision 18, SHA-256
+  `2AA82FF028057B192EC61D433E12D3C31E15F000D3E27403808FB6C916C29218`.
+  Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged and the
+  validation fixtures did not write this file. The next real production Boot
+  is expected to migrate it to schema 2 and import legacy Campaign progress.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
 
 ### Package and ProjectSettings baseline
@@ -131,6 +139,34 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 15
+
+(Automatic Lobby Progression Foundation)
+
+---
+
+- Schema 2 adds stable-ID Campaign records, Economy wallet/inventory and
+  idempotent transaction IDs, plus applied/presented Lobby milestone state.
+- Production Boot imports legacy Campaign PlayerPrefs once without deleting
+  them. Stage clear then persists record, unlock and first-clear rewards in one
+  Product save transaction; failed writes publish no partial state.
+- Frontend Lobby shows wallet, Shield/Booster inventory, theme progress, next
+  automatic upgrade target, and pending reward summary. Every two first clears
+  advances one of 18 milestones across the planned 36-Stage campaign.
+- Frontend-origin Clear/Failure home actions return to Frontend Lobby so the
+  earned upgrade is visible. Direct and development entry keeps the legacy
+  Campaign Lobby route.
+- Product-focused EditMode `25/25`, Frontend PlayMode `16/16`, full EditMode
+  `365/365`, and post-Builder PlayMode `186/186` passed. Frontend Builder passed
+  twice with no missing reference, duplicate root or Build Settings failure.
+- Campaign and Step 10 simulations were not rerun under TEST_PLAN Tier 2:
+  Stage definitions, deterministic generation, timing, judgment and balance
+  inputs did not change. Their approved hashes remain authoritative.
+
+---
 
 Version
 

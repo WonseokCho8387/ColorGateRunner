@@ -35,6 +35,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject eventModuleSlotRoot;
         [SerializeField] private GameObject notificationSlotRoot;
         [SerializeField] private GameObject lobbyThemeRoot;
+        [SerializeField] private LobbyProgressionPanel lobbyProgressionPanel;
         [SerializeField] private Text modalTitleText;
         [SerializeField] private Text modalMessageText;
         [SerializeField] private Button modalConfirmButton;
@@ -66,6 +67,9 @@ namespace ColorGateRunner.Presentation
         internal GameObject LoadingRoot => loadingRoot;
         internal GameObject TransitionBlockerRoot => transitionBlockerRoot;
         internal GameObject CurrencySlotRoot => currencySlotRoot;
+        internal GameObject LobbyThemeRoot => lobbyThemeRoot;
+        internal LobbyProgressionPanel LobbyProgressionPanel =>
+            lobbyProgressionPanel;
         internal GameObject EventModuleSlotRoot => eventModuleSlotRoot;
         internal Text TitleProfileText => titleProfileText;
         internal Text TitleAccountText => titleAccountText;
@@ -150,6 +154,7 @@ namespace ColorGateRunner.Presentation
             GameObject eventSlot,
             GameObject notificationSlot,
             GameObject themeRoot,
+            LobbyProgressionPanel progressionPanel,
             Text modalTitle,
             Text modalMessage,
             Button modalConfirm,
@@ -185,6 +190,7 @@ namespace ColorGateRunner.Presentation
             eventModuleSlotRoot = eventSlot;
             notificationSlotRoot = notificationSlot;
             lobbyThemeRoot = themeRoot;
+            lobbyProgressionPanel = progressionPanel;
             modalTitleText = modalTitle;
             modalMessageText = modalMessage;
             modalConfirmButton = modalConfirm;
@@ -236,6 +242,8 @@ namespace ColorGateRunner.Presentation
                 lobbyBackButton != null && lobbySettingsButton != null &&
                 currencySlotRoot != null && eventModuleSlotRoot != null &&
                 notificationSlotRoot != null && lobbyThemeRoot != null &&
+                lobbyProgressionPanel != null &&
+                lobbyProgressionPanel.HasRequiredReferences() &&
                 modalTitleText != null && modalMessageText != null &&
                 modalConfirmButton != null && modalConfirmText != null &&
                 modalCancelButton != null && modalCancelText != null &&
@@ -288,7 +296,10 @@ namespace ColorGateRunner.Presentation
             {
                 StageCatalogProvider.EnsureConfigured();
                 _campaignLobby = new FrontendCampaignProgressReader(
-                    new PlayerPrefsStageProgressStore(),
+                    new ProductStageProgressStore(
+                        appRoot.Graph.ProductSession,
+                        appRoot.Graph.Progression,
+                        StageCatalog.Current),
                     StageCatalog.Current).Read();
             }
             catch (Exception exception)
@@ -302,6 +313,17 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             ApplyContext(context);
+            int pendingMilestones =
+                lobbyProgressionPanel.Bind(appRoot.Graph.Progression);
+            if (pendingMilestones > 0)
+            {
+                ProductMutationResult acknowledgement =
+                    appRoot.AcknowledgeLobbyMilestones();
+                if (!acknowledgement.Succeeded)
+                {
+                    Debug.LogError(acknowledgement.Error.Diagnostic);
+                }
+            }
         }
 
         private void ApplyContext(FrontendDisplayContext context)
@@ -337,10 +359,10 @@ namespace ColorGateRunner.Presentation
         private void ApplyPermanentVisibilityPolicy()
         {
             titleLegalRoot.SetActive(false);
-            currencySlotRoot.SetActive(false);
+            currencySlotRoot.SetActive(_productReady);
             eventModuleSlotRoot.SetActive(false);
             notificationSlotRoot.SetActive(false);
-            lobbyThemeRoot.SetActive(false);
+            lobbyThemeRoot.SetActive(_productReady);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             developmentDebugRoot.SetActive(true);
 #else

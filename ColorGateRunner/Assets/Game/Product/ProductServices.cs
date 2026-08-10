@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ColorGateRunner.Product
 {
@@ -141,13 +142,15 @@ namespace ColorGateRunner.Product
         private readonly ProfileService _profileService;
         private readonly SettingsService _settingsService;
         private readonly LocalAccountService _accountService;
+        private readonly ProgressionService _progressionService;
         private LocalSaveData _current;
 
         public LocalProductSession(
             ILocalSaveService saveService,
             ProfileService profileService,
             SettingsService settingsService,
-            LocalAccountService accountService)
+            LocalAccountService accountService,
+            ProgressionService progressionService)
         {
             _saveService = saveService ??
                 throw new ArgumentNullException(nameof(saveService));
@@ -157,6 +160,8 @@ namespace ColorGateRunner.Product
                 throw new ArgumentNullException(nameof(settingsService));
             _accountService = accountService ??
                 throw new ArgumentNullException(nameof(accountService));
+            _progressionService = progressionService ??
+                throw new ArgumentNullException(nameof(progressionService));
         }
 
         public bool IsReady => _current != null;
@@ -260,6 +265,134 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult ImportLegacyCampaign(
+            string highestUnlockedStageId,
+            IReadOnlyList<CampaignProgressImportEntry> entries)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (_current.CampaignProgress.LegacyMigrationCompleted)
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (string.IsNullOrWhiteSpace(highestUnlockedStageId) ||
+                entries == null)
+            {
+                return InvalidProgression("Legacy campaign import is invalid.");
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.CampaignProgress.HighestUnlockedStageId =
+                highestUnlockedStageId;
+            candidate.CampaignProgress.StageRecords.Clear();
+            for (int index = 0; index < entries.Count; index++)
+            {
+                CampaignProgressImportEntry entry = entries[index];
+                LocalStageProgressData record = entry.Record.Clone();
+                if (!StageRecordIsValid(record))
+                {
+                    return InvalidProgression(
+                        $"Legacy Stage {entry.DisplayNumber} is invalid.");
+                }
+                candidate.CampaignProgress.StageRecords.Add(record);
+                if (record.Cleared)
+                {
+                    ApplyFirstClearRewards(
+                        candidate,
+                        entry.DisplayNumber,
+                        record.StageId);
+                }
+            }
+            candidate.CampaignProgress.LegacyMigrationCompleted = true;
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult RecordStageClear(
+            StageClearProgressRequest request)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (request.DisplayNumber <= 0 ||
+                string.IsNullOrWhiteSpace(request.StageId) ||
+                string.IsNullOrWhiteSpace(request.HighestUnlockedStageId) ||
+                !StageRecordIsValid(request.Record) ||
+                request.Record.StageId != request.StageId ||
+                !request.Record.Cleared)
+            {
+                return InvalidProgression("The Stage clear request is invalid.");
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            LocalStageProgressData previous = FindStageRecord(
+                candidate.CampaignProgress,
+                request.StageId);
+            bool firstClear = previous == null || !previous.Cleared;
+            UpsertStageRecord(
+                candidate.CampaignProgress,
+                request.Record.Clone());
+            candidate.CampaignProgress.HighestUnlockedStageId =
+                request.HighestUnlockedStageId;
+            if (firstClear)
+            {
+                ApplyFirstClearRewards(
+                    candidate,
+                    request.DisplayNumber,
+                    request.StageId);
+            }
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult AcknowledgeLobbyMilestones()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            int applied = _current.LobbyProgress.AppliedMilestoneCount;
+            if (_current.LobbyProgress.PresentedMilestoneCount >= applied)
+            {
+                return ProductMutationResult.Success(false);
+            }
+            LocalSaveData candidate = _current.Clone();
+            candidate.LobbyProgress.PresentedMilestoneCount = applied;
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult ResetProgressForDevelopment()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            LocalSaveData candidate = _current.Clone();
+            candidate.CampaignProgress =
+                LocalCampaignProgressData.CreateDefaults();
+            candidate.CampaignProgress.LegacyMigrationCompleted = true;
+            candidate.Economy = LocalEconomyData.CreateDefaults();
+            candidate.LobbyProgress = LocalLobbyProgressData.CreateDefaults();
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult SetHighestUnlockedForDevelopment(
+            string stageId)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (string.IsNullOrWhiteSpace(stageId))
+            {
+                return InvalidProgression("The development Stage ID is invalid.");
+            }
+            LocalSaveData candidate = _current.Clone();
+            candidate.CampaignProgress.HighestUnlockedStageId = stageId;
+            return Commit(candidate);
+        }
+
         private ProductMutationResult Commit(LocalSaveData candidate)
         {
             LocalSaveWriteResult write = _saveService.Save(candidate);
@@ -276,7 +409,9 @@ namespace ColorGateRunner.Product
         private bool TryGetReady(out ProductMutationResult failure)
         {
             if (_current != null && _current.Profile != null &&
-                _current.Settings != null)
+                _current.Settings != null &&
+                _current.CampaignProgress != null &&
+                _current.Economy != null && _current.LobbyProgress != null)
             {
                 failure = default;
                 return true;
@@ -295,6 +430,100 @@ namespace ColorGateRunner.Product
             _profileService.Bind(_current.Profile);
             _settingsService.Bind(_current.Settings);
             _accountService.Load(_current.Profile);
+            _progressionService.Bind(_current);
+        }
+
+        private static ProductMutationResult InvalidProgression(
+            string diagnostic)
+        {
+            return ProductMutationResult.Failure(
+                new ProductError(
+                    ProductErrorCode.SaveValidation,
+                    diagnostic,
+                    true));
+        }
+
+        private static bool StageRecordIsValid(LocalStageProgressData record)
+        {
+            return record != null &&
+                !string.IsNullOrWhiteSpace(record.StageId) &&
+                record.BestTime >= 0f &&
+                record.BestNoItemTime >= 0f &&
+                record.ClearCount >= 0 && record.ContinuedClearCount >= 0;
+        }
+
+        private static LocalStageProgressData FindStageRecord(
+            LocalCampaignProgressData campaign,
+            string stageId)
+        {
+            for (int index = 0; index < campaign.StageRecords.Count; index++)
+            {
+                LocalStageProgressData record = campaign.StageRecords[index];
+                if (record != null && record.StageId == stageId)
+                {
+                    return record;
+                }
+            }
+            return null;
+        }
+
+        private static void UpsertStageRecord(
+            LocalCampaignProgressData campaign,
+            LocalStageProgressData record)
+        {
+            for (int index = 0; index < campaign.StageRecords.Count; index++)
+            {
+                if (campaign.StageRecords[index]?.StageId == record.StageId)
+                {
+                    campaign.StageRecords[index] = record;
+                    return;
+                }
+            }
+            campaign.StageRecords.Add(record);
+        }
+
+        private static void ApplyFirstClearRewards(
+            LocalSaveData candidate,
+            int displayNumber,
+            string stageId)
+        {
+            ApplyTransaction(
+                candidate.Economy,
+                $"first-clear:{stageId}",
+                economy => economy.Coins +=
+                    LobbyMilestoneRewardPolicy.FirstClearCoins);
+            if (!LobbyMilestoneRewardPolicy.IsMilestone(displayNumber))
+            {
+                return;
+            }
+
+            int milestone = displayNumber / 2;
+            bool applied = ApplyTransaction(
+                candidate.Economy,
+                $"lobby-milestone:{milestone:00}",
+                economy => LobbyMilestoneRewardPolicy.Apply(
+                    displayNumber,
+                    economy));
+            if (applied)
+            {
+                candidate.LobbyProgress.AppliedMilestoneCount = Math.Max(
+                    candidate.LobbyProgress.AppliedMilestoneCount,
+                    milestone);
+            }
+        }
+
+        private static bool ApplyTransaction(
+            LocalEconomyData economy,
+            string transactionId,
+            Action<LocalEconomyData> apply)
+        {
+            if (economy.AppliedTransactionIds.Contains(transactionId))
+            {
+                return false;
+            }
+            apply(economy);
+            economy.AppliedTransactionIds.Add(transactionId);
+            return true;
         }
 
         private static bool IsFinite(float value)

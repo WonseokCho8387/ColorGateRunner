@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ColorGateRunner.Product
 {
@@ -68,14 +69,123 @@ namespace ColorGateRunner.Product
     }
 
     [Serializable]
+    public sealed class LocalStageProgressData
+    {
+        public string StageId;
+        public bool Cleared;
+        public float BestTime;
+        public float BestNoItemTime;
+        public int ClearCount;
+        public int ContinuedClearCount;
+
+        public LocalStageProgressData Clone()
+        {
+            return new LocalStageProgressData
+            {
+                StageId = StageId,
+                Cleared = Cleared,
+                BestTime = BestTime,
+                BestNoItemTime = BestNoItemTime,
+                ClearCount = ClearCount,
+                ContinuedClearCount = ContinuedClearCount
+            };
+        }
+    }
+
+    [Serializable]
+    public sealed class LocalCampaignProgressData
+    {
+        public bool LegacyMigrationCompleted;
+        public string HighestUnlockedStageId = "stage-01";
+        public List<LocalStageProgressData> StageRecords = new();
+
+        public static LocalCampaignProgressData CreateDefaults()
+        {
+            return new LocalCampaignProgressData();
+        }
+
+        public LocalCampaignProgressData Clone()
+        {
+            var clone = new LocalCampaignProgressData
+            {
+                LegacyMigrationCompleted = LegacyMigrationCompleted,
+                HighestUnlockedStageId = HighestUnlockedStageId,
+                StageRecords = new List<LocalStageProgressData>(
+                    StageRecords?.Count ?? 0)
+            };
+            if (StageRecords != null)
+            {
+                for (int index = 0; index < StageRecords.Count; index++)
+                {
+                    clone.StageRecords.Add(StageRecords[index]?.Clone());
+                }
+            }
+            return clone;
+        }
+    }
+
+    [Serializable]
+    public sealed class LocalEconomyData
+    {
+        public int Coins;
+        public int ShieldCount;
+        public int BoosterCount;
+        public List<string> AppliedTransactionIds = new();
+
+        public static LocalEconomyData CreateDefaults()
+        {
+            return new LocalEconomyData();
+        }
+
+        public LocalEconomyData Clone()
+        {
+            return new LocalEconomyData
+            {
+                Coins = Coins,
+                ShieldCount = ShieldCount,
+                BoosterCount = BoosterCount,
+                AppliedTransactionIds = AppliedTransactionIds == null
+                    ? new List<string>()
+                    : new List<string>(AppliedTransactionIds)
+            };
+        }
+    }
+
+    [Serializable]
+    public sealed class LocalLobbyProgressData
+    {
+        public int AppliedMilestoneCount;
+        public int PresentedMilestoneCount;
+
+        public static LocalLobbyProgressData CreateDefaults()
+        {
+            return new LocalLobbyProgressData();
+        }
+
+        public LocalLobbyProgressData Clone()
+        {
+            return new LocalLobbyProgressData
+            {
+                AppliedMilestoneCount = AppliedMilestoneCount,
+                PresentedMilestoneCount = PresentedMilestoneCount
+            };
+        }
+    }
+
+    [Serializable]
     public sealed class LocalSaveData
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public long SaveRevision;
         public LocalProfileData Profile;
         public LocalSettingsData Settings;
+        public LocalCampaignProgressData CampaignProgress =
+            LocalCampaignProgressData.CreateDefaults();
+        public LocalEconomyData Economy = LocalEconomyData.CreateDefaults();
+        public LocalLobbyProgressData LobbyProgress =
+            LocalLobbyProgressData.CreateDefaults();
         public string LastWriteUtc;
 
         public static LocalSaveData CreateEmpty()
@@ -86,6 +196,10 @@ namespace ColorGateRunner.Product
                 SaveRevision = 0,
                 Profile = null,
                 Settings = null,
+                CampaignProgress =
+                    LocalCampaignProgressData.CreateDefaults(),
+                Economy = LocalEconomyData.CreateDefaults(),
+                LobbyProgress = LocalLobbyProgressData.CreateDefaults(),
                 LastWriteUtc = string.Empty
             };
         }
@@ -98,6 +212,9 @@ namespace ColorGateRunner.Product
                 SaveRevision = SaveRevision,
                 Profile = Profile?.Clone(),
                 Settings = Settings?.Clone(),
+                CampaignProgress = CampaignProgress?.Clone(),
+                Economy = Economy?.Clone(),
+                LobbyProgress = LobbyProgress?.Clone(),
                 LastWriteUtc = LastWriteUtc
             };
         }
@@ -113,6 +230,9 @@ namespace ColorGateRunner.Product
             SaveRevision = source.SaveRevision;
             Profile = source.Profile?.Clone();
             Settings = source.Settings?.Clone();
+            CampaignProgress = source.CampaignProgress?.Clone();
+            Economy = source.Economy?.Clone();
+            LobbyProgress = source.LobbyProgress?.Clone();
             LastWriteUtc = source.LastWriteUtc;
         }
     }

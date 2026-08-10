@@ -377,6 +377,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `ProductSession_SuccessRebindsOnceAndPersistsClampedSettings`
 - `ProductSession_DisablingVolumesPreservesLastNonZeroValues`
 - `ProductSession_AccountAndSettingsSurviveSaveReload`
+- `SchemaOneLoad_UpgradesProgressionEconomyAndLobbyDefaults`
+- `LegacyCampaignImport_IsAtomicIdempotentAndBackfillsRewards`
+- `StageClear_FirstClearRewardsOnceAndAcknowledgesLobby`
+- `StageClear_SaveFailureDoesNotPublishPartialProgression`
 
 #### `FrontendContextTests.cs`
 
@@ -589,6 +593,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/FrontendFlowPlayModeTests.cs
 
 - `BootToFrontend_StartsAtAccountChoiceWithOneAppRootAndEventSystem`
 - `GuestChoicePersistsThenLobbyBackRequestsExit`
+- `LobbyProgression_ShowsEconomyThemeAndAcknowledgesReward`
 - `CompletedAccountChoice_StartsDirectlyAtLobby`
 - `AccountChoiceSaveFailure_RemainsOnChoicePage`
 - `SharedSettings_SaveTogglesAndPreserveMasterVolume`
@@ -599,6 +604,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/FrontendFlowPlayModeTests.cs
 - `StartStage_BypassesCampaignLobbyAndPreservesProgress`
 - `FrontendPreRunBack_ReturnsDirectlyToFrontendLobby`
 - `FrontendPreRunBack_FailureStaysAndAllowsOneRetry`
+- `FrontendStageClear_ReturnsToLobbyAndShowsReward`
 - `TogglePresentation_MatchesAfterSaveReloadAndInPause`
 - `FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects`
 

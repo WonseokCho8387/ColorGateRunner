@@ -2,7 +2,9 @@
 
 ## Status
 
-Approved commercial-systems design baseline. Implementation pending.
+Approved commercial-systems design baseline. Local Profile/Settings foundation
+and schema-2 Campaign/Economy/Lobby progression foundation are implemented;
+external commercial providers remain pending.
 
 This document defines local-first service boundaries and data ownership for
 the commercial shell. It does not authorize live login, networking, cloud
@@ -746,14 +748,15 @@ Implementation status: Completed in Iteration 9.
   singletons or a mutable locator.
 - The Product assembly is Unity-independent. Unity adapters own persistent
   path, JSON, platform replacement policy, and Scene presentation.
-- Schema 1 persists only Profile and Settings plus revision/write metadata.
-  Guest identity is stable across reloads and does not use a device ID.
+- Schema 1 originally persisted Profile and Settings plus revision/write
+  metadata. Iteration 15 migrates it one-way to schema 2. Guest identity
+  remains stable across reloads and does not use a device ID.
 - Primary/temp/backup validation, corrupt-primary recovery, schema-0 migration,
   future-schema blocking, native atomic preference, and WebGL recoverable-only
   replacement are implemented and tested.
-- Existing Stage PlayerPrefs remain the single progression owner. The new save
-  has no Stage section and performs no read, write, copy, reset, or migration
-  of Stage data. Product Iteration 2 remains separately deferred.
+- Stage PlayerPrefs were the progression authority through Iteration 14.
+  Iteration 15 imports them once into schema 2 and retains them only as an
+  untouched rollback source.
 - Frontend Iteration 2 now consumes the initialized AppRoot graph only at its
   Scene composition boundary and converts Profile, Account, and Settings into
   an immutable display Context. It creates no service, writes no Product or
@@ -777,9 +780,9 @@ Implementation status: Completed in Iteration 9.
   value when enabled. Master is preserved and remains the only value applied
   to `AudioListener.volume`; it is not exposed by the consolidated Settings
   UI.
-- Frontend receives only `IStageProgressReader`; it cannot save or clear
-  Campaign progress. `PlayerPrefsStageProgressStore` remains the sole runtime
-  authority and Product Save receives no Stage section.
+- Frontend still consumes a read-only campaign view. Campaign mutations now
+  pass through the Product-backed Stage store and transactional Product
+  session rather than PlayerPrefs.
 - AppRoot owns a non-persistent one-shot Campaign launch request containing a
   stable Stage ID. It is neither serialized nor exposed as a global mutable
   locator and is consumed by Campaign before Lobby activation.
@@ -789,14 +792,24 @@ Implementation status: Completed in Iteration 9.
 
 ## Product Iteration 2 — Progression integration
 
-Implementation status: Frontend read-only adapter completed; write-service
-integration remains deferred.
+Implementation status: Completed in Iteration 15.
 
-- StageProgressService.
-- Stage result ingestion.
-- Stage unlock.
-- Best-time persistence.
-- Frontend read models.
+- Schema 2 owns stable-ID Campaign records, Highest Unlocked Stage ID,
+  Economy balances/inventory, applied transaction IDs, and Lobby milestone
+  applied/presented counters.
+- Production Boot imports legacy Campaign PlayerPrefs once and leaves those
+  keys untouched for rollback safety. After successful import, Campaign reads
+  and writes Product save only.
+- A Stage clear writes its record, Highest Unlocked ID, first-clear reward,
+  and eligible Lobby milestone in one clone-save-publish transaction. Save
+  failure leaves every published section unchanged.
+- Transaction IDs make migration and repeated result ingestion idempotent.
+  First clear grants 100 Coins; even Stages through 36 grant one milestone
+  with the approved starter coin and Shield/Booster reward policy.
+- Frontend read models and Campaign store adapters share the Product service;
+  display order is resolved through the Stage Catalog only at the Unity edge.
+- External ads, IAP, Hearts, Continue pricing, item consumption, and real
+  Lobby art/theme content remain deferred.
 
 ## Product Iteration 3 — Frontend support
 

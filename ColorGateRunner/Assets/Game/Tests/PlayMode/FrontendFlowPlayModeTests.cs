@@ -98,7 +98,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendPage.Lobby));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
             Assert.That(controller.LobbyProfileText.text, Is.EqualTo("GUEST"));
-            Assert.That(controller.CurrencySlotRoot.activeSelf, Is.False);
+            Assert.That(controller.CurrencySlotRoot.activeSelf, Is.True);
+            Assert.That(controller.LobbyThemeRoot.activeSelf, Is.True);
+            Assert.That(controller.LobbyProgressionPanel, Is.Not.Null);
             Assert.That(controller.EventModuleSlotRoot.activeSelf, Is.False);
             Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
                 Is.True);
@@ -126,6 +128,33 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator LobbyProgression_ShowsEconomyThemeAndAcknowledgesReward()
+        {
+            AppServiceGraph graph = null;
+            yield return LoadFrontendThroughBoot(() =>
+            {
+                graph = CreateGraph(new ProgressedGuestSaveService());
+                return graph;
+            });
+            FrontendSceneController controller = RequireController();
+            LobbyProgressionPanel panel = controller.LobbyProgressionPanel;
+
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(panel.CoinText.text, Is.EqualTo("COINS 950"));
+            Assert.That(panel.InventoryText.text,
+                Is.EqualTo("SHIELD 2  BOOST 1"));
+            Assert.That(panel.ThemeText.text,
+                Is.EqualTo("THEME 1  COLOR COURTYARD"));
+            Assert.That(panel.NextUpgradeText.text,
+                Is.EqualTo("NEXT LOBBY UPGRADE  CLEAR STAGE 6"));
+            Assert.That(panel.RewardText.text,
+                Does.Contain("2 LOBBY UPGRADES"));
+            Assert.That(graph.Progression.Lobby.PresentedMilestoneCount,
+                Is.EqualTo(2));
+        }
+
+        [UnityTest]
         public IEnumerator CompletedAccountChoice_StartsDirectlyAtLobby()
         {
             yield return LoadFrontendThroughBoot(() =>
@@ -149,6 +178,9 @@ namespace ColorGateRunner.Tests.PlayMode
             });
 
             FrontendSceneController controller = RequireController();
+            LogAssert.Expect(
+                LogType.Error,
+                "PLANNED ACCOUNT SAVE FAILURE");
             controller.TitleStartButton.onClick.Invoke();
             yield return null;
 
@@ -457,6 +489,40 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator FrontendStageClear_ReturnsToLobbyAndShowsReward()
+        {
+            PlayerPrefs.SetInt(UnlockKey, 1);
+            for (int stage = 1;
+                stage <= CampaignPlayerPrefsSnapshot.StageCount;
+                stage++)
+            {
+                PlayerPrefs.DeleteKey(
+                    CampaignPlayerPrefsSnapshot.RecordKey(stage));
+            }
+            PlayerPrefs.Save();
+            var save = new RoundtripSaveService();
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            RequireController().LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+
+            ClearCurrentStage(campaign);
+            campaign.Tick(1.3f);
+            Assert.That(campaign.ClearPanel.activeSelf, Is.True);
+            campaign.ClearLobbyButton.onClick.Invoke();
+            yield return WaitForScene(FrontendPath);
+            FrontendSceneController returned = RequireController();
+
+            Assert.That(returned.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(returned.LobbyProgressionPanel.CoinText.text,
+                Is.EqualTo("COINS 100"));
+            Assert.That(returned.LobbyProgressionPanel.NextUpgradeText.text,
+                Is.EqualTo("NEXT LOBBY UPGRADE  CLEAR STAGE 2"));
+        }
+
+        [UnityTest]
         public IEnumerator TogglePresentation_MatchesAfterSaveReloadAndInPause()
         {
             var save = new RoundtripSaveService();
@@ -620,6 +686,44 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(SceneManager.GetActiveScene().path, Is.EqualTo(path));
         }
 
+        private static void ClearCurrentStage(StageSceneController controller)
+        {
+            controller.StartSelectedStage();
+            controller.Tick(3.1f);
+            controller.Session.Advance(1f, 0f);
+            while (controller.Session.RemainingGates > 0)
+            {
+                StageGateView gate = FindCurrentGate(controller);
+                Assert.That(gate, Is.Not.Null);
+                while (controller.Session.CurrentColor != gate.AssignedColor)
+                {
+                    controller.HandleGameplayTap();
+                }
+                Assert.That(gate.TryResolveCrossing(), Is.True);
+            }
+            Vector3 position = controller.PlayerTransform.position;
+            position.z = controller.Goal.transform.position.z - 1f;
+            controller.PlayerTransform.position = position;
+            controller.TickMovement(2f);
+            Assert.That(controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.StageCleared));
+        }
+
+        private static StageGateView FindCurrentGate(
+            StageSceneController controller)
+        {
+            for (int index = 0; index < controller.GatePoolSize; index++)
+            {
+                StageGateView gate = controller.GetGate(index);
+                if (gate.gameObject.activeSelf && !gate.HasResolved &&
+                    gate.PlanIndex == controller.Session.GatesPassed)
+                {
+                    return gate;
+                }
+            }
+            return null;
+        }
+
         private static IEnumerator DestroyAllAppRoots()
         {
             AppRoot[] roots = Object.FindObjectsByType<AppRoot>(
@@ -658,7 +762,8 @@ namespace ColorGateRunner.Tests.PlayMode
                     save,
                     profile,
                     settings,
-                    account));
+                    account),
+                true);
         }
 
         private sealed class FixedClock : IClockService
@@ -722,7 +827,7 @@ namespace ColorGateRunner.Tests.PlayMode
             public LocalSaveWriteResult Save(LocalSaveData data)
             {
                 _writeCount++;
-                if (_writeCount >= 2)
+                if (_writeCount >= 3)
                 {
                     return LocalSaveWriteResult.Failure(
                         new ProductError(
@@ -736,6 +841,27 @@ namespace ColorGateRunner.Tests.PlayMode
                 return LocalSaveWriteResult.Success(
                     SaveReplacementResult.Recoverable);
             }
+        }
+
+        private sealed class ProgressedGuestSaveService : ILocalSaveService
+        {
+            public LocalSaveLoadResult Load()
+            {
+                LocalSaveData data =
+                    new ExistingGuestSaveService(true).Load().Data;
+                data.CampaignProgress.LegacyMigrationCompleted = true;
+                data.CampaignProgress.HighestUnlockedStageId = "stage-05";
+                data.Economy.Coins = 950;
+                data.Economy.ShieldCount = 2;
+                data.Economy.BoosterCount = 1;
+                data.LobbyProgress.AppliedMilestoneCount = 2;
+                data.LobbyProgress.PresentedMilestoneCount = 0;
+                return LocalSaveLoadResult.Success(data, false, false);
+            }
+
+            public LocalSaveWriteResult Save(LocalSaveData data) =>
+                LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
         }
 
         private sealed class RecordingSceneLoader : ISceneTransitionLoader

@@ -67,7 +67,8 @@ namespace ColorGateRunner.Editor
                 out GameObject currencySlot,
                 out GameObject eventSlot,
                 out GameObject notificationSlot,
-                out GameObject lobbyTheme);
+                out GameObject lobbyTheme,
+                out LobbyProgressionPanel lobbyProgression);
 
             GameObject popupRoot = CreateOverlayRoot(
                 "PopupRoot",
@@ -142,6 +143,7 @@ namespace ColorGateRunner.Editor
                 eventSlot,
                 notificationSlot,
                 lobbyTheme,
+                lobbyProgression,
                 modalTitle,
                 modalMessage,
                 modalConfirm,
@@ -159,10 +161,10 @@ namespace ColorGateRunner.Editor
             transitionBlocker.SetActive(false);
             developmentDebug.SetActive(false);
             legalRoot.SetActive(false);
-            currencySlot.SetActive(false);
+            currencySlot.SetActive(true);
             eventSlot.SetActive(false);
             notificationSlot.SetActive(false);
-            lobbyTheme.SetActive(false);
+            lobbyTheme.SetActive(true);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -542,7 +544,8 @@ namespace ColorGateRunner.Editor
             out GameObject currencySlot,
             out GameObject eventSlot,
             out GameObject notificationSlot,
-            out GameObject themeRoot)
+            out GameObject themeRoot,
+            out LobbyProgressionPanel progressionPanel)
         {
             CreateText(
                 "LobbyTitle",
@@ -623,6 +626,80 @@ namespace ColorGateRunner.Editor
                 "NotificationSlotRoot",
                 parent);
             themeRoot = CreateFlowRoot("LobbyThemeRoot", parent);
+            themeRoot.transform.SetAsFirstSibling();
+            progressionPanel = themeRoot.AddComponent<LobbyProgressionPanel>();
+            Image background = CreatePanel(
+                "LobbyThemeBackground",
+                themeRoot.transform,
+                Vector2.zero,
+                Vector2.one,
+                new Color(0.10f, 0.16f, 0.24f, 0.84f))
+                .GetComponent<Image>();
+            background.raycastTarget = false;
+            Text coins = CreateText(
+                "LobbyCoinText",
+                currencySlot.transform,
+                "COINS 0",
+                18,
+                new Vector2(0.62f, 0.85f),
+                new Vector2(0.93f, 0.91f));
+            coins.alignment = TextAnchor.MiddleRight;
+            Text inventory = CreateText(
+                "LobbyInventoryText",
+                currencySlot.transform,
+                "SHIELD 0  BOOST 0",
+                13,
+                new Vector2(0.55f, 0.81f),
+                new Vector2(0.93f, 0.85f));
+            inventory.alignment = TextAnchor.MiddleRight;
+            Text theme = CreateText(
+                "LobbyThemeText",
+                themeRoot.transform,
+                "THEME 1  COLOR COURTYARD",
+                16,
+                new Vector2(0.08f, 0.69f),
+                new Vector2(0.92f, 0.74f));
+            Text nextUpgrade = CreateText(
+                "LobbyNextUpgradeText",
+                themeRoot.transform,
+                "NEXT LOBBY UPGRADE  CLEAR STAGE 2",
+                14,
+                new Vector2(0.08f, 0.65f),
+                new Vector2(0.92f, 0.69f));
+            Text rewardSummary = CreateText(
+                "LobbyRewardSummaryText",
+                themeRoot.transform,
+                "LOBBY UPGRADED  REWARD ADDED",
+                15,
+                new Vector2(0.10f, 0.56f),
+                new Vector2(0.90f, 0.61f));
+            var visuals = new GameObject[6];
+            Color[] colors =
+            {
+                FromHex(0xE63946), FromHex(0x2D7FF9),
+                FromHex(0x22C55E), FromHex(0xF4C430),
+                FromHex(0x9B5DE5), FromHex(0x00B8D9)
+            };
+            for (int index = 0; index < visuals.Length; index++)
+            {
+                float left = 0.10f + (index * 0.135f);
+                visuals[index] = CreatePanel(
+                    $"LobbyUpgradeVisual_{index + 1}",
+                    themeRoot.transform,
+                    new Vector2(left, 0.25f),
+                    new Vector2(left + 0.10f, 0.31f),
+                    colors[index]);
+                visuals[index].GetComponent<Image>().raycastTarget = false;
+                visuals[index].SetActive(false);
+            }
+            progressionPanel.Configure(
+                coins,
+                inventory,
+                theme,
+                nextUpgrade,
+                rewardSummary,
+                background,
+                visuals);
         }
 
         private static void CreatePopup(

@@ -1,4 +1,6 @@
+using System;
 using ColorGateRunner.Core;
+using ColorGateRunner.Product;
 using UnityEngine;
 
 namespace ColorGateRunner.Presentation
@@ -14,6 +16,14 @@ namespace ColorGateRunner.Presentation
         void SaveHighestUnlocked(int stageNumber);
         void SaveRecord(int stageNumber, StageRecord record);
         void ClearGameplayProgress();
+    }
+
+    internal interface IAtomicStageProgressStore
+    {
+        ProductMutationResult SaveClearResult(
+            int stageNumber,
+            StageRecord record,
+            int highestUnlocked);
     }
 
     internal sealed class PlayerPrefsStageProgressStore : IStageProgressStore
@@ -58,6 +68,107 @@ namespace ColorGateRunner.Presentation
                 PlayerPrefs.DeleteKey(RecordPrefix + stageNumber);
             }
             PlayerPrefs.Save();
+        }
+    }
+
+    internal sealed class ProductStageProgressStore :
+        IStageProgressStore,
+        IAtomicStageProgressStore
+    {
+        private readonly LocalProductSession _session;
+        private readonly ProgressionService _progression;
+        private readonly IStageCatalog _catalog;
+
+        public ProductStageProgressStore(
+            LocalProductSession session,
+            ProgressionService progression,
+            IStageCatalog catalog)
+        {
+            _session = session ?? throw new ArgumentNullException(nameof(session));
+            _progression = progression ??
+                throw new ArgumentNullException(nameof(progression));
+            _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        }
+
+        public int LoadHighestUnlocked()
+        {
+            string stageId =
+                _progression.Campaign?.HighestUnlockedStageId;
+            for (int index = 0; index < _catalog.Count; index++)
+            {
+                StageDefinition stage = _catalog.GetByIndex(index);
+                if (stage.StageId == stageId)
+                {
+                    return stage.DisplayNumber;
+                }
+            }
+            return 1;
+        }
+
+        public StageRecord LoadRecord(int stageNumber)
+        {
+            StageDefinition stage = _catalog.GetByDisplayNumber(stageNumber);
+            LocalStageProgressData data =
+                _progression.GetStageRecord(stage.StageId);
+            return data == null
+                ? default
+                : new StageRecord(
+                    data.Cleared,
+                    data.BestTime,
+                    data.BestNoItemTime,
+                    data.ClearCount,
+                    data.ContinuedClearCount);
+        }
+
+        public void SaveHighestUnlocked(int stageNumber)
+        {
+            StageDefinition stage = _catalog.GetByDisplayNumber(stageNumber);
+            ProductMutationResult result =
+                _session.SetHighestUnlockedForDevelopment(stage.StageId);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(result.Error.Diagnostic);
+            }
+        }
+
+        public void SaveRecord(int stageNumber, StageRecord record)
+        {
+            throw new InvalidOperationException(
+                "Product progression requires one atomic clear result.");
+        }
+
+        public ProductMutationResult SaveClearResult(
+            int stageNumber,
+            StageRecord record,
+            int highestUnlocked)
+        {
+            StageDefinition stage = _catalog.GetByDisplayNumber(stageNumber);
+            StageDefinition highest =
+                _catalog.GetByDisplayNumber(highestUnlocked);
+            return _session.RecordStageClear(
+                new StageClearProgressRequest(
+                    stageNumber,
+                    stage.StageId,
+                    highest.StageId,
+                    new LocalStageProgressData
+                    {
+                        StageId = stage.StageId,
+                        Cleared = record.Cleared,
+                        BestTime = record.BestTime,
+                        BestNoItemTime = record.BestNoItemTime,
+                        ClearCount = record.ClearCount,
+                        ContinuedClearCount = record.ContinuedClearCount
+                    }));
+        }
+
+        public void ClearGameplayProgress()
+        {
+            ProductMutationResult result =
+                _session.ResetProgressForDevelopment();
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(result.Error.Diagnostic);
+            }
         }
     }
 }

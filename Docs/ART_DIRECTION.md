@@ -351,3 +351,19 @@ legibility.
   remain together in the hierarchy.
 - Notifications, Music, SFX, and Vibration use the same typography, alignment,
   color rule, and immediate state-change response in Frontend and Pause.
+
+## Iteration 15 automatic Lobby progression presentation
+
+- Frontend Lobby reserves a non-interactive full-screen theme layer behind the
+  existing profile, Stage summary and primary Play action.
+- Wallet and Shield/Booster inventory remain compact header information. Theme
+  name, next clear target and pending reward summary must not compete with the
+  primary Play action.
+- Six visible upgrade blocks represent the current theme's automatic growth.
+  Three palette states establish the planned three-theme structure, but these
+  generated blocks are implementation placeholders rather than final art.
+- No upgrade placement interaction, camera navigation, shader package or new
+  Scene is introduced. Theme changes occur inside the existing Frontend Lobby.
+- Human review owns whether the newly unlocked step is noticeable, reward text
+  is understandable, the hierarchy survives Safe Area, and the placeholder
+  does not misrepresent launch-quality visual completion.

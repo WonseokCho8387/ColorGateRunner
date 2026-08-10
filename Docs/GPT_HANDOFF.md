@@ -29,9 +29,9 @@ GPT는 Game Director 및 Product/UX 설계자로 행동한다.
 ## 3. 현재 Git 상태
 
 - 브랜치: main
-- 인수인계 작성 시점의 완료 커밋: c202aa9
+- 인수인계 작성 시점의 기반 커밋: fc46379
 - 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
-  fix: correct pre-run back navigation and settings toggles
+  feat: add automatic lobby progression foundation
 
 최신 HEAD와 테스트 수는 항상 저장소의
 Docs/CURRENT_STATUS.md를 권위자로 사용한다.
@@ -47,6 +47,8 @@ Boot
 → START STAGE
 → PreRun / Item Selection
 → Gameplay
+→ Clear / Failure Result
+→ Frontend Lobby
 
 이후 실행:
 
@@ -72,6 +74,12 @@ fallback으로 유지한다.
 - 추천 Stage 읽기 전용 표시
 - Stable Stage ID 기반 one-shot Campaign Launch Context
 - Product Save 및 Settings
+- Product Save schema 2 기반 Campaign Progress
+- 기존 Campaign PlayerPrefs 1회 자동 이관
+- Coin, Shield/Booster Inventory 기반 Economy 기초
+- Stage 최초 클리어 보상과 2 Stage마다 자동 Lobby 발전
+- 36 Stage를 위한 18개 Lobby milestone, 3개 Theme 구조
+- Lobby Coin, Inventory, Theme, 다음 발전 목표 표시
 - Gameplay Pause
 - Pause Dim
 - Resume / Restart / Lobby 복귀
@@ -91,13 +99,16 @@ fallback으로 유지한다.
 
 ## 7. 현재 저장 정책
 
-- Product Profile과 Settings:
+- Product Profile, Settings, Campaign Progress, Economy, Lobby Progress:
   versioned product-save.json
-- Campaign 진행:
-  기존 PlayerPrefsStageProgressStore
-- Campaign 진행은 아직 Profile별 저장이 아님
-- 새 Guest도 같은 기기의 기존 Campaign 진행을 이어받음
-- StageProgressService와 Migration은 연기 상태
+- Product Save schema version은 2다.
+- 첫 production Boot에서 기존 PlayerPrefs Campaign 기록을 stable Stage ID로
+  1회 이관한다.
+- 이관 후 Product Save가 Campaign 런타임 저장 권위자다.
+- 기존 PlayerPrefs key는 rollback 안전을 위해 삭제하지 않지만 더 이상
+  runtime dual-write 권위자가 아니다.
+- Stage clear, unlock, 최초 보상, Lobby milestone은 하나의 저장 transaction으로
+  적용한다.
 
 ## 8. 현재 Settings 상태
 
@@ -122,7 +133,7 @@ fallback으로 유지한다.
 
 - Gameplay Core는 Unity 비의존 구조를 유지한다.
 - Stage 1–13 데이터와 결정론적 결과를 임의로 변경하지 않는다.
-- Campaign 진행의 저장 권위자를 중복 생성하지 않는다.
+- Campaign 진행과 Economy의 저장 권위자를 중복 생성하지 않는다.
 - PlayerPrefs를 Scene 이동 Payload로 사용하지 않는다.
 - Scene 이름이나 Build Index를 런타임에서 하드코딩하지 않는다.
 - AppRoot와 EventSystem을 중복 생성하지 않는다.
@@ -147,14 +158,16 @@ GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최
 
 ## 11. 아직 남은 주요 작업
 
+- Stage 14–36 제작과 난이도 곡선 검증
+- Lobby 3개 Theme의 최종 아트, 애니메이션, 보상 연출
+- Coin Continue 가격 상승과 게임당 광고 Continue 1회 정책 구현
+- Shield/Booster 실제 Inventory 소비와 구매
+- Heart, 시간제 무제한 Booster/Heart, Shop 및 IAP
 - 실제 BGM과 SFX 연결
 - 실제 모바일 알림과 권한 처리
 - 이용약관, 개인정보, 지원 URL 확정
-- Profile별 Campaign Progress
-- StageProgressService와 Migration
 - Stage 선택 또는 Campaign Page 필요성 검토
-- Result 및 Stage Clear 이후 제품 흐름 개선
-- Lobby, PreRun, Gameplay의 최종 비주얼
+- PreRun, Gameplay, Result의 최종 비주얼
 - 실제 Android/WebGL 기기 검증
 
 ## 12. GPT 응답 방식

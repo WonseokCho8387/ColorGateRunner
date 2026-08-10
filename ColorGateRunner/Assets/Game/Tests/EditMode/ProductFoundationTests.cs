@@ -72,6 +72,7 @@ namespace ColorGateRunner.Tests.EditMode
                 InitializationStep.SaveLoad,
                 InitializationStep.Profile,
                 InitializationStep.Settings,
+                InitializationStep.Progression,
                 InitializationStep.PersistDirtyData,
                 InitializationStep.Complete
             }));
@@ -363,7 +364,9 @@ namespace ColorGateRunner.Tests.EditMode
                 new MutableClock(_firstUtc)).Load();
 
             Assert.That(load.Succeeded, Is.True);
-            Assert.That(load.Dirty, Is.False);
+            Assert.That(load.Dirty, Is.True);
+            Assert.That(load.Data.SchemaVersion,
+                Is.EqualTo(LocalSaveData.CurrentSchemaVersion));
             Assert.That(load.Data.Settings.MasterVolume, Is.EqualTo(0.8f));
             Assert.That(load.Data.Settings.MusicVolume, Is.EqualTo(0.35f));
             Assert.That(load.Data.Settings.SfxVolume, Is.Zero);
@@ -561,6 +564,139 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(reloadedSettings.Current.Vibration, Is.False);
         }
 
+        [Test]
+        public void SchemaOneLoad_UpgradesProgressionEconomyAndLobbyDefaults()
+        {
+            const string utc = "2026-08-01T00:00:00.0000000Z";
+            const string json =
+                "{\"SchemaVersion\":1,\"SaveRevision\":2," +
+                "\"Profile\":{\"ProfileId\":\"legacy\"," +
+                "\"CreatedUtc\":\"" + utc + "\"," +
+                "\"LastPlayedUtc\":\"" + utc + "\"," +
+                "\"DisplayName\":\"GUEST\",\"AccountState\":0," +
+                "\"SaveRevision\":2}," +
+                "\"Settings\":{\"MasterVolume\":1," +
+                "\"MusicVolume\":1,\"SfxVolume\":1," +
+                "\"Vibration\":true,\"Language\":\"system\"}," +
+                "\"LastWriteUtc\":\"" + utc + "\"}";
+            File.WriteAllText(_paths.Primary, json);
+
+            LocalSaveLoadResult load = CreateSave(
+                new MutableClock(_firstUtc)).Load();
+
+            Assert.That(load.Succeeded, Is.True);
+            Assert.That(load.Dirty, Is.True);
+            Assert.That(load.Data.SchemaVersion,
+                Is.EqualTo(LocalSaveData.CurrentSchemaVersion));
+            Assert.That(load.Data.CampaignProgress.HighestUnlockedStageId,
+                Is.EqualTo("stage-01"));
+            Assert.That(load.Data.CampaignProgress.LegacyMigrationCompleted,
+                Is.False);
+            Assert.That(load.Data.Economy.Coins, Is.Zero);
+            Assert.That(load.Data.LobbyProgress.AppliedMilestoneCount, Is.Zero);
+        }
+
+        [Test]
+        public void LegacyCampaignImport_IsAtomicIdempotentAndBackfillsRewards()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            var entries = new[]
+            {
+                new CampaignProgressImportEntry(
+                    1, CreateStageRecord("stage-01", true, 1)),
+                new CampaignProgressImportEntry(
+                    2, CreateStageRecord("stage-02", true, 1)),
+                new CampaignProgressImportEntry(
+                    4, CreateStageRecord("stage-04", true, 2))
+            };
+
+            ProductMutationResult first = pipeline.Session.ImportLegacyCampaign(
+                "stage-05", entries);
+            ProductMutationResult second = pipeline.Session.ImportLegacyCampaign(
+                "stage-05", entries);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(first.Changed, Is.True);
+            Assert.That(second.Succeeded, Is.True);
+            Assert.That(second.Changed, Is.False);
+            Assert.That(pipeline.Progression.Campaign.LegacyMigrationCompleted,
+                Is.True);
+            Assert.That(pipeline.Progression.Campaign.HighestUnlockedStageId,
+                Is.EqualTo("stage-05"));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(700));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Lobby.AppliedMilestoneCount,
+                Is.EqualTo(2));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(700));
+        }
+
+        [Test]
+        public void StageClear_FirstClearRewardsOnceAndAcknowledgesLobby()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(pipeline.Session.ImportLegacyCampaign(
+                "stage-01",
+                Array.Empty<CampaignProgressImportEntry>()).Succeeded,
+                Is.True);
+            var request = new StageClearProgressRequest(
+                2,
+                "stage-02",
+                "stage-03",
+                CreateStageRecord("stage-02", true, 1));
+
+            ProductMutationResult first =
+                pipeline.Session.RecordStageClear(request);
+            ProductMutationResult repeated =
+                pipeline.Session.RecordStageClear(request);
+            ProductMutationResult acknowledged =
+                pipeline.Session.AcknowledgeLobbyMilestones();
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(repeated.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(300));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.Zero);
+            Assert.That(pipeline.Progression.Lobby.AppliedMilestoneCount,
+                Is.EqualTo(1));
+            Assert.That(acknowledged.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Lobby.PresentedMilestoneCount,
+                Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Campaign.StageRecords.Count,
+                Is.EqualTo(1));
+        }
+
+        [Test]
+        public void StageClear_SaveFailureDoesNotPublishPartialProgression()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(pipeline.Session.ImportLegacyCampaign(
+                "stage-01",
+                Array.Empty<CampaignProgressImportEntry>()).Succeeded,
+                Is.True);
+            save.FailWrites = true;
+
+            ProductMutationResult result = pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    2,
+                    "stage-02",
+                    "stage-03",
+                    CreateStageRecord("stage-02", true, 1)));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(pipeline.Progression.Economy.Coins, Is.Zero);
+            Assert.That(pipeline.Progression.Lobby.AppliedMilestoneCount,
+                Is.Zero);
+            Assert.That(pipeline.Progression.Campaign.StageRecords,
+                Is.Empty);
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,
@@ -577,6 +713,34 @@ namespace ColorGateRunner.Tests.EditMode
                 profile,
                 settings,
                 account);
+        }
+
+        private AppInitializationPipeline CreateSessionPipeline(
+            ILocalSaveService save)
+        {
+            return new AppInitializationPipeline(
+                save,
+                new ProfileService(
+                    new MutableClock(_firstUtc),
+                    new CountingIdGenerator("unused")),
+                new SettingsService(),
+                new LocalAccountService());
+        }
+
+        private static LocalStageProgressData CreateStageRecord(
+            string stageId,
+            bool cleared,
+            int clearCount)
+        {
+            return new LocalStageProgressData
+            {
+                StageId = stageId,
+                Cleared = cleared,
+                BestTime = cleared ? 8.5f : 0f,
+                BestNoItemTime = cleared ? 9f : 0f,
+                ClearCount = clearCount,
+                ContinuedClearCount = 0
+            };
         }
 
         private LocalSaveService CreateSave(

@@ -228,8 +228,9 @@ namespace ColorGateRunner.Product
         SaveLoad = 1,
         Profile = 2,
         Settings = 3,
-        PersistDirtyData = 4,
-        Complete = 5
+        Progression = 4,
+        PersistDirtyData = 5,
+        Complete = 6
     }
 
     public readonly struct AppInitializationResult

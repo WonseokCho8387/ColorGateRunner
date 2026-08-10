@@ -1,5 +1,6 @@
 using System;
 using ColorGateRunner.Core;
+using ColorGateRunner.Product;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -132,6 +133,7 @@ namespace ColorGateRunner.Presentation
 
         private StageSession _session;
         private IStageProgressStore _progressStore;
+        private string _clearSaveError = string.Empty;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
         private int _highestUnlocked;
@@ -316,7 +318,14 @@ namespace ColorGateRunner.Presentation
             _pauseCoordinator = new GameplayPauseCoordinator();
             _sceneTransitionLoader ??= new UnitySceneTransitionLoader();
             _pausedEffectWasPlaying = new bool[attemptEffects.Length];
-            _progressStore = new PlayerPrefsStageProgressStore();
+            _progressStore = AppRoot.TryGetActive(out AppRoot appRoot) &&
+                appRoot.Graph?.Progression?.Campaign != null &&
+                appRoot.Graph.Progression.Campaign.LegacyMigrationCompleted
+                    ? new ProductStageProgressStore(
+                        appRoot.Graph.ProductSession,
+                        appRoot.Graph.Progression,
+                        StageCatalog.Current)
+                    : new PlayerPrefsStageProgressStore();
             _haptics = new UnityHapticFeedback(IsVibrationEnabled);
             _telemetry = new DevelopmentTelemetry(developmentTelemetryEnabled);
             _highestUnlocked = _progressStore.LoadHighestUnlocked();
@@ -1382,7 +1391,7 @@ namespace ColorGateRunner.Presentation
             continueButton.onClick.AddListener(ContinueAfterFailure);
             retryButton.onClick.AddListener(RetryToItemSelection);
             replayButton.onClick.AddListener(RetryToItemSelection);
-            clearContinueButton.onClick.AddListener(ShowLobby);
+            clearContinueButton.onClick.AddListener(LeaveResultFlow);
             clearLobbyButton.onClick.AddListener(LeaveResultFlow);
             failLobbyButton.onClick.AddListener(LeaveResultFlow);
             pauseButton.onClick.AddListener(RequestPause);
@@ -1426,7 +1435,7 @@ namespace ColorGateRunner.Presentation
             continueButton.onClick.RemoveListener(ContinueAfterFailure);
             retryButton.onClick.RemoveListener(RetryToItemSelection);
             replayButton.onClick.RemoveListener(RetryToItemSelection);
-            clearContinueButton.onClick.RemoveListener(ShowLobby);
+            clearContinueButton.onClick.RemoveListener(LeaveResultFlow);
             clearLobbyButton.onClick.RemoveListener(LeaveResultFlow);
             failLobbyButton.onClick.RemoveListener(LeaveResultFlow);
             pauseButton.onClick.RemoveListener(RequestPause);
@@ -1448,7 +1457,43 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
+            if (_enteredFromFrontendLaunch)
+            {
+                if (_preRunReturnTransitioning)
+                {
+                    return;
+                }
+                _preRunReturnTransitioning = true;
+                _preRunReturnError = string.Empty;
+                _sceneTransitionLoader.LoadScene(
+                    frontendScenePath,
+                    OnResultFrontendLoadCompleted);
+                return;
+            }
+
             ShowLobby();
+        }
+
+        private void OnResultFrontendLoadCompleted(
+            SceneTransitionResult result)
+        {
+            if (this == null || result.Succeeded)
+            {
+                return;
+            }
+
+            _preRunReturnTransitioning = false;
+            _preRunReturnError = string.IsNullOrWhiteSpace(result.Error)
+                ? "FRONTEND LOAD FAILED"
+                : result.Error;
+            if (GetCurrentFlowState() == StageFlowState.StageCleared)
+            {
+                clearDetailsText.text += "\n" + _preRunReturnError;
+            }
+            else
+            {
+                failDetailsText.text += "\n" + _preRunReturnError;
+            }
         }
 
         private void BuildInitialGatePool()
@@ -1826,6 +1871,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             _clearRecorded = true;
+            _clearSaveError = string.Empty;
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             record = StageProgress.RecordClear(
@@ -1833,11 +1879,35 @@ namespace ColorGateRunner.Presentation
                 _session.ElapsedPlayingSeconds,
                 _session.Items,
                 _session.ContinueUsed);
-            _progressStore.SaveRecord(_selectedStageNumber, record);
-            _highestUnlocked = StageProgress.HighestUnlockedAfterClear(
+            int highestUnlocked = StageProgress.HighestUnlockedAfterClear(
                 _highestUnlocked,
                 _selectedStageNumber);
-            _progressStore.SaveHighestUnlocked(_highestUnlocked);
+            ProductMutationResult result;
+            if (_progressStore is IAtomicStageProgressStore atomicStore)
+            {
+                result = atomicStore.SaveClearResult(
+                    _selectedStageNumber,
+                    record,
+                    highestUnlocked);
+            }
+            else
+            {
+                _progressStore.SaveRecord(_selectedStageNumber, record);
+                _progressStore.SaveHighestUnlocked(highestUnlocked);
+                result = ProductMutationResult.Success(true);
+            }
+            if (result.Succeeded)
+            {
+                _highestUnlocked = highestUnlocked;
+            }
+            else
+            {
+                _clearSaveError = string.IsNullOrWhiteSpace(
+                    result.Error.Diagnostic)
+                        ? "PROGRESS SAVE FAILED"
+                        : result.Error.Diagnostic;
+                Debug.LogError(_clearSaveError);
+            }
         }
 
         private void TriggerFailure(StageGateView failedGate)
@@ -1931,7 +2001,10 @@ namespace ColorGateRunner.Presentation
                         $"STAGE {_selectedStageNumber} COMPLETE\n" +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
-                        $"BEST {record.BestTime:0.00}s";
+                        $"BEST {record.BestTime:0.00}s" +
+                        (string.IsNullOrWhiteSpace(_clearSaveError)
+                            ? string.Empty
+                            : $"\n{_clearSaveError}");
                     clearContinueButton.gameObject.SetActive(true);
                     replayButton.gameObject.SetActive(true);
                     clearLobbyButton.gameObject.SetActive(true);

@@ -1762,3 +1762,35 @@ Any mismatch blocks implementation.
   return state, and ON/OFF text remains readable at 9:16 on Android and WebGL.
 - Automation does not determine transition feel, visual polish, or touch
   ergonomics.
+
+## Iteration 15 — Automatic Lobby Progression Foundation
+
+### Focused acceptance
+
+- Schema 1 loads as dirty schema 2 with safe Campaign, Economy and Lobby
+  defaults; future-schema and recovery rules remain unchanged.
+- Legacy stable-ID Campaign import is one-time, atomic and reward-idempotent.
+- Stage clear grants first-clear/milestone rewards once, acknowledges only
+  presentation state, and publishes no partial state after save failure.
+- Frontend Lobby shows Product wallet, inventory, theme and next milestone,
+  then acknowledges the pending presentation without reapplying rewards.
+- Production-like Frontend tests import legacy PlayerPrefs while exact fixture
+  snapshots restore the user's Editor keys.
+
+### Final automated evidence
+
+- Product-focused EditMode `25/25`; focused Frontend PlayMode `16/16`.
+- Full EditMode `365/365`; full post-Builder PlayMode `186/186`.
+- Frontend Builder passed twice. Generated Frontend required-reference,
+  missing-script, unique-root, EventSystem and Build Settings checks passed.
+- Campaign and Step 10 simulations were omitted by Tier 2 because no Stage
+  data, deterministic generation, timing, judgment or balance input changed.
+- The Editor Product save was not written by tests. Before real migration it
+  remained schema 1/revision 18 with Guest ID unchanged. Package hashes and
+  non-volatile ProjectSettings semantics match the approved baseline.
+
+### Human review
+
+- Review placeholder Lobby hierarchy, automatic upgrade comprehension, reward
+  value, return transition feel and portrait readability. Automated evidence
+  does not prove motivation, polish, fairness or economy satisfaction.

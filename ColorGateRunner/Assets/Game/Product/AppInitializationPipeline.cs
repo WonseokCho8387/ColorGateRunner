@@ -9,12 +9,28 @@ namespace ColorGateRunner.Product
         private readonly ProfileService _profileService;
         private readonly SettingsService _settingsService;
         private readonly LocalAccountService _accountService;
+        private readonly ProgressionService _progressionService;
 
         public AppInitializationPipeline(
             ILocalSaveService saveService,
             ProfileService profileService,
             SettingsService settingsService,
             LocalAccountService accountService)
+            : this(
+                saveService,
+                profileService,
+                settingsService,
+                accountService,
+                new ProgressionService())
+        {
+        }
+
+        public AppInitializationPipeline(
+            ILocalSaveService saveService,
+            ProfileService profileService,
+            SettingsService settingsService,
+            LocalAccountService accountService,
+            ProgressionService progressionService)
         {
             _saveService = saveService ??
                 throw new ArgumentNullException(nameof(saveService));
@@ -24,20 +40,24 @@ namespace ColorGateRunner.Product
                 throw new ArgumentNullException(nameof(settingsService));
             _accountService = accountService ??
                 throw new ArgumentNullException(nameof(accountService));
+            _progressionService = progressionService ??
+                throw new ArgumentNullException(nameof(progressionService));
             Session = new LocalProductSession(
                 _saveService,
                 _profileService,
                 _settingsService,
-                _accountService);
+                _accountService,
+                _progressionService);
         }
 
         public int AttemptCount { get; private set; }
         public LocalProductSession Session { get; }
+        public ProgressionService Progression => _progressionService;
 
         public AppInitializationResult Initialize()
         {
             AttemptCount++;
-            var steps = new List<InitializationStep>(6)
+            var steps = new List<InitializationStep>(7)
             {
                 InitializationStep.ClockAndPaths,
                 InitializationStep.SaveLoad
@@ -59,9 +79,13 @@ namespace ColorGateRunner.Product
                 steps.Add(InitializationStep.Settings);
                 bool settingsDirty =
                     _settingsService.LoadOrCreateDefaults(data);
+                steps.Add(InitializationStep.Progression);
+                bool progressionDirty =
+                    _progressionService.LoadOrCreateDefaults(data);
                 _accountService.Load(_profileService.Current);
 
-                if (load.Dirty || profileDirty || settingsDirty)
+                if (load.Dirty || profileDirty || settingsDirty ||
+                    progressionDirty)
                 {
                     steps.Add(InitializationStep.PersistDirtyData);
                     LocalSaveWriteResult write = _saveService.Save(data);
