@@ -118,7 +118,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageCatalogArchitectureTest
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageSessionTests.cs`
 
-- `StageCatalog_ContainsThirteenValidStages`
+- `StageCatalog_ContainsTwentyValidStages`
 - `StageIds_AreUnique`
 - `StageNumbers_AreSequential`
 - `StagesOneToThree_DoNotAllowGreen`
@@ -167,6 +167,14 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignHiddenFlickerStageTe
 - `FlickerJudgment_UsesExactCampaignGameplayTimeBoundary`
 - `FlickerStage_BoosterUsesExistingAutoPassAndPreservesShield`
 - `Retry_ReproducesCampaignTargetsCyclesAndPhases`
+
+#### `CampaignActTwoStageTests.cs`
+
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignActTwoStageTests.cs`
+
+- `Catalog_ContainsApprovedActTwoCurve`
+- `ActTwoPlans_AreDeterministicAndKeepMechanicsIsolated`
+- `HiddenAndFlickerFinale_UseExistingBoundedOccurrenceContracts`
 
 ### Hidden, Flicker, Clone, Echo, and ETA
 

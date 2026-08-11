@@ -478,6 +478,42 @@ Campaign expands without changing Stages 1-11:
   resetting Gameplay Time and all per-View visibility/pulse state.
 - These values are human-play candidates, not a claim of final balance.
 
+## Iteration 16 Campaign Act 2 mastery curve
+
+Status: Implemented / Human Review Pending.
+
+Campaign expands from 13 to 20 Stages without adding a new color, input rule,
+item grant, modifier type, judgment path, or persistence authority.
+
+| Stage | Title | Gates | Base speed | Cadence | Primary mechanic |
+|---:|---|---:|---|---|---|
+| 14 | Tricolor Reset | 48 | `46 -> 66` | `1.10 -> 0.84s` | None |
+| 15 | Camouflage Mastery | 52 | `48 -> 68` | `1.08 -> 0.82s` | Camouflage |
+| 16 | Fog Forecast | 54 | `48 -> 68` | `1.08 -> 0.82s` | Fog |
+| 17 | Ice Sprint | 52 | `50 -> 70` | `1.04 -> 0.80s` | Ice |
+| 18 | Echo Decisions | 56 | `50 -> 70` | `1.06 -> 0.80s` | Echo |
+| 19 | Hidden Recall | 56 | `50 -> 70` | `1.08 -> 0.82s` | Hidden |
+| 20 | Flicker Finale | 60 | `52 -> 72` | `1.04 -> 0.78s` | Flicker |
+
+- All seven Stages use Red, Blue and Green from the start. Existing tap-budget,
+  maximum same-color run, deterministic seed and Retry contracts remain.
+- Stage 14 is intentionally shorter and mechanically clean after Stage 13. It
+  restores reaction margin before the mastery climb rather than making every
+  numeric value monotonically harder.
+- Stages 15–20 each enable exactly one previously introduced modifier. Echo
+  Provider remains the only runtime-added provider role and does not combine
+  with another modifier in this batch.
+- Stage 17 is a shorter pressure spike. Stage 18 uses Echo as an intentional
+  relief and resource-timing beat before Hidden and Flicker close the act.
+- Stage 6+ Shield and Booster selection remains available. No local Shield or
+  Booster tutorial grant is repeated, and inventory consumption is unchanged.
+- Stage 20 is an act finale, not the campaign endpoint. Clear progression,
+  automatic even-Stage Lobby milestones and stable-ID save records continue
+  through the already planned 36-Stage campaign.
+- Mechanical simulation values are balance evidence only. Human play must
+  judge visual readability, fatigue, rhythm variety and whether the returning
+  mechanics feel like mastery rather than repetition.
+
 ## Iteration 12 Gameplay Pause contract
 
 - Pause is available during Countdown, Playing, and Shield Recovery. It does

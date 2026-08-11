@@ -16,7 +16,7 @@ namespace ColorGateRunner.Tests.EditMode
 
             Assert.That(asset, Is.Not.Null);
             IStageCatalog catalog = asset.BuildCatalog();
-            Assert.That(catalog.Count, Is.EqualTo(13));
+            Assert.That(catalog.Count, Is.EqualTo(20));
             Assert.That(
                 catalog.GetByDisplayNumber(1).StartingSpeed,
                 Is.EqualTo(28f));

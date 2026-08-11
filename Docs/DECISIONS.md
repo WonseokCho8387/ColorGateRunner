@@ -1019,3 +1019,30 @@ Status: Implemented / balance tunable.
   and Experiment paths keep their existing destinations.
 - Ads, IAP, Hearts, Continue economy, item consumption, final Lobby art, and
   Stage 14-36 content are outside this Iteration.
+
+## Campaign Act 2 Stage 14–20 decisions
+
+Status: Approved and implemented.
+
+- Stage 14–20 form a complete second campaign act using only existing colors,
+  patterns, items and modifiers. This advances authored content instead of
+  creating another prototype-only mechanic system.
+- Stage IDs are `stage-14` through `stage-20`. Display numbers remain
+  contiguous and all existing Stage 1–13 definitions and deterministic output
+  remain unchanged.
+- Stage 14 is a shorter no-modifier recovery stage. Stages 15–20 revisit
+  Camouflage, Fog, Ice, Echo, Hidden and Flicker in that order.
+- A Stage may enable only its named modifier in this batch. Although the Core
+  representation supports flags, same-gate combinations are not approved
+  because visibility and provider presentation arbitration is not yet owned.
+- Red, Blue and Green remain the full active palette. A fourth color, new tap
+  rule, new mechanic tutorial and repeated local item grant are excluded.
+- Stage 17 supplies a short pressure spike, Stage 18 an Echo relief beat, and
+  Stages 19–20 the memory/attention finale. Difficulty is a wave rather than a
+  strictly monotonic gate-count increase.
+- Campaign Builder remains the Scene authority and must generate one selection
+  entry per Catalog Stage. The Lobby current-stage and title rectangles keep a
+  normalized vertical gap so every approved portrait reference resolution
+  passes overlap validation.
+- This batch does not implement item consumption, Continue pricing, ads, IAP,
+  Hearts, Shop, final Lobby art or Stages 21–36.

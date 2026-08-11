@@ -246,10 +246,18 @@ fairness, or polish.
 
 - Catalog IDs remain unique and stable; Lobby display, PreRun, Gameplay,
   persistence, Retry, and Next Stage use the same stable Stage ID.
-- Stage unlock and record writes remain device-wide Campaign PlayerPrefs and
-  separate from Product Guest identity.
+- Schema 2 Product Save owns runtime Stage unlock and record writes by stable
+  Stage ID. Legacy device-wide Campaign PlayerPrefs are imported once and then
+  retained unchanged as a rollback source; Campaign progression remains scoped
+  to the local Product profile and does not derive from Guest identity.
 - Locked stages cannot start; Clear unlocks only the next Stage; Retry returns
   through the existing PreRun/item-selection contract.
+- Catalog revision 6 contains 20 contiguous stable IDs. Stage 14 is a clean
+  three-color recovery Stage; Stages 15–20 enable exactly one of Camouflage,
+  Fog, Ice, Echo, Hidden or Flicker and never a same-gate modifier mix.
+- The Campaign selection UI contains exactly one generated entry per Catalog
+  Stage, and Lobby current-stage/title bounds remain separated at every
+  approved portrait reference resolution.
 - Shield, Booster, local grants, Echo, Continue, Goal, and failure priority
   preserve their documented interactions and do not grow pools.
 

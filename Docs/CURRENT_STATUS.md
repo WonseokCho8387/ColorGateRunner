@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `fc46379`
-- Base commit: `docs: reorganize validation guidance and history`
+- Implementation base HEAD: `654d02c`
+- Base commit: `feat: add automatic lobby progression foundation`
 - Authoritative completion HEAD: the commit named
-  `feat: add automatic lobby progression foundation`; its exact hash is
-  recorded in the Iteration 15 final report because a commit cannot contain
+  `feat: add campaign stages 14 through 20`; its exact hash is
+  recorded in the Iteration 16 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,8 +20,8 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 15 — Automatic Lobby Progression
-  Foundation**.
+- Current completed iteration: **Iteration 16 — Campaign Act 2: Stage
+  14–20**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -59,16 +59,18 @@ iterations but do not override this section.
 - Frontend Lobby displays Coins, inventory, current theme, visible upgrades,
   the next clear target, and a one-time reward summary. Frontend-origin result
   actions return there; direct/development entry keeps Campaign Lobby fallback.
+- Campaign contains 20 stable-ID Stages. Stage 14 is a clean three-color
+  recovery beat; Stages 15–20 revisit Camouflage, Fog, Ice, Echo, Hidden and
+  Flicker as isolated mastery stages without introducing a new mechanic or
+  mixed-modifier gate.
 
 ### Automated validation
 
-- EditMode: `365/365`
+- EditMode: `368/368`
 - PlayMode: `186/186`
 - Post-Builder PlayMode: `186/186`
-- Frontend Builder: 2 consecutive successful runs
-- Boot regeneration from Frontend Builder was restored because its semantic
-  output was unchanged
-- Campaign Builder: not required; Campaign Scene composition did not change
+- Campaign Builder: 2 consecutive successful runs
+- Stage Catalog Builder: revision 6 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -82,13 +84,15 @@ All three entries are expected to be enabled and unique.
 
 ### Campaign simulation baseline
 
-- Rows: `260`
+- Rows: `400`
 - Summary SHA-256:
-  `A06F565542393722D7F0D7FE740D9446B8B49C6C553C7BEB6B053D42024A951D`
+  `FAA0ED46B5B6F941C78C487CA8DC4E30752FE8DB1B95626C36B5E5DB02F85E5B`
 - JSON SHA-256:
-  `CED8EF947680C75C7851BAD7CF9B681D165A84C05577A3E735E444D882EEAA36`
+  `A23476F2C21425192706EBB28A9529266425AFE2A543A848B6B29A3789A2BEA0`
 - CSV SHA-256:
-  `1BCE424F8FF478CB112A9EFC0A126BD050D5D955A51352640E5F490553810AAA`
+  `91388698740E141C8B711BC8586D2D36172E6EA9FB7F25201AC22603CF8EB3B2`
+- The original Stage 1–13 CSV rows and JSON result prefix are byte-exact
+  against the prior 260-row baseline.
 
 ### Step 10 simulation baseline
 
@@ -107,18 +111,19 @@ All three entries are expected to be enabled and unique.
 
 ### Persistence safety baseline
 
-- Campaign PlayerPrefs snapshot contains Highest Unlocked plus Stage Record
-  keys 1-13 when present and must be restored exactly after tests.
+- Campaign PlayerPrefs rollback snapshot contains Highest Unlocked plus Stage
+  Record keys 1–20 when present and must be restored exactly after tests.
 - Actual Editor snapshot at Iteration 12 completion:
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- The pre-migration Editor Product save observed before final validation is
-  schema 1, revision 18, SHA-256
-  `2AA82FF028057B192EC61D433E12D3C31E15F000D3E27403808FB6C916C29218`.
-  Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged and the
-  validation fixtures did not write this file. The next real production Boot
-  is expected to migrate it to schema 2 and import legacy Campaign progress.
+- The Editor Product save observed after the user's production play is schema
+  2, revision 21, with 13 Stage records through `stage-13`, 2,600 Coins, and
+  six applied/presented Lobby milestones. Its SHA-256 is
+  `91300EE1009C0A24047230F44D30B31C6E4F43C670FC09EE94B652EFBF00AE5C`.
+  Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged. The file's
+  `LastWriteUtc` is `2026-08-10T15:24:13.7419951Z`, before Iteration 16
+  validation, so the validation fixtures did not write this file.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
 
 ### Package and ProjectSettings baseline
@@ -139,6 +144,36 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 16
+
+(Campaign Act 2: Stage 14–20)
+
+---
+
+- Catalog revision 6 adds stable IDs `stage-14` through `stage-20`, all using
+  the existing Red/Blue/Green cycle and existing Shield/Booster selection.
+- Stage 14 is a shorter unmodified recovery stage. Stages 15–20 revisit one
+  existing primary mechanic each: Camouflage, Fog, Ice, Echo, Hidden and
+  Flicker. No stage enables mixed modifiers or a new tutorial grant.
+- Campaign Builder generated 20 Stage buttons in two consecutive passes. A
+  two-percent normalized gap between current-stage and title text fixes the
+  overlap exposed by portrait reference-resolution validation.
+- Targeted EditMode `3/3`, full EditMode `368/368`, and final post-Builder
+  PlayMode `186/186` passed. No Missing Script, Missing Reference, duplicate
+  root, EventSystem or Build Settings regression was reported.
+- Campaign simulation now contains 400 rows. Its prior Stage 1–13 CSV rows and
+  JSON result prefix are byte-exact, while the approved full hashes are owned
+  by the Authoritative Baseline above. Step 10 was not rerun because shared
+  mechanic rules, Experiment inputs and player profiles did not change.
+- Mechanical Average/No Item first-clear rates are `23.6%` at Stage 14,
+  `15.9%`, `15.8%`, `12.9%`, `24.8%`, `13.4%`, and `12.6%` through Stage 20.
+  Stage 18 deliberately forms an Echo relief beat. These figures do not prove
+  fun, readability, fairness or launch balance.
+
+---
 
 Version
 

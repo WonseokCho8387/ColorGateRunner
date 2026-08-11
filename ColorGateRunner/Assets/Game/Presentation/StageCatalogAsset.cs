@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 5;
+        private const int CurrentCatalogRevision = 6;
 
         [Serializable]
         private sealed class StageEntry
@@ -717,6 +717,181 @@ namespace ColorGateRunner.Presentation
                     .WithSpeedCurve(
                         new Keyframe(0f, 0f),
                         new Keyframe(0.50f, 0.30f),
+                        new Keyframe(0.80f, 0.70f),
+                        new Keyframe(1f, 1f))
+                    .WithFlicker(),
+                StageEntry.Create(
+                    "stage-14", 14, "TRICOLOR RESET",
+                    "Rebuild a clean three-color rhythm.",
+                    48, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    46f, 66f, 1.10f, 0.84f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Steady,
+                        GatePatternType.Release
+                    },
+                    6, 9, 620f, 124f, 140014u)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.45f, 0.30f),
+                        new Keyframe(0.78f, 0.70f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-15", 15, "CAMOUFLAGE MASTERY",
+                    "Read concealed gates in a three-color flow.",
+                    52, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    48f, 68f, 1.08f, 0.82f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.SameColorBait,
+                        GatePatternType.Release
+                    },
+                    6, 10, 640f, 126f, 150015u,
+                    true, null,
+                    StagePrimaryMechanic.Camouflage,
+                    GateModifierType.Camouflage)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.42f, 0.28f),
+                        new Keyframe(0.76f, 0.68f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-16", 16, "FOG FORECAST",
+                    "Plan the next color through a limited sightline.",
+                    54, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    48f, 68f, 1.08f, 0.82f,
+                    new[]
+                    {
+                        GatePatternType.Steady,
+                        GatePatternType.SingleColorBreak,
+                        GatePatternType.Release
+                    },
+                    6, 10, 660f, 128f, 160016u,
+                    true, null,
+                    StagePrimaryMechanic.Fog,
+                    GateModifierType.Fog)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.45f, 0.30f),
+                        new Keyframe(0.78f, 0.70f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-17", 17, "ICE SPRINT",
+                    "Control a short high-speed three-color run.",
+                    52, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    50f, 70f, 1.04f, 0.80f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Syncopation,
+                        GatePatternType.Burst
+                    },
+                    5, 11, 680f, 130f, 170017u,
+                    true, null,
+                    StagePrimaryMechanic.Ice,
+                    GateModifierType.Ice)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.38f, 0.24f),
+                        new Keyframe(0.72f, 0.64f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-18", 18, "ECHO DECISIONS",
+                    "Choose when to save and spend Echo protection.",
+                    56, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    50f, 70f, 1.06f, 0.80f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.SameColorBait,
+                        GatePatternType.SingleColorBreak
+                    },
+                    6, 11, 700f, 132f, 180018u,
+                    true, null,
+                    StagePrimaryMechanic.Echo,
+                    GateModifierType.EchoProvider,
+                    true)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.42f, 0.27f),
+                        new Keyframe(0.75f, 0.66f),
+                        new Keyframe(1f, 1f)),
+                StageEntry.Create(
+                    "stage-19", 19, "HIDDEN RECALL",
+                    "Hold three-color targets in memory under pressure.",
+                    56, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    50f, 70f, 1.08f, 0.82f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.SingleColorBreak,
+                        GatePatternType.Release
+                    },
+                    7, 11, 720f, 134f, 190019u,
+                    true, null,
+                    StagePrimaryMechanic.Hidden,
+                    GateModifierType.Hidden)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.45f, 0.28f),
+                        new Keyframe(0.76f, 0.66f),
+                        new Keyframe(1f, 1f))
+                    .WithHidden(),
+                StageEntry.Create(
+                    "stage-20", 20, "FLICKER FINALE",
+                    "Finish the act by tracking every color shift.",
+                    60, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    52f, 72f, 1.04f, 0.78f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Syncopation,
+                        GatePatternType.Burst
+                    },
+                    7, 12, 740f, 136f, 200020u,
+                    true, null,
+                    StagePrimaryMechanic.Flicker,
+                    GateModifierType.Flicker)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.48f, 0.28f),
                         new Keyframe(0.80f, 0.70f),
                         new Keyframe(1f, 1f))
                     .WithFlicker()

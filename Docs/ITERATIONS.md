@@ -1305,3 +1305,82 @@ Human feedback required
   newly unlocked step immediately understandable at portrait 9:16.
 - Confirm automatic rewards feel meaningful; exact values remain tunable and
   automation does not establish motivation, polish or economy satisfaction.
+
+## Iteration 16 — Campaign Act 2: Stage 14–20
+
+### Play
+
+- The first 13 Stages and core loop were mechanically stable, but campaign
+  production had stopped at the prototype introduction sequence.
+- The product needed authored forward progress using the approved mechanic set
+  before adding Continue economy, Shop or another gimmick.
+
+### Analyze
+
+- Campaign UI and progression already derive from the Stage Catalog, so a new
+  campaign layer would duplicate ownership.
+- Modifier flags can technically coexist, but Echo, Hidden, Flicker and
+  visibility modifiers have no approved same-gate presentation arbitration.
+- Several tests and the rollback PlayerPrefs snapshot still fixed the catalog
+  at 13 entries. The Campaign Builder itself already scales from Catalog count.
+- `TEST_PLAN.md` still described PlayerPrefs as runtime progression authority,
+  conflicting with the implemented schema-2 Product save contract.
+
+### Design
+
+- Create a seven-Stage mastery act: clean three-color recovery, then isolated
+  Camouflage, Fog, Ice, Echo, Hidden and Flicker revisits.
+- Use a difficulty wave: shorter recovery at 14, short pressure at 17, Echo
+  relief at 18, and Hidden/Flicker finale at 19–20.
+- Keep existing items selectable but do not repeat local tutorial grants or
+  introduce inventory consumption.
+
+### Implementation
+
+- Catalog revision 6 adds stable IDs `stage-14` through `stage-20`, authored
+  curves, patterns, seeds and single-mechanic settings.
+- Stage Catalog Builder upgrades catalogs below 20 entries. Campaign Builder
+  regenerates the Scene with 20 selection buttons.
+- Expanded Catalog validity and rollback snapshot bounds to 20. Added focused
+  Act 2 curve, determinism and modifier-isolation tests.
+- Added a normalized gap between Campaign Lobby current-stage and title labels
+  after the reference-resolution test exposed a one-pixel overlap.
+- Corrected `TEST_PLAN.md` to name schema-2 Product Save as runtime Campaign
+  authority and legacy PlayerPrefs as an untouched rollback/import source.
+
+### Validation
+
+- Focused Act 2 EditMode `3/3`; full EditMode `368/368`; final post-Builder
+  PlayMode `186/186`.
+- Campaign Builder completed two consecutive builds and structural validation.
+  Required references, 20 Stage entries, generated-root uniqueness,
+  EventSystem and Build Settings checks passed.
+- Campaign simulation expanded from 260 to 400 rows. The prior Stage 1–13 CSV
+  rows and JSON result prefix are byte-exact. New full hashes are recorded in
+  `CURRENT_STATUS.md`.
+- Step 10 was not rerun: no shared mechanic rule, Experiment contract, player
+  profile or simulation input changed.
+- Packages and non-volatile ProjectSettings semantics remain unchanged.
+
+### Learning
+
+- Existing mechanics can support a second act when their rhythm role and
+  pacing context change; novelty does not require another runtime subsystem.
+- Difficulty curves benefit from recovery and relief beats. A strictly rising
+  gate count would turn content volume into fatigue.
+- Exact-touch UI anchors are not a safe gap across portrait resolutions.
+
+### Deferred
+
+- Continue Coin pricing and one-ad-per-attempt policy, item consumption,
+  Hearts, Shop/IAP, final Lobby visuals, Stages 21–36 and release packaging.
+
+### Human Review
+
+- Play Stages 14–20 in order and judge whether each returning mechanic feels
+  like mastery rather than repetition.
+- Check Stage 14 recovery, Stage 17 pressure, Stage 18 relief and Stage 20
+  finale fatigue on portrait Android and WebGL.
+- Automation does not establish fun, readability, comfort, fairness or final
+  balance. Mechanical Average/No Item first-clear rates range from `12.6%` to
+  `24.8%` in this act.

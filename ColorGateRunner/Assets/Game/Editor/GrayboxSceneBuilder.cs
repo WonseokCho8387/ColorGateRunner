@@ -1149,7 +1149,7 @@ namespace ColorGateRunner.Editor
                 panel.transform,
                 "STAGE 1",
                 42,
-                new Vector2(0.12f, 0.63f),
+                new Vector2(0.12f, 0.64f),
                 new Vector2(0.88f, 0.70f));
             stageTitle = CreateText(
                 "LobbyStageTitle",
@@ -1157,7 +1157,7 @@ namespace ColorGateRunner.Editor
                 "TWO-COLOR BASICS",
                 38,
                 new Vector2(0.1f, 0.54f),
-                new Vector2(0.9f, 0.63f));
+                new Vector2(0.9f, 0.62f));
             stageDescription = CreateText(
                 "LobbyStageDescription",
                 panel.transform,

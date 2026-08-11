@@ -1794,3 +1794,42 @@ Any mismatch blocks implementation.
 - Review placeholder Lobby hierarchy, automatic upgrade comprehension, reward
   value, return transition feel and portrait readability. Automated evidence
   does not prove motivation, polish, fairness or economy satisfaction.
+
+## Iteration 16 — Campaign Act 2: Stage 14–20
+
+### Focused acceptance
+
+- Catalog revision 6 resolves 20 unique contiguous stable IDs and preserves
+  every Stage 1–13 definition.
+- Stage 14–20 match the approved gate counts, speed/cadence curves, three-color
+  palette and primary mechanics.
+- Generated plans are deterministic. Stage 14 has no modifier; each later
+  Stage contains only its named modifier. Hidden and Flicker remain bounded to
+  four deterministic occurrences.
+- Campaign Builder generates 20 buttons and keeps Lobby current-stage/title
+  bounds separate across the approved portrait reference resolutions.
+
+### Final automated evidence
+
+- Focused Act 2 EditMode `3/3`; full EditMode `368/368`; final post-Builder
+  PlayMode `186/186`.
+- Campaign Builder completed two consecutive generation passes and structural
+  validation with no Missing Script, Missing Reference, duplicate root,
+  EventSystem or Build Settings failure.
+- Campaign simulation produced 400 rows: 20 rows for each Stage 1–20. Prior
+  Stage 1–13 CSV rows and the JSON results prefix match the approved 260-row
+  baseline byte-for-byte.
+- Full hashes: Summary
+  `FAA0ED46B5B6F941C78C487CA8DC4E30752FE8DB1B95626C36B5E5DB02F85E5B`,
+  JSON `A23476F2C21425192706EBB28A9529266425AFE2A543A848B6B29A3789A2BEA0`,
+  CSV `91388698740E141C8B711BC8586D2D36172E6EA9FB7F25201AC22603CF8EB3B2`.
+- Step 10 remained at its approved baseline because no Experiment contract,
+  shared mechanic rule, player profile or simulation input changed.
+
+### Human review
+
+- Play Stages 14–20 consecutively on portrait Android and WebGL. Judge rhythm
+  variety, returning-mechanic mastery, Stage 14 recovery, Stage 17 pressure,
+  Stage 18 relief and Stage 20 fatigue.
+- Automation does not prove fun, readability, fairness, comfort or final
+  balance.

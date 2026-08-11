@@ -9,7 +9,7 @@ namespace ColorGateRunner.Tests.PlayMode
             "ColorGateRunner.Stage.HighestUnlocked";
         internal const string RecordKeyPrefix =
             "ColorGateRunner.Stage.Record.";
-        internal const int StageCount = 13;
+        internal const int StageCount = 20;
 
         private readonly IntEntry _highestUnlocked;
         private readonly StringEntry[] _records;
