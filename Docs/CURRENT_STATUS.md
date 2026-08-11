@@ -8,20 +8,20 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `654d02c`
-- Base commit: `feat: add automatic lobby progression foundation`
+- Implementation base HEAD: `fea8fe1`
+- Base commit: `feat: add campaign stages 14 through 20`
 - Authoritative completion HEAD: the commit named
-  `feat: add campaign stages 14 through 20`; its exact hash is
-  recorded in the Iteration 16 final report because a commit cannot contain
-  its own content-derived hash.
+  `feat: restructure campaign learning curve`; its exact hash is recorded in
+  the Iteration 17 final report because a commit cannot contain its own
+  content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
 - Push status at completion: not pushed
 
 ### Current product state
 
-- Current completed iteration: **Iteration 16 — Campaign Act 2: Stage
-  14–20**.
+- Current completed iteration: **Iteration 17 — Campaign learning-curve
+  rebalance**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -59,18 +59,21 @@ iterations but do not override this section.
 - Frontend Lobby displays Coins, inventory, current theme, visible upgrades,
   the next clear target, and a one-time reward summary. Frontend-origin result
   actions return there; direct/development entry keeps Campaign Lobby fallback.
-- Campaign contains 20 stable-ID Stages. Stage 14 is a clean three-color
-  recovery beat; Stages 15–20 revisit Camouflage, Fog, Ice, Echo, Hidden and
-  Flicker as isolated mastery stages without introducing a new mechanic or
-  mixed-modifier gate.
+- Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
+  foundation; Stage 6 provides Shield and Stage 7 provides Booster while
+  selection stays locked; Stage 8 is the first clean three-color Stage with
+  selectable items. Stages 9–20 teach Camouflage, Fog, Ice and Echo in
+  three-Stage intro/practice/mastery blocks using 2/2/3 colors. Hidden and
+  Flicker remain available in Experiment Lab but are deferred from Campaign
+  until the planned Stages 21–23 and 24–26.
 
 ### Automated validation
 
-- EditMode: `368/368`
-- PlayMode: `186/186`
-- Post-Builder PlayMode: `186/186`
+- EditMode: `367/367`
+- PlayMode: `195/195`
+- Post-Builder PlayMode: `195/195`
 - Campaign Builder: 2 consecutive successful runs
-- Stage Catalog Builder: revision 6 Resource contains 20 valid stages
+- Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -86,13 +89,15 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `400`
 - Summary SHA-256:
-  `FAA0ED46B5B6F941C78C487CA8DC4E30752FE8DB1B95626C36B5E5DB02F85E5B`
+  `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
 - JSON SHA-256:
-  `A23476F2C21425192706EBB28A9529266425AFE2A543A848B6B29A3789A2BEA0`
+  `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`
 - CSV SHA-256:
-  `91388698740E141C8B711BC8586D2D36172E6EA9FB7F25201AC22603CF8EB3B2`
-- The original Stage 1–13 CSV rows and JSON result prefix are byte-exact
-  against the prior 260-row baseline.
+  `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`
+- Two complete runs are byte-identical. The original Stage 1–5 CSV 100 rows
+  and JSON first 100 results are exact against the prior baseline.
+- Continuity and pool-violation counters are zero. Step 10 was not rerun
+  because its Experiment contracts and inputs did not change.
 
 ### Step 10 simulation baseline
 
@@ -117,13 +122,12 @@ All three entries are expected to be enabled and unique.
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- The Editor Product save observed after the user's production play is schema
-  2, revision 21, with 13 Stage records through `stage-13`, 2,600 Coins, and
-  six applied/presented Lobby milestones. Its SHA-256 is
-  `91300EE1009C0A24047230F44D30B31C6E4F43C670FC09EE94B652EFBF00AE5C`.
-  Guest ID `2dfe4f6ffa914e7a95e2fd30de5b6307` is unchanged. The file's
-  `LastWriteUtc` is `2026-08-10T15:24:13.7419951Z`, before Iteration 16
-  validation, so the validation fixtures did not write this file.
+- The Editor Product save is schema 2, revision 23, profile/Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, with Highest Stage 13, 13 Stage
+  records, 2,600 Coins, 4 Shields and 4 Boosters. Its SHA-256 is
+  `39FB23837EE260E8F1B3CF7E1EF7EBE6389DC689A59CC3E68B6164516E180A18`
+  and `LastWriteUtc` is `2026-08-11T03:21:03.1535325Z`. The hash and values
+  were identical after Iteration 17 validation.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
 
 ### Package and ProjectSettings baseline
@@ -144,6 +148,28 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 17
+
+(Campaign Learning Curve Rebalance)
+
+---
+
+- Catalog revision 7 preserves stable IDs and Stage 1–5 exact simulation
+  results while replacing the Stage 6–20 learning order.
+- Stage 6/7 provided-item labels take precedence over locked selection;
+  Stage 8 is the first selectable-item application Stage.
+- Camouflage, Fog, Ice and Echo now use contiguous intro/practice/mastery
+  blocks. Hidden and Flicker Campaign bindings are deferred to Stages 21+;
+  their Experiment implementations and tests remain.
+- EditMode `367/367`, post-Builder PlayMode `195/195`, and two Campaign
+  Builder runs passed. The 400-row Campaign report reproduced byte-identically
+  twice with zero continuity or pool violations.
+- Save-failure PlayMode coverage now arms the exact next write, verifies the
+  user-visible failure state, and no longer expects a log that the product
+  contract never emits.
 
 Version
 

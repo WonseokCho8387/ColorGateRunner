@@ -18,9 +18,11 @@ GPT는 Game Director 및 Product/UX 설계자로 행동한다.
 
 - Unity 기반 모바일 Portrait 게임
 - 핵심 플레이: 플레이어 색상을 바꾸며 다가오는 Gate를 통과
-- 현재 Campaign Stage 1–13 구현
-- 주요 기믹:
-  Shield, Booster, Camouflage, Fog, Ice, Echo, Hidden, Flicker
+- 현재 Campaign Stage 1–20 구현, Stage Catalog revision 7
+- 현재 Campaign 기믹:
+  Shield, Booster, Camouflage, Fog, Ice, Echo
+- Hidden과 Flicker는 Experiment Lab에 구현되어 있지만 Campaign 배치는
+  각각 Stage 21–23과 24–26으로 연기
 - 목표 플랫폼:
   Android와 WebGL
 - 기본 화면비:
@@ -29,9 +31,9 @@ GPT는 Game Director 및 Product/UX 설계자로 행동한다.
 ## 3. 현재 Git 상태
 
 - 브랜치: main
-- 인수인계 작성 시점의 기반 커밋: fc46379
+- Iteration 17 구현 기반 커밋: fea8fe1
 - 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
-  feat: add automatic lobby progression foundation
+  feat: restructure campaign learning curve
 
 최신 HEAD와 테스트 수는 항상 저장소의
 Docs/CURRENT_STATUS.md를 권위자로 사용한다.
@@ -87,6 +89,15 @@ fallback으로 유지한다.
 - 알림, 음악, 효과음, 진동 설정 저장
 - 이용약관, 개인정보, 지원 링크 Configuration 경계
 - PlayMode 테스트의 Campaign PlayerPrefs 격리
+- Campaign Stage 1–20 학습 곡선 재배치
+  - Stage 1–5: 색상과 리듬 기초
+  - Stage 6: 제공 Shield, 선택 잠금
+  - Stage 7: 제공 Booster, 선택 잠금
+  - Stage 8: 첫 3색 적용 및 첫 아이템 선택
+  - Stage 9–11: Camouflage 입문/연습/숙련
+  - Stage 12–14: Fog 입문/연습/숙련
+  - Stage 15–17: Ice 입문/연습/숙련
+  - Stage 18–20: Echo 입문/연습/숙련
 
 ## 6. 최근 해결한 문제
 
@@ -98,6 +109,20 @@ fallback으로 유지한다.
 - Unity Package가 관리하는 WebGL define 때문에 작업이 반복 중단되던 문제
 
 ## 7. 현재 저장 정책
+
+### Iteration 17 검증 기준
+
+- EditMode `367/367`
+- PlayMode 및 Post-Builder PlayMode `195/195`
+- Campaign simulation `400` rows, 연속 2회 byte-identical
+- Campaign Summary SHA-256:
+  `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
+- Campaign JSON SHA-256:
+  `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`
+- Campaign CSV SHA-256:
+  `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`
+
+최신 수치와 해시는 항상 `CURRENT_STATUS.md`를 우선한다.
 
 - Product Profile, Settings, Campaign Progress, Economy, Lobby Progress:
   versioned product-save.json
@@ -132,7 +157,7 @@ fallback으로 유지한다.
 ## 9. 지켜야 할 핵심 계약
 
 - Gameplay Core는 Unity 비의존 구조를 유지한다.
-- Stage 1–13 데이터와 결정론적 결과를 임의로 변경하지 않는다.
+- 현재 Stage 1–20 Catalog 데이터와 결정론적 결과를 임의로 변경하지 않는다.
 - Campaign 진행과 Economy의 저장 권위자를 중복 생성하지 않는다.
 - PlayerPrefs를 Scene 이동 Payload로 사용하지 않는다.
 - Scene 이름이나 Build Index를 런타임에서 하드코딩하지 않는다.
@@ -158,7 +183,9 @@ GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최
 
 ## 11. 아직 남은 주요 작업
 
-- Stage 14–36 제작과 난이도 곡선 검증
+- Stage 1–20 학습 곡선 인간 플레이 검증
+- Hidden Stage 21–23, Flicker Stage 24–26 제작
+- Stage 27–36 후반 Campaign 설계와 제작
 - Lobby 3개 Theme의 최종 아트, 애니메이션, 보상 연출
 - Coin Continue 가격 상승과 게임당 광고 Continue 1회 정책 구현
 - Shield/Booster 실제 Inventory 소비와 구매

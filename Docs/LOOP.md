@@ -412,3 +412,59 @@ legibility. Automated results do not decide balance quality.
 ↓
 
 Play Again
+
+---
+
+Latest Campaign Learning-Curve Redistribution Cycle
+
+Play
+
+Sequential Campaign play introduced new mechanics faster than players could
+adapt. Convenience-item demonstrations were useful early, but each following
+Stage moved immediately to another mechanic.
+
+↓
+
+Analyze
+
+The single Catalog and deterministic runtime already supported longer isolated
+mechanic blocks. Hidden and Flicker could leave the current Campaign without
+losing implementation coverage because their Experiment paths remain active.
+
+↓
+
+Design
+
+Keep Stages 1-5 exact, isolate provided Shield at 6 and provided Booster at 7,
+use clean three-color Stage 8 for ordinary item application, then teach
+Camouflage, Fog, Ice and Echo in three-Stage 2/2/3-color blocks. Defer Hidden
+21-23 and Flicker 24-26.
+
+↓
+
+Codex
+
+Catalog revision 7 redistributed the 20 stable-ID definitions and regenerated
+the Campaign Scene. Product-save identity, mechanic rules, fixed pools and
+Experiment contracts were preserved.
+
+↓
+
+Tests
+
+EditMode `367/367` and post-Builder PlayMode `195/195` passed after two Builder
+passes. Two 400-row Campaign simulations were byte-identical; Stage 1-5's 100
+CSV rows and first 100 JSON results remain exact, and continuity/pool
+violations remain zero. Step 10 stayed untouched.
+
+↓
+
+Experiment
+
+Human play now owns whether each introduction/practice/mastery block creates
+real learning without repetitive fatigue, and whether the 2/2/3-color mastery
+step is readable on portrait devices.
+
+↓
+
+Play Again

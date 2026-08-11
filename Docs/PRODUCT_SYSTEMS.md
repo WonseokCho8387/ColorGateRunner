@@ -336,7 +336,7 @@ Rules:
 - Catalog order determines normal next-Stage progression.
 - A clear is recorded exactly once per result.
 - Continue clears preserve existing Best restrictions.
-- Stage 1-13 definitions and deterministic plans are not duplicated in save.
+- Stage 1–20 definitions and deterministic plans are not duplicated in save.
 - Unknown saved Stage IDs are not remapped by array index.
 
 # 7. Economy
@@ -811,6 +811,23 @@ Implementation status: Completed in Iteration 15.
 - External ads, IAP, Hearts, Continue pricing, item consumption, and real
   Lobby art/theme content remain deferred.
 
+### Iteration 17 Campaign-content integration
+
+- Stable IDs, Product progression ownership and reward transaction IDs do not
+  change when Stage content is reauthored.
+- Catalog revision 7 keeps 20 contiguous stable IDs. The active Campaign is
+  Stages 1–5 foundation, Stage 6/7 provided-item teaching, Stage 8 clean
+  three-color application, then Camouflage 9–11, Fog 12–14, Ice 15–17 and
+  Echo 18–20 intro/practice/mastery blocks. Hidden 21–23, Flicker 24–26 and
+  Stages 27–36 remain future Catalog content rather than saved placeholders.
+- Stage 6/7 provided items remain attempt-local grants and never consume
+  Product inventory. Manual selection is locked for Stages 1–7 and enabled
+  from Stage 8, but inventory consumption remains deferred.
+- Rebalancing an existing stable Stage does not migrate, clear or synthesize
+  its saved record. Highest Unlocked and all schema-2 balances remain intact.
+- Iteration 17 validation preserved the actual schema-2 revision-23 save,
+  Guest ID, 13 records, 2,600 Coins and 4/4 item balances exactly.
+
 ## Product Iteration 3 — Frontend support
 
 - SceneFlowService.
@@ -852,7 +869,7 @@ The local product foundation is complete when:
 - Fresh install creates a Guest profile.
 - Boot initializes one AppRoot.
 - Save data is versioned and recoverable.
-- Stage 1-13 progress persists by stable ID.
+- Stage 1–20 progress persists by stable ID.
 - Existing Continue and Best rules persist correctly.
 - Offline play reaches Gameplay.
 - Frontend pages consume services instead of `PlayerPrefs` transport.

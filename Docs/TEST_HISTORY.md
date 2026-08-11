@@ -1833,3 +1833,51 @@ Any mismatch blocks implementation.
   Stage 18 relief and Stage 20 fatigue.
 - Automation does not prove fun, readability, fairness, comfort or final
   balance.
+
+## Iteration 17 - Campaign Learning-Curve Redistribution
+
+### Focused acceptance
+
+- Catalog revision 7 contains 20 contiguous stable IDs. Stages 1-5 remain
+  exact foundation content; Stage 6 is locked provided Shield, Stage 7 is
+  locked provided Booster and Stage 8 is a clean three-color selectable-item
+  Stage.
+- Camouflage Stages 9-11, Fog 12-14, Ice 15-17 and Echo 18-20 each follow
+  two-color introduction, two-color practice and three-color mastery. No
+  current Campaign Stage authors Hidden or Flicker.
+- Hidden and Flicker continue to pass their independent Core, Experiment and
+  PlayMode contracts while Campaign placement is deferred to Stages 21-26.
+- Product-save progression remains bound to the existing stable IDs. The
+  redistribution introduces no save reset, record remap or migration.
+
+### Final automated evidence
+
+- Full EditMode: `367/367` passed.
+- Full post-Builder PlayMode: `195/195` passed.
+- Campaign Builder completed two consecutive passes. Generated Catalog/Scene
+  references, 20 selection entries, unique roots, EventSystem and Build
+  Settings validation passed.
+- Two complete Campaign simulation runs each produced 400 rows and were
+  byte-identical. Approved hashes are:
+  - Summary:
+    `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
+  - JSON:
+    `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`
+  - CSV:
+    `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`
+- The prior Stage 1-5 CSV 100 rows and the first 100 JSON result objects match
+  exactly. Continuity, cursor, gate-index, duplicate and fixed-pool violation
+  counters remain zero.
+- Step 10 artifacts were not rewritten because Experiment contracts, shared
+  mechanic rules, profiles and simulation inputs are unchanged.
+- The Product save-failure test fixture was stabilized to fail at its intended
+  persistence boundary. This changes test robustness only, not runtime save
+  behavior.
+
+### Human review
+
+- Play the four three-Stage mechanic blocks consecutively on portrait Android
+  and WebGL. Judge comprehension, repetition fatigue, block transitions and
+  the two-color-to-three-color mastery step.
+- Automation does not establish whether the revised curve teaches effectively
+  or feels fun, fair, readable and comfortable.

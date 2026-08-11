@@ -8,7 +8,7 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class StageCatalogArchitectureTests
     {
         [Test]
-        public void ResourceAsset_BuildsExpandedCatalogAndPreservesLegacyStages()
+        public void ResourceAsset_BuildsLearningCurveAndPreservesFoundationStages()
         {
             StageCatalogAsset asset =
                 Resources.Load<StageCatalogAsset>(
@@ -39,7 +39,22 @@ namespace ColorGateRunner.Tests.EditMode
                 catalog.GetByDisplayNumber(6).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Shield));
             Assert.That(
-                catalog.GetByDisplayNumber(11).EchoSettings.Enabled,
+                catalog.GetByDisplayNumber(7).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Booster));
+            Assert.That(
+                catalog.GetByDisplayNumber(8).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.None));
+            Assert.That(
+                catalog.GetByDisplayNumber(9).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Camouflage));
+            Assert.That(
+                catalog.GetByDisplayNumber(12).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Fog));
+            Assert.That(
+                catalog.GetByDisplayNumber(15).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Ice));
+            Assert.That(
+                catalog.GetByDisplayNumber(18).EchoSettings.Enabled,
                 Is.True);
         }
 

@@ -1384,3 +1384,90 @@ Human feedback required
 - Automation does not establish fun, readability, comfort, fairness or final
   balance. Mechanical Average/No Item first-clear rates range from `12.6%` to
   `24.8%` in this act.
+
+## Iteration 17 - Campaign Learning-Curve Redistribution
+
+### Play
+
+- Sequential play showed that the prior Campaign introduced almost one new
+  mechanic per Stage. Players had little time to recognize, practice and
+  master a mechanic before the next one appeared.
+- Shield and Booster demonstrations were useful early convenience lessons, but
+  Hidden and Flicker arrived before the preceding visibility and movement
+  mechanics had enough Campaign practice.
+
+### Analyze
+
+- The existing Catalog, deterministic generator, runtime binding and Campaign
+  Builder already support repeated isolated-mechanic Stages. A new level or
+  mechanic system was unnecessary.
+- Stable Stage IDs already own saved progression. Reusing those IDs and changing
+  only authored definitions preserves Product-save identity and avoids an
+  unapproved reset or migration.
+- Hidden and Flicker retain complete Lab coverage, so removing them from the
+  current Campaign does not remove their implementation or regression safety.
+
+### Design
+
+- Preserve Stages 1-5 exactly. Keep Stage 6 as the locked provided-Shield
+  lesson and Stage 7 as the locked provided-Booster lesson.
+- Make Stage 8 a clean three-color recovery and ordinary selectable-item Stage.
+- Allocate three Stages to each current Campaign mechanic: Camouflage 9-11,
+  Fog 12-14, Ice 15-17 and Echo 18-20. Every block follows a two-color
+  introduction, two-color practice and three-color mastery shape.
+- Defer Hidden to Stages 21-23 and Flicker to Stages 24-26 rather than
+  compressing them into the first 20 Stages.
+
+### Implementation
+
+- Catalog revision 7 redistributes all post-foundation Campaign definitions
+  without changing the 20 stable IDs or Product-save ownership.
+- Campaign-only Hidden/Flicker placement tests were retired while their Core,
+  Experiment and PlayMode mechanic coverage remains active.
+- Campaign Builder regenerated the 20-entry Scene from the revised Catalog.
+
+### Validation
+
+- Full EditMode passed `367/367`; full post-Builder PlayMode passed `195/195`.
+- Campaign Builder completed two consecutive passes with its structural checks.
+- The complete 400-row Campaign simulation ran twice and produced byte-identical
+  outputs. Summary SHA-256 is
+  `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`,
+  JSON is
+  `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`,
+  and CSV is
+  `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`.
+- The prior Stage 1-5 CSV 100 rows and the first 100 JSON results are exact.
+  All reported continuity, sequence and fixed-pool violation counters remain
+  zero.
+- Step 10 was not rerun because no Experiment contract, shared mechanic rule,
+  player profile or simulation input changed. Its approved artifacts remain
+  untouched.
+- Save-failure fixture setup was stabilized so its intended failure occurs at
+  the save boundary. This is validation robustness only and changes no product
+  behavior.
+
+### Learning
+
+- Content volume does not create a learning curve by itself. Repetition needs
+  an explicit introduction, practice and mastery role before novelty advances.
+- Stable content IDs allow pre-release balance redistribution without creating
+  a second progression authority, but saved completion still refers to those
+  IDs and must never be silently reset.
+- Removing a mechanic from Campaign placement is safe only when its independent
+  implementation and Lab regression coverage remain intact.
+
+### Deferred
+
+- Hidden Stages 21-23, Flicker Stages 24-26, Stages 27-36, item consumption,
+  Continue economy/ads, final Lobby art, Shop/IAP and release packaging.
+
+### Human Review
+
+- Play Stages 8-20 in order and judge whether each three-Stage block gives
+  enough time to understand, practice and master its mechanic.
+- Confirm the two-color introduction/practice followed by three-color mastery
+  reads as progression rather than repetition, especially at the 11-12,
+  14-15 and 17-18 block transitions.
+- Automated simulations establish determinism and mechanical outcomes, not
+  learning, fun, readability, comfort or final balance.

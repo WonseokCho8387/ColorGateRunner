@@ -148,33 +148,29 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageSessionTests.cs`
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignMechanicStageTests.cs`
 
-- `StagesSixThroughThirteen_UseOnePrimaryMechanicEach`
-- `ShieldStage_ProvidesLocalChargeAndDisablesDuplicateItem`
+- `StagesSixThroughTwenty_UseApprovedLearningSequence`
+- `ShieldStage_ProvidesLocalChargeWhileSelectionIsLocked`
 - `BoosterStage_ProvidesLocalChargeAtStageStart`
-- `StagesOneThroughFive_RejectAllStartItems`
+- `StartItems_AreLockedThroughGrantTrainingAndUnlockAtStageEight`
 - `GateModifiers_AreDeterministicAndStayInsideAuthoredStages`
 - `Ice_UsesSharedSpeedAndSpacingMultipliers`
 - `EchoStage_AcquiresConsumesAndRestartsDeterministically`
 - `AuthoredSpeedCurves_AreSampledForDeterministicCoreUse`
 
-#### `CampaignHiddenFlickerStageTests.cs`
+#### `CampaignDeferredMechanicStageTests.cs`
 
-Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignHiddenFlickerStageTests.cs`
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignDeferredMechanicStageTests.cs`
 
-- `Catalog_ContainsApprovedHiddenAndFlickerStages`
-- `Plans_AreDeterministicIsolatedAndDoNotChangeGateCount`
-- `FlickerPlans_UsePlayerOrderAndMeetBoosterExposure`
-- `FlickerJudgment_UsesExactCampaignGameplayTimeBoundary`
-- `FlickerStage_BoosterUsesExistingAutoPassAndPreservesShield`
-- `Retry_ReproducesCampaignTargetsCyclesAndPhases`
+- `CampaignStagesOneThroughTwenty_DeferHiddenAndFlicker`
+- `ExperimentCatalog_RetainsHiddenAndFlickerImplementations`
 
-#### `CampaignActTwoStageTests.cs`
+#### `CampaignLearningCurveStageTests.cs`
 
-Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignActTwoStageTests.cs`
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTests.cs`
 
-- `Catalog_ContainsApprovedActTwoCurve`
-- `ActTwoPlans_AreDeterministicAndKeepMechanicsIsolated`
-- `HiddenAndFlickerFinale_UseExistingBoundedOccurrenceContracts`
+- `Catalog_ContainsApprovedLearningBlockCurve`
+- `MechanicBlocks_ProgressFromTwoColorIntroToThreeColorMastery`
+- `LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated`
 
 ### Hidden, Flicker, Clone, Echo, and ETA
 
@@ -530,11 +526,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `EveryStage_AllItemCombinationsCanInitialize`
 - `StageSeven_StartBoosterCrossesEveryGateAndReachesGoal`
 - `StageSelectUi_HasOneButtonPerCatalogEntry`
+- `StageEight_IsCleanThreeColorItemApplicationRuntime`
 - `CampaignCamouflageGate_RevealsFromEtaAndStaysJudged`
 - `CampaignEchoProvider_ActivatesColoredPlayerShell`
-- `CampaignHiddenGate_HidesAndUsesOrdinaryFailureFlow`
-- `CampaignFlickerGate_UsesGameplayTimeForViewAndJudgment`
-- `CampaignFlickerStage_AllowsShieldAndBoosterFromGo`
+- `CampaignMechanicIntro_BindsModifierToRuntimeGateView`
 - `RuntimeGateAndTrackPools_DoNotGrow`
 - `SafeArea_CalculatesNormalizedAnchorsAndContainsPlayerUi`
 - `RequiredReferencesAndPools_AreStable`

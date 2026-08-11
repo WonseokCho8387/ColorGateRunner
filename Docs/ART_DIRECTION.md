@@ -367,3 +367,17 @@ legibility.
 - Human review owns whether the newly unlocked step is noticeable, reward text
   is understandable, the hierarchy survives Safe Area, and the placeholder
   does not misrepresent launch-quality visual completion.
+
+## Iteration 17 campaign learning presentation
+
+- Stage 6 and 7 PreRun cards show `PROVIDED` for the named training item even
+  though manual selection is locked. Provided state has visual precedence over
+  the generic locked state.
+- Stage 8 is the first screen where both Shield and Booster cards become
+  selectable. Its clean three-color run establishes item feedback without a
+  competing gate modifier.
+- Intro and practice Stages use two active color tiles; mastery restores the
+  third tile. Camouflage, Fog, Ice and Echo retain their existing symbols,
+  materials and feedback rather than gaining tier-specific variants.
+- Hidden/Flicker Campaign presentation is absent from Stages 1–20 but remains
+  available in the development-only Experiment Lab.

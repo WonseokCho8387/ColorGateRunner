@@ -2323,17 +2323,17 @@ namespace ColorGateRunner.Presentation
             boosterToggleButton.interactable =
                 _session.Stage.BoosterAllowed &&
                 !_session.StageProvidesBooster;
-            shieldToggleText.text = !_session.Stage.ShieldAllowed
-                ? "SHIELD: LOCKED"
-                : _session.StageProvidesShield
-                    ? "SHIELD: PROVIDED"
+            shieldToggleText.text = _session.StageProvidesShield
+                ? "SHIELD: PROVIDED"
+                : !_session.Stage.ShieldAllowed
+                    ? "SHIELD: LOCKED"
                     : _shieldSelected
                         ? "SHIELD: ON"
                         : "SHIELD: OFF";
-            boosterToggleText.text = !_session.Stage.BoosterAllowed
-                ? "BOOSTER: LOCKED"
-                : _session.StageProvidesBooster
-                    ? "BOOSTER: PROVIDED"
+            boosterToggleText.text = _session.StageProvidesBooster
+                ? "BOOSTER: PROVIDED"
+                : !_session.Stage.BoosterAllowed
+                    ? "BOOSTER: LOCKED"
                     : _boosterSelected
                         ? "BOOSTER: ON"
                         : "BOOSTER: OFF";

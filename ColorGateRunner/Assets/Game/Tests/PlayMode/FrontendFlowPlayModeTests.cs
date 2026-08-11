@@ -171,16 +171,15 @@ namespace ColorGateRunner.Tests.PlayMode
         public IEnumerator AccountChoiceSaveFailure_RemainsOnChoicePage()
         {
             AppServiceGraph graph = null;
+            var save = new ArmableSaveFailureService();
             yield return LoadFrontendThroughBoot(() =>
             {
-                graph = CreateGraph(new FailSecondWriteSaveService());
+                graph = CreateGraph(save);
                 return graph;
             });
 
             FrontendSceneController controller = RequireController();
-            LogAssert.Expect(
-                LogType.Error,
-                "PLANNED ACCOUNT SAVE FAILURE");
+            save.ArmFailure();
             controller.TitleStartButton.onClick.Invoke();
             yield return null;
 
@@ -817,17 +816,18 @@ namespace ColorGateRunner.Tests.PlayMode
                     SaveReplacementResult.Recoverable);
         }
 
-        private sealed class FailSecondWriteSaveService : ILocalSaveService
+        private sealed class ArmableSaveFailureService : ILocalSaveService
         {
-            private int _writeCount;
+            private bool _failWrites;
 
             public LocalSaveLoadResult Load() =>
                 new ExistingGuestSaveService().Load();
 
+            public void ArmFailure() => _failWrites = true;
+
             public LocalSaveWriteResult Save(LocalSaveData data)
             {
-                _writeCount++;
-                if (_writeCount >= 3)
+                if (_failWrites)
                 {
                     return LocalSaveWriteResult.Failure(
                         new ProductError(

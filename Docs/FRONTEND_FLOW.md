@@ -55,7 +55,7 @@ This document does not own:
 The commercial shell must preserve these contracts:
 
 - The campaign uses stable Stage IDs and one Inspector-authored Stage Catalog.
-- Campaign currently contains Stages 1-13.
+- Campaign currently contains Stages 1–20.
 - Runtime, simulation, and tests share the same Core rules.
 - Core remains free of UnityEngine references.
 - Experiment Lab remains isolated from campaign progress and release
@@ -322,8 +322,10 @@ Changing theme must not require a new Lobby Scene.
 
 - Nodes use stable Stage IDs, not list indices.
 - Stage order comes from the Stage Catalog.
-- Stage 1-13 authored data remains unchanged during frontend work.
-- The layout supports at least 13 Stages without overlap.
+- The current 20-Stage Catalog order and stable IDs remain unchanged during
+  frontend-only work.
+- The layout supports the current 20 Stages and the planned 36-Stage campaign
+  without overlap.
 - Selecting an unlocked Stage opens Stage Detail.
 - Locked nodes explain their unlock requirement.
 
@@ -345,8 +347,10 @@ Changing theme must not require a new Lobby Scene.
 ## Existing item rules
 
 - Stages 1-5 keep Shield and Booster locked.
-- Stage-provided items are visually distinct from selected items.
-- Other Stages preserve their catalog-authored selection rules.
+- Stage 6 provides Shield and Stage 7 provides Booster while manual selection
+  remains locked. Provided items are visually distinct from selected items.
+- Stage 8 is the first Stage that enables ordinary Shield and Booster
+  selection. Later Stages preserve their catalog-authored selection rules.
 - Stage Detail does not invent costs or inventory balances.
 
 Example:
@@ -714,6 +718,19 @@ Implementation status: Completed in Iteration 10.
 - Theme color blocks and upgrade panels are structural placeholders for human
   flow validation, not final art or proof of visual quality.
 
+## Implemented UX slice — Iteration 17 Campaign learning curve
+
+- The Campaign contains 20 contiguous stable-ID Stages at Catalog revision 7.
+- Stages 1–5 are the color/rhythm foundation. Stage 6 provides Shield and
+  Stage 7 provides Booster with selection locked; Stage 8 is a clean
+  three-color application Stage and the first selectable-item Stage.
+- Camouflage 9–11, Fog 12–14, Ice 15–17, and Echo 18–20 use contiguous
+  intro/practice/mastery blocks. Their active-color progression is `2/2/3`.
+- Hidden 21–23 and Flicker 24–26 are planned Campaign blocks. Their existing
+  Experiment Lab implementations remain available, but Campaign presentation
+  must not imply that those deferred Stages are playable. Stages 27–36 remain
+  later content.
+
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 
 Implementation status: Partially completed through Iteration 15.
@@ -729,7 +746,7 @@ Implementation status: Partially completed through Iteration 15.
 - Campaign page from Stage Catalog.
 - Stage Detail.
 - Existing item selection.
-- Stage 1-13 launch.
+- Stage 1–20 launch.
 
 ## Frontend Iteration 4 — Gameplay shell
 
@@ -783,7 +800,7 @@ Additional acceptance:
 - Offline play works.
 - Login failure cannot block local play.
 - Stage progress uses stable IDs.
-- Stage 1-13 remain deterministic.
+- The current Stage 1–20 Catalog remains deterministic.
 - Retry, Continue, and Goal rules remain unchanged.
 - Event modules and Lobby themes are data-driven.
 - Empty future-feature slots remain hidden.

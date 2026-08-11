@@ -17,7 +17,8 @@ stage by matching every gate before crossing the Goal.
 1. Lobby shows the lowest unlocked uncleared stage and current visual tier.
 2. Play opens PreRun Item Selection for that single current stage.
 3. Shield and Booster are independent free toggles only when the selected
-   stage allows them. Stages 1-5 keep both items locked.
+   stage allows them. Stages 1–7 keep selection locked; Stage 6 provides one
+   Shield, Stage 7 provides one Booster, and Stage 8 unlocks both toggles.
 4. Start enters one `3, 2, 1, GO` countdown.
 5. Items activate after `GO`, then the runner moves automatically.
 6. Taps cycle through the colors currently allowed by the stage.
@@ -75,6 +76,11 @@ Green first appears at gate index 8. Runtime input, HUD guidance, and
 simulation required-tap calculation use the same modular forward-cycle rule.
 
 ## Start items
+
+Campaign selection is locked through Stage 7. Provided training items at
+Stages 6 and 7 activate after `GO` without inventory consumption or a
+duplicate selection. Stage 8 is the first clean application Stage where both
+selection toggles are available.
 
 ### Shield
 
@@ -513,6 +519,31 @@ item grant, modifier type, judgment path, or persistence authority.
 - Mechanical simulation values are balance evidence only. Human play must
   judge visual readability, fatigue, rhythm variety and whether the returning
   mechanics feel like mastery rather than repetition.
+
+## Iteration 17 campaign learning-curve contract
+
+This contract supersedes the Campaign placement described by Iterations 4,
+8, and 16 without changing those historical records, stable Stage IDs, or
+Experiment mechanics.
+
+| Stage | Learning role | Colors | Gates | Speed | Cadence | Mechanic |
+|---:|---|---:|---:|---|---|---|
+| 1–5 | Color and rhythm foundation | authored | authored | unchanged | unchanged | None |
+| 6 | Provided Shield training; selection locked | 2 | 38 | `38 -> 56` | `1.22 -> 0.82s` | Shield grant |
+| 7 | Provided Booster training; selection locked | 2 | 40 | `40 -> 58` | `1.18 -> 0.80s` | Booster grant |
+| 8 | Clean item application | 3 | 40 | `38 -> 56` | `1.22 -> 0.84s` | None |
+| 9–11 | Camouflage intro / practice / mastery | 2 / 2 / 3 | 38 / 42 / 46 | `38->54` / `40->58` / `42->62` | `1.24->.90` / `1.18->.84` / `1.12->.80s` | Camouflage |
+| 12–14 | Fog intro / practice / mastery | 2 / 2 / 3 | 40 / 44 / 48 | `40->56` / `42->60` / `44->64` | `1.22->.88` / `1.16->.82` / `1.10->.80s` | Fog |
+| 15–17 | Ice intro / practice / mastery | 2 / 2 / 3 | 42 / 46 / 50 | `40->56` / `42->60` / `44->64` | `1.20->.88` / `1.14->.82` / `1.08->.78s` | Ice |
+| 18–20 | Echo intro / practice / mastery | 2 / 2 / 3 | 42 / 46 / 50 | `42->58` / `44->62` / `46->66` | `1.20->.86` / `1.14->.80` / `1.08->.78s` | Echo |
+
+- Every learning block uses one modifier only. Intro and practice retain two
+  colors; mastery restores three colors.
+- Hidden is reserved for planned Stages 21–23 and Flicker for Stages 24–26.
+  Both remain implemented and testable in Experiment Lab.
+- All Stage 8–20 entries allow Shield and Booster selection. Item consumption
+  remains deferred, so this iteration changes learning order rather than the
+  economy contract.
 
 ## Iteration 12 Gameplay Pause contract
 

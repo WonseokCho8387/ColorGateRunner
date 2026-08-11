@@ -6,18 +6,25 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class CampaignMechanicStageTests
     {
         [Test]
-        public void StagesSixThroughThirteen_UseOnePrimaryMechanicEach()
+        public void StagesSixThroughTwenty_UseApprovedLearningSequence()
         {
             StagePrimaryMechanic[] expected =
             {
                 StagePrimaryMechanic.Shield,
                 StagePrimaryMechanic.Booster,
+                StagePrimaryMechanic.None,
+                StagePrimaryMechanic.Camouflage,
+                StagePrimaryMechanic.Camouflage,
                 StagePrimaryMechanic.Camouflage,
                 StagePrimaryMechanic.Fog,
+                StagePrimaryMechanic.Fog,
+                StagePrimaryMechanic.Fog,
+                StagePrimaryMechanic.Ice,
+                StagePrimaryMechanic.Ice,
                 StagePrimaryMechanic.Ice,
                 StagePrimaryMechanic.Echo,
-                StagePrimaryMechanic.Hidden,
-                StagePrimaryMechanic.Flicker
+                StagePrimaryMechanic.Echo,
+                StagePrimaryMechanic.Echo
             };
 
             for (int index = 0; index < expected.Length; index++)
@@ -25,20 +32,19 @@ namespace ColorGateRunner.Tests.EditMode
                 StageDefinition stage =
                     StageCatalog.GetByDisplayNumber(index + 6);
                 Assert.That(stage.PrimaryMechanic, Is.EqualTo(expected[index]));
-                Assert.That(
-                    stage.AllowedColorCount,
-                    Is.EqualTo(index >= 5 ? 3 : 2));
             }
         }
 
         [Test]
-        public void ShieldStage_ProvidesLocalChargeAndDisablesDuplicateItem()
+        public void ShieldStage_ProvidesLocalChargeWhileSelectionIsLocked()
         {
             StageSession session = CreatePlaying(
                 6,
                 new StartItemSelection(true, false));
 
             Assert.That(session.StageProvidesShield, Is.True);
+            Assert.That(session.Stage.ShieldAllowed, Is.False);
+            Assert.That(session.Stage.BoosterAllowed, Is.False);
             Assert.That(session.MechanicGrantActivated, Is.True);
             Assert.That(session.ShieldActive, Is.True);
             Assert.That(session.Items.Shield, Is.False);
@@ -50,6 +56,8 @@ namespace ColorGateRunner.Tests.EditMode
             StageSession session = CreatePlaying(7, default);
 
             Assert.That(session.MechanicGrantActivated, Is.True);
+            Assert.That(session.Stage.ShieldAllowed, Is.False);
+            Assert.That(session.Stage.BoosterAllowed, Is.False);
             Assert.That(session.BoosterActive, Is.True);
             Assert.That(
                 session.Stage.MechanicGrantSettings.ActivationMode,
@@ -62,9 +70,9 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void StagesOneThroughFive_RejectAllStartItems()
+        public void StartItems_AreLockedThroughGrantTrainingAndUnlockAtStageEight()
         {
-            for (int stageNumber = 1; stageNumber <= 5; stageNumber++)
+            for (int stageNumber = 1; stageNumber <= 7; stageNumber++)
             {
                 StageDefinition stage =
                     StageCatalog.GetByDisplayNumber(stageNumber);
@@ -76,21 +84,42 @@ namespace ColorGateRunner.Tests.EditMode
                     new StartItemSelection(true, true));
                 Assert.That(session.Items.Shield, Is.False);
                 Assert.That(session.Items.Booster, Is.False);
-                Assert.That(session.ShieldActive, Is.False);
-                Assert.That(session.BoosterActive, Is.False);
+                Assert.That(session.ShieldActive,
+                    Is.EqualTo(stageNumber == 6));
+                Assert.That(session.BoosterActive,
+                    Is.EqualTo(stageNumber == 7));
+            }
+
+            for (int stageNumber = 8; stageNumber <= 20; stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+                Assert.That(stage.ShieldAllowed, Is.True);
+                Assert.That(stage.BoosterAllowed, Is.True);
             }
         }
 
         [Test]
         public void GateModifiers_AreDeterministicAndStayInsideAuthoredStages()
         {
-            AssertModifierExists(8, GateModifierType.Camouflage);
-            AssertModifierExists(9, GateModifierType.Fog);
-            AssertModifierExists(10, GateModifierType.Ice);
-            AssertModifierExists(12, GateModifierType.Hidden);
-            AssertModifierExists(13, GateModifierType.Flicker);
+            for (int stageNumber = 9; stageNumber <= 11; stageNumber++)
+            {
+                AssertModifierExists(stageNumber, GateModifierType.Camouflage);
+            }
+            for (int stageNumber = 12; stageNumber <= 14; stageNumber++)
+            {
+                AssertModifierExists(stageNumber, GateModifierType.Fog);
+            }
+            for (int stageNumber = 15; stageNumber <= 17; stageNumber++)
+            {
+                AssertModifierExists(stageNumber, GateModifierType.Ice);
+            }
+            for (int stageNumber = 18; stageNumber <= 20; stageNumber++)
+            {
+                AssertModifierExists(stageNumber, GateModifierType.EchoProvider);
+            }
 
-            for (int stageNumber = 1; stageNumber <= 7; stageNumber++)
+            for (int stageNumber = 1; stageNumber <= 8; stageNumber++)
             {
                 DeterministicStageGateSequence sequence =
                     new DeterministicStageGateSequence(
@@ -109,7 +138,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Ice_UsesSharedSpeedAndSpacingMultipliers()
         {
-            StageSession session = CreatePlaying(10, default);
+            StageSession session = CreatePlaying(15, default);
             GatePlan icePlan = FindModifierPlan(
                 session,
                 GateModifierType.Ice);
@@ -136,7 +165,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void EchoStage_AcquiresConsumesAndRestartsDeterministically()
         {
-            StageSession session = CreatePlaying(11, default);
+            StageSession session = CreatePlaying(18, default);
             int firstOffer = AcquireFirstEcho(session);
             RunnerColor echoColor = session.EchoColor;
 
@@ -175,15 +204,15 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(101));
             Assert.That(
                 StageCatalog.GetByDisplayNumber(9).SpeedProfile.SampleCount,
-                Is.EqualTo(2));
+                Is.EqualTo(101));
             Assert.That(
                 StageCatalog.GetByDisplayNumber(11).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(12).SpeedProfile.SampleCount,
+                StageCatalog.GetByDisplayNumber(18).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(13).SpeedProfile.SampleCount,
+                StageCatalog.GetByDisplayNumber(20).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
         }
 
@@ -203,14 +232,13 @@ namespace ColorGateRunner.Tests.EditMode
             int stageNumber,
             GateModifierType modifier)
         {
-            StageDefinition stage =
-                StageCatalog.GetByDisplayNumber(stageNumber);
-            DeterministicStageGateSequence sequence =
-                new DeterministicStageGateSequence(stage);
+            StageSession session = CreatePlaying(stageNumber, default);
             bool found = false;
-            for (int gate = 0; gate < stage.TargetGateCount; gate++)
+            for (int gate = 0;
+                gate < session.Stage.TargetGateCount;
+                gate++)
             {
-                GatePlan plan = sequence.GetPlan(gate);
+                GatePlan plan = session.GetGatePlan(gate);
                 found |= plan.Modifier.Has(modifier);
             }
             Assert.That(found, Is.True);

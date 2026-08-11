@@ -3,51 +3,66 @@ using NUnit.Framework;
 
 namespace ColorGateRunner.Tests.EditMode
 {
-    public sealed class CampaignActTwoStageTests
+    public sealed class CampaignLearningCurveStageTests
     {
         private static readonly int[] GateCounts =
-            { 48, 52, 54, 52, 56, 56, 60 };
+            { 40, 38, 42, 46, 40, 44, 48, 42, 46, 50, 42, 46, 50 };
 
         private static readonly float[] StartingSpeeds =
-            { 46f, 48f, 48f, 50f, 50f, 50f, 52f };
+            { 38f, 38f, 40f, 42f, 40f, 42f, 44f, 40f, 42f, 44f, 42f, 44f, 46f };
 
         private static readonly float[] MaximumSpeeds =
-            { 66f, 68f, 68f, 70f, 70f, 70f, 72f };
+            { 56f, 54f, 58f, 62f, 56f, 60f, 64f, 56f, 60f, 64f, 58f, 62f, 66f };
 
         private static readonly float[] CadenceStarts =
-            { 1.10f, 1.08f, 1.08f, 1.04f, 1.06f, 1.08f, 1.04f };
+            { 1.22f, 1.24f, 1.18f, 1.12f, 1.22f, 1.16f, 1.10f, 1.20f, 1.14f, 1.08f, 1.20f, 1.14f, 1.08f };
 
         private static readonly float[] CadenceEnds =
-            { 0.84f, 0.82f, 0.82f, 0.80f, 0.80f, 0.82f, 0.78f };
+            { 0.84f, 0.90f, 0.84f, 0.80f, 0.88f, 0.82f, 0.80f, 0.88f, 0.82f, 0.78f, 0.86f, 0.80f, 0.78f };
+
+        private static readonly int[] ColorCounts =
+            { 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3 };
 
         private static readonly StagePrimaryMechanic[] Mechanics =
         {
             StagePrimaryMechanic.None,
             StagePrimaryMechanic.Camouflage,
+            StagePrimaryMechanic.Camouflage,
+            StagePrimaryMechanic.Camouflage,
+            StagePrimaryMechanic.Fog,
+            StagePrimaryMechanic.Fog,
             StagePrimaryMechanic.Fog,
             StagePrimaryMechanic.Ice,
+            StagePrimaryMechanic.Ice,
+            StagePrimaryMechanic.Ice,
             StagePrimaryMechanic.Echo,
-            StagePrimaryMechanic.Hidden,
-            StagePrimaryMechanic.Flicker
+            StagePrimaryMechanic.Echo,
+            StagePrimaryMechanic.Echo
         };
 
         private static readonly GateModifierType[] Modifiers =
         {
             GateModifierType.None,
             GateModifierType.Camouflage,
+            GateModifierType.Camouflage,
+            GateModifierType.Camouflage,
+            GateModifierType.Fog,
+            GateModifierType.Fog,
             GateModifierType.Fog,
             GateModifierType.Ice,
+            GateModifierType.Ice,
+            GateModifierType.Ice,
             GateModifierType.EchoProvider,
-            GateModifierType.Hidden,
-            GateModifierType.Flicker
+            GateModifierType.EchoProvider,
+            GateModifierType.EchoProvider
         };
 
         [Test]
-        public void Catalog_ContainsApprovedActTwoCurve()
+        public void Catalog_ContainsApprovedLearningBlockCurve()
         {
             for (int index = 0; index < GateCounts.Length; index++)
             {
-                int stageNumber = index + 14;
+                int stageNumber = index + 8;
                 StageDefinition stage =
                     StageCatalog.GetByDisplayNumber(stageNumber);
 
@@ -55,7 +70,7 @@ namespace ColorGateRunner.Tests.EditMode
                     Is.EqualTo($"stage-{stageNumber:00}"));
                 Assert.That(stage.DisplayNumber, Is.EqualTo(stageNumber));
                 Assert.That(stage.TargetGateCount, Is.EqualTo(GateCounts[index]));
-                Assert.That(stage.AllowedColorCount, Is.EqualTo(3));
+                Assert.That(stage.AllowedColorCount, Is.EqualTo(ColorCounts[index]));
                 Assert.That(stage.ActiveColorsFromStart, Is.True);
                 Assert.That(stage.StartingSpeed,
                     Is.EqualTo(StartingSpeeds[index]));
@@ -72,17 +87,41 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(stage.ShieldAllowed, Is.True);
                 Assert.That(stage.BoosterAllowed, Is.True);
                 Assert.That(stage.MechanicGrantSettings.Enabled, Is.False);
+                Assert.That(stage.SpeedProfile.SampleCount, Is.EqualTo(101));
                 Assert.That(stage.IsValid(), Is.True);
             }
         }
 
+        [TestCase(9, 11, StagePrimaryMechanic.Camouflage, GateModifierType.Camouflage)]
+        [TestCase(12, 14, StagePrimaryMechanic.Fog, GateModifierType.Fog)]
+        [TestCase(15, 17, StagePrimaryMechanic.Ice, GateModifierType.Ice)]
+        [TestCase(18, 20, StagePrimaryMechanic.Echo, GateModifierType.EchoProvider)]
+        public void MechanicBlocks_ProgressFromTwoColorIntroToThreeColorMastery(
+            int firstStage,
+            int lastStage,
+            StagePrimaryMechanic mechanic,
+            GateModifierType modifier)
+        {
+            for (int stageNumber = firstStage;
+                stageNumber <= lastStage;
+                stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+                Assert.That(stage.PrimaryMechanic, Is.EqualTo(mechanic));
+                Assert.That(stage.GateModifiers, Is.EqualTo(modifier));
+                Assert.That(stage.AllowedColorCount,
+                    Is.EqualTo(stageNumber == lastStage ? 3 : 2));
+            }
+        }
+
         [Test]
-        public void ActTwoPlans_AreDeterministicAndKeepMechanicsIsolated()
+        public void LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated()
         {
             for (int index = 0; index < Modifiers.Length; index++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(index + 14);
+                    StageCatalog.GetByDisplayNumber(index + 8);
                 StageSession first = new StageSession(stage);
                 StageSession second = new StageSession(stage);
                 int occurrences = 0;
@@ -101,7 +140,8 @@ namespace ColorGateRunner.Tests.EditMode
                     Assert.That(
                         a.Modifier.Types & ~Modifiers[index],
                         Is.EqualTo(GateModifierType.None));
-                    if (a.Modifier.Has(Modifiers[index]))
+                    if (Modifiers[index] != GateModifierType.None &&
+                        a.Modifier.Has(Modifiers[index]))
                     {
                         occurrences++;
                     }
@@ -109,41 +149,13 @@ namespace ColorGateRunner.Tests.EditMode
 
                 if (Modifiers[index] == GateModifierType.None)
                 {
-                    Assert.That(occurrences, Is.EqualTo(stage.TargetGateCount));
+                    Assert.That(occurrences, Is.Zero);
                 }
                 else
                 {
                     Assert.That(occurrences, Is.GreaterThan(0));
                 }
             }
-        }
-
-        [Test]
-        public void HiddenAndFlickerFinale_UseExistingBoundedOccurrenceContracts()
-        {
-            AssertBoundedOccurrences(19, GateModifierType.Hidden, 4);
-            AssertBoundedOccurrences(20, GateModifierType.Flicker, 4);
-        }
-
-        private static void AssertBoundedOccurrences(
-            int stageNumber,
-            GateModifierType modifier,
-            int expectedCount)
-        {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(stageNumber);
-            DeterministicStageGateSequence sequence =
-                new DeterministicStageGateSequence(stage);
-            int count = 0;
-
-            for (int gate = 0; gate < stage.TargetGateCount; gate++)
-            {
-                if (sequence.GetPlan(gate).Modifier.Has(modifier))
-                {
-                    count++;
-                }
-            }
-
-            Assert.That(count, Is.EqualTo(expectedCount));
         }
     }
 }

@@ -1046,3 +1046,27 @@ Status: Approved and implemented.
   passes overlap validation.
 - This batch does not implement item consumption, Continue pricing, ads, IAP,
   Hearts, Shop, final Lobby art or Stages 21–36.
+
+## Campaign learning-curve redistribution decisions
+
+Status: Approved and implemented.
+
+- Catalog revision 7 keeps the existing 20 contiguous stable Stage IDs while
+  redistributing authored content into longer learning blocks. Product-save
+  progression and records remain attached to the same stable IDs; no save
+  reset, remap or migration is introduced.
+- Stages 1-5 remain exact foundation content. Stage 6 provides only its local
+  Shield and keeps selection locked; Stage 7 provides only its local Booster
+  and keeps selection locked.
+- Stage 8 is a clean three-color recovery Stage with selectable Shield and
+  Booster. It contains no provided grant or gate modifier and is the first
+  ordinary item-application Stage after the two provided-item demonstrations.
+- Camouflage occupies Stages 9-11, Fog Stages 12-14, Ice Stages 15-17 and
+  Echo Stages 18-20. Each block uses two colors for introduction and practice,
+  then three colors for mastery.
+- Hidden and Flicker remain implemented and testable Experiment mechanics but
+  are not authored in the current 20-Stage Campaign. Their planned Campaign
+  blocks are deferred to Hidden Stages 21-23 and Flicker Stages 24-26.
+- This redistribution changes Catalog data and Campaign simulation output only.
+  It does not change mechanic rules, judgment priority, item effects, Continue,
+  Experiment definitions, player profiles or Step 10 simulation inputs.

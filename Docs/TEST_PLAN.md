@@ -136,6 +136,9 @@ validation.
 - Product services must not copy, reset, migrate, or write Campaign
   progression unless a dedicated progression migration is approved.
 - Save failures must be reported truthfully and must not appear successful.
+- Save-failure fixtures must arm the exact next write after composition, then
+  assert the user-visible failure state and unchanged authority. They must not
+  require a diagnostic log unless the runtime contract explicitly emits one.
 
 ### Determinism and simulation
 
@@ -252,9 +255,13 @@ fairness, or polish.
   to the local Product profile and does not derive from Guest identity.
 - Locked stages cannot start; Clear unlocks only the next Stage; Retry returns
   through the existing PreRun/item-selection contract.
-- Catalog revision 6 contains 20 contiguous stable IDs. Stage 14 is a clean
-  three-color recovery Stage; Stages 15–20 enable exactly one of Camouflage,
-  Fog, Ice, Echo, Hidden or Flicker and never a same-gate modifier mix.
+- Catalog revision 7 contains 20 contiguous stable IDs. Stages 1–5 remain
+  unchanged; Stages 6/7 provide their named item with selection locked;
+  Stage 8 is clean three-color item application. Stages 9–20 contain isolated
+  Camouflage, Fog, Ice and Echo intro/practice/mastery blocks with 2/2/3
+  colors. Hidden and Flicker remain Experiment-only until Stages 21+.
+- Every Stage 1–20 initializes under all four requested item inputs. Runtime
+  selection is rejected through Stage 7 and allowed from Stage 8 onward.
 - The Campaign selection UI contains exactly one generated entry per Catalog
   Stage, and Lobby current-stage/title bounds remain separated at every
   approved portrait reference resolution.
