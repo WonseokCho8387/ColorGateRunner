@@ -351,7 +351,19 @@ Changing theme must not require a new Lobby Scene.
   remains locked. Provided items are visually distinct from selected items.
 - Stage 8 is the first Stage that enables ordinary Shield and Booster
   selection. Later Stages preserve their catalog-authored selection rules.
-- Stage Detail does not invent costs or inventory balances.
+- Stage 8+ displays the Product-owned Shield and Booster counts. A zero-count
+  item is off and cannot be selected.
+- Pressing `START` consumes one of every selected item in one Product Save
+  mutation before item effects or Countdown begin. Save failure remains in
+  PreRun and shows a truthful error without consuming or activating an item.
+- Retry is a new Attempt and consumes retained selections again. A selection
+  is turned off when its refreshed count reaches zero. Back before Start does
+  not consume, and repeated Start input for one Attempt cannot consume twice.
+- Stage 6/7 provided items remain free and attempt-local. They do not consume
+  Product inventory. Missing Product services expose zero selectable stock;
+  itemless runs and Stage-provided items remain playable.
+- Stage Detail does not invent Coin prices or purchase actions. Those require
+  a separately approved economy contract.
 
 Example:
 
@@ -730,6 +742,17 @@ Implementation status: Completed in Iteration 10.
   Experiment Lab implementations remain available, but Campaign presentation
   must not imply that those deferred Stages are playable. Stages 27–36 remain
   later content.
+
+## Implemented UX slice — Iteration 18 owned start items
+
+- PreRun replaces the obsolete free/unlimited claim with owned counts and a
+  one-item-per-selected-type Start contract.
+- Product inventory validation and the two optional decrements are atomic.
+  Only a successful durable save permits `StageSession.SelectItems` and
+  Countdown. No schema migration or Core item-effect change is introduced.
+- Retry, Back, duplicate Start, provided Stage 6/7 items, zero stock, stale
+  stock, save failure, and missing-Product behavior follow the item rules
+  above. Coin purchase, Continue economy, Shop, ads, and IAP remain deferred.
 
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 

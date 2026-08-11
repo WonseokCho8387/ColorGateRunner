@@ -31,9 +31,9 @@ GPT는 Game Director 및 Product/UX 설계자로 행동한다.
 ## 3. 현재 Git 상태
 
 - 브랜치: main
-- Iteration 17 구현 기반 커밋: fea8fe1
+- Iteration 18 구현 기반 커밋: e75ae24
 - 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
-  feat: restructure campaign learning curve
+  feat: consume owned start items
 
 최신 HEAD와 테스트 수는 항상 저장소의
 Docs/CURRENT_STATUS.md를 권위자로 사용한다.
@@ -98,6 +98,13 @@ fallback으로 유지한다.
   - Stage 12–14: Fog 입문/연습/숙련
   - Stage 15–17: Ice 입문/연습/숙련
   - Stage 18–20: Echo 입문/연습/숙련
+- Stage 8+ PreRun의 Product Shield/Booster 보유량 표시와 실제 소비
+  - 보유량 0인 아이템은 선택 불가
+  - START 성공 시 선택 아이템을 각각 1개씩 하나의 저장으로 소비
+  - 저장 실패 시 PreRun 유지, 아이템 효과와 Countdown 시작 금지
+  - Retry는 새 Attempt이므로 다시 소비하고 Back은 소비하지 않음
+  - Stage 6/7 제공 아이템은 무료이며 Inventory를 소비하지 않음
+  - ProductSession 부재 시 선택 아이템을 무료 제공하지 않음
 
 ## 6. 최근 해결한 문제
 
@@ -110,11 +117,13 @@ fallback으로 유지한다.
 
 ## 7. 현재 저장 정책
 
-### Iteration 17 검증 기준
+### Iteration 18 검증 기준
 
-- EditMode `367/367`
-- PlayMode 및 Post-Builder PlayMode `195/195`
+- EditMode `372/372`
+- PlayMode 및 Post-Builder PlayMode `207/207`
+- Campaign Builder 연속 2회 성공
 - Campaign simulation `400` rows, 연속 2회 byte-identical
+- Campaign 및 Step 10 결정론적 artifact hash는 Iteration 17 기준과 동일
 - Campaign Summary SHA-256:
   `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
 - Campaign JSON SHA-256:
@@ -134,6 +143,8 @@ fallback으로 유지한다.
   runtime dual-write 권위자가 아니다.
 - Stage clear, unlock, 최초 보상, Lobby milestone은 하나의 저장 transaction으로
   적용한다.
+- 선택한 Shield/Booster는 START에서 각각 1개씩 원자 소비하며 저장 성공
+  후에만 Attempt를 시작한다. 이 변경은 schema 2 migration을 추가하지 않는다.
 
 ## 8. 현재 Settings 상태
 
@@ -187,8 +198,8 @@ GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최
 - Hidden Stage 21–23, Flicker Stage 24–26 제작
 - Stage 27–36 후반 Campaign 설계와 제작
 - Lobby 3개 Theme의 최종 아트, 애니메이션, 보상 연출
-- Coin Continue 가격 상승과 게임당 광고 Continue 1회 정책 구현
-- Shield/Booster 실제 Inventory 소비와 구매
+- Iteration 19: Coin Continue 가격 상승과 게임당 광고 Continue 1회 정책 구현
+- Shield/Booster Coin 구매와 Shop 진입 흐름
 - Heart, 시간제 무제한 Booster/Heart, Shop 및 IAP
 - 실제 BGM과 SFX 연결
 - 실제 모바일 알림과 권한 처리

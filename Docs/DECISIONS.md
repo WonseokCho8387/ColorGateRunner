@@ -1070,3 +1070,27 @@ Status: Approved and implemented.
 - This redistribution changes Catalog data and Campaign simulation output only.
   It does not change mechanic rules, judgment priority, item effects, Continue,
   Experiment definitions, player profiles or Step 10 simulation inputs.
+
+## Consumable start-item decisions
+
+Status: Approved and implemented.
+
+- Product inventory is authoritative for manually selected start items. From
+  Stage 8 onward, pressing `START` consumes exactly one owned Shield for a
+  selected Shield and one owned Booster for a selected Booster.
+- Shield and Booster are consumed together in one atomic Product mutation.
+  Insufficient inventory, invalid state or save failure publishes no partial
+  balance, transaction or gameplay change and leaves the player in PreRun.
+- A successful consume is idempotent for one Start request. Duplicate input or
+  listener invocation cannot charge twice or create a second countdown.
+- Retry retains the selected toggles but creates a new Start request, so the
+  retained items are consumed again when the player starts the new Attempt.
+- Stage 6's provided Shield and Stage 7's provided Booster remain attempt-local
+  teaching grants. Selection stays locked and Product inventory is never
+  consumed for either Stage.
+- Missing Product context never becomes a free selected-item fallback. A
+  no-item Start and the Stage 6/7 provided-item paths remain available, while
+  an owned-item selection requires an initialized Product session.
+- Product save schema, Campaign Catalog, gameplay Core item effects and
+  deterministic stage definitions remain unchanged. Continue economy, ads and
+  Shop purchasing remain separate future decisions.

@@ -341,12 +341,12 @@ Rules:
 
 # 7. Economy
 
-## 7.1 Initial scope
+## 7.1 Current scope
 
-The initial shell may expose an economy interface and empty wallet, but it
-must not invent currencies, prices, energy, ads, or purchases.
-
-A currency appears only after its earn and spend rules are approved.
+Schema-2 Product Save owns Coins plus Shield and Booster inventory. Approved
+Stage and Lobby rewards grant them, Lobby displays them, and Stage 8+ may
+consume owned start items. Coin spending, prices, energy, ads, and purchases
+remain unavailable until their rules are separately approved.
 
 ## 7.2 Economy service contract
 
@@ -361,7 +361,7 @@ IEconomyService
 
 ## 7.3 Transaction model
 
-Every persistent grant or spend uses:
+Every idempotent reward transaction uses:
 
 - Stable Transaction ID.
 - Currency ID.
@@ -374,6 +374,12 @@ Every persistent grant or spend uses:
 
 Duplicate reward processing must not grant twice.
 
+An Attempt-start item spend is intentionally repeatable rather than
+idempotent: each accepted `START`, including a Retry, consumes one of every
+selected item. Both optional decrements are validated on a cloned Product
+snapshot and saved once; insufficient inventory or save failure publishes
+nothing. An itemless Start is a successful no-op and performs no save.
+
 ## 7.4 Wallet rules
 
 - Balances cannot silently become negative.
@@ -381,6 +387,11 @@ Duplicate reward processing must not grant twice.
 - UI does not directly edit balances.
 - Stage Result proposes rewards; Economy applies validated transactions.
 - Development cheats remain development-only.
+- Stage 8+ presentation reads Product inventory and never owns a shadow
+  balance. Zero-count items cannot be selected.
+- Stage 6/7 provided items are attempt-local and never spend inventory.
+- A missing Product session cannot grant selectable items for free. Itemless
+  and Stage-provided Attempts remain available.
 - Premium currency and real-money purchase are deferred.
 
 # 8. Continue service boundary
@@ -808,7 +819,7 @@ Implementation status: Completed in Iteration 15.
   with the approved starter coin and Shield/Booster reward policy.
 - Frontend read models and Campaign store adapters share the Product service;
   display order is resolved through the Stage Catalog only at the Unity edge.
-- External ads, IAP, Hearts, Continue pricing, item consumption, and real
+- External ads, IAP, Hearts, Continue pricing, item purchasing, and real
   Lobby art/theme content remain deferred.
 
 ### Iteration 17 Campaign-content integration
@@ -820,13 +831,32 @@ Implementation status: Completed in Iteration 15.
   three-color application, then Camouflage 9–11, Fog 12–14, Ice 15–17 and
   Echo 18–20 intro/practice/mastery blocks. Hidden 21–23, Flicker 24–26 and
   Stages 27–36 remain future Catalog content rather than saved placeholders.
-- Stage 6/7 provided items remain attempt-local grants and never consume
+- At Iteration 17 completion, Stage 6/7 provided items remained attempt-local
+  grants and never consumed
   Product inventory. Manual selection is locked for Stages 1–7 and enabled
-  from Stage 8, but inventory consumption remains deferred.
+  from Stage 8; owned-item consumption was still deferred at that point.
 - Rebalancing an existing stable Stage does not migrate, clear or synthesize
   its saved record. Highest Unlocked and all schema-2 balances remain intact.
 - Iteration 17 validation preserved the actual schema-2 revision-23 save,
   Guest ID, 13 records, 2,600 Coins and 4/4 item balances exactly.
+
+### Iteration 18 owned start-item consumption
+
+- `LocalProductSession` validates and atomically consumes one owned Shield
+  and/or Booster for each accepted Start. The existing clone-save-publish
+  boundary prevents partial decrement or runtime activation on save failure.
+- Retry creates another spend; Back creates none; duplicate Start input after
+  Countdown begins cannot create another spend. Refreshed zero stock clears a
+  retained selection.
+- Product-unavailable Campaign entry reports zero selectable stock and never
+  restores the former free-item behavior. Stage 6/7 provided items and
+  itemless Starts require no Product mutation.
+- Schema 2, reward transaction IDs, Campaign records, Continue, and Core item
+  effects are unchanged. Coin prices, item purchase, Shop, ads, and IAP remain
+  deferred.
+- Iteration 18 validation passed EditMode `372/372`, PlayMode `207/207`, and
+  two consecutive Campaign Builder runs. Campaign and Step 10 deterministic
+  artifacts retained their approved baselines.
 
 ## Product Iteration 3 — Frontend support
 
@@ -873,7 +903,7 @@ The local product foundation is complete when:
 - Existing Continue and Best rules persist correctly.
 - Offline play reaches Gameplay.
 - Frontend pages consume services instead of `PlayerPrefs` transport.
-- Empty economy and event features remain hidden.
+- Unavailable future economy and event actions remain hidden.
 - Local Lobby modules and themes are data-driven.
 - App pause and quit save dirty data.
 - No external package, provider, network, ad, IAP, or analytics SDK is added.

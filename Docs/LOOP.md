@@ -468,3 +468,59 @@ step is readable on portrait devices.
 ↓
 
 Play Again
+
+---
+
+Latest Consumable Start-Item Cycle
+
+Play
+
+Lobby showed owned Shield and Booster counts, but selecting those items in
+PreRun did not spend inventory. Retry also retained selections without a new
+ownership consequence.
+
+↓
+
+Analyze
+
+Schema-2 Product save already owned inventory and idempotent transactions. The
+existing accepted Start boundary could add consumption without moving item
+effects or deterministic gameplay into Product services.
+
+↓
+
+Design
+
+Consume each selected item once in one atomic Start transaction from Stage 8,
+re-consume retained selections on Retry, keep Stage 6/7 provided grants free,
+and leave PreRun unchanged on shortage or save failure. Missing Product never
+creates a free selected-item fallback.
+
+↓
+
+Codex
+
+Added Product-owned `ConsumeStartItems`, an explicit Campaign inventory gateway
+and generated PreRun synchronization while preserving schema, Core, Catalog
+and mechanic behavior.
+
+↓
+
+Tests
+
+Targeted Product `30/30` and PlayMode `5/5` passed. Campaign Builder passed
+twice; full EditMode `372/372` and post-Builder PlayMode `207/207` passed.
+Packages, ProjectSettings and the actual Product save remained unchanged.
+Tier 2 preserved Campaign and Step 10 hashes without rerunning simulations.
+
+↓
+
+Experiment
+
+Human review owns whether cost, owned quantity, Retry re-consumption and failure
+feedback are clear, and whether the free lessons make Stage 8's first inventory
+use feel fair.
+
+↓
+
+Play Again

@@ -163,6 +163,7 @@ namespace ColorGateRunner.Editor
             Text shieldButtonText;
             Button boosterButton;
             Text boosterButtonText;
+            Text preRunStatusText;
             Button startButton;
             Button backButton;
             CreateItemUi(
@@ -173,6 +174,7 @@ namespace ColorGateRunner.Editor
                 out shieldButtonText,
                 out boosterButton,
                 out boosterButtonText,
+                out preRunStatusText,
                 out startButton,
                 out backButton);
 
@@ -313,6 +315,7 @@ namespace ColorGateRunner.Editor
                 shieldButtonText,
                 boosterButton,
                 boosterButtonText,
+                preRunStatusText,
                 startButton,
                 backButton,
                 countdownPanel,
@@ -543,6 +546,7 @@ namespace ColorGateRunner.Editor
                 "ExperimentStartButton",
                 "ExperimentLeaveButton",
                 "PreRunItemPanel",
+                "PreRunStatusText",
                 "ShieldItemButton",
                 "BoosterItemButton",
                 "StartStageButton",
@@ -1327,6 +1331,7 @@ namespace ColorGateRunner.Editor
             out Text shieldText,
             out Button boosterButton,
             out Text boosterText,
+            out Text statusText,
             out Button startButton,
             out Button backButton)
         {
@@ -1344,7 +1349,7 @@ namespace ColorGateRunner.Editor
             CreateText(
                 "ChooseItemsText",
                 panel.transform,
-                "CHOOSE START ITEMS\nFREE / UNLIMITED",
+                "SELECT OWNED START ITEMS\n1 USED WHEN STARTING",
                 27,
                 new Vector2(0.1f, 0.68f),
                 new Vector2(0.9f, 0.78f));
@@ -1362,6 +1367,15 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.12f, 0.34f),
                 new Vector2(0.88f, 0.48f),
                 out boosterText);
+            statusText = CreateText(
+                "PreRunStatusText",
+                panel.transform,
+                string.Empty,
+                18,
+                new Vector2(0.12f, 0.28f),
+                new Vector2(0.88f, 0.33f));
+            statusText.color = new Color(1f, 0.42f, 0.38f, 1f);
+            statusText.gameObject.SetActive(false);
             Text startLabel;
             startButton = CreateButton(
                 "StartStageButton",

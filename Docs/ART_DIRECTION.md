@@ -381,3 +381,17 @@ legibility.
   materials and feedback rather than gaining tier-specific variants.
 - Hidden/Flicker Campaign presentation is absent from Stages 1–20 but remains
   available in the development-only Experiment Lab.
+
+## Iteration 18 owned start-item presentation
+
+- Stage 8+ Shield and Booster cards show their current owned count with the
+  existing `ON`/`OFF` selection state. A zero-count card is visibly disabled;
+  Stage 6/7 `PROVIDED` and Stage 1–5 `LOCKED` labels retain precedence over
+  inventory copy.
+- PreRun explains that one owned unit is used when starting. Insufficient
+  current inventory reports `NOT ENOUGH START ITEMS`; persistence failure
+  reports `ITEM SAVE FAILED`. Both statuses remain inside PreRun and must not
+  imply that Countdown or a free grant succeeded.
+- The status line remains separated from both item cards and the Start action
+  within the portrait Safe Area. This iteration adds no new item art, purchase
+  affordance, shop surface, animation or gameplay HUD treatment.

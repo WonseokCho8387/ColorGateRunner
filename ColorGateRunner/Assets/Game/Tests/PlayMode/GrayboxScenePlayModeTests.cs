@@ -16,6 +16,7 @@ namespace ColorGateRunner.Tests.PlayMode
     {
         private StageSceneController _controller;
         private InMemoryStageProgressStore _store;
+        private StartItemInventoryTestGateway _inventory;
 
         [UnitySetUp]
         public IEnumerator LoadScene()
@@ -26,6 +27,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller, Is.Not.Null);
             _store = new InMemoryStageProgressStore();
             _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway();
+            _controller.SetStartItemInventoryForTests(_inventory);
         }
 
         [Test]
@@ -85,6 +88,202 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(_controller.ShieldSelected, Is.False);
                 Assert.That(_controller.BoosterSelected, Is.False);
             }
+        }
+
+        [Test]
+        public void StageEight_StartConsumesSelectedInventoryBeforeCountdown()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(1, 1);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            Assert.That(_controller.ShieldToggleText.text,
+                Is.EqualTo("SHIELD x1: OFF"));
+            Assert.That(_controller.BoosterToggleText.text,
+                Is.EqualTo("BOOSTER x1: OFF"));
+            _controller.ToggleShieldSelection();
+            _controller.ToggleBoosterSelection();
+            _controller.StartSelectedStage();
+            _controller.StartSelectedStage();
+
+            Assert.That(_inventory.ShieldCount, Is.Zero);
+            Assert.That(_inventory.BoosterCount, Is.Zero);
+            Assert.That(_inventory.SelectedConsumptionCount, Is.EqualTo(1));
+            Assert.That(_controller.Session.Items.Shield, Is.True);
+            Assert.That(_controller.Session.Items.Booster, Is.True);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+        }
+
+        [Test]
+        public void StageEight_ZeroStockDisablesSelectionAndStartsItemless()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(0, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+            Assert.That(_controller.BoosterToggleButton.interactable, Is.False);
+            Assert.That(_controller.ShieldToggleText.text,
+                Is.EqualTo("SHIELD x0: OFF"));
+            Assert.That(_controller.BoosterToggleText.text,
+                Is.EqualTo("BOOSTER x0: OFF"));
+            _controller.ToggleShieldSelection();
+            _controller.ToggleBoosterSelection();
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.Items.Shield, Is.False);
+            Assert.That(_controller.Session.Items.Booster, Is.False);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+        }
+
+        [Test]
+        public void StartItemSaveFailure_BlocksCountdownAndShowsError()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(1, 0)
+            {
+                FailWrites = true
+            };
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+            _controller.ToggleShieldSelection();
+
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.Session.Items.Shield, Is.False);
+            Assert.That(_inventory.ShieldCount, Is.EqualTo(1));
+            Assert.That(_controller.ShieldSelected, Is.True);
+            Assert.That(_controller.PreRunStatusText.gameObject.activeSelf,
+                Is.True);
+            Assert.That(_controller.PreRunStatusText.text,
+                Is.EqualTo("ITEM SAVE FAILED"));
+        }
+
+        [Test]
+        public void InventoryChangedAfterSelection_BlocksStartAndNormalizes()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(1, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+            _controller.ToggleShieldSelection();
+            _inventory.SetCounts(0, 0);
+
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.ShieldSelected, Is.False);
+            Assert.That(_controller.PreRunStatusText.text,
+                Is.EqualTo("NOT ENOUGH START ITEMS"));
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+        }
+
+        [Test]
+        public void BackBeforeStart_DoesNotConsumeSelectedItem()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(1, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+            _controller.ToggleShieldSelection();
+
+            _controller.HandlePreRunBack();
+
+            Assert.That(_inventory.ShieldCount, Is.EqualTo(1));
+            Assert.That(_inventory.SelectedConsumptionCount, Is.Zero);
+            Assert.That(_controller.UiFlow, Is.EqualTo(MobileUiFlow.Lobby));
+        }
+
+        [Test]
+        public void Retry_StartConsumesSelectedItemForNewAttempt()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(2, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+            _controller.ToggleShieldSelection();
+            _controller.StartSelectedStage();
+
+            _controller.RetryToItemSelection();
+
+            Assert.That(_controller.ShieldSelected, Is.True);
+            Assert.That(_controller.ShieldToggleText.text,
+                Is.EqualTo("SHIELD x1: ON"));
+            _controller.StartSelectedStage();
+            Assert.That(_inventory.ShieldCount, Is.Zero);
+            Assert.That(_inventory.SelectedConsumptionCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Retry_NormalizesSelectedItemWhenStockReachesZero()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(1, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+            _controller.ToggleShieldSelection();
+            _controller.StartSelectedStage();
+
+            _controller.RetryToItemSelection();
+
+            Assert.That(_controller.ShieldSelected, Is.False);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+            Assert.That(_controller.ShieldToggleText.text,
+                Is.EqualTo("SHIELD x0: OFF"));
+        }
+
+        [TestCase(6)]
+        [TestCase(7)]
+        public void ProvidedItem_StartsWithoutProductInventory(int stageNumber)
+        {
+            _store.HighestUnlocked = 7;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SetStartItemInventoryForTests(
+                new UnavailableStartItemInventoryGateway());
+            _controller.SelectStage(stageNumber);
+
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(
+                stageNumber == 6
+                    ? _controller.Session.ShieldActive
+                    : _controller.Session.BoosterActive,
+                Is.True);
+        }
+
+        [Test]
+        public void MissingProductSession_CannotGrantFreeSelectableItem()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SetStartItemInventoryForTests(
+                new UnavailableStartItemInventoryGateway());
+            _controller.SelectStage(8);
+
+            _controller.ToggleShieldSelection();
+            _controller.ToggleBoosterSelection();
+
+            Assert.That(_controller.ShieldSelected, Is.False);
+            Assert.That(_controller.BoosterSelected, Is.False);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+            Assert.That(_controller.BoosterToggleButton.interactable, Is.False);
         }
 
         [Test]
@@ -1268,6 +1467,18 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void BuilderOwnedPreRun_ShowsConsumptionCopyAndOneStatusNode()
+        {
+            Assert.That(CountNamed("PreRunStatusText"), Is.EqualTo(1));
+            Text instruction = FindTransform("ChooseItemsText")
+                .GetComponent<Text>();
+            Assert.That(instruction.text,
+                Is.EqualTo("SELECT OWNED START ITEMS\n1 USED WHEN STARTING"));
+            Assert.That(instruction.text, Does.Not.Contain("FREE"));
+            Assert.That(instruction.text, Does.Not.Contain("UNLIMITED"));
+        }
+
+        [Test]
         public void Scene_HasNoMissingMonoBehaviours()
         {
             Transform[] transforms =
@@ -1555,6 +1766,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(CountNamed("BoosterMeter"), Is.EqualTo(1));
             Assert.That(CountNamed("PauseOverlayRoot"), Is.EqualTo(1));
             Assert.That(CountNamed("SettingsPanel"), Is.EqualTo(1));
+            Assert.That(CountNamed("PreRunStatusText"), Is.EqualTo(1));
         }
 
         [Test]

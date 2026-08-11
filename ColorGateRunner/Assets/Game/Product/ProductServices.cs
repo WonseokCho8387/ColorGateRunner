@@ -362,6 +362,42 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult ConsumeStartItems(
+            bool shield,
+            bool booster)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (!shield && !booster)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            LocalEconomyData economy = _current.Economy;
+            if ((shield && economy.ShieldCount <= 0) ||
+                (booster && economy.BoosterCount <= 0))
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientInventory,
+                        "The selected start-item inventory is insufficient.",
+                        true));
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            if (shield)
+            {
+                candidate.Economy.ShieldCount--;
+            }
+            if (booster)
+            {
+                candidate.Economy.BoosterCount--;
+            }
+            return Commit(candidate);
+        }
+
         public ProductMutationResult ResetProgressForDevelopment()
         {
             if (!TryGetReady(out ProductMutationResult failure))

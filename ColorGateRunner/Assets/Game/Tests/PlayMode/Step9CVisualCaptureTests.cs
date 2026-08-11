@@ -189,6 +189,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller, Is.Not.Null);
             _store = new CaptureProgressStore();
             _controller.SetProgressStoreForTests(_store);
+            _controller.SetStartItemInventoryForTests(
+                new StartItemInventoryTestGateway());
             Canvas.ForceUpdateCanvases();
             yield return null;
         }

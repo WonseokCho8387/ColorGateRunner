@@ -1881,3 +1881,44 @@ Any mismatch blocks implementation.
   the two-color-to-three-color mastery step.
 - Automation does not establish whether the revised curve teaches effectively
   or feels fun, fair, readable and comfortable.
+
+## Iteration 18 - Consumable Start Items
+
+### Focused acceptance
+
+- Stage 8+ consumes exactly one owned unit for each manually selected Shield
+  and Booster when `START` succeeds. Both selections publish as one atomic
+  Product mutation.
+- Retry retains toggles but a new successful Start consumes those selections
+  again. Duplicate Start input consumes once and produces one countdown.
+- Insufficient inventory and Product save failure retain PreRun and publish no
+  partial balance, transaction, selection or gameplay transition.
+- Stage 6/7 provided items remain free and selection-locked. Missing Product
+  context never grants a selected item for free; no-item and provided-item
+  paths remain available.
+- Product schema, gameplay Core, Campaign Catalog and deterministic stage data
+  remain unchanged.
+
+### Final automated evidence
+
+- Targeted Product EditMode: `30/30` passed.
+- Targeted item-consumption PlayMode: `5/5` passed.
+- Campaign Builder completed two consecutive passes and its generated-reference,
+  unique-root, EventSystem, Build Settings and missing-reference validation.
+- Full EditMode: `372/372` passed.
+- Final post-Builder PlayMode: `207/207` passed.
+- Package manifest/lock, non-volatile ProjectSettings and the actual Product
+  save remained unchanged. The existing Guest ID and owned balances were
+  preserved.
+- Validation Tier 2 omitted Campaign and Step 10 simulation reruns. No Core
+  item effect, Stage data, deterministic simulation input or Experiment
+  contract changed, so their approved hashes remain authoritative.
+
+### Human review
+
+- Verify portrait PreRun makes owned quantity, selected consumption and Retry
+  re-consumption understandable, and that shortage/save failure feedback does
+  not look like a successful Start.
+- Judge whether the free Stage 6/7 lessons make Stage 8's first inventory use
+  feel expected and fair. Automation does not determine product value or UX
+  clarity.

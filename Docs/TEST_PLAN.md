@@ -262,6 +262,15 @@ fairness, or polish.
   colors. Hidden and Flicker remain Experiment-only until Stages 21+.
 - Every Stage 1–20 initializes under all four requested item inputs. Runtime
   selection is rejected through Stage 7 and allowed from Stage 8 onward.
+- A successful Stage 8+ Start atomically persists one decrement for each
+  selected owned item before Countdown. No selection and Back before Start do
+  not consume; duplicate Start consumes once; Retry starts a new attempt and
+  consumes retained selections again.
+- Zero stock disables only the affected toggle. Stale insufficient inventory
+  and save failure remain in PreRun with truthful status and no partial
+  published decrement. Stage 6/7 provided items remain free and non-consuming.
+  Missing Product context disables selectable items without blocking no-item
+  or provided-item starts.
 - The Campaign selection UI contains exactly one generated entry per Catalog
   Stage, and Lobby current-stage/title bounds remain separated at every
   approved portrait reference resolution.

@@ -385,6 +385,11 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `LegacyCampaignImport_IsAtomicIdempotentAndBackfillsRewards`
 - `StageClear_FirstClearRewardsOnceAndAcknowledgesLobby`
 - `StageClear_SaveFailureDoesNotPublishPartialProgression`
+- `ConsumeStartItems_BothSelected_DecrementsAtomically`
+- `ConsumeStartItems_None_IsNoOpWithoutSave`
+- `ConsumeStartItems_Insufficient_IsAtomicAndDoesNotSave`
+- `ConsumeStartItems_SaveFailure_DoesNotPublishDecrement`
+- `ConsumeStartItems_RepeatedAttemptsConsumeAgain`
 
 #### `FrontendContextTests.cs`
 
@@ -473,6 +478,15 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `Play_OpensItemSelection`
 - `DirectCampaignPreRunBack_ReturnsToCampaignLobby`
 - `StagesOneThroughFive_ShowLockedItemsAndRejectToggles`
+- `StageEight_StartConsumesSelectedInventoryBeforeCountdown`
+- `StageEight_ZeroStockDisablesSelectionAndStartsItemless`
+- `StartItemSaveFailure_BlocksCountdownAndShowsError`
+- `InventoryChangedAfterSelection_BlocksStartAndNormalizes`
+- `BackBeforeStart_DoesNotConsumeSelectedItem`
+- `Retry_StartConsumesSelectedItemForNewAttempt`
+- `Retry_NormalizesSelectedItemWhenStockReachesZero`
+- `ProvidedItem_StartsWithoutProductInventory`
+- `MissingProductSession_CannotGrantFreeSelectableItem`
 - `DebugStagePicker_RemainsHidden`
 - `ColorHud_UpdatesCurrentAndNextAfterTap`
 - `ThreeColorHud_ShowsFullOrder`
@@ -609,6 +623,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/FrontendFlowPlayModeTests.cs
 - `FrontendPreRunBack_FailureStaysAndAllowsOneRetry`
 - `FrontendStageClear_ReturnsToLobbyAndShowsReward`
 - `TogglePresentation_MatchesAfterSaveReloadAndInPause`
+- `CampaignStart_UsesProductInventoryAndPersistsSpend`
 - `FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects`
 
 ### Hidden, Flicker, and Clone runtime

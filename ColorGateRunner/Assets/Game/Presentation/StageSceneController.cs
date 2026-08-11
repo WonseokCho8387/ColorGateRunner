@@ -79,6 +79,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text shieldToggleText;
         [SerializeField] private Button boosterToggleButton;
         [SerializeField] private Text boosterToggleText;
+        [SerializeField] private Text preRunStatusText;
         [SerializeField] private Button startButton;
         [SerializeField] private Button backButton;
 
@@ -133,6 +134,9 @@ namespace ColorGateRunner.Presentation
 
         private StageSession _session;
         private IStageProgressStore _progressStore;
+        private IStartItemInventoryGateway _startItemInventory;
+        private StartItemInventorySnapshot _startItemInventorySnapshot;
+        private string _startItemStartError = string.Empty;
         private string _clearSaveError = string.Empty;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
@@ -211,6 +215,7 @@ namespace ColorGateRunner.Presentation
         internal Text ShieldToggleText => shieldToggleText;
         internal Button BoosterToggleButton => boosterToggleButton;
         internal Text BoosterToggleText => boosterToggleText;
+        internal Text PreRunStatusText => preRunStatusText;
         internal Button ContinueButton => continueButton;
         internal Button RetryButton => retryButton;
         internal Button ReplayButton => replayButton;
@@ -326,6 +331,14 @@ namespace ColorGateRunner.Presentation
                         appRoot.Graph.Progression,
                         StageCatalog.Current)
                     : new PlayerPrefsStageProgressStore();
+            _startItemInventory = appRoot != null &&
+                appRoot.Graph?.ProductSession?.IsReady == true &&
+                appRoot.Graph.Progression?.Economy != null
+                    ? new ProductStartItemInventoryGateway(
+                        appRoot.Graph.ProductSession,
+                        appRoot.Graph.Progression)
+                    : new UnavailableStartItemInventoryGateway();
+            RefreshStartItemInventory();
             _haptics = new UnityHapticFeedback(IsVibrationEnabled);
             _telemetry = new DevelopmentTelemetry(developmentTelemetryEnabled);
             _highestUnlocked = _progressStore.LoadHighestUnlocked();
@@ -694,6 +707,8 @@ namespace ColorGateRunner.Presentation
             _session = new StageSession(definition);
             _shieldSelected = false;
             _boosterSelected = false;
+            _startItemStartError = string.Empty;
+            RefreshStartItemInventory();
             ApplyUiFlow(MobileUiFlow.PreRun);
             selectedStageText.text =
                 $"STAGE {displayNumber}\n{_session.Stage.Title}";
@@ -758,7 +773,8 @@ namespace ColorGateRunner.Presentation
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
                 _session.StageProvidesShield ||
-                !_session.Stage.ShieldAllowed)
+                !_session.Stage.ShieldAllowed ||
+                _startItemInventorySnapshot.ShieldCount <= 0)
             {
                 return;
             }
@@ -771,7 +787,8 @@ namespace ColorGateRunner.Presentation
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
                 _session.StageProvidesBooster ||
-                !_session.Stage.BoosterAllowed)
+                !_session.Stage.BoosterAllowed ||
+                _startItemInventorySnapshot.BoosterCount <= 0)
             {
                 return;
             }
@@ -786,6 +803,23 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            ProductMutationResult consumption = _startItemInventory.Consume(
+                _shieldSelected,
+                _boosterSelected);
+            if (!consumption.Succeeded)
+            {
+                _startItemStartError =
+                    consumption.Error.Code ==
+                        ProductErrorCode.InsufficientInventory
+                        ? "NOT ENOUGH START ITEMS"
+                        : "ITEM SAVE FAILED";
+                RefreshStartItemInventory();
+                NormalizeSelectedItemsToInventory();
+                SynchronizeItemSelection();
+                return;
+            }
+            _startItemStartError = string.Empty;
+            RefreshStartItemInventory();
             _session.SelectItems(
                 new StartItemSelection(_shieldSelected, _boosterSelected));
             if (!_session.BeginCountdown())
@@ -912,6 +946,9 @@ namespace ColorGateRunner.Presentation
             ResetRunPresentation();
             failPanel.SetActive(false);
             clearPanel.SetActive(false);
+            _startItemStartError = string.Empty;
+            RefreshStartItemInventory();
+            NormalizeSelectedItemsToInventory();
             ApplyUiFlow(MobileUiFlow.PreRun);
             selectedStageText.text =
                 $"STAGE {_selectedStageNumber}\n{_session.Stage.Title}";
@@ -1029,6 +1066,20 @@ namespace ColorGateRunner.Presentation
                 1,
                 StageCatalog.Count);
             ShowLobby();
+        }
+
+        internal void SetStartItemInventoryForTests(
+            IStartItemInventoryGateway gateway)
+        {
+            _startItemInventory = gateway ??
+                throw new ArgumentNullException(nameof(gateway));
+            RefreshStartItemInventory();
+            NormalizeSelectedItemsToInventory();
+            if (_session != null &&
+                _session.FlowState == StageFlowState.PreRunSelection)
+            {
+                SynchronizeItemSelection();
+            }
         }
 
         internal void SetHapticsForTests(IHapticFeedback haptics)
@@ -1168,7 +1219,8 @@ namespace ColorGateRunner.Presentation
                 developerUnlockAllButton == null || itemPanel == null ||
                 selectedStageText == null || shieldToggleButton == null ||
                 shieldToggleText == null || boosterToggleButton == null ||
-                boosterToggleText == null || startButton == null ||
+                boosterToggleText == null || preRunStatusText == null ||
+                startButton == null ||
                 backButton == null || countdownPanel == null ||
                 countdownText == null || stageHud == null ||
                 stageHudText == null || progressText == null ||
@@ -1260,6 +1312,7 @@ namespace ColorGateRunner.Presentation
             Text shieldText,
             Button boosterButton,
             Text boosterText,
+            Text itemStatus,
             Button start,
             Button back,
             GameObject countdown,
@@ -1337,6 +1390,7 @@ namespace ColorGateRunner.Presentation
             shieldToggleText = shieldText;
             boosterToggleButton = boosterButton;
             boosterToggleText = boosterText;
+            preRunStatusText = itemStatus;
             startButton = start;
             backButton = back;
             countdownPanel = countdown;
@@ -2319,24 +2373,47 @@ namespace ColorGateRunner.Presentation
         {
             shieldToggleButton.interactable =
                 _session.Stage.ShieldAllowed &&
-                !_session.StageProvidesShield;
+                !_session.StageProvidesShield &&
+                _startItemInventorySnapshot.ShieldCount > 0;
             boosterToggleButton.interactable =
                 _session.Stage.BoosterAllowed &&
-                !_session.StageProvidesBooster;
+                !_session.StageProvidesBooster &&
+                _startItemInventorySnapshot.BoosterCount > 0;
             shieldToggleText.text = _session.StageProvidesShield
                 ? "SHIELD: PROVIDED"
                 : !_session.Stage.ShieldAllowed
                     ? "SHIELD: LOCKED"
                     : _shieldSelected
-                        ? "SHIELD: ON"
-                        : "SHIELD: OFF";
+                        ? $"SHIELD x{_startItemInventorySnapshot.ShieldCount}: ON"
+                        : $"SHIELD x{_startItemInventorySnapshot.ShieldCount}: OFF";
             boosterToggleText.text = _session.StageProvidesBooster
                 ? "BOOSTER: PROVIDED"
                 : !_session.Stage.BoosterAllowed
                     ? "BOOSTER: LOCKED"
                     : _boosterSelected
-                        ? "BOOSTER: ON"
-                        : "BOOSTER: OFF";
+                        ? $"BOOSTER x{_startItemInventorySnapshot.BoosterCount}: ON"
+                        : $"BOOSTER x{_startItemInventorySnapshot.BoosterCount}: OFF";
+            preRunStatusText.text = _startItemStartError;
+            preRunStatusText.gameObject.SetActive(
+                !string.IsNullOrWhiteSpace(_startItemStartError));
+        }
+
+        private void RefreshStartItemInventory()
+        {
+            _startItemInventorySnapshot =
+                _startItemInventory?.Read() ?? default;
+        }
+
+        private void NormalizeSelectedItemsToInventory()
+        {
+            if (_startItemInventorySnapshot.ShieldCount <= 0)
+            {
+                _shieldSelected = false;
+            }
+            if (_startItemInventorySnapshot.BoosterCount <= 0)
+            {
+                _boosterSelected = false;
+            }
         }
 
         private void RefreshStageButtons()

@@ -2,7 +2,7 @@
 
 ## One-line pitch
 
-Choose free start items, cycle the runner color, and clear a short authored
+Choose owned start items, cycle the runner color, and clear a short authored
 stage by matching every gate before crossing the Goal.
 
 ## Target
@@ -16,9 +16,10 @@ stage by matching every gate before crossing the Goal.
 
 1. Lobby shows the lowest unlocked uncleared stage and current visual tier.
 2. Play opens PreRun Item Selection for that single current stage.
-3. Shield and Booster are independent free toggles only when the selected
-   stage allows them. Stages 1–7 keep selection locked; Stage 6 provides one
-   Shield, Stage 7 provides one Booster, and Stage 8 unlocks both toggles.
+3. Shield and Booster are independent owned-item toggles only when the selected
+   stage allows them and inventory is available. Stages 1–7 keep selection
+   locked; Stage 6 provides one free Shield, Stage 7 provides one free Booster,
+   and Stage 8 unlocks both consumable toggles.
 4. Start enters one `3, 2, 1, GO` countdown.
 5. Items activate after `GO`, then the runner moves automatically.
 6. Taps cycle through the colors currently allowed by the stage.
@@ -80,11 +81,17 @@ simulation required-tap calculation use the same modular forward-cycle rule.
 Campaign selection is locked through Stage 7. Provided training items at
 Stages 6 and 7 activate after `GO` without inventory consumption or a
 duplicate selection. Stage 8 is the first clean application Stage where both
-selection toggles are available.
+selection toggles are available. A successful `START` atomically consumes one
+owned unit of each selected item before Countdown. Zero stock disables its
+toggle. Insufficient current inventory or save failure leaves the player in
+PreRun with truthful status and no partial spend. Retry is a new attempt and
+consumes selected items again; Back before Start and duplicate Start do not.
+Without a ready Product session, selectable items remain unavailable, while a
+no-item start and the Stage 6/7 provided-item starts remain valid.
 
 ### Shield
 
-- Free and unlimited at selection time.
+- Costs one owned Shield when selected for a successful Stage 8+ Start.
 - Activates only after `GO`.
 - Absorbs one mismatching gate and is then removed.
 - The absorbed gate advances stage progress but does not count as a correct
@@ -93,7 +100,7 @@ selection toggles are available.
 
 ### Booster
 
-- Free and unlimited at selection time.
+- Costs one owned Booster when selected for a successful Stage 8+ Start.
 - Activates only after `GO`.
 - Uses stage-specific high speed from 22 through 26 units per second.
 - Lasts a deterministic stage-specific distance.
@@ -132,7 +139,7 @@ no-item best. Corrupt values fall back to safe empty records.
 
 The previous deterministic Endless implementation remains reusable code but is
 not exposed by the main scene. Optional Endless mode, direct color buttons,
-consumable economies, extra mechanics/colors, audio or BPM placement, ads,
+item purchasing, extra mechanics/colors, audio or BPM placement, ads,
 analytics, networking, and online ranking are deferred.
 
 ## Step 9C player-facing presentation
@@ -541,9 +548,26 @@ Experiment mechanics.
   colors; mastery restores three colors.
 - Hidden is reserved for planned Stages 21–23 and Flicker for Stages 24–26.
   Both remain implemented and testable in Experiment Lab.
-- All Stage 8–20 entries allow Shield and Booster selection. Item consumption
-  remains deferred, so this iteration changes learning order rather than the
-  economy contract.
+- All Stage 8–20 entries allow Shield and Booster selection. The Iteration 18
+  contract below supersedes the deferred-consumption statement from this
+  historical learning-curve iteration.
+
+## Iteration 18 consumable start-item contract
+
+- On Stage 8+, a successful `START` consumes exactly one owned Shield and/or
+  Booster for each selected toggle in one atomic Product save before
+  Countdown. Selecting both never exposes a partial decrement.
+- Zero stock disables only that item's selection. A stale insufficient-stock
+  result or save failure keeps PreRun active, reports the truthful failure and
+  starts no attempt.
+- Retry returns to selection for a new attempt and consumes retained selected
+  items again. Back before Start consumes nothing. Repeated Start after the
+  first accepted call cannot consume twice.
+- Stage 6/7 provided training items remain stage-local, free and non-consuming.
+  A missing Product context disables selectable inventory but does not block
+  no-item or provided-item starts.
+- Product save remains schema 2; no migration or new persistent field is
+  introduced.
 
 ## Iteration 12 Gameplay Pause contract
 

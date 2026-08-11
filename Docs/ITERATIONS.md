@@ -1471,3 +1471,81 @@ Human feedback required
   14-15 and 17-18 block transitions.
 - Automated simulations establish determinism and mechanical outcomes, not
   learning, fun, readability, comfort or final balance.
+
+## Iteration 18 - Consumable Start Items
+
+### Play
+
+- Lobby already displayed owned Shield and Booster counts, but PreRun selection
+  did not spend them. The visible inventory therefore had no gameplay cost or
+  ownership consequence.
+- The Stage 6/7 teaching grants still needed to remain free so players could
+  learn each item before Stage 8 introduced ordinary selection.
+
+### Analyze
+
+- Product save schema 2 already owns Shield/Booster counts and idempotent
+  transaction IDs. A new save schema or second inventory service was
+  unnecessary.
+- The existing Start boundary is the smallest truthful consume point. Charging
+  at toggle time would make exploration costly, while charging after countdown
+  would allow gameplay to begin before persistence succeeds.
+- Retry is a new Attempt through the retained PreRun selection, so retaining a
+  toggle must not retain a previously spent item charge.
+
+### Design
+
+- Consume one unit of every manually selected item atomically when `START` is
+  accepted on Stage 8 or later.
+- Keep Stage 6/7 provided grants free and selection-locked. Permit no-item play
+  without Product, but never substitute free selected items for a missing
+  Product session.
+- Keep PreRun visible on shortage or save failure, show the failure truthfully,
+  and publish no partial Product or gameplay state.
+- Use one idempotent request per Start so repeated input consumes and starts at
+  most once. Retry creates a fresh request and consumes retained selections
+  again.
+
+### Implementation
+
+- `LocalProductSession.ConsumeStartItems` performs the cloned, validated and
+  atomic Product mutation before the existing countdown path.
+- Campaign presentation uses an inventory gateway rather than introducing
+  Product ownership into gameplay Core. Generated PreRun references and state
+  synchronize with the authoritative owned counts.
+- Product save schema, Catalog, deterministic item effects and StageSession
+  rules remain unchanged.
+
+### Validation
+
+- Targeted Product EditMode passed `30/30`; targeted item-consumption PlayMode
+  passed `5/5`.
+- Campaign Builder completed two consecutive passes and structural validation.
+- Full EditMode passed `372/372`; final post-Builder PlayMode passed `207/207`.
+- Package manifest/lock, non-volatile ProjectSettings, actual Product save,
+  Guest identity and player balances remained unchanged by validation.
+- Tier 2 omitted Campaign and Step 10 simulation reruns because Product
+  authorization does not alter Core item behavior, stage data, deterministic
+  inputs or Experiment contracts. All approved hashes remain preserved.
+
+### Learning
+
+- A displayed inventory becomes meaningful only when the gameplay entry point
+  and persistence boundary agree on when ownership changes.
+- Atomic multi-item consumption is simpler for the player and safer for
+  recovery than independently publishing two selected-item writes.
+- Retry UX must state that a retained selection is a new purchase/use for the
+  next Attempt rather than implying the previous charge carries forward.
+
+### Deferred
+
+- Continue Coin pricing, rewarded ads, Shop/IAP, Hearts, unlimited-time items,
+  final Lobby art and release provider integration.
+
+### Human Review
+
+- Confirm owned counts, selected state, Start failure and Retry re-consumption
+  are understandable on a portrait device without reading implementation
+  language.
+- Confirm the free Stage 6/7 teaching flow and first paid-use Stage 8 transition
+  feel fair. Automated tests do not establish clarity, value or satisfaction.

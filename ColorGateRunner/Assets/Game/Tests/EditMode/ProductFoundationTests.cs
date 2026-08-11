@@ -697,6 +697,103 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.Empty);
         }
 
+        [Test]
+        public void ConsumeStartItems_BothSelected_DecrementsAtomically()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.ShieldCount = 2;
+            pipeline.Progression.Economy.BoosterCount = 3;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.ConsumeStartItems(true, true);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(result.Changed, Is.True);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 1));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.EqualTo(2));
+            Assert.That(save.Stored.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(save.Stored.Economy.BoosterCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ConsumeStartItems_None_IsNoOpWithoutSave()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.ConsumeStartItems(false, false);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(result.Changed, Is.False);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+        }
+
+        [Test]
+        public void ConsumeStartItems_Insufficient_IsAtomicAndDoesNotSave()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.ShieldCount = 1;
+            pipeline.Progression.Economy.BoosterCount = 0;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.ConsumeStartItems(true, true);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.InsufficientInventory));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.Zero);
+        }
+
+        [Test]
+        public void ConsumeStartItems_SaveFailure_DoesNotPublishDecrement()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.ShieldCount = 1;
+            pipeline.Progression.Economy.BoosterCount = 1;
+            save.FailWrites = true;
+
+            ProductMutationResult result =
+                pipeline.Session.ConsumeStartItems(true, true);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.SaveWrite));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ConsumeStartItems_RepeatedAttemptsConsumeAgain()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.ShieldCount = 2;
+
+            ProductMutationResult first =
+                pipeline.Session.ConsumeStartItems(true, false);
+            ProductMutationResult retry =
+                pipeline.Session.ConsumeStartItems(true, false);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(retry.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.Zero);
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,
@@ -838,12 +935,14 @@ namespace ColorGateRunner.Tests.EditMode
 
             public LocalSaveData Stored { get; private set; }
             public bool FailWrites { get; set; }
+            public int SaveCount { get; private set; }
 
             public LocalSaveLoadResult Load() =>
                 LocalSaveLoadResult.Success(Stored.Clone(), false, false);
 
             public LocalSaveWriteResult Save(LocalSaveData data)
             {
+                SaveCount++;
                 if (FailWrites)
                 {
                     return LocalSaveWriteResult.Failure(

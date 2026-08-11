@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `fea8fe1`
-- Base commit: `feat: add campaign stages 14 through 20`
+- Implementation base HEAD: `e75ae24`
+- Base commit: `feat: restructure campaign learning curve`
 - Authoritative completion HEAD: the commit named
-  `feat: restructure campaign learning curve`; its exact hash is recorded in
-  the Iteration 17 final report because a commit cannot contain its own
+  `feat: consume owned start items`; its exact hash is recorded in
+  the Iteration 18 final report because a commit cannot contain its own
   content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,8 +20,8 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 17 — Campaign learning-curve
-  rebalance**.
+- Current completed iteration: **Iteration 18 — Consumable owned start
+  items**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -66,12 +66,21 @@ iterations but do not override this section.
   three-Stage intro/practice/mastery blocks using 2/2/3 colors. Hidden and
   Flicker remain available in Experiment Lab but are deferred from Campaign
   until the planned Stages 21–23 and 24–26.
+- From Stage 8 onward, selecting Shield or Booster consumes one owned unit of
+  each selected item in one atomic Product save when `START` succeeds, before
+  Countdown. Zero stock disables that selection. Insufficient current stock
+  or save failure keeps PreRun open with truthful status and publishes no
+  partial spend. Retry is a new attempt and consumes again; Back before Start
+  and duplicate Start do not consume. Stage 6/7 provided training items remain
+  free and do not consume inventory. Without a ready Product session,
+  selectable items are unavailable while no-item and provided-item starts
+  remain valid.
 
 ### Automated validation
 
-- EditMode: `367/367`
-- PlayMode: `195/195`
-- Post-Builder PlayMode: `195/195`
+- EditMode: `372/372`
+- PlayMode: `207/207`
+- Post-Builder PlayMode: `207/207`
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -127,7 +136,8 @@ All three entries are expected to be enabled and unique.
   records, 2,600 Coins, 4 Shields and 4 Boosters. Its SHA-256 is
   `39FB23837EE260E8F1B3CF7E1EF7EBE6389DC689A59CC3E68B6164516E180A18`
   and `LastWriteUtc` is `2026-08-11T03:21:03.1535325Z`. The hash and values
-  were identical after Iteration 17 validation.
+  were identical after Iteration 18 validation. Iteration 18 retained schema
+  2 and did not migrate or rewrite the actual Product save.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
 
 ### Package and ProjectSettings baseline
@@ -148,6 +158,32 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 18
+
+(Consumable Owned Start Items)
+
+---
+
+- Stage 8+ selectable Shield and Booster now consume one owned unit per
+  selected item in one atomic successful save before Countdown. Starting with
+  no selected item performs no inventory write.
+- Zero stock disables the corresponding toggle. Stale insufficient inventory
+  and save failure remain in PreRun with truthful status and no partial
+  published decrement. Retry consumes again for the new attempt; Back before
+  Start consumes nothing; duplicate Start consumes once.
+- Stage 6/7 provided items remain free. Missing Product context cannot grant a
+  selectable item for free, while no-item and provided-item starts remain
+  available. Product save schema remains 2 with no migration.
+- Targeted Product tests passed `30/30`; targeted PlayMode tests passed `5/5`.
+  The Campaign Builder command built twice and validated the generated Scene.
+  Full EditMode passed `372/372` and full post-Builder PlayMode passed
+  `207/207`.
+- Campaign and Step 10 simulations were omitted under Tier 2 because Core,
+  stage data and deterministic simulation inputs did not change. All
+  Iteration 17 artifact hashes remain authoritative.
 
 Version
 

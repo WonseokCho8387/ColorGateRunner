@@ -21,6 +21,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller, Is.Not.Null);
             _controller.SetProgressStoreForTests(
                 new InMemoryStageProgressStore());
+            _controller.SetStartItemInventoryForTests(
+                new StartItemInventoryTestGateway());
         }
 
         [Test]

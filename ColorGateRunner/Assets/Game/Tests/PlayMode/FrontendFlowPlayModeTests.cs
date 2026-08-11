@@ -566,6 +566,33 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator CampaignStart_UsesProductInventoryAndPersistsSpend()
+        {
+            var save = new StockedCampaignSaveService();
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            RequireController().LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+
+            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(8));
+            Assert.That(campaign.ShieldToggleText.text,
+                Is.EqualTo("SHIELD x2: OFF"));
+            Assert.That(campaign.BoosterToggleText.text,
+                Is.EqualTo("BOOSTER x1: OFF"));
+            int savesBeforeStart = save.SaveCount;
+            campaign.ToggleShieldSelection();
+            campaign.ToggleBoosterSelection();
+            campaign.StartSelectedStage();
+
+            Assert.That(campaign.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(save.Stored.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(save.Stored.Economy.BoosterCount, Is.Zero);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBeforeStart + 1));
+        }
+
+        [UnityTest]
         public IEnumerator FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects()
         {
             yield return LoadFrontendThroughBoot();
@@ -925,6 +952,48 @@ namespace ColorGateRunner.Tests.PlayMode
 
             public LocalSaveWriteResult Save(LocalSaveData data)
             {
+                _data = data.Clone();
+                return LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
+            }
+        }
+
+        private sealed class StockedCampaignSaveService : ILocalSaveService
+        {
+            private LocalSaveData _data;
+
+            internal StockedCampaignSaveService()
+            {
+                _data = new ExistingGuestSaveService(true).Load().Data.Clone();
+                _data.CampaignProgress.LegacyMigrationCompleted = true;
+                _data.CampaignProgress.HighestUnlockedStageId = "stage-08";
+                for (int stage = 1; stage <= 7; stage++)
+                {
+                    _data.CampaignProgress.StageRecords.Add(
+                        new LocalStageProgressData
+                        {
+                            StageId = $"stage-{stage:00}",
+                            Cleared = true,
+                            BestTime = 10f,
+                            BestNoItemTime = 10f,
+                            ClearCount = 1
+                        });
+                }
+                _data.Economy.ShieldCount = 2;
+                _data.Economy.BoosterCount = 1;
+            }
+
+            internal LocalSaveData Stored => _data;
+            internal int SaveCount { get; private set; }
+
+            public LocalSaveLoadResult Load() =>
+                LocalSaveLoadResult.Success(_data.Clone(), false, false);
+
+            public LocalSaveWriteResult Save(LocalSaveData data)
+            {
+                SaveCount++;
+                data.SaveRevision++;
+                data.Profile.SaveRevision = data.SaveRevision;
                 _data = data.Clone();
                 return LocalSaveWriteResult.Success(
                     SaveReplacementResult.Recoverable);
