@@ -794,6 +794,184 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(pipeline.Progression.Economy.ShieldCount, Is.Zero);
         }
 
+        [Test]
+        public void SpendContinueCoins_IsAtomicAndIdempotent()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1000;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult first = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+            ProductMutationResult repeated =
+                pipeline.Session.SpendContinueCoins(
+                    "continue:attempt-1:coin:0",
+                    300);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(first.Changed, Is.True);
+            Assert.That(repeated.Succeeded, Is.True);
+            Assert.That(repeated.Changed, Is.False);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 1));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(700));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(700));
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Does.Contain("continue:attempt-1:coin:0"));
+        }
+
+        [TestCase(null, 300)]
+        [TestCase("", 300)]
+        [TestCase("   ", 300)]
+        [TestCase("continue:attempt-1:coin:0", 0)]
+        [TestCase("continue:attempt-1:coin:0", -1)]
+        public void SpendContinueCoins_InvalidRequestDoesNotSave(
+            string transactionId,
+            int amount)
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1000;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.SpendContinueCoins(transactionId, amount);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.SaveValidation));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(1000));
+        }
+
+        [Test]
+        public void SpendContinueCoins_InsufficientFundsDoesNotSave()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 299;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.InsufficientFunds));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(299));
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Is.Empty);
+        }
+
+        [Test]
+        public void SpendContinueCoins_SaveFailureDoesNotPublish()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1000;
+            save.FailWrites = true;
+
+            ProductMutationResult result = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.SaveWrite));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(1000));
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Is.Empty);
+        }
+
+        [Test]
+        public void SpendContinueCoins_SaveFailureCanRetrySameTransactionOnce()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1000;
+            int savesBefore = save.SaveCount;
+            save.FailWrites = true;
+
+            ProductMutationResult failed = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+            save.FailWrites = false;
+            ProductMutationResult retry = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+
+            Assert.That(failed.Succeeded, Is.False);
+            Assert.That(retry.Succeeded, Is.True);
+            Assert.That(retry.Changed, Is.True);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 2));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(700));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(700));
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Is.EqualTo(new[] { "continue:attempt-1:coin:0" }));
+        }
+
+        [Test]
+        public void SpendContinueCoins_SameTransactionDifferentAmountIsReplay()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1000;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult first = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300);
+            ProductMutationResult replay = pipeline.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                900);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(replay.Changed, Is.False);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 1));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(700));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(700));
+        }
+
+        [Test]
+        public void SpendContinueCoins_ReloadKeepsTransactionIdempotent()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline first = CreateSessionPipeline(save);
+            Assert.That(first.Initialize().Succeeded, Is.True);
+            first.Progression.Economy.Coins = 1000;
+            Assert.That(first.Session.SpendContinueCoins(
+                "continue:attempt-1:coin:0",
+                300).Succeeded,
+                Is.True);
+
+            AppInitializationPipeline reloaded = CreateSessionPipeline(save);
+            Assert.That(reloaded.Initialize().Succeeded, Is.True);
+            int savesBeforeReplay = save.SaveCount;
+            ProductMutationResult replay =
+                reloaded.Session.SpendContinueCoins(
+                    "continue:attempt-1:coin:0",
+                    300);
+
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(replay.Changed, Is.False);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBeforeReplay));
+            Assert.That(reloaded.Progression.Economy.Coins, Is.EqualTo(700));
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,

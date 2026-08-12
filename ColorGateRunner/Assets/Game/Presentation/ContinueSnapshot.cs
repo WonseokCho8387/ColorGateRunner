@@ -51,7 +51,7 @@ namespace ColorGateRunner.Presentation
             int failedGateIndex,
             bool finalSection,
             bool goalActive,
-            bool continueUsed,
+            int continueUseCount,
             bool shieldSelected,
             bool shieldConsumed,
             bool boosterSelected,
@@ -71,7 +71,7 @@ namespace ColorGateRunner.Presentation
             FailedGateIndex = failedGateIndex;
             FinalSection = finalSection;
             GoalActive = goalActive;
-            ContinueUsed = continueUsed;
+            ContinueUseCount = continueUseCount;
             ShieldSelected = shieldSelected;
             ShieldConsumed = shieldConsumed;
             BoosterSelected = boosterSelected;
@@ -92,7 +92,8 @@ namespace ColorGateRunner.Presentation
         internal int FailedGateIndex { get; }
         internal bool FinalSection { get; }
         internal bool GoalActive { get; }
-        internal bool ContinueUsed { get; }
+        internal int ContinueUseCount { get; }
+        internal bool ContinueUsed => ContinueUseCount > 0;
         internal bool ShieldSelected { get; }
         internal bool ShieldConsumed { get; }
         internal bool BoosterSelected { get; }

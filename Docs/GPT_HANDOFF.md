@@ -31,9 +31,9 @@ GPT는 Game Director 및 Product/UX 설계자로 행동한다.
 ## 3. 현재 Git 상태
 
 - 브랜치: main
-- Iteration 18 구현 기반 커밋: e75ae24
+- Iteration 19 구현 기반 커밋: 5e0eb3c
 - 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
-  feat: consume owned start items
+  feat: add continue economy policy
 
 최신 HEAD와 테스트 수는 항상 저장소의
 Docs/CURRENT_STATUS.md를 권위자로 사용한다.
@@ -105,6 +105,15 @@ fallback으로 유지한다.
   - Retry는 새 Attempt이므로 다시 소비하고 Back은 소비하지 않음
   - Stage 6/7 제공 아이템은 무료이며 Inventory를 소비하지 않음
   - ProductSession 부재 시 선택 아이템을 무료 제공하지 않음
+- Failure Result Continue Economy
+  - 성공한 Coin Continue 순서대로 `300 / 600 / 900` Coin
+  - 한 Attempt의 Coin/광고 합산 Continue는 최대 3회
+  - 성공한 보상형 광고 Continue는 Attempt당 1회이며 Coin을 먼저 써도 유지
+  - Retry는 새 Attempt이므로 가격 순서와 광고 권리를 초기화
+  - 결제/광고 요청 중에는 Failure Result를 고정하고 중복 요청을 차단
+  - 부족한 잔액, 저장 실패, 광고 실패/취소/미지원은 소비 없이 Failure 유지
+  - 실제 광고 provider가 없는 release에서는 광고 버튼을 숨기며 무료 성공을
+    흉내 내지 않음
 
 ## 6. 최근 해결한 문제
 
@@ -117,19 +126,20 @@ fallback으로 유지한다.
 
 ## 7. 현재 저장 정책
 
-### Iteration 18 검증 기준
+### Iteration 19 검증 기준
 
-- EditMode `372/372`
-- PlayMode 및 Post-Builder PlayMode `207/207`
-- Campaign Builder 연속 2회 성공
+- EditMode `400/400`
+- PlayMode 및 Post-Builder PlayMode `215/215`
+- Frontend/Campaign Builder 2회 및 검증 성공
 - Campaign simulation `400` rows, 연속 2회 byte-identical
-- Campaign 및 Step 10 결정론적 artifact hash는 Iteration 17 기준과 동일
+- Campaign artifact는 Iteration 19의 승인 해시로 갱신됐고 Step 10
+  결정론적 artifact는 변경되지 않음
 - Campaign Summary SHA-256:
-  `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
+  `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`
 - Campaign JSON SHA-256:
-  `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`
+  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
 - Campaign CSV SHA-256:
-  `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`
+  `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`
 
 최신 수치와 해시는 항상 `CURRENT_STATUS.md`를 우선한다.
 
@@ -198,7 +208,7 @@ GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최
 - Hidden Stage 21–23, Flicker Stage 24–26 제작
 - Stage 27–36 후반 Campaign 설계와 제작
 - Lobby 3개 Theme의 최종 아트, 애니메이션, 보상 연출
-- Iteration 19: Coin Continue 가격 상승과 게임당 광고 Continue 1회 정책 구현
+- Continue Economy 인간 플레이 검증과 실제 광고 SDK/provider 선정
 - Shield/Booster Coin 구매와 Shop 진입 흐름
 - Heart, 시간제 무제한 Booster/Heart, Shop 및 IAP
 - 실제 BGM과 SFX 연결

@@ -1549,3 +1549,71 @@ Human feedback required
   language.
 - Confirm the free Stage 6/7 teaching flow and first paid-use Stage 8 transition
   feel fair. Automated tests do not establish clarity, value or satisfaction.
+
+## Iteration 19 - Continue Economy and Attempt Policy
+
+### Play
+
+- Failure exposed Continue as a mechanic but did not present truthful Coin or
+  rewarded-ad choices. The visible Coin balance therefore had no Continue use,
+  and a run could not express the approved escalating recovery cost.
+
+### Analyze
+
+- Core already owned failure, safe resume and Retry. Product already owned
+  Coins, atomic persistence and idempotent transaction IDs. The smallest safe
+  design was an attempt-local authorization policy between those authorities,
+  without moving economy into gameplay Core.
+
+### Design
+
+- Allow three Continues per Attempt. Price successful Coin Continues at
+  300/600/900 by Coin ordinal, independently allow one successfully completed
+  rewarded ad, and reset both rights on Retry.
+- Preserve the ad right when Coins are used first and preserve the 300-Coin
+  first price when the ad is used first. Keep the failure state frozen on
+  insufficient funds, save failure, ad failure, cancellation or unavailability.
+- Hide rewarded Continue when no real provider exists; never present an
+  unavailable release action as successful.
+
+### Implementation
+
+- `StageSession` now owns the Continue count and three-use cap while retaining
+  the existing derived continued-run contract and resume invariants.
+- Product performs atomic, idempotent Continue Coin spends. Presentation owns
+  the attempt policy, source authorization, stale ad-callback protection and
+  truthful offer visibility.
+- Campaign simulation supports up to three authorized Continues and exports
+  total, average, maximum and per-use-count histogram metrics.
+
+### Validation
+
+- Campaign Builder and structural validation completed twice.
+- Full EditMode passed `400/400`; final post-Builder PlayMode passed `215/215`.
+- Two complete 400-row Campaign simulations were byte-identical. Summary
+  SHA-256 is
+  `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`,
+  JSON is
+  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`,
+  and CSV is
+  `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`.
+- Step 10 inputs and artifacts remained unchanged.
+
+### Learning
+
+- Continue availability is a transaction protocol, not only a button state:
+  authorization, persistence, attempt capacity and gameplay resume must agree
+  before the failed run changes.
+- Separating Coin ordinal from total Continue count keeps mixed Coin/ad order
+  predictable and makes the player's unused recovery rights explicit.
+
+### Deferred
+
+- Production rewarded-ad provider integration, Shop/IAP, Hearts, unlimited
+  boosters, final economy balance and release packaging.
+
+### Human Review
+
+- Verify on portrait devices that Coin price, balance shortage, ad availability,
+  three-use exhaustion and Retry reset are understandable without technical
+  language. Automation does not determine fairness, value or frustration.

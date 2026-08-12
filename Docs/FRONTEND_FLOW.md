@@ -474,8 +474,17 @@ Rules:
 - Do not expose internal implementation language.
 - Flicker may show the collision-time Gate color.
 - Hidden remains an ordinary mismatch result with Hidden context.
-- Continue preserves the existing one-free-Continue contract.
-- Future ad or currency Continue must enter through a service boundary.
+- Continue offers the next Coin price by successful Coin-Continue ordinal:
+  `300`, `600`, then `900` Coins.
+- One successful rewarded-ad Continue is available per attempt when a real
+  provider reports availability. Taking a Coin Continue first preserves that
+  rewarded-ad opportunity.
+- An attempt permits at most three total Continues across both sources. Retry
+  creates a fresh attempt and resets the Coin ordinal and rewarded-ad right.
+- While payment or an ad request is pending, the Failure Result remains frozen
+  and cannot submit another Continue. Failed, cancelled, unavailable, or stale
+  requests resume the same Failure Result without consuming a Continue.
+- Release builds hide the rewarded-ad action when no provider is configured.
 
 # 10. Clear Result
 
@@ -754,6 +763,21 @@ Implementation status: Completed in Iteration 10.
   stock, save failure, and missing-Product behavior follow the item rules
   above. Coin purchase, Continue economy, Shop, ads, and IAP remain deferred.
 
+## Implemented UX slice — Iteration 19 Continue economy
+
+- Failure Result exposes Coin Continue at `300`, `600`, and `900` Coins by
+  successful Coin-Continue ordinal, with a maximum of three total Continues
+  per attempt.
+- A successful rewarded-ad completion authorizes one Continue per attempt.
+  Coin-first does not consume that right; failed, cancelled, unavailable, and
+  stale callbacks do not mutate the attempt or Product balance.
+- Coin spend is persisted before gameplay resumes. Save or balance failure
+  leaves the Failure Result frozen and truthful, and duplicate input cannot
+  create a second spend.
+- Retry creates a new attempt with the first Coin price and a fresh ad right.
+  Production has no simulated-success ad path: without a configured provider,
+  the ad action is hidden. A real advertising SDK remains deferred.
+
 ## Frontend Iteration 3 — Lobby, Campaign, Stage Detail
 
 Implementation status: Partially completed through Iteration 15.
@@ -824,7 +848,8 @@ Additional acceptance:
 - Login failure cannot block local play.
 - Stage progress uses stable IDs.
 - The current Stage 1–20 Catalog remains deterministic.
-- Retry, Continue, and Goal rules remain unchanged.
+- Retry resets the attempt-local Continue economy, while Goal rules remain
+  unchanged.
 - Event modules and Lobby themes are data-driven.
 - Empty future-feature slots remain hidden.
 - Portrait Safe Area works.

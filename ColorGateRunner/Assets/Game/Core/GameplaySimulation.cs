@@ -180,6 +180,9 @@ namespace ColorGateRunner.Core
         public float MaximumBoosterActiveGateDisplacement;
         public int BoosterGateIndexGapCount;
         public int BoosterDuplicateGateIndexCount;
+        public int TotalContinueUseCount;
+        public int MaximumContinueUseCountObserved;
+        public int[] ContinueUseHistogram;
         public float ContinueSuccessRate;
         public float AverageContinueNextGateDistanceAtFailure;
         public float AverageContinueNextGateDistanceAfterResume;
@@ -199,6 +202,8 @@ namespace ColorGateRunner.Core
             RunCount == 0 ? 0f : (float)FirstAttemptClearCount / RunCount;
         public float ClearWithContinueRate =>
             RunCount == 0 ? 0f : (float)ClearWithContinueCount / RunCount;
+        public float AverageContinueUseCount =>
+            RunCount == 0 ? 0f : (float)TotalContinueUseCount / RunCount;
     }
 
     public sealed class SimulationBatchResult
@@ -523,6 +528,12 @@ namespace ColorGateRunner.Core
                 {
                     shieldConsumed++;
                 }
+                int continueUseCount = session.ContinueUseCount;
+                result.TotalContinueUseCount += continueUseCount;
+                result.MaximumContinueUseCountObserved = Math.Max(
+                    result.MaximumContinueUseCountObserved,
+                    continueUseCount);
+                result.ContinueUseHistogram[continueUseCount]++;
                 if (items.Shield && session.ShieldActive)
                 {
                     shieldSurvived++;
@@ -655,6 +666,8 @@ namespace ColorGateRunner.Core
                 FailureByGate = new int[stage.TargetGateCount],
                 FailureByPattern = new int[
                     Enum.GetValues(typeof(GatePatternType)).Length],
+                ContinueUseHistogram = new int[
+                    StageSession.MaximumContinuesPerAttempt + 1],
                 EstimatedNoItemDuration =
                     stage.TargetGateCount *
                     ((stage.CadenceStart + stage.CadenceEnd) * 0.5f)
@@ -730,7 +743,7 @@ namespace ColorGateRunner.Core
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine(
-                "stage,profile,shield,booster,runs,firstClearRate,continueClearRate,medianTime,p10Time,p90Time,medianFailureProgress,failureByGate,failureByPattern,finalReachRate,finalCompletionRate,avgRequiredTaps,avgSuccessfulTaps,missed,wrong,avgInputsPerSecond,peakInputsPerSecond,minMargin,p10Margin,avgMargin,shieldConsumed,shieldSurvival,avgBoosterBypassed,boosterBypassPercent,primaryPatternBypassPercent,postBoosterFailureRate,boosterNextDistanceBefore,boosterNextDistanceAfter,maxBoosterDisplacement,boosterIndexGaps,boosterDuplicateIndices,continueSuccessRate,continueNextDistanceAtFailure,continueNextDistanceAfterResume,maxContinueDisplacement,continueCursorBefore,continueCursorAfter,continueCursorResets,continueIndexGaps,continueDuplicateIndices,postContinueFailureRate,fullPoolResets,estimatedNoItemDuration");
+                "stage,profile,shield,booster,runs,firstClearRate,continueClearRate,medianTime,p10Time,p90Time,medianFailureProgress,failureByGate,failureByPattern,finalReachRate,finalCompletionRate,avgRequiredTaps,avgSuccessfulTaps,missed,wrong,avgInputsPerSecond,peakInputsPerSecond,minMargin,p10Margin,avgMargin,shieldConsumed,shieldSurvival,avgBoosterBypassed,boosterBypassPercent,primaryPatternBypassPercent,postBoosterFailureRate,boosterNextDistanceBefore,boosterNextDistanceAfter,maxBoosterDisplacement,boosterIndexGaps,boosterDuplicateIndices,totalContinueUses,avgContinueUses,maxContinueUses,continueUseHistogram,continueSuccessRate,continueNextDistanceAtFailure,continueNextDistanceAfterResume,maxContinueDisplacement,continueCursorBefore,continueCursorAfter,continueCursorResets,continueIndexGaps,continueDuplicateIndices,postContinueFailureRate,fullPoolResets,estimatedNoItemDuration");
             for (int index = 0; index < batch.Results.Count; index++)
             {
                 StageSimulationResult value = batch.Results[index];
@@ -769,6 +782,10 @@ namespace ColorGateRunner.Core
                     .Append(F(value.MaximumBoosterActiveGateDisplacement)).Append(',')
                     .Append(value.BoosterGateIndexGapCount).Append(',')
                     .Append(value.BoosterDuplicateGateIndexCount).Append(',')
+                    .Append(value.TotalContinueUseCount).Append(',')
+                    .Append(F(value.AverageContinueUseCount)).Append(',')
+                    .Append(value.MaximumContinueUseCountObserved).Append(',')
+                    .Append('"').Append(Join(value.ContinueUseHistogram)).Append("\",")
                     .Append(F(value.ContinueSuccessRate)).Append(',')
                     .Append(F(value.AverageContinueNextGateDistanceAtFailure)).Append(',')
                     .Append(F(value.AverageContinueNextGateDistanceAfterResume)).Append(',')
@@ -833,6 +850,12 @@ namespace ColorGateRunner.Core
                     .Append(",\"maximumBoosterActiveGateDisplacement\":").Append(F(value.MaximumBoosterActiveGateDisplacement))
                     .Append(",\"boosterGateIndexGapCount\":").Append(value.BoosterGateIndexGapCount)
                     .Append(",\"boosterDuplicateGateIndexCount\":").Append(value.BoosterDuplicateGateIndexCount)
+                    .Append(",\"totalContinueUseCount\":").Append(value.TotalContinueUseCount)
+                    .Append(",\"averageContinueUseCount\":").Append(F(value.AverageContinueUseCount))
+                    .Append(",\"maximumContinueUseCountObserved\":").Append(value.MaximumContinueUseCountObserved)
+                    .Append(",\"continueUseHistogram\":");
+                AppendJsonArray(builder, value.ContinueUseHistogram);
+                builder
                     .Append(",\"continueSuccessRate\":").Append(F(value.ContinueSuccessRate))
                     .Append(",\"continueNextGateDistanceAtFailure\":").Append(F(value.AverageContinueNextGateDistanceAtFailure))
                     .Append(",\"continueNextGateDistanceAfterResume\":").Append(F(value.AverageContinueNextGateDistanceAfterResume))
@@ -907,8 +930,8 @@ namespace ColorGateRunner.Core
                 .AppendLine()
                 .AppendLine("Average profile without start items.")
                 .AppendLine()
-                .AppendLine("| Stage | First clear | With Continue | Continue lift | Continue success |")
-                .AppendLine("|---:|---:|---:|---:|---:|");
+                .AppendLine("| Stage | First clear | With Continue | Continue lift | Avg uses | Max uses | Uses 0/1/2/3 | Continue success |")
+                .AppendLine("|---:|---:|---:|---:|---:|---:|---|---:|");
             for (int stage = 1; stage <= StageCatalog.Count; stage++)
             {
                 StageSimulationResult value = Find(
@@ -922,6 +945,9 @@ namespace ColorGateRunner.Core
                     .Append(" | ").Append(Percent(value.ClearWithContinueRate))
                     .Append(" | ").Append(Percent(
                         value.ClearWithContinueRate - value.FirstAttemptClearRate))
+                    .Append(" | ").Append(F(value.AverageContinueUseCount))
+                    .Append(" | ").Append(value.MaximumContinueUseCountObserved)
+                    .Append(" | ").Append(Join(value.ContinueUseHistogram))
                     .Append(" | ").Append(Percent(value.ContinueSuccessRate))
                     .AppendLine(" |");
             }

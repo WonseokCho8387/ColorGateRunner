@@ -69,9 +69,13 @@ namespace ColorGateRunner.Core
             }
         }
         public StartItemSelection Items => _items;
-        public bool ContinueUsed { get; private set; }
+        public const int MaximumContinuesPerAttempt = 3;
+
+        public int ContinueUseCount { get; private set; }
+        public bool ContinueUsed => ContinueUseCount > 0;
         public bool ContinueAvailable =>
-            FlowState == StageFlowState.Failed && !ContinueUsed;
+            FlowState == StageFlowState.Failed &&
+            ContinueUseCount < MaximumContinuesPerAttempt;
         public bool ContinueProtectionActive =>
             _continueProtectionRemaining > 0f;
         public int SafeGateCountRemaining => _safeGateCountRemaining;
@@ -384,7 +388,7 @@ namespace ColorGateRunner.Core
                 return false;
             }
 
-            ContinueUsed = true;
+            ContinueUseCount++;
             _continueCountdown = true;
             _mechanicGrantActivated = false;
             _echoCoordinator.Restart();
@@ -427,7 +431,7 @@ namespace ColorGateRunner.Core
             _continueProtectionRemaining = 0f;
             _safeGateCountRemaining = 0;
             _continueCountdown = false;
-            ContinueUsed = false;
+            ContinueUseCount = 0;
             ContinuedFailedGateResolutionCount = 0;
             _failedGatePendingForContinue = false;
             _shieldRecoveryRemaining = 0f;

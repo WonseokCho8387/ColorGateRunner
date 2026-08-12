@@ -524,3 +524,56 @@ use feel fair.
 ↓
 
 Play Again
+
+---
+
+Latest Continue Economy and Attempt-Policy Cycle
+
+Play
+
+Failure had a functional resume path but no truthful Coin price, rewarded-ad
+choice or visible attempt limit.
+
+↓
+Analyze
+
+Core already owned deterministic resume and Retry, while Product already owned
+Coins and atomic persistence. An attempt-local policy could coordinate them
+without creating another gameplay or economy authority.
+
+↓
+Design
+
+Permit three Continues per Attempt; price Coin uses at 300/600/900 by Coin
+ordinal; independently allow one successful rewarded ad; preserve unused rights
+across mixed source order; reset on Retry; keep failure frozen when authorization
+or persistence fails; hide the ad action when no provider exists.
+
+↓
+Codex
+
+Added Core Continue counting, atomic idempotent Product spending, attempt-policy
+source authorization, truthful provider visibility and deterministic simulation
+use metrics while preserving the existing safe-resume invariants.
+
+↓
+Tests
+
+Campaign Builder and validation passed twice. EditMode `400/400` and final
+post-Builder PlayMode `215/215` passed. Two 400-row Campaign simulations were
+byte-identical with Summary
+`BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`,
+JSON `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
+and CSV `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`.
+Step 10 remained unchanged.
+
+↓
+Experiment
+
+Human review owns whether escalating cost, the independent ad right, unavailable
+states and Retry reset are understandable and feel fair. Automation does not
+measure value, frustration or willingness to watch an ad.
+
+↓
+
+Play Again

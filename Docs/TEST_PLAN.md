@@ -240,6 +240,13 @@ fairness, or polish.
 - Retry replays the approved layout; Continue consumes the failed gate once
   and preserves the approved timer, speed, color, sequence, pool, and item
   state.
+- Continue is capped at three successful uses per attempt. Coin sources use
+  `300 / 600 / 900` successful-Coin ordinals, one completed rewarded-ad right
+  remains independent of Coin use, and Retry resets the attempt-local policy.
+- Coin spending must be atomic and idempotent before Core resume. Insufficient
+  funds, save failure, non-completed ads, duplicate callbacks and stale
+  callbacks preserve the frozen failure state. Unavailable providers expose
+  no rewarded action and cannot simulate success.
 - Gate and Track pools remain fixed and recycled objects reset their runtime
   state.
 - Goal is part of deterministic planning, appears continuously, and clears the

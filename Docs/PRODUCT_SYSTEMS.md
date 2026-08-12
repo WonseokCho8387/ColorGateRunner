@@ -396,27 +396,41 @@ nothing. An itemless Start is a successful no-op and performs no save.
 
 # 8. Continue service boundary
 
-The current game provides one free Continue per attempt.
-
-A product-facing boundary may prepare future sources:
+The current game authorizes Continue through an attempt-local policy and a
+Product economy boundary:
 
 ```text
-IContinueService
-- GetAvailability(attemptContext)
-- RequestContinue(source)
-- ConfirmConsumed()
+AttemptContinuePolicy
+- GetCoinOffer(coreContinueCount, coinBalance)
+- ConfirmCoinContinue(coreContinueCount, chargedAmount)
+- CanRequestRewardedAd(coreContinueCount, service)
+- ApplyRewardedAdResult(coreContinueCount, result)
+
+LocalProductSession
+- SpendContinueCoins(transactionId, amount)
 ```
 
-Initial implementation returns the current one-free-Continue contract.
+- Coin prices are `300`, `600`, and `900` by successful Coin-Continue ordinal.
+- The maximum is three total Continues per attempt across Coin and rewarded-ad
+  sources. Core owns the authoritative Continue count; Product policy consumes
+  that count as input rather than creating a second gameplay counter.
+- One completed rewarded ad is allowed per attempt. Coin-first preserves the
+  ad right. Retry creates a fresh policy state.
+- Failed, cancelled, unavailable, or stale ad results do not mutate policy or
+  gameplay. The Failure Result remains frozen while an asynchronous request is
+  pending.
+- Coin spend clones, validates, saves, and only then publishes. Its stable
+  attempt transaction ID makes duplicate input and replay idempotent. Invalid
+  requests, insufficient funds, and write failure publish no partial state.
+- The default release ad service is truthfully unavailable. Presentation hides
+  the action when no real provider is configured; it never simulates success.
 
-Deferred sources:
+Deferred sources and integrations:
 
-- Rewarded advertisement.
-- Soft currency.
+- Actual rewarded-advertising SDK and provider adapter.
 - Premium currency.
 - Daily free allowance.
 
-No deferred source is implemented or displayed until separately approved.
 Gameplay Continue state remains owned by the current Stage attempt.
 
 # 9. Content and Lobby modules
@@ -819,8 +833,8 @@ Implementation status: Completed in Iteration 15.
   with the approved starter coin and Shield/Booster reward policy.
 - Frontend read models and Campaign store adapters share the Product service;
   display order is resolved through the Stage Catalog only at the Unity edge.
-- External ads, IAP, Hearts, Continue pricing, item purchasing, and real
-  Lobby art/theme content remain deferred.
+- At Iteration 15 completion, external ads, IAP, Hearts, Continue pricing,
+  item purchasing, and real Lobby art/theme content were still deferred.
 
 ### Iteration 17 Campaign-content integration
 
@@ -857,6 +871,22 @@ Implementation status: Completed in Iteration 15.
 - Iteration 18 validation passed EditMode `372/372`, PlayMode `207/207`, and
   two consecutive Campaign Builder runs. Campaign and Step 10 deterministic
   artifacts retained their approved baselines.
+
+### Iteration 19 Continue economy policy
+
+- Failure Continue now uses persisted Coins at `300`, `600`, and `900` by
+  successful Coin ordinal, with at most three total Continues per attempt.
+- `SpendContinueCoins` uses the schema-2 applied-transaction ledger for atomic,
+  idempotent clone-save-publish behavior. Insufficient balance, invalid input,
+  and save failure do not publish a deduction or resume gameplay.
+- One successful rewarded-ad completion is permitted per attempt; Coin-first
+  preserves it, Retry resets it, and non-success results consume nothing.
+- The advertising boundary is injectable and defaults to unavailable. No SDK,
+  development auto-success fake, IAP, Shop, Heart, or schema migration was
+  introduced.
+- Validation passed Frontend/Campaign Builder twice plus validation, EditMode
+  `400/400`, PlayMode `215/215`, and two byte-identical 400-row Campaign
+  simulations. Step 10 artifacts remained unchanged.
 
 ## Product Iteration 3 — Frontend support
 

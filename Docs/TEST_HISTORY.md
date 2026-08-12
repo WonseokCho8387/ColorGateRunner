@@ -1922,3 +1922,42 @@ Any mismatch blocks implementation.
 - Judge whether the free Stage 6/7 lessons make Stage 8's first inventory use
   feel expected and fair. Automation does not determine product value or UX
   clarity.
+
+## Iteration 19 - Continue Economy and Attempt Policy
+
+### Focused acceptance
+
+- Core permits exactly three successful Continues per Attempt, increments only
+  on valid resume and resets on Retry while preserving elapsed time, speed,
+  color, sequence cursor and failed-gate resolution invariants each time.
+- Coin Continue uses 300/600/900 prices by successful Coin ordinal. A completed
+  rewarded ad is independently available once per Attempt; mixed source order
+  preserves the unused right and expected next Coin price.
+- Coin spend is atomic and transaction-idempotent across duplicate calls,
+  reload and save-failure retry. Insufficient funds and failed persistence do
+  not publish a balance or transaction change.
+- Missing release ad service hides rewarded Continue. Failed, cancelled,
+  unavailable and stale ad results do not resume or consume the ad right.
+- Simulation reports total, average, maximum and 0/1/2/3 Continue-use histogram
+  values; disabling Continue reports zero uses deterministically.
+
+### Final automated evidence
+
+- Campaign Builder completed two consecutive passes and structural validation.
+- Full EditMode: `400/400` passed.
+- Final post-Builder PlayMode: `215/215` passed.
+- Two 400-row Campaign simulation runs were byte-identical. Approved hashes:
+  - Summary:
+    `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`
+  - JSON:
+    `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
+  - CSV:
+    `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`
+- Step 10 definitions, inputs and approved artifacts remained unchanged.
+
+### Human review
+
+- Confirm Coin cost escalation, independent ad right, failure feedback, cap and
+  Retry reset read clearly on portrait Android and WebGL.
+- Automation proves state, persistence and deterministic contracts, not whether
+  Continue pricing feels fair or whether an ad offer is desirable.

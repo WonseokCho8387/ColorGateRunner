@@ -23,6 +23,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller, Is.Not.Null);
             _store = new InMemoryStageProgressStore();
             _controller.SetProgressStoreForTests(_store);
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                new RewardedAdTestService());
         }
 
         [Test]
@@ -115,7 +118,7 @@ namespace ColorGateRunner.Tests.PlayMode
             body.linearVelocity = new Vector3(1f, 2f, 3f);
             body.angularVelocity = new Vector3(3f, 2f, 1f);
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
 
             Assert.That(_controller.PlayerTransform.localRotation,
                 Is.EqualTo(Quaternion.identity));
@@ -136,7 +139,7 @@ namespace ColorGateRunner.Tests.PlayMode
             FailAtCurrentGate(out StageGateView failed);
             Vector3 goalPosition = _controller.Goal.transform.position;
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             StageGateView next = FindGate(_controller.Session.GatesPassed);
 
             Assert.That(_controller.Session, Is.SameAs(sameSession));
@@ -271,7 +274,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.FailedResultRoot.activeSelf, Is.True);
             _controller.Tick(1.1f);
             Assert.That(_controller.FailPanel.activeSelf, Is.True);
-            Assert.That(_controller.ContinueButton.gameObject.activeSelf,
+            Assert.That(_controller.CoinContinueButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
                 Is.False);
             Assert.That(ButtonLabel(_controller.RetryButton),
                 Is.EqualTo("RETRY SAME TEST"));

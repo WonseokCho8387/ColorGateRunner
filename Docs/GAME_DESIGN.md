@@ -26,9 +26,10 @@ stage by matching every gate before crossing the Goal.
 7. A matching gate advances progress. A mismatch fails unless Shield absorbs
    it or Booster is active.
 8. The final gate reveals a Goal. Crossing it clears the stage.
-9. Clear waits for a finish animation, then Continue returns to the updated
-   Lobby. Failure waits for its animation, then offers one Continue, Retry,
-   and Lobby. Retry returns to item selection with toggles retained.
+9. Clear waits for a finish animation, then its result action returns to the
+   updated Lobby. Failure waits for its animation, then offers eligible Coin
+   and rewarded-ad Continue sources, Retry, and Lobby. Retry returns to item
+   selection with toggles retained.
 
 ## Authoritative flow states
 
@@ -46,7 +47,18 @@ development stage picker is hidden from the normal flow.
 
 ## Continue
 
-- One free Continue is available per attempt.
+- At most three Continues are available per attempt.
+- Successful Coin Continues cost `300`, `600`, then `900` Coins by the number
+  of prior successful Coin Continues in that attempt.
+- One completed rewarded-ad Continue may be used per attempt when a real
+  provider is available. Coin use preserves the ad right; ad-first preserves
+  the first `300`-Coin price. Failed, cancelled or unavailable ads do not use
+  the right.
+- Coin authorization is saved atomically before gameplay resumes. Insufficient
+  funds or save failure keeps the failure scene frozen and spends nothing.
+- Retry is a new attempt and resets Continue count, Coin-price ordinal and ad
+  right. Duplicate or stale ad callbacks cannot resume or charge another
+  attempt.
 - It keeps stage, passed-gate progress, current color, and remaining Shield
   state.
 - It never restores Shield or Booster and never opens item selection.
@@ -54,6 +66,8 @@ development stage picker is hidden from the normal flow.
   gates: current color and at most one tap.
 - A continued clear unlocks the next stage and increments clear count, but
   cannot update Best or no-item Best.
+- The clear-result `CONTINUE` action is navigation and is not a paid/ad
+  failure Continue.
 
 UI visibility follows these states and does not own gameplay state.
 

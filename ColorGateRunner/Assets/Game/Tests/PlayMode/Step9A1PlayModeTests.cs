@@ -23,6 +23,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 new InMemoryStageProgressStore());
             _controller.SetStartItemInventoryForTests(
                 new StartItemInventoryTestGateway());
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                new RewardedAdTestService());
         }
 
         [Test]
@@ -85,7 +88,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             Vector3[] tracks = CaptureTrackPositions();
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
 
             Assert.That(CaptureTrackPositions(), Is.EqualTo(tracks));
         }
@@ -95,7 +98,7 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             StartPlaying();
             Fail();
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             float[] gates = CaptureGatePositions();
 
             _controller.Tick(1.5f);
@@ -111,7 +114,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             ContinueSnapshot snapshot = _controller.FailureSnapshot;
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
 
             for (int index = 0; index < snapshot.ActiveGates.Length; index++)
             {
@@ -137,7 +140,7 @@ namespace ColorGateRunner.Tests.PlayMode
             int failedIndex = _controller.FailureSnapshot.FailedGateIndex;
             StageGateView failed = FindGateByPlanIndex(failedIndex);
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
 
             Assert.That(failed.TryResolveCrossing(), Is.False);
@@ -156,7 +159,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             ContinueSnapshot snapshot = _controller.FailureSnapshot;
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
 
             Assert.That(_controller.Session.ElapsedPlayingSeconds,
                 Is.EqualTo(snapshot.ElapsedPlayingSeconds));
@@ -179,7 +182,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             ContinueSnapshot snapshot = _controller.FailureSnapshot;
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
 
             Assert.That(_controller.Session.SequenceCursor,
@@ -208,7 +211,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             ContinueSnapshot snapshot = _controller.FailureSnapshot;
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(0.4f);
 
             Assert.That(_controller.GameplayCamera.transform.rotation,
@@ -228,7 +231,7 @@ namespace ColorGateRunner.Tests.PlayMode
             float[] gates = CaptureGatePositions();
             Vector3[] tracks = CaptureTrackPositions();
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
 
             Assert.That(Object.FindObjectsByType<StageGateView>(
@@ -257,7 +260,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Failed));
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
 
             Assert.That(_controller.Session.ShieldActive, Is.False);
@@ -282,7 +285,7 @@ namespace ColorGateRunner.Tests.PlayMode
                     _controller.Session.GatesPassed);
                 Mismatch(first.AssignedColor);
                 first.TryResolveCrossing();
-                _controller.ContinueAfterFailure();
+                _controller.RequestCoinContinue();
                 _controller.Tick(3.1f);
                 _controller.RetryToItemSelection();
                 if (_controller.BoosterSelected)

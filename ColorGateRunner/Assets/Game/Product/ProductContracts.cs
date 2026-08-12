@@ -14,7 +14,8 @@ namespace ColorGateRunner.Product
         CorruptPrimaryAndBackup = 6,
         Initialization = 7,
         UnsupportedAccountOperation = 8,
-        InsufficientInventory = 9
+        InsufficientInventory = 9,
+        InsufficientFunds = 10
     }
 
     public readonly struct ProductError

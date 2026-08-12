@@ -235,7 +235,9 @@ namespace ColorGateRunner.Editor
             GameObject failPanel;
             Text failTitle;
             Text failDetails;
-            Button continueButton;
+            Text failContinueStatus;
+            Button coinContinueButton;
+            Button rewardedContinueButton;
             Button retryButton;
             Button failLobbyButton;
             CreateFailureUi(
@@ -243,7 +245,9 @@ namespace ColorGateRunner.Editor
                 out failPanel,
                 out failTitle,
                 out failDetails,
-                out continueButton,
+                out failContinueStatus,
+                out coinContinueButton,
+                out rewardedContinueButton,
                 out retryButton,
                 out failLobbyButton);
 
@@ -342,7 +346,9 @@ namespace ColorGateRunner.Editor
                 failPanel,
                 failTitle,
                 failDetails,
-                continueButton,
+                failContinueStatus,
+                coinContinueButton,
+                rewardedContinueButton,
                 retryButton,
                 failLobbyButton);
             controller.ConfigurePause(
@@ -572,7 +578,9 @@ namespace ColorGateRunner.Editor
                 "StageClearPanel",
                 "StageFailedPanel",
                 "ClearContinueButton",
-                "ContinueButton",
+                "FailContinueStatusText",
+                "CoinContinueButton",
+                "RewardedContinueButton",
                 "ReplayButton",
                 "RetryButton",
                 "PauseButton",
@@ -1749,7 +1757,9 @@ namespace ColorGateRunner.Editor
             out GameObject panel,
             out Text title,
             out Text details,
-            out Button continueButton,
+            out Text continueStatus,
+            out Button coinContinueButton,
+            out Button rewardedContinueButton,
             out Button retry,
             out Button select)
         {
@@ -1769,31 +1779,46 @@ namespace ColorGateRunner.Editor
                 panel.transform,
                 string.Empty,
                 32,
-                new Vector2(0.1f, 0.46f),
+                new Vector2(0.1f, 0.57f),
                 new Vector2(0.9f, 0.70f));
-            Text continueLabel;
-            continueButton = CreateButton(
-                "ContinueButton",
+            continueStatus = CreateText(
+                "FailContinueStatusText",
                 panel.transform,
-                "CONTINUE",
-                new Vector2(0.16f, 0.37f),
+                string.Empty,
+                24,
+                new Vector2(0.1f, 0.50f),
+                new Vector2(0.9f, 0.56f));
+            Text rewardedLabel;
+            rewardedContinueButton = CreateButton(
+                "RewardedContinueButton",
+                panel.transform,
+                "WATCH AD TO CONTINUE",
+                new Vector2(0.16f, 0.39f),
                 new Vector2(0.84f, 0.49f),
-                out continueLabel);
+                out rewardedLabel);
+            Text coinLabel;
+            coinContinueButton = CreateButton(
+                "CoinContinueButton",
+                panel.transform,
+                "CONTINUE 300 COINS",
+                new Vector2(0.16f, 0.28f),
+                new Vector2(0.84f, 0.38f),
+                out coinLabel);
             Text retryLabel;
             retry = CreateButton(
                 "RetryButton",
                 panel.transform,
                 "RETRY",
-                new Vector2(0.16f, 0.23f),
-                new Vector2(0.84f, 0.35f),
+                new Vector2(0.16f, 0.17f),
+                new Vector2(0.84f, 0.27f),
                 out retryLabel);
             Text selectLabel;
             select = CreateButton(
                 "FailLobbyButton",
                 panel.transform,
                 "LOBBY",
-                new Vector2(0.16f, 0.09f),
-                new Vector2(0.84f, 0.21f),
+                new Vector2(0.16f, 0.06f),
+                new Vector2(0.84f, 0.16f),
                 out selectLabel);
         }
 

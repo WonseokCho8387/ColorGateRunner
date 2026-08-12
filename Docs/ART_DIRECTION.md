@@ -395,3 +395,19 @@ legibility.
 - The status line remains separated from both item cards and the Start action
   within the portrait Safe Area. This iteration adds no new item art, purchase
   affordance, shop surface, animation or gameplay HUD treatment.
+
+## Iteration 19 Continue economy presentation
+
+- Failure Result replaces the ambiguous free `CONTINUE` button with a Coin
+  action showing its current exact price and a separate `WATCH AD TO CONTINUE`
+  action only when the provider is available. Retry and Lobby remain visible.
+- While an ad request is pending, Continue actions are locked and the frozen
+  failure scene remains visible. Insufficient Coins, save failure, ad failure
+  and cancellation use truthful status text without implying a resume.
+- After three successful Continues, both Continue sources disappear. Retry
+  begins a fresh attempt at the first Coin price with a fresh ad right.
+- Clear Result retains its existing `CONTINUE` navigation action; its separate
+  name and hierarchy must not read as a Coin or ad offer.
+- This iteration adds no ad creative, provider branding, Coin animation,
+  purchase surface or final result-screen art. Human review owns price
+  comprehension, hierarchy and portrait readability.

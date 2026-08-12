@@ -1094,3 +1094,27 @@ Status: Approved and implemented.
 - Product save schema, Campaign Catalog, gameplay Core item effects and
   deterministic stage definitions remain unchanged. Continue economy, ads and
   Shop purchasing remain separate future decisions.
+
+## Continue economy and attempt-policy decisions
+
+Status: Approved and implemented.
+
+- A gameplay Attempt permits at most three successful Continues. Core owns the
+  authoritative `ContinueUseCount`; Retry creates a fresh Attempt and resets
+  that count and all attempt-local Continue policy state.
+- Coin Continue prices are 300, 600 and 900 Coins by successful Coin Continue
+  ordinal. Rewarded-ad Continues do not advance the Coin price.
+- One successfully completed rewarded ad is allowed per Attempt. Spending
+  Coins first does not consume that ad right, and using the ad first does not
+  change the first Coin price. Failed, cancelled or unavailable ads authorize
+  nothing and consume no right.
+- Coin spending is a Product-owned clone-save-publish mutation. Transaction
+  IDs make a successful spend idempotent; insufficient funds, invalid input or
+  save failure publishes neither a balance change nor a transaction ID.
+- Continue resumes only after its source has been authorized. A failed Coin
+  save or unsuccessful ad result leaves the failed run frozen and retryable.
+- Release runtime exposes no fake ad success. When no real rewarded-ad provider
+  is installed, the ad action is hidden; test fakes remain test-only.
+- Campaign simulation models `AllowContinue` as authorization for up to three
+  Continues and reports total, average, maximum and 0/1/2/3-use histogram
+  metrics. Shop, IAP, Hearts and a production ad provider remain excluded.

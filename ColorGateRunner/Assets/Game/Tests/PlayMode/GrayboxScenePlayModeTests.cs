@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
+using ColorGateRunner.Product;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -29,6 +30,9 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway();
             _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                new RewardedAdTestService());
         }
 
         [Test]
@@ -944,7 +948,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ClearPanel.name, Is.EqualTo("StageClearPanel"));
             Assert.That(_controller.FailPanel.name, Is.EqualTo("StageFailedPanel"));
             Assert.That(CountNamed("ClearContinueButton"), Is.EqualTo(1));
-            Assert.That(CountNamed("ContinueButton"), Is.EqualTo(1));
+            Assert.That(CountNamed("CoinContinueButton"), Is.EqualTo(1));
+            Assert.That(CountNamed("RewardedContinueButton"), Is.EqualTo(1));
         }
 
         [Test]
@@ -974,7 +979,7 @@ namespace ColorGateRunner.Tests.PlayMode
             StartPlaying(false, false);
             Fail();
             _controller.Tick(1.1f);
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             Assert.That(_controller.ItemPanel.activeSelf, Is.False);
             Assert.That(_controller.CountdownPanel.activeSelf, Is.True);
             Assert.That(CountNamed("CountdownPanel"), Is.EqualTo(1));
@@ -985,24 +990,180 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             StartPlaying(false, false);
             Fail();
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
             Assert.That(_controller.Session.ContinueProtectionActive, Is.True);
             Assert.That(_controller.Session.SafeGateCountRemaining, Is.EqualTo(2));
         }
 
         [Test]
-        public void SecondFailure_RemovesContinueOption()
+        public void SecondFailure_StillOffersContinueBelowCap()
         {
             StartPlaying(false, false);
             Fail();
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
             ResolveSafeGates();
             _controller.Session.Advance(1.1f, 0f);
             Fail();
             _controller.Tick(1.1f);
-            Assert.That(_controller.ContinueButton.gameObject.activeSelf, Is.False);
+            Assert.That(_controller.CoinContinueButton.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void ContinueSources_AdThenCoinKeepsFirstCoinPrice()
+        {
+            var economy = new ContinueEconomyTestGateway(2000);
+            var ads = new RewardedAdTestService();
+            _controller.SetContinueServicesForTests(economy, ads);
+            StartPlaying(false, false);
+            Fail();
+
+            _controller.RequestRewardedContinue();
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(1));
+            FailAfterContinue();
+            _controller.RequestCoinContinue();
+
+            Assert.That(economy.TotalSpent, Is.EqualTo(300));
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ContinueSources_CoinAdCoinUseThreeTotalAndEscalateCoins()
+        {
+            var economy = new ContinueEconomyTestGateway(2000);
+            var ads = new RewardedAdTestService();
+            _controller.SetContinueServicesForTests(economy, ads);
+            StartPlaying(false, false);
+            Fail();
+
+            _controller.RequestCoinContinue();
+            FailAfterContinue();
+            _controller.RequestRewardedContinue();
+            FailAfterContinue();
+            _controller.RequestCoinContinue();
+            FailAfterContinue();
+            _controller.Tick(1.1f);
+
+            Assert.That(economy.TotalSpent, Is.EqualTo(900));
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(3));
+            Assert.That(_controller.CoinContinueButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
+                Is.False);
+        }
+
+        [TestCase(ProductErrorCode.InsufficientFunds, "NOT ENOUGH COINS")]
+        [TestCase(ProductErrorCode.SaveWrite, "CONTINUE SAVE FAILED")]
+        public void CoinContinueFailure_KeepsFailureFrozen(
+            ProductErrorCode failure,
+            string expectedStatus)
+        {
+            var economy = new ContinueEconomyTestGateway
+            {
+                FailureCode = failure
+            };
+            _controller.SetContinueServicesForTests(
+                economy,
+                new RewardedAdTestService());
+            StartPlaying(false, false);
+            Fail();
+            Vector3 position = _controller.PlayerTransform.position;
+
+            _controller.RequestCoinContinue();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+            Assert.That(_controller.PlayerTransform.position, Is.EqualTo(position));
+            Assert.That(_controller.FailContinueStatusText.text,
+                Is.EqualTo(expectedStatus));
+        }
+
+        [Test]
+        public void RewardedFailureAndStaleDuplicateCallbackAreOneShot()
+        {
+            var ads = new RewardedAdTestService
+            {
+                CompleteImmediately = false
+            };
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                ads);
+            StartPlaying(false, false);
+            Fail();
+            Vector3 position = _controller.PlayerTransform.position;
+
+            _controller.RequestRewardedContinue();
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(_controller.PlayerTransform.position, Is.EqualTo(position));
+            ads.Complete(RewardedAdResult.Failed);
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+            Assert.That(_controller.FailContinueStatusText.text,
+                Is.EqualTo("AD FAILED"));
+
+            _controller.RequestRewardedContinue();
+            ads.Complete(RewardedAdResult.Completed);
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(1));
+            ads.RepeatLast(RewardedAdResult.Completed);
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RewardedCallbackAfterRetryCannotResumeNewAttempt()
+        {
+            var ads = new RewardedAdTestService
+            {
+                CompleteImmediately = false
+            };
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                ads);
+            StartPlaying(false, false);
+            Fail();
+            _controller.RequestRewardedContinue();
+
+            _controller.RetryToItemSelection();
+            ads.Complete(RewardedAdResult.Completed);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+        }
+
+        [Test]
+        public void ContinueRequestsBeforeFailureDoNotSpendOrShowAd()
+        {
+            var economy = new ContinueEconomyTestGateway();
+            var ads = new RewardedAdTestService();
+            _controller.SetContinueServicesForTests(economy, ads);
+            StartPlaying(false, false);
+
+            _controller.RequestCoinContinue();
+            _controller.RequestRewardedContinue();
+
+            Assert.That(economy.SpendCount, Is.Zero);
+            Assert.That(ads.ShowCount, Is.Zero);
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+        }
+
+        [Test]
+        public void UnavailableProvidersHideContinueOffersButKeepRetry()
+        {
+            _controller.SetContinueServicesForTests(
+                new UnavailableContinueEconomyGateway(),
+                new UnavailableRewardedAdService());
+            StartPlaying(false, false);
+            Fail();
+            _controller.Tick(1.1f);
+
+            Assert.That(_controller.CoinContinueButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.RetryButton.gameObject.activeSelf, Is.True);
         }
 
         [Test]
@@ -1063,7 +1224,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             StartPlaying(false, false);
             Fail();
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
@@ -1680,7 +1841,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Fail();
             _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
 
             AssertPrimaryFlow(MobileUiFlow.Countdown);
             Assert.That(_controller.GameplayHudRoot.activeSelf, Is.True);
@@ -2056,6 +2217,14 @@ namespace ColorGateRunner.Tests.PlayMode
                 Match(gate.AssignedColor);
                 gate.TryResolveCrossing();
             }
+        }
+
+        private void FailAfterContinue()
+        {
+            _controller.Tick(3.1f);
+            ResolveSafeGates();
+            _controller.Session.Advance(1.1f, 0f);
+            Fail();
         }
 
         private void ClearStage()

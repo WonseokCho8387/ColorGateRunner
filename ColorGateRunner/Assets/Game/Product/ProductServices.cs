@@ -398,6 +398,43 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult SpendContinueCoins(
+            string transactionId,
+            int amount)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (string.IsNullOrWhiteSpace(transactionId) || amount <= 0)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "The Continue Coin transaction is invalid.",
+                        true));
+            }
+
+            LocalEconomyData economy = _current.Economy;
+            if (economy.AppliedTransactionIds.Contains(transactionId))
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (economy.Coins < amount)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientFunds,
+                        "The Coin balance is insufficient for Continue.",
+                        true));
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.Economy.Coins -= amount;
+            candidate.Economy.AppliedTransactionIds.Add(transactionId);
+            return Commit(candidate);
+        }
+
         public ProductMutationResult ResetProgressForDevelopment()
         {
             if (!TryGetReady(out ProductMutationResult failure))

@@ -260,7 +260,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Step9ACoreTests.cs`
 - `LobbyVisualTier_MapsProgression`
 - `TwoColorCycle_OrderAndNextColorAreStable`
 - `ThreeColorCycle_OrderAndNextColorAreStable`
-- `Continue_IsAvailableOnlyOncePerAttempt`
+- `Continue_IsAvailableExactlyThreeTimesPerAttempt`
+- `Continue_CountChangesOnlyOnSuccessAndRetryResetsIt`
 - `Continue_DoesNotRestoreConsumedShieldOrBooster`
 - `Continue_GrantsSafeResumeSequenceAndProtection`
 - `ContinuedClear_DoesNotReplaceBestRecords`
@@ -270,7 +271,25 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Step9ACoreTests.cs`
 - `SimulationProfiles_AreExplicitAndValid`
 - `PerfectSimulation_IsDeterministicAndCompletes`
 - `StochasticSimulation_ReplaysWithSameSeed`
+- `Simulation_ContinueUseMetricsAreDeterministicAndCapped`
+- `Simulation_DisabledContinueReportsZeroUseMetrics`
 - `SimulationReport_ContainsRequiredMechanicalSections`
+
+#### `AttemptContinuePolicyTests.cs`
+
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/AttemptContinuePolicyTests.cs`
+
+- `CoinPrices_AdvanceBySuccessfulCoinOrdinal`
+- `CoinFirst_PreservesRewardedAdRight`
+- `RewardedAdFirst_PreservesFirstCoinPrice`
+- `CoinAdCoin_UsesCoinOrdinalsAndCapRejectsWithoutMutation`
+- `MaximumContinueCount_MatchesCoreContract`
+- `RewardedAd_IsConsumedOnlyByOneCompletedResult`
+- `TotalCap_UsesCoreContinueCount`
+- `Retry_UsesFreshAttemptPolicy`
+- `NonCompletedAdResult_DoesNotMutatePolicy`
+- `UnavailableAdService_IsTruthfulAndNeverSucceeds`
+- `CoinOffer_RequiresPriceAndDoesNotMutatePolicy`
 
 #### `Step9A1ContinuityTests.cs`
 
@@ -390,6 +409,13 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `ConsumeStartItems_Insufficient_IsAtomicAndDoesNotSave`
 - `ConsumeStartItems_SaveFailure_DoesNotPublishDecrement`
 - `ConsumeStartItems_RepeatedAttemptsConsumeAgain`
+- `SpendContinueCoins_IsAtomicAndIdempotent`
+- `SpendContinueCoins_InvalidRequestDoesNotSave`
+- `SpendContinueCoins_InsufficientFundsDoesNotSave`
+- `SpendContinueCoins_SaveFailureDoesNotPublish`
+- `SpendContinueCoins_SaveFailureCanRetrySameTransactionOnce`
+- `SpendContinueCoins_SameTransactionDifferentAmountIsReplay`
+- `SpendContinueCoins_ReloadKeepsTransactionIdempotent`
 
 #### `FrontendContextTests.cs`
 
@@ -527,7 +553,14 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `FinalGate_RevealsGoalAndGoalCrossingClearsStage`
 - `Continue_BypassesItemSelectionAndStartsOneCountdown`
 - `Continue_GrantsTemporaryProtection`
-- `SecondFailure_RemovesContinueOption`
+- `SecondFailure_StillOffersContinueBelowCap`
+- `ContinueSources_AdThenCoinKeepsFirstCoinPrice`
+- `ContinueSources_CoinAdCoinUseThreeTotalAndEscalateCoins`
+- `CoinContinueFailure_KeepsFailureFrozen`
+- `RewardedFailureAndStaleDuplicateCallbackAreOneShot`
+- `RewardedCallbackAfterRetryCannotResumeNewAttempt`
+- `ContinueRequestsBeforeFailureDoNotSpendOrShowAd`
+- `UnavailableProvidersHideContinueOffersButKeepRetry`
 - `Retry_StillOpensItemSelection`
 - `Retry_RetainsItemSelection`
 - `Restart_ReplaysIdenticalGateLayout`

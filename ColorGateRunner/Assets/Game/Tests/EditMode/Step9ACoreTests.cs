@@ -79,15 +79,57 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Continue_IsAvailableOnlyOncePerAttempt()
+        public void Continue_IsAvailableExactlyThreeTimesPerAttempt()
         {
             StageSession session = CreateFailedSession(default);
-            Assert.That(session.ContinueAvailable, Is.True);
-            Assert.That(session.ContinueAfterFailure(), Is.True);
-            session.CompleteCountdown();
-            FailAfterProtection(session);
+            for (int expectedCount = 1;
+                expectedCount <= StageSession.MaximumContinuesPerAttempt;
+                expectedCount++)
+            {
+                float elapsedAtFailure = session.ElapsedPlayingSeconds;
+                float speedAtFailure = session.SpeedBeforeFailure;
+                RunnerColor colorAtFailure = session.CurrentColor;
+                int cursorAtFailure = session.SequenceCursor;
+                int gatesAtFailure = session.GatesPassed;
+                Assert.That(session.ContinueAvailable, Is.True);
+                Assert.That(session.ContinueAfterFailure(), Is.True);
+                Assert.That(session.ContinueUseCount, Is.EqualTo(expectedCount));
+                Assert.That(session.ContinueUsed, Is.True);
+                Assert.That(session.ElapsedPlayingSeconds,
+                    Is.EqualTo(elapsedAtFailure));
+                Assert.That(session.CurrentSpeed, Is.EqualTo(speedAtFailure));
+                Assert.That(session.CurrentColor, Is.EqualTo(colorAtFailure));
+                Assert.That(session.SequenceCursor, Is.EqualTo(cursorAtFailure));
+                Assert.That(session.GatesPassed, Is.EqualTo(gatesAtFailure + 1));
+                session.CompleteCountdown();
+                FailAfterProtection(session);
+            }
+
             Assert.That(session.ContinueAvailable, Is.False);
             Assert.That(session.ContinueAfterFailure(), Is.False);
+            Assert.That(session.ContinueUseCount,
+                Is.EqualTo(StageSession.MaximumContinuesPerAttempt));
+        }
+
+        [Test]
+        public void Continue_CountChangesOnlyOnSuccessAndRetryResetsIt()
+        {
+            StageSession session = CreatePlaying(1, default);
+            Assert.That(session.ContinueAfterFailure(), Is.False);
+            Assert.That(session.ContinueUseCount, Is.Zero);
+
+            GatePlan plan = session.GetNextGatePlan();
+            while (session.CurrentColor == plan.Color)
+            {
+                session.TryToggleColor();
+            }
+            session.ResolveGate(plan.Color);
+            Assert.That(session.ContinueAfterFailure(), Is.True);
+            Assert.That(session.ContinueUseCount, Is.EqualTo(1));
+
+            session.RetryToSelection();
+            Assert.That(session.ContinueUseCount, Is.Zero);
+            Assert.That(session.ContinueUsed, Is.False);
         }
 
         [Test]
@@ -258,6 +300,83 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(second.MissedInputCount));
             Assert.That(first.MedianFailureProgress,
                 Is.EqualTo(second.MedianFailureProgress));
+            Assert.That(first.TotalContinueUseCount,
+                Is.EqualTo(second.TotalContinueUseCount));
+            Assert.That(first.MaximumContinueUseCountObserved,
+                Is.EqualTo(second.MaximumContinueUseCountObserved));
+            Assert.That(first.ContinueUseHistogram,
+                Is.EqualTo(second.ContinueUseHistogram));
+        }
+
+        [Test]
+        public void Simulation_ContinueUseMetricsAreDeterministicAndCapped()
+        {
+            StageDefinition stage = StageCatalog.GetByDisplayNumber(3);
+            GameplaySimulationSettings settings =
+                new GameplaySimulationSettings(100, 43210u, true);
+            StageSimulationResult result = StageSimulationRunner.Run(
+                stage,
+                default,
+                SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
+                settings);
+
+            int histogramRuns = 0;
+            int histogramUses = 0;
+            for (int count = 0; count < result.ContinueUseHistogram.Length; count++)
+            {
+                histogramRuns += result.ContinueUseHistogram[count];
+                histogramUses += count * result.ContinueUseHistogram[count];
+            }
+
+            Assert.That(result.ContinueUseHistogram.Length,
+                Is.EqualTo(StageSession.MaximumContinuesPerAttempt + 1));
+            Assert.That(histogramRuns, Is.EqualTo(settings.Runs));
+            Assert.That(histogramUses, Is.EqualTo(result.TotalContinueUseCount));
+            Assert.That(result.MaximumContinueUseCountObserved,
+                Is.LessThanOrEqualTo(StageSession.MaximumContinuesPerAttempt));
+        }
+
+        [Test]
+        public void Simulation_DisabledContinueReportsZeroUseMetrics()
+        {
+            const int runs = 100;
+            StageSimulationResult result = StageSimulationRunner.Run(
+                StageCatalog.GetByDisplayNumber(3),
+                default,
+                SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
+                new GameplaySimulationSettings(runs, 24680u, false));
+
+            Assert.That(result.TotalContinueUseCount, Is.Zero);
+            Assert.That(result.AverageContinueUseCount, Is.Zero);
+            Assert.That(result.MaximumContinueUseCountObserved, Is.Zero);
+            Assert.That(result.ContinueUseHistogram[0], Is.EqualTo(runs));
+            for (int count = 1; count < result.ContinueUseHistogram.Length; count++)
+            {
+                Assert.That(result.ContinueUseHistogram[count], Is.Zero);
+            }
+        }
+
+        [Test]
+        public void SimulationReport_EmitsContinueUseMetricsInAllFormats()
+        {
+            SimulationBatchResult batch = new SimulationBatchResult();
+            batch.Results.Add(StageSimulationRunner.Run(
+                StageCatalog.GetByDisplayNumber(3),
+                default,
+                SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
+                new GameplaySimulationSettings(10, 13579u, true)));
+
+            string csv = SimulationReportFormatter.ToCsv(batch);
+            string json = SimulationReportFormatter.ToJson(batch);
+            string markdown = SimulationReportFormatter.ToMarkdown(batch);
+
+            Assert.That(csv, Does.Contain("totalContinueUses"));
+            Assert.That(csv, Does.Contain("continueUseHistogram"));
+            Assert.That(json, Does.Contain("\"totalContinueUseCount\""));
+            Assert.That(json, Does.Contain("\"averageContinueUseCount\""));
+            Assert.That(json, Does.Contain("\"maximumContinueUseCountObserved\""));
+            Assert.That(json, Does.Contain("\"continueUseHistogram\":["));
+            Assert.That(markdown, Does.Contain("Uses 0/1/2/3"));
         }
 
         [Test]

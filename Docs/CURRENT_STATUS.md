@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `e75ae24`
-- Base commit: `feat: restructure campaign learning curve`
+- Implementation base HEAD: `5e0eb3c`
+- Base commit: `feat: consume owned start items`
 - Authoritative completion HEAD: the commit named
-  `feat: consume owned start items`; its exact hash is recorded in
-  the Iteration 18 final report because a commit cannot contain its own
+  `feat: add continue economy policy`; its exact hash is recorded in
+  the Iteration 19 final report because a commit cannot contain its own
   content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,8 +20,7 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 18 — Consumable owned start
-  items**.
+- Current completed iteration: **Iteration 19 — Continue economy policy**.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -75,12 +74,21 @@ iterations but do not override this section.
   free and do not consume inventory. Without a ready Product session,
   selectable items are unavailable while no-item and provided-item starts
   remain valid.
+- A Stage attempt allows at most three Continues. Coin Continues cost 300,
+  then 600, then 900 Coins by successful Coin-use ordinal. One completed
+  rewarded-ad Continue is available per attempt when a real provider reports
+  availability; Coin use does not consume that right and ad-first does not
+  raise the first Coin price. Coin spending is atomic and idempotent before
+  Core resumes. Insufficient funds, save failure, failed/cancelled ads and
+  stale callbacks keep the failure state frozen. Retry creates a fresh policy.
+  The current release provider is unavailable, so no ad action is displayed
+  or simulated as successful.
 
 ### Automated validation
 
-- EditMode: `372/372`
-- PlayMode: `207/207`
-- Post-Builder PlayMode: `207/207`
+- EditMode: `400/400`
+- PlayMode: `215/215`
+- Post-Builder PlayMode: `215/215`
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -98,15 +106,15 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `400`
 - Summary SHA-256:
-  `D07BC7A2808DD4A31E65FA618F20EC3981F782568614510E1AF020146C4820DE`
+  `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`
 - JSON SHA-256:
-  `6FF5187DDE11EFA38C27C4AD96CD3145315D41BB33178CCC8F2F73F683CB3D0E`
+  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
 - CSV SHA-256:
-  `522053519887272534EABEB1769EAD4709C12D865514EA1068CFE899FD97B37A`
-- Two complete runs are byte-identical. The original Stage 1–5 CSV 100 rows
-  and JSON first 100 results are exact against the prior baseline.
-- Continuity and pool-violation counters are zero. Step 10 was not rerun
-  because its Experiment contracts and inputs did not change.
+  `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`
+- Two complete runs are byte-identical. Continue-use metrics are deterministic
+  and capped at three. Continuity and pool-violation counters are zero.
+- Step 10 was not rerun because its Experiment contracts and inputs did not
+  change; the Step 10 baseline below remains authoritative.
 
 ### Step 10 simulation baseline
 
@@ -158,6 +166,30 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 19
+
+(Continue Economy Policy)
+
+---
+
+- Campaign failure now offers authorized Continue sources rather than the
+  legacy free button. Coin prices are `300 / 600 / 900` by successful Coin
+  ordinal, with one completed rewarded-ad right and a total cap of three
+  Continues per attempt. Retry resets the attempt-local policy.
+- Coin spend is an atomic, idempotent schema-2 Product transaction before Core
+  resume. Insufficient funds, save failure, failed/cancelled/unavailable ads,
+  duplicate callbacks and stale callbacks preserve the frozen failure state.
+  An unavailable release provider is hidden and never grants a fake success.
+- The Campaign Builder command built twice and validated successfully. Full
+  EditMode passed `400/400`; final post-Builder PlayMode passed `215/215`.
+- Two 400-row Campaign simulations were byte-identical with Summary, JSON and
+  CSV hashes `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`,
+  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`,
+  and `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`.
+  Step 10 remained unchanged.
 
 Version
 

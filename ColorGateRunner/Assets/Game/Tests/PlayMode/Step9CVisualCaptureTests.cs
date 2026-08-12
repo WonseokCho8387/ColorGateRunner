@@ -81,7 +81,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
             yield return Capture("09-Failed-Result.png");
 
-            _controller.ContinueAfterFailure();
+            _controller.RequestCoinContinue();
             yield return Capture("10-Continue-Countdown.png");
         }
 
@@ -191,6 +191,9 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _controller.SetStartItemInventoryForTests(
                 new StartItemInventoryTestGateway());
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(),
+                new RewardedAdTestService());
             Canvas.ForceUpdateCanvases();
             yield return null;
         }

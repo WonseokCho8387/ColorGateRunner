@@ -109,7 +109,9 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject failPanel;
         [SerializeField] private Text failTitleText;
         [SerializeField] private Text failDetailsText;
-        [SerializeField] private Button continueButton;
+        [SerializeField] private Text failContinueStatusText;
+        [SerializeField] private Button coinContinueButton;
+        [SerializeField] private Button rewardedContinueButton;
         [SerializeField] private Button retryButton;
         [SerializeField] private Button failLobbyButton;
 
@@ -135,6 +137,9 @@ namespace ColorGateRunner.Presentation
         private StageSession _session;
         private IStageProgressStore _progressStore;
         private IStartItemInventoryGateway _startItemInventory;
+        private IContinueEconomyGateway _continueEconomy;
+        private IRewardedAdService _rewardedAdService;
+        private AttemptContinuePolicy _attemptContinuePolicy;
         private StartItemInventorySnapshot _startItemInventorySnapshot;
         private string _startItemStartError = string.Empty;
         private string _clearSaveError = string.Empty;
@@ -162,6 +167,10 @@ namespace ColorGateRunner.Presentation
         private bool _boosterExitOverridesApplied;
         private StageGateView _failedGate;
         private ContinueSnapshot _continueSnapshot;
+        private string _continueAttemptId = string.Empty;
+        private string _continueStatus = string.Empty;
+        private int _continueRequestGeneration;
+        private bool _continueRequestPending;
         private MobileUiFlow _uiFlow;
         private ExperimentSession _experimentSession;
         private bool _experimentActive;
@@ -216,7 +225,9 @@ namespace ColorGateRunner.Presentation
         internal Button BoosterToggleButton => boosterToggleButton;
         internal Text BoosterToggleText => boosterToggleText;
         internal Text PreRunStatusText => preRunStatusText;
-        internal Button ContinueButton => continueButton;
+        internal Button CoinContinueButton => coinContinueButton;
+        internal Button RewardedContinueButton => rewardedContinueButton;
+        internal Text FailContinueStatusText => failContinueStatusText;
         internal Button RetryButton => retryButton;
         internal Button ReplayButton => replayButton;
         internal Button ClearLobbyButton => clearLobbyButton;
@@ -338,6 +349,15 @@ namespace ColorGateRunner.Presentation
                         appRoot.Graph.ProductSession,
                         appRoot.Graph.Progression)
                     : new UnavailableStartItemInventoryGateway();
+            _continueEconomy = appRoot != null &&
+                appRoot.Graph?.ProductSession?.IsReady == true &&
+                appRoot.Graph.Progression?.Economy != null
+                    ? new ProductContinueEconomyGateway(
+                        appRoot.Graph.ProductSession,
+                        appRoot.Graph.Progression)
+                    : new UnavailableContinueEconomyGateway();
+            _rewardedAdService = new UnavailableRewardedAdService();
+            _attemptContinuePolicy = new AttemptContinuePolicy();
             RefreshStartItemInventory();
             _haptics = new UnityHapticFeedback(IsVibrationEnabled);
             _telemetry = new DevelopmentTelemetry(developmentTelemetryEnabled);
@@ -827,6 +847,8 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             ResetRunPresentation();
+            _attemptContinuePolicy = new AttemptContinuePolicy();
+            _continueAttemptId = Guid.NewGuid().ToString("N");
             BuildInitialGatePool();
             PlacePlannedGoal();
             ApplyUiFlow(MobileUiFlow.Countdown);
@@ -916,19 +938,130 @@ namespace ColorGateRunner.Presentation
                  _session.FlowState == StageFlowState.ShieldRecovery);
         }
 
-        internal void ContinueAfterFailure()
+        internal void RequestCoinContinue()
         {
-            if (_session == null || !_session.ContinueAfterFailure())
+            if (!CanRequestContinue() || !_continueEconomy.IsAvailable)
             {
                 return;
             }
+            int count = _session.ContinueUseCount;
+            AttemptContinuePolicyResult offer =
+                _attemptContinuePolicy.GetCoinOffer(
+                    count,
+                    _continueEconomy.CoinBalance);
+            if (!offer.Authorized)
+            {
+                _continueStatus = "NOT ENOUGH COINS";
+                SynchronizeContinueOffers();
+                return;
+            }
+
+            _continueRequestPending = true;
+            SynchronizeContinueOffers();
+            string transactionId =
+                $"continue:{_continueAttemptId}:coin:" +
+                _attemptContinuePolicy.CoinContinueCount;
+            ProductMutationResult spend =
+                _continueEconomy.Spend(transactionId, offer.CoinCost);
+            _continueRequestPending = false;
+            if (!spend.Succeeded)
+            {
+                _continueStatus = spend.Error.Code ==
+                    ProductErrorCode.InsufficientFunds
+                        ? "NOT ENOUGH COINS"
+                        : "CONTINUE SAVE FAILED";
+                SynchronizeContinueOffers();
+                return;
+            }
+            AttemptContinuePolicyResult authorization =
+                _attemptContinuePolicy.ConfirmCoinContinue(
+                    count,
+                    offer.CoinCost);
+            if (!authorization.Authorized || !ResumeAuthorizedContinue())
+            {
+                _continueStatus = "CONTINUE UNAVAILABLE";
+                SynchronizeContinueOffers();
+            }
+        }
+
+        internal void RequestRewardedContinue()
+        {
+            if (!CanRequestContinue() ||
+                !_attemptContinuePolicy.CanRequestRewardedAd(
+                    _session.ContinueUseCount,
+                    _rewardedAdService))
+            {
+                return;
+            }
+            _continueRequestPending = true;
+            _continueStatus = "WAITING FOR AD";
+            int generation = ++_continueRequestGeneration;
+            StageSession session = _session;
+            int continueCount = session.ContinueUseCount;
+            SynchronizeContinueOffers();
+            _rewardedAdService.Show(result => OnRewardedContinueCompleted(
+                generation,
+                session,
+                continueCount,
+                result));
+        }
+
+        private void OnRewardedContinueCompleted(
+            int generation,
+            StageSession session,
+            int continueCount,
+            RewardedAdResult result)
+        {
+            if (this == null || generation != _continueRequestGeneration ||
+                !_continueRequestPending || _session != session ||
+                _session.FlowState != StageFlowState.Failed ||
+                _session.ContinueUseCount != continueCount)
+            {
+                return;
+            }
+            _continueRequestPending = false;
+            AttemptContinuePolicyResult authorization =
+                _attemptContinuePolicy.ApplyRewardedAdResult(
+                    continueCount,
+                    result);
+            if (authorization.Authorized && ResumeAuthorizedContinue())
+            {
+                return;
+            }
+            _continueStatus = result switch
+            {
+                RewardedAdResult.Cancelled => "AD CANCELLED",
+                RewardedAdResult.Unavailable => "AD UNAVAILABLE",
+                RewardedAdResult.Failed => "AD FAILED",
+                _ => "CONTINUE UNAVAILABLE"
+            };
+            SynchronizeContinueOffers();
+        }
+
+        private bool CanRequestContinue()
+        {
+            return !_experimentActive && !_continueRequestPending &&
+                _session != null &&
+                _session.FlowState == StageFlowState.Failed &&
+                _session.ContinueAvailable &&
+                _attemptContinuePolicy != null;
+        }
+
+        private bool ResumeAuthorizedContinue()
+        {
+            if (_session == null || !_session.ContinueAfterFailure())
+            {
+                return false;
+            }
             failPanel.SetActive(false);
             _failureDelayRemaining = 0f;
+            _continueStatus = string.Empty;
             PrepareCleanContinueRespawn();
             ApplySafeOverridesToActiveGates();
             ApplyUiFlow(MobileUiFlow.Countdown);
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
+            return true;
         }
 
         internal void RetryToItemSelection()
@@ -944,6 +1077,7 @@ namespace ColorGateRunner.Presentation
             }
             _session.RetryToSelection();
             ResetRunPresentation();
+            _attemptContinuePolicy = new AttemptContinuePolicy();
             failPanel.SetActive(false);
             clearPanel.SetActive(false);
             _startItemStartError = string.Empty;
@@ -1080,6 +1214,17 @@ namespace ColorGateRunner.Presentation
             {
                 SynchronizeItemSelection();
             }
+        }
+
+        internal void SetContinueServicesForTests(
+            IContinueEconomyGateway economy,
+            IRewardedAdService rewardedAds)
+        {
+            _continueEconomy = economy ??
+                throw new ArgumentNullException(nameof(economy));
+            _rewardedAdService = rewardedAds ??
+                throw new ArgumentNullException(nameof(rewardedAds));
+            SynchronizeContinueOffers();
         }
 
         internal void SetHapticsForTests(IHapticFeedback haptics)
@@ -1235,7 +1380,8 @@ namespace ColorGateRunner.Presentation
                 clearDetailsText == null || clearContinueButton == null ||
                 replayButton == null || clearLobbyButton == null ||
                 failPanel == null || failTitleText == null ||
-                failDetailsText == null || continueButton == null ||
+                failDetailsText == null || failContinueStatusText == null ||
+                coinContinueButton == null || rewardedContinueButton == null ||
                 retryButton == null || failLobbyButton == null ||
                 pauseButton == null || pauseOverlayRoot == null ||
                 pauseDim == null || pausePanel == null ||
@@ -1339,7 +1485,9 @@ namespace ColorGateRunner.Presentation
             GameObject fail,
             Text failTitle,
             Text failDetails,
-            Button failContinue,
+            Text failContinueStatus,
+            Button failCoinContinue,
+            Button failRewardedContinue,
             Button retry,
             Button failLobby)
         {
@@ -1417,7 +1565,9 @@ namespace ColorGateRunner.Presentation
             failPanel = fail;
             failTitleText = failTitle;
             failDetailsText = failDetails;
-            continueButton = failContinue;
+            failContinueStatusText = failContinueStatus;
+            coinContinueButton = failCoinContinue;
+            rewardedContinueButton = failRewardedContinue;
             retryButton = retry;
             failLobbyButton = failLobby;
         }
@@ -1442,7 +1592,8 @@ namespace ColorGateRunner.Presentation
             boosterToggleButton.onClick.AddListener(ToggleBoosterSelection);
             startButton.onClick.AddListener(StartSelectedStage);
             backButton.onClick.AddListener(HandlePreRunBack);
-            continueButton.onClick.AddListener(ContinueAfterFailure);
+            coinContinueButton.onClick.AddListener(RequestCoinContinue);
+            rewardedContinueButton.onClick.AddListener(RequestRewardedContinue);
             retryButton.onClick.AddListener(RetryToItemSelection);
             replayButton.onClick.AddListener(RetryToItemSelection);
             clearContinueButton.onClick.AddListener(LeaveResultFlow);
@@ -1486,7 +1637,8 @@ namespace ColorGateRunner.Presentation
             boosterToggleButton.onClick.RemoveListener(ToggleBoosterSelection);
             startButton.onClick.RemoveListener(StartSelectedStage);
             backButton.onClick.RemoveListener(HandlePreRunBack);
-            continueButton.onClick.RemoveListener(ContinueAfterFailure);
+            coinContinueButton.onClick.RemoveListener(RequestCoinContinue);
+            rewardedContinueButton.onClick.RemoveListener(RequestRewardedContinue);
             retryButton.onClick.RemoveListener(RetryToItemSelection);
             replayButton.onClick.RemoveListener(RetryToItemSelection);
             clearContinueButton.onClick.RemoveListener(LeaveResultFlow);
@@ -1505,6 +1657,8 @@ namespace ColorGateRunner.Presentation
 
         private void LeaveResultFlow()
         {
+            _continueRequestGeneration++;
+            _continueRequestPending = false;
             if (_experimentActive)
             {
                 BackToExperimentLab();
@@ -2002,7 +2156,9 @@ namespace ColorGateRunner.Presentation
                     failTitleText.text = "EXPERIMENT FAILED";
                     failDetailsText.text =
                         FormatExperimentResultDetails();
-                    continueButton.gameObject.SetActive(false);
+                    coinContinueButton.gameObject.SetActive(false);
+                    rewardedContinueButton.gameObject.SetActive(false);
+                    failContinueStatusText.gameObject.SetActive(false);
                     retryButton.gameObject.SetActive(true);
                     failLobbyButton.gameObject.SetActive(true);
                     SetButtonLabel(retryButton, "RETRY SAME TEST");
@@ -2015,11 +2171,9 @@ namespace ColorGateRunner.Presentation
                     failDetailsText.text =
                         $"PROGRESS {_session.GatesPassed}/{_session.Stage.TargetGateCount}\n" +
                         $"ITEMS {FormatItems(_session.Items)}";
-                    continueButton.gameObject.SetActive(
-                        _session.ContinueAvailable);
                     retryButton.gameObject.SetActive(true);
                     failLobbyButton.gameObject.SetActive(true);
-                    SetButtonLabel(continueButton, "CONTINUE");
+                    SynchronizeContinueOffers();
                     SetButtonLabel(retryButton, "RETRY");
                     SetButtonLabel(failLobbyButton, "LOBBY");
                 }
@@ -2108,6 +2262,9 @@ namespace ColorGateRunner.Presentation
             _boosterExitOverridesApplied = false;
             _failedGate = null;
             _continueSnapshot = null;
+            _continueRequestGeneration++;
+            _continueRequestPending = false;
+            _continueStatus = string.Empty;
             player.position = _playerStartPosition;
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
@@ -2398,6 +2555,40 @@ namespace ColorGateRunner.Presentation
                 !string.IsNullOrWhiteSpace(_startItemStartError));
         }
 
+        private void SynchronizeContinueOffers()
+        {
+            if (coinContinueButton == null || rewardedContinueButton == null ||
+                failContinueStatusText == null)
+            {
+                return;
+            }
+            bool campaignFailure = !_experimentActive && _session != null &&
+                _session.FlowState == StageFlowState.Failed &&
+                _attemptContinuePolicy != null &&
+                _attemptContinuePolicy.HasCapacity(_session.ContinueUseCount);
+            int price = _attemptContinuePolicy?.CurrentCoinPrice ?? 300;
+            bool coinVisible = campaignFailure &&
+                _continueEconomy?.IsAvailable == true;
+            coinContinueButton.gameObject.SetActive(coinVisible);
+            coinContinueButton.interactable = coinVisible &&
+                !_continueRequestPending &&
+                _continueEconomy.CoinBalance >= price;
+            SetButtonLabel(coinContinueButton, $"CONTINUE {price} COINS");
+
+            bool rewardedVisible = campaignFailure &&
+                _attemptContinuePolicy.CanRequestRewardedAd(
+                    _session.ContinueUseCount,
+                    _rewardedAdService);
+            rewardedContinueButton.gameObject.SetActive(rewardedVisible);
+            rewardedContinueButton.interactable =
+                rewardedVisible && !_continueRequestPending;
+            SetButtonLabel(rewardedContinueButton, "WATCH AD TO CONTINUE");
+
+            failContinueStatusText.text = _continueStatus;
+            failContinueStatusText.gameObject.SetActive(
+                !string.IsNullOrWhiteSpace(_continueStatus));
+        }
+
         private void RefreshStartItemInventory()
         {
             _startItemInventorySnapshot =
@@ -2474,7 +2665,7 @@ namespace ColorGateRunner.Presentation
                 failedGate.PlanIndex,
                 _session.IsFinalSection,
                 goal.activeSelf,
-                _session.ContinueUsed,
+                _session.ContinueUseCount,
                 _session.Items.Shield,
                 _session.Items.Shield && !_session.ShieldActive,
                 _session.Items.Booster,
