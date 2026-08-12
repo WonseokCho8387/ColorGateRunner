@@ -1961,3 +1961,22 @@ Any mismatch blocks implementation.
   Retry reset read clearly on portrait Android and WebGL.
 - Automation proves state, persistence and deterministic contracts, not whether
   Continue pricing feels fair or whether an ad offer is desirable.
+
+## Iteration 20 — Monetization Platform Baseline
+
+- Full final EditMode: `400/400` passed.
+- Full final PlayMode: `215/215` passed.
+- Compilation included Unity IAP `5.4.2` and Unity Services Core `1.18.0`.
+- The first sandboxed attempt could not reach Unity's licensing IPC and was
+  terminated without test evidence. The approved external validation run
+  connected successfully and produced both non-zero result files.
+- Builders were omitted because no generated Scene/UI changed. Campaign and
+  Step 10 simulations were omitted because gameplay, content, timing,
+  generation and simulation inputs were unchanged.
+- Final manifest, lock and ProjectSettings hashes are owned by the active
+  baseline in `CURRENT_STATUS.md`.
+- Actual Editor Product save: schema 2, revision 29, Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, Highest Stage 14, 13 records, 1,500
+  Coins, 3 Shields, 3 Boosters; SHA-256
+  `9850956C9219B35ABD6DC5049BE59FA48309A3A17CF72B7CA158986EDA85153E`.
+  Its last-write time was earlier than the two final validation processes.

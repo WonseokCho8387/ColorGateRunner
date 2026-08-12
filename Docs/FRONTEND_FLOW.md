@@ -856,7 +856,8 @@ Additional acceptance:
 - Back and background flows do not duplicate navigation or gameplay.
 - Experiment Lab remains isolated.
 - No package, provider SDK, ad, IAP, or network dependency is added without
-  separate approval.
+  separate approval. Iteration 20 approves the Unity IAP package baseline but
+  does not make a Shop or purchase action available.
 
 ## Iteration 14 — PreRun Back and toggle-state hotfix
 
@@ -871,3 +872,25 @@ Additional acceptance:
   navigation retain the existing Campaign Lobby and Lab paths.
 - Each shared Settings toggle owns one state label that switches between
   `ON` and `OFF`; separate overlapping state objects are forbidden.
+
+## Iteration 20 — approved Lobby and Shop information architecture reference
+
+The supplied reference screens define information hierarchy and navigation,
+not reusable art assets or an exact visual copy.
+
+- Persistent top resource header: profile access, Coin balance and purchase
+  entry, Heart state and purchase entry, then Settings.
+- Persistent bottom navigation: Shop, competitive/leaderboard slot, Home,
+  Journey/progression slot and Collection slot. Only implemented destinations
+  may be actionable; unavailable modules remain hidden or truthfully disabled.
+- Home keeps one dominant central Lobby scene, a compact progression/reward
+  rail above it and one primary Stage action near the lower center.
+- Shop is a portrait vertical scroll page with a persistent Coin header,
+  visually separated special-offer and bundle sections, explicit reward
+  contents and one localized store-price action per product card.
+- Journey uses a vertical milestone path with current position, claimed state
+  and next rewards. Collection uses a category grid with progress, reward
+  previews and a clear category state.
+- The immediate Shop foundation may implement Home and Shop navigation only.
+  Leaderboard, Journey and Collection require separate product iterations and
+  must not be presented as working placeholders.

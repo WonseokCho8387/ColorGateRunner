@@ -3,12 +3,15 @@
 ## Status
 
 Approved commercial-systems design baseline. Local Profile/Settings foundation
-and schema-2 Campaign/Economy/Lobby progression foundation are implemented;
-external commercial providers remain pending.
+and schema-2 Campaign/Economy/Lobby progression foundation are implemented.
+Unity IAP 5 is installed as an approved package baseline; runtime purchasing
+and external validation providers remain pending.
 
 This document defines local-first service boundaries and data ownership for
-the commercial shell. It does not authorize live login, networking, cloud
-save, advertising, IAP, analytics SDKs, or remote configuration.
+the commercial shell. Iteration 20 authorizes only the Unity IAP package and
+Google Play application identity. It does not yet authorize a live purchase
+flow, paid reward grant, login, cloud save, advertising, analytics SDK, or
+remote configuration.
 
 ## Purpose
 
@@ -888,6 +891,38 @@ Implementation status: Completed in Iteration 15.
   `400/400`, PlayMode `215/215`, and two byte-identical 400-row Campaign
   simulations. Step 10 artifacts remained unchanged.
 
+### Iteration 20 monetization platform baseline and approved catalog intent
+
+- Unity IAP `5.4.2` is installed for standard Google Play billing. The
+  Android application ID is `com.wscho.colorgaterunner`; Firebase and Google
+  Play registrations must use that exact case-sensitive identifier.
+- Installation alone is not a purchase implementation. No Store connection,
+  catalog fetch, order confirmation, receipt validation, reward grant or
+  localized price UI exists yet.
+- The approved commercial catalog intent contains six Coin amounts:
+  `1,000`, `5,000`, `10,000`, `25,000`, `50,000`, and `100,000`.
+- The approved bundle reward intent is:
+  - Starter: Shield 1, Booster 1, Continue 1, unlimited Hearts for 30 minutes.
+  - Small: Shield 2, Booster 2, Coins 500, unlimited Hearts for 1 hour.
+  - Medium: Shield 4, Booster 4, Coins 1,000, unlimited Hearts for 3 hours.
+  - Large: Shield 10, Booster 10, Coins 5,000, unlimited Hearts for 6 hours.
+  - Extra Large: Shield 13, Booster 13, Continue 3, Coins 10,000, unlimited
+    Hearts for 12 hours.
+- These rewards are approved product design, not implemented inventory.
+  Hearts, timed unlimited Heart entitlement and owned Continue inventory do
+  not exist in schema 2. Their clocks, offline behavior, expiry, attempt use,
+  reset and migration rules must be approved before a bundle can grant them.
+- Coin packs are naturally consumable. The Starter bundle's one-time versus
+  repeatable purchase rule and the remaining bundle product types are still
+  unresolved; store product IDs and real prices are also not yet assigned.
+- The next runtime purchase contract must save an idempotent order grant
+  before confirming the pending store order. A failed save remains
+  unconfirmed for safe redelivery. UI prices come from store metadata and are
+  never hardcoded from reference screenshots.
+- Firebase phase one is limited to Functions plus App Check. Firebase Core,
+  Functions and App Check SDK/configuration are not installed in this
+  iteration; Analytics and Crashlytics remain deferred.
+
 ## Product Iteration 3 — Frontend support
 
 - SceneFlowService.
@@ -936,7 +971,9 @@ The local product foundation is complete when:
 - Unavailable future economy and event actions remain hidden.
 - Local Lobby modules and themes are data-driven.
 - App pause and quit save dirty data.
-- No external package, provider, network, ad, IAP, or analytics SDK is added.
+- No unapproved external package or provider is added. The approved Unity IAP
+  package may remain installed while unavailable runtime purchase actions stay
+  hidden until their separate contract is implemented.
 - Core gameplay remains deterministic and UnityEngine-free.
 - Existing EditMode, PlayMode, campaign simulation, and Step 10 baselines
   remain unchanged by product-only work.

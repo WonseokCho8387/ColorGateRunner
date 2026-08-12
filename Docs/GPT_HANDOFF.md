@@ -1,5 +1,35 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 20 current update
+
+- Current completion base is `13afabb`; the new completion commit is named
+  `chore: establish monetization platform baseline`.
+- Unity IAP `5.4.2` is installed for standard Google Play billing. Android
+  application ID is `com.wscho.colorgaterunner`.
+- Runtime purchasing is not implemented. There is no Store connection,
+  product catalog, receipt grant, Firebase Unity SDK/config or Shop page yet.
+- Approved Coin amounts: 1,000 / 5,000 / 10,000 / 25,000 / 50,000 / 100,000.
+- Approved bundle intent:
+  - Starter: Shield 1, Booster 1, Continue 1, unlimited Hearts 30 minutes.
+  - Small: Shield 2, Booster 2, Coins 500, unlimited Hearts 1 hour.
+  - Medium: Shield 4, Booster 4, Coins 1,000, unlimited Hearts 3 hours.
+  - Large: Shield 10, Booster 10, Coins 5,000, unlimited Hearts 6 hours.
+  - Extra Large: Shield 13, Booster 13, Continue 3, Coins 10,000, unlimited
+    Hearts 12 hours.
+- Hearts, timed unlimited Heart state and owned Continue inventory do not yet
+  exist. Product IDs, prices and bundle repeatability also remain undecided.
+- Firebase phase one is Functions + App Check; Analytics and Crashlytics are
+  deferred.
+- Lobby reference direction: persistent top wallet/Heart/Settings, dominant
+  themed Home scene, persistent bottom navigation, scrollable Shop cards,
+  future Journey path and Collection grid. Use original neon sci-fi art, not
+  copied third-party characters or branding.
+- Final validation: EditMode `400/400`, PlayMode `215/215`; Campaign and Step
+  10 hashes remain unchanged because gameplay and simulation inputs did not
+  change.
+- Next safest iteration: define the missing Heart/timed/Continue reward models,
+  stable product IDs and purchase-grant transaction before building the Shop.
+
 이 문서에 적힌 커밋, 완료 기능, 남은 작업은 인수인계 시점의 요약이다.
 저장소의 CURRENT_STATUS.md와 충돌하면 CURRENT_STATUS.md를 우선한다.
 

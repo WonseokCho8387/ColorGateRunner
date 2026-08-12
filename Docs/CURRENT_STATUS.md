@@ -8,19 +8,27 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `5e0eb3c`
-- Base commit: `feat: consume owned start items`
+- Implementation base HEAD: `13afabb`
+- Base commit: `feat: add continue economy policy`
 - Authoritative completion HEAD: the commit named
-  `feat: add continue economy policy`; its exact hash is recorded in
-  the Iteration 19 final report because a commit cannot contain its own
-  content-derived hash.
+  `chore: establish monetization platform baseline`; its exact hash is
+  recorded in the Iteration 20 final report because a commit cannot contain
+  its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
 - Push status at completion: not pushed
 
 ### Current product state
 
-- Current completed iteration: **Iteration 19 — Continue economy policy**.
+- Current completed iteration: **Iteration 20 — Monetization Platform
+  Baseline**.
+- Unity IAP `5.4.2` and its Unity Services Core `1.18.0` dependency are
+  installed. Android billing mode is Google Play and the Android application
+  ID is `com.wscho.colorgaterunner`.
+- The package baseline does not yet initialize a store, fetch products,
+  process orders, validate receipts, grant paid rewards, or display a Shop.
+  Firebase exists only as a console project; no Firebase Unity SDK or mobile
+  configuration file is present in the repository.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
 - Frontend contains first-run Account Choice and the consolidated Campaign
   Lobby. It does not contain an AppRoot and reuses the Boot-created persistent
@@ -151,9 +159,18 @@ All three entries are expected to be enabled and unique.
 ### Package and ProjectSettings baseline
 
 - `Packages/manifest.json` SHA-256:
-  `2DD47B08B54B22B90AC931E7BE86F2C49E99994029F683ED177233B60E77A941`
+  `1D7BCAB0E815F5C9BE0779CDF8E88ECB98ADC7EA5BA4C800B5F5402E611FEEE2`
 - `Packages/packages-lock.json` SHA-256:
-  `0CCE79313E478B8C892DD1D9A299F66BA9DEAB61D62AE0B05525DB3AA08E6CC7`
+  `BF37ABC71E898CAE0498B49D4AACB9075A47D62E2D14A27C355895B2E8CEFB84`
+- `ProjectSettings/ProjectSettings.asset` SHA-256:
+  `BFF9843B9363FF1C20B113108D623026E777311CAEF6372B07C92690049717BC`
+- Approved package delta: Unity IAP `5.4.2`, Unity Services Core `1.18.0`,
+  and `Assets/Resources/BillingMode.json` with Google Play. The incidental
+  Navigation, Rider, Visual Studio and Visual Scripting upgrades made during
+  installation were removed and remain at their prior approved versions.
+- Approved ProjectSettings delta: Android application ID
+  `com.wscho.colorgaterunner`. Company name and non-Android identifiers are
+  unchanged so the existing Editor save location is preserved.
 - `ProjectSettings/ProjectSettings.asset` must retain the approved portrait,
   custom WebGL template, Input Actions preload, and all other semantic
   baselines.
@@ -166,6 +183,28 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+Version
+
+Iteration 20
+
+(Monetization Platform Baseline)
+
+---
+
+- Unity IAP `5.4.2` is the approved standard Google Play billing package and
+  Android now uses `com.wscho.colorgaterunner`.
+- No Store, product catalog, runtime purchase service, receipt grant, Firebase
+  SDK, or Shop UI is claimed by this baseline.
+- Full EditMode passed `400/400` and full PlayMode passed `215/215` after the
+  final application-ID change. No Builder or deterministic simulation was
+  required because no Scene, gameplay rule, content, or simulation input
+  changed; all prior Campaign and Step 10 hashes remain authoritative.
+- The actual Editor Product save remained schema 2 at revision 29 with Guest
+  ID `2dfe4f6ffa914e7a95e2fd30de5b6307`, Highest Stage 14, 13 Stage records,
+  1,500 Coins, 3 Shields and 3 Boosters. Its SHA-256 is
+  `9850956C9219B35ABD6DC5049BE59FA48309A3A17CF72B7CA158986EDA85153E`;
+  its last-write time predates both final validation suites.
 
 Version
 

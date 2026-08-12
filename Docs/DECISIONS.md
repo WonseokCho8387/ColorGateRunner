@@ -1118,3 +1118,23 @@ Status: Approved and implemented.
 - Campaign simulation models `AllowContinue` as authorization for up to three
   Continues and reports total, average, maximum and 0/1/2/3-use histogram
   metrics. Shop, IAP, Hearts and a production ad provider remain excluded.
+
+## Iteration 20 — Monetization platform baseline
+
+- Standard mobile billing uses Unity IAP `5.4.2` with Google Play rather than
+  a direct-to-customer payment provider.
+- Android application identity is `com.wscho.colorgaterunner`. Firebase and
+  Google Play app registration must use the same identifier.
+- IAP package installation is separated from runtime purchasing. No purchase
+  action may appear successful until the Store returns a pending order, the
+  order is validated, its idempotent reward is saved and the Store order is
+  then confirmed.
+- Six Coin amounts and five mixed bundles are approved as catalog intent.
+  Product IDs, prices, bundle repeatability and the missing Heart/timed/
+  Continue-inventory models remain follow-up decisions.
+- Firebase phase one is Functions plus App Check. Analytics and Crashlytics
+  are deferred. App Check enforcement begins only after legitimate-client
+  metrics are observed.
+- Supplied Lobby/Shop/Journey/Collection screenshots define hierarchy only.
+  Color Gate Runner will use original neon sci-fi art and will not copy third-
+  party characters, icons, branding or a pixel-exact layout.

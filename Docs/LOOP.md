@@ -577,3 +577,33 @@ measure value, frustration or willingness to watch an ad.
 ↓
 
 Play Again
+
+## Iteration 20 loop learning — monetization baseline before Shop
+
+### Observe
+
+IAP was installed and the desired catalog/UI direction was supplied, but the
+project still had a template application ID and no Store or Firebase client.
+
+### Analyze
+
+A complete Shop iteration would combine package baselining, new persistence
+models, asynchronous billing, server validation and a large Frontend redesign.
+That would hide failures and make purchase safety difficult to verify.
+
+### Decide
+
+Lock the platform identity and package baseline first. Record catalog and
+visual intent without pretending unsupported Heart, timed, Continue or Shop
+features already exist.
+
+### Validate
+
+The normalized package set and final Android identifier compiled with full
+EditMode `400/400` and PlayMode `215/215`. Gameplay simulations were preserved
+because no deterministic input changed.
+
+### Next loop
+
+Define the missing reward models and stable product IDs, then build a pure
+purchase grant boundary before exposing a real Shop action.

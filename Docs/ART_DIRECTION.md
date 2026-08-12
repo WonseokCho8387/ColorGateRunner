@@ -411,3 +411,22 @@ legibility.
 - This iteration adds no ad creative, provider branding, Coin animation,
   purchase surface or final result-screen art. Human review owns price
   comprehension, hierarchy and portrait readability.
+
+## Iteration 20 Lobby and Shop visual reference direction
+
+- The approved reference direction is a bright, high-saturation, rounded
+  mobile-game shell with layered depth, large icon-led actions, strong color
+  grouping and readable outlined type. It is a hierarchy reference, not
+  permission to copy characters, logos, icons, layouts pixel-for-pixel or
+  other proprietary artwork.
+- Home composition uses a dominant themed Lobby illustration/environment,
+  compact resource chrome at the top and a persistent icon navigation bar at
+  the bottom. The main Stage action remains the strongest interactive target.
+- Shop cards use clear section bands, large reward imagery, quantity labels
+  and one high-contrast localized-price button. The Coin balance remains
+  visible while scrolling.
+- Journey and Collection references establish future vertical progression and
+  category-grid patterns. They are not current implementation scope.
+- All future generated art must use Color Gate Runner's neon sci-fi identity,
+  original characters/symbols and the portrait Safe Area. Reference branding
+  and copyrighted character likenesses must not enter project assets.

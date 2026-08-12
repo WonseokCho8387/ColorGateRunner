@@ -1617,3 +1617,65 @@ Human feedback required
 - Verify on portrait devices that Coin price, balance shortage, ad availability,
   three-use exhaustion and Retry reset are understandable without technical
   language. Automation does not determine fairness, value or frustration.
+
+## Iteration 20 — Monetization Platform Baseline
+
+### Play / Input
+
+- Unity IAP was installed and a Firebase console project was created.
+- The product owner approved Google Play billing, Android ID
+  `com.wscho.colorgaterunner`, six Coin amounts, five bundles and Firebase
+  Functions plus App Check.
+- Five reference screens supplied Home, Shop, Journey and Collection layout
+  hierarchy.
+
+### Analyze
+
+- The install included Unity IAP `5.4.2`, Google Play BillingMode and Unity
+  Services Core, but no Store integration, product catalog or Firebase SDK.
+- Unity had also upgraded four unrelated packages; those changes were outside
+  the approved scope.
+- The project still used a Unity template Android application ID.
+- Hearts, timed unlimited Hearts and owned Continue inventory do not exist, so
+  mixed bundles cannot yet be granted truthfully.
+
+### Design
+
+- Establish the package/application identity baseline first.
+- Record commercial catalog and UI direction as approved intent while keeping
+  runtime purchase, Shop and missing reward models in later iterations.
+- Preserve the local-first schema-2 economy and require save-before-confirm
+  plus order-id idempotency for future purchases.
+
+### Implementation
+
+- Kept Unity IAP `5.4.2` and Unity Services Core `1.18.0`.
+- Restored unrelated Navigation, Rider, Visual Studio and Visual Scripting
+  packages to their previous approved versions.
+- Set Android application ID to `com.wscho.colorgaterunner` and retained
+  Google Play billing mode.
+
+### Validation
+
+- Final Unity compilation succeeded.
+- EditMode passed `400/400`; PlayMode passed `215/215`.
+- No Scene or gameplay input changed, so Builders, Campaign simulation and
+  Step 10 were not rerun. Their existing hashes remain authoritative.
+- The actual Editor Product save last-write time predates final validation and
+  its schema, Guest ID, progress and economy were preserved.
+
+### Learning
+
+- Installing a package through Unity can update unrelated packages; the
+  manifest/lock diff must be normalized before accepting a new baseline.
+- ProjectSettings edited while Unity is open can be overwritten on Editor
+  shutdown. Application identity was therefore reapplied with Unity closed
+  and the final full suite repeated.
+
+### Deferred / Human Review
+
+- Product IDs, prices, repeatability, Heart/timed entitlement and Continue
+  inventory contracts.
+- Store integration, Firebase SDK/config, server validation, Shop UI and
+  internal-track purchase tests.
+- Human review of final original Lobby/Shop art and portrait navigation.

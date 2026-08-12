@@ -325,6 +325,16 @@ fairness, or polish.
 - Product links accept only absolute HTTPS destinations and do not open when
   unconfigured.
 
+### Monetization platform baseline
+
+- Approved package and ProjectSettings hashes match `CURRENT_STATUS.md`.
+- Unity IAP compiles without introducing a live or simulated-success purchase
+  path before the purchase contract is implemented.
+- Android application ID remains exactly `com.wscho.colorgaterunner` and
+  Google Play billing mode remains selected.
+- Firebase SDK/configuration, Store products and paid reward grants remain
+  absent until their separately approved iterations.
+
 ### Generated structure
 
 - Boot, Frontend, and Campaign Builders remain idempotent.
