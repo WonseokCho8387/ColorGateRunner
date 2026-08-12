@@ -15,7 +15,10 @@ namespace ColorGateRunner.Product
         Initialization = 7,
         UnsupportedAccountOperation = 8,
         InsufficientInventory = 9,
-        InsufficientFunds = 10
+        InsufficientFunds = 10,
+        InsufficientHearts = 11,
+        AlreadyOwned = 12,
+        UnknownProduct = 13
     }
 
     public readonly struct ProductError

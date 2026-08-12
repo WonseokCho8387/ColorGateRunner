@@ -798,6 +798,17 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - Package manifest/lock and meaningful ProjectSettings state are checked
   against the Authoritative Baseline.
 
+### Iteration 21 commerce coverage
+
+- `ProductFoundationTests` covers schema-2 migration, exact 11-product local
+  catalog, atomic Heart/item start, recharge and rollback behavior, timed
+  unlimited Hearts, idempotent grants and Continue Ticket spending.
+- `GrayboxScenePlayModeTests` covers empty-Heart PreRun blocking, Ticket-first
+  Continue success and Ticket save-failure frozen-state preservation.
+- Campaign generated-structure coverage includes one Ticket button and label,
+  required controller references, no duplicate generated root and one
+  EventSystem.
+
 ## References
 
 - `TEST_PLAN.md` — validation policy and tier selection.

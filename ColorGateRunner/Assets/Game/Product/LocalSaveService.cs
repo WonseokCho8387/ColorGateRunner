@@ -384,12 +384,23 @@ namespace ColorGateRunner.Product
             }
             if (data.SchemaVersion <= 1)
             {
-                data.SchemaVersion = LocalSaveData.CurrentSchemaVersion;
                 data.CampaignProgress ??=
                     LocalCampaignProgressData.CreateDefaults();
                 data.Economy ??= LocalEconomyData.CreateDefaults();
                 data.LobbyProgress ??=
                     LocalLobbyProgressData.CreateDefaults();
+                dirty = true;
+            }
+            if (data.SchemaVersion <= 2)
+            {
+                data.Economy ??= LocalEconomyData.CreateDefaults();
+                data.Economy.HeartCount = HeartStatePolicy.MaximumHearts;
+                data.Economy.HeartRechargeAnchorUtc = string.Empty;
+                data.Economy.LastHeartClockUtc = string.Empty;
+                data.Economy.UnlimitedHeartsUntilUtc = string.Empty;
+                data.Economy.ContinueTicketCount = 0;
+                data.Economy.StarterBundlePurchased = false;
+                data.SchemaVersion = LocalSaveData.CurrentSchemaVersion;
                 dirty = true;
             }
 
@@ -514,6 +525,12 @@ namespace ColorGateRunner.Product
                 economy.AppliedTransactionIds == null ||
                 economy.Coins < 0 || economy.ShieldCount < 0 ||
                 economy.BoosterCount < 0 ||
+                economy.HeartCount < 0 ||
+                economy.HeartCount > HeartStatePolicy.MaximumHearts ||
+                economy.ContinueTicketCount < 0 ||
+                !OptionalUtcIsValid(economy.HeartRechargeAnchorUtc) ||
+                !OptionalUtcIsValid(economy.LastHeartClockUtc) ||
+                !OptionalUtcIsValid(economy.UnlimitedHeartsUntilUtc) ||
                 lobby.AppliedMilestoneCount < 0 ||
                 lobby.AppliedMilestoneCount > 18 ||
                 lobby.PresentedMilestoneCount < 0 ||
@@ -552,6 +569,11 @@ namespace ColorGateRunner.Product
                 }
             }
             return true;
+        }
+
+        private static bool OptionalUtcIsValid(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) || TryParseUtc(value);
         }
 
         private static bool IsNonNegativeFinite(float value)

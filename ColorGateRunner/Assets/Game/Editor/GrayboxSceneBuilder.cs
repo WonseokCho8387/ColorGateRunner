@@ -236,6 +236,7 @@ namespace ColorGateRunner.Editor
             Text failTitle;
             Text failDetails;
             Text failContinueStatus;
+            Button ticketContinueButton;
             Button coinContinueButton;
             Button rewardedContinueButton;
             Button retryButton;
@@ -246,6 +247,7 @@ namespace ColorGateRunner.Editor
                 out failTitle,
                 out failDetails,
                 out failContinueStatus,
+                out ticketContinueButton,
                 out coinContinueButton,
                 out rewardedContinueButton,
                 out retryButton,
@@ -347,6 +349,7 @@ namespace ColorGateRunner.Editor
                 failTitle,
                 failDetails,
                 failContinueStatus,
+                ticketContinueButton,
                 coinContinueButton,
                 rewardedContinueButton,
                 retryButton,
@@ -579,6 +582,7 @@ namespace ColorGateRunner.Editor
                 "StageFailedPanel",
                 "ClearContinueButton",
                 "FailContinueStatusText",
+                "TicketContinueButton",
                 "CoinContinueButton",
                 "RewardedContinueButton",
                 "ReplayButton",
@@ -1758,6 +1762,7 @@ namespace ColorGateRunner.Editor
             out Text title,
             out Text details,
             out Text continueStatus,
+            out Button ticketContinueButton,
             out Button coinContinueButton,
             out Button rewardedContinueButton,
             out Button retry,
@@ -1788,37 +1793,45 @@ namespace ColorGateRunner.Editor
                 24,
                 new Vector2(0.1f, 0.50f),
                 new Vector2(0.9f, 0.56f));
+            Text ticketLabel;
+            ticketContinueButton = CreateButton(
+                "TicketContinueButton",
+                panel.transform,
+                "CONTINUE TICKET x1",
+                new Vector2(0.16f, 0.405f),
+                new Vector2(0.84f, 0.495f),
+                out ticketLabel);
             Text rewardedLabel;
             rewardedContinueButton = CreateButton(
                 "RewardedContinueButton",
                 panel.transform,
                 "WATCH AD TO CONTINUE",
-                new Vector2(0.16f, 0.39f),
-                new Vector2(0.84f, 0.49f),
+                new Vector2(0.16f, 0.31f),
+                new Vector2(0.84f, 0.40f),
                 out rewardedLabel);
             Text coinLabel;
             coinContinueButton = CreateButton(
                 "CoinContinueButton",
                 panel.transform,
                 "CONTINUE 300 COINS",
-                new Vector2(0.16f, 0.28f),
-                new Vector2(0.84f, 0.38f),
+                new Vector2(0.16f, 0.215f),
+                new Vector2(0.84f, 0.305f),
                 out coinLabel);
             Text retryLabel;
             retry = CreateButton(
                 "RetryButton",
                 panel.transform,
                 "RETRY",
-                new Vector2(0.16f, 0.17f),
-                new Vector2(0.84f, 0.27f),
+                new Vector2(0.16f, 0.12f),
+                new Vector2(0.84f, 0.21f),
                 out retryLabel);
             Text selectLabel;
             select = CreateButton(
                 "FailLobbyButton",
                 panel.transform,
                 "LOBBY",
-                new Vector2(0.16f, 0.06f),
-                new Vector2(0.84f, 0.16f),
+                new Vector2(0.16f, 0.025f),
+                new Vector2(0.84f, 0.115f),
                 out selectLabel);
         }
 

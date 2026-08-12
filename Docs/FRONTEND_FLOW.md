@@ -894,3 +894,14 @@ not reusable art assets or an exact visual copy.
 - The immediate Shop foundation may implement Home and Shop navigation only.
   Leaderboard, Journey and Collection require separate product iterations and
   must not be presented as working placeholders.
+## Iteration 21 failure offer hierarchy
+
+- Campaign failure actions are ordered by owned Continue Ticket, real
+  rewarded ad availability, then Coin Continue. A zero Ticket balance hides
+  the Ticket action; an unavailable rewarded provider remains hidden.
+- All authorization/save failures keep the failed run frozen and leave Retry
+  and Lobby available. No placeholder can simulate a successful purchase or
+  advertisement.
+- Lobby and Shop composition from the Iteration 20 reference remains deferred;
+  this iteration changes only the failure-offer hierarchy needed by the newly
+  modeled Continue Ticket reward.

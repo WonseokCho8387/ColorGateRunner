@@ -3,15 +3,15 @@
 ## Status
 
 Approved commercial-systems design baseline. Local Profile/Settings foundation
-and schema-2 Campaign/Economy/Lobby progression foundation are implemented.
-Unity IAP 5 is installed as an approved package baseline; runtime purchasing
-and external validation providers remain pending.
+and schema-3 Campaign/Economy/Lobby, Heart, timed entitlement, Continue Ticket
+and commerce-reward foundations are implemented. Unity IAP 5 is installed as
+an approved package baseline; runtime purchasing and external validation
+providers remain pending.
 
 This document defines local-first service boundaries and data ownership for
-the commercial shell. Iteration 20 authorizes only the Unity IAP package and
-Google Play application identity. It does not yet authorize a live purchase
-flow, paid reward grant, login, cloud save, advertising, analytics SDK, or
-remote configuration.
+the commercial shell. Iteration 21 authorizes local idempotent reward grants
+but not a live purchase flow or receipt authority. Login, cloud save,
+advertising provider, analytics SDK and remote configuration remain excluded.
 
 ## Purpose
 
@@ -977,3 +977,19 @@ The local product foundation is complete when:
 - Core gameplay remains deterministic and UnityEngine-free.
 - Existing EditMode, PlayMode, campaign simulation, and Step 10 baselines
   remain unchanged by product-only work.
+### Iteration 21 local commerce model
+
+- Schema 3 extends Economy with Heart count/recharge clock, last observed UTC,
+  timed unlimited-Heart expiry, Continue Ticket count and Starter-granted
+  state. Schema 2 migrates to 5 Hearts without changing existing wallet,
+  inventory, identity or Campaign data.
+- Product owns clone-save-publish authorization for Stage-start Heart/item
+  spending, Continue Ticket spending and commerce reward grants. Order IDs use
+  the existing transaction ledger so redelivery is idempotent; a save failure
+  must leave the order unconfirmed when the real IAP adapter is added.
+- `CommerceProductCatalog` owns the approved six Coin packs and five bundle
+  rewards. It deliberately contains no localized prices; those must come from
+  Google Play metadata.
+- This model does not initialize Unity IAP, confirm purchases, validate
+  receipts or contact Firebase. Those boundaries remain the next provider
+  iteration after this local model.

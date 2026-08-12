@@ -6,14 +6,19 @@ namespace ColorGateRunner.Tests.PlayMode
 {
     internal sealed class ContinueEconomyTestGateway : IContinueEconomyGateway
     {
-        internal ContinueEconomyTestGateway(int coinBalance = 10000)
+        internal ContinueEconomyTestGateway(
+            int coinBalance = 10000,
+            int continueTicketCount = 0)
         {
             CoinBalance = coinBalance;
+            ContinueTicketCount = continueTicketCount;
         }
 
         public bool IsAvailable => true;
         public int CoinBalance { get; private set; }
+        public int ContinueTicketCount { get; private set; }
         internal int SpendCount { get; private set; }
+        internal int TicketSpendCount { get; private set; }
         internal int TotalSpent { get; private set; }
         internal ProductErrorCode FailureCode { get; set; }
 
@@ -35,6 +40,26 @@ namespace ColorGateRunner.Tests.PlayMode
             }
             CoinBalance -= amount;
             TotalSpent += amount;
+            return ProductMutationResult.Success(true);
+        }
+
+        public ProductMutationResult SpendTicket(string transactionId)
+        {
+            TicketSpendCount++;
+            if (FailureCode != ProductErrorCode.None)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(FailureCode, "planned", true));
+            }
+            if (ContinueTicketCount <= 0)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientInventory,
+                        "planned",
+                        true));
+            }
+            ContinueTicketCount--;
             return ProductMutationResult.Success(true);
         }
     }

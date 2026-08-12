@@ -18,6 +18,7 @@ namespace ColorGateRunner.Product
         }
 
         public LocalProfileData Current { get; private set; }
+        internal IClockService Clock => _clock;
 
         public bool LoadOrCreateGuest(LocalSaveData data)
         {
@@ -143,6 +144,7 @@ namespace ColorGateRunner.Product
         private readonly SettingsService _settingsService;
         private readonly LocalAccountService _accountService;
         private readonly ProgressionService _progressionService;
+        private readonly IClockService _clock;
         private LocalSaveData _current;
 
         public LocalProductSession(
@@ -150,7 +152,8 @@ namespace ColorGateRunner.Product
             ProfileService profileService,
             SettingsService settingsService,
             LocalAccountService accountService,
-            ProgressionService progressionService)
+            ProgressionService progressionService,
+            IClockService clock)
         {
             _saveService = saveService ??
                 throw new ArgumentNullException(nameof(saveService));
@@ -162,6 +165,7 @@ namespace ColorGateRunner.Product
                 throw new ArgumentNullException(nameof(accountService));
             _progressionService = progressionService ??
                 throw new ArgumentNullException(nameof(progressionService));
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         }
 
         public bool IsReady => _current != null;
@@ -366,16 +370,27 @@ namespace ColorGateRunner.Product
             bool shield,
             bool booster)
         {
+            return AuthorizeStageStart(shield, booster, false);
+        }
+
+        public ProductMutationResult AuthorizeStageStart(
+            bool shield,
+            bool booster,
+            bool consumeHeart = true)
+        {
             if (!TryGetReady(out ProductMutationResult failure))
             {
                 return failure;
             }
-            if (!shield && !booster)
+            LocalSaveData candidate = _current.Clone();
+            LocalEconomyData economy = candidate.Economy;
+            DateTime effectiveNow = _clock.UtcNow;
+            if (consumeHeart)
             {
-                return ProductMutationResult.Success(false);
+                effectiveNow = HeartStatePolicy.Normalize(
+                    economy,
+                    effectiveNow);
             }
-
-            LocalEconomyData economy = _current.Economy;
             if ((shield && economy.ShieldCount <= 0) ||
                 (booster && economy.BoosterCount <= 0))
             {
@@ -385,8 +400,16 @@ namespace ColorGateRunner.Product
                         "The selected start-item inventory is insufficient.",
                         true));
             }
-
-            LocalSaveData candidate = _current.Clone();
+            if (consumeHeart &&
+                !HeartStatePolicy.IsUnlimited(economy, effectiveNow) &&
+                economy.HeartCount <= 0)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientHearts,
+                        "A Heart is required to start the Stage.",
+                        true));
+            }
             if (shield)
             {
                 candidate.Economy.ShieldCount--;
@@ -395,6 +418,132 @@ namespace ColorGateRunner.Product
             {
                 candidate.Economy.BoosterCount--;
             }
+            if (consumeHeart)
+            {
+                HeartStatePolicy.Consume(economy, effectiveNow);
+            }
+            bool changed = shield || booster || consumeHeart ||
+                !EconomyHeartStateMatches(_current.Economy, economy);
+            if (!changed)
+            {
+                return ProductMutationResult.Success(false);
+            }
+            return Commit(candidate);
+        }
+
+        public HeartStateSnapshot GetHeartState()
+        {
+            return _current?.Economy == null
+                ? default
+                : HeartStatePolicy.Read(_current.Economy, _clock.UtcNow);
+        }
+
+        public ProductMutationResult RefreshHeartState()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (!HeartStatePolicy.NeedsPersistence(
+                    _current.Economy,
+                    _clock.UtcNow))
+            {
+                return ProductMutationResult.Success(false);
+            }
+            LocalSaveData candidate = _current.Clone();
+            HeartStatePolicy.Normalize(candidate.Economy, _clock.UtcNow);
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult SpendContinueTicket(string transactionId)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (string.IsNullOrWhiteSpace(transactionId))
+            {
+                return InvalidProgression("The Continue Ticket transaction is invalid.");
+            }
+            if (_current.Economy.AppliedTransactionIds.Contains(transactionId))
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (_current.Economy.ContinueTicketCount <= 0)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientInventory,
+                        "No Continue Ticket is available.",
+                        true));
+            }
+            LocalSaveData candidate = _current.Clone();
+            candidate.Economy.ContinueTicketCount--;
+            candidate.Economy.AppliedTransactionIds.Add(transactionId);
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult GrantCommerceProduct(
+            string orderId,
+            string productId)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (string.IsNullOrWhiteSpace(orderId) ||
+                !CommerceProductCatalog.TryGet(productId, out CommerceProductDefinition product))
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        string.IsNullOrWhiteSpace(orderId)
+                            ? ProductErrorCode.SaveValidation
+                            : ProductErrorCode.UnknownProduct,
+                        "The commerce order or product is invalid.",
+                        true));
+            }
+            string transactionId = $"iap:{orderId}";
+            if (_current.Economy.AppliedTransactionIds.Contains(transactionId))
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (product.AccountLimited && _current.Economy.StarterBundlePurchased)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.AlreadyOwned,
+                        "The Starter bundle was already granted.",
+                        false));
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            LocalEconomyData economy = candidate.Economy;
+            DateTime effectiveNow = HeartStatePolicy.Normalize(economy, _clock.UtcNow);
+            CommerceReward reward = product.Reward;
+            try
+            {
+                economy.Coins = checked(economy.Coins + reward.Coins);
+                economy.ShieldCount = checked(
+                    economy.ShieldCount + reward.Shields);
+                economy.BoosterCount = checked(
+                    economy.BoosterCount + reward.Boosters);
+                economy.ContinueTicketCount = checked(
+                    economy.ContinueTicketCount + reward.ContinueTickets);
+            }
+            catch (OverflowException)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "The commerce reward exceeds inventory limits.",
+                        true));
+            }
+            HeartStatePolicy.ExtendUnlimited(
+                economy,
+                effectiveNow,
+                reward.UnlimitedHeartsDuration);
+            economy.StarterBundlePurchased |= product.AccountLimited;
+            economy.AppliedTransactionIds.Add(transactionId);
             return Commit(candidate);
         }
 
@@ -514,6 +663,16 @@ namespace ColorGateRunner.Product
                     ProductErrorCode.SaveValidation,
                     diagnostic,
                     true));
+        }
+
+        private static bool EconomyHeartStateMatches(
+            LocalEconomyData left,
+            LocalEconomyData right)
+        {
+            return left.HeartCount == right.HeartCount &&
+                left.HeartRechargeAnchorUtc == right.HeartRechargeAnchorUtc &&
+                left.LastHeartClockUtc == right.LastHeartClockUtc &&
+                left.UnlimitedHeartsUntilUtc == right.UnlimitedHeartsUntilUtc;
         }
 
         private static bool StageRecordIsValid(LocalStageProgressData record)

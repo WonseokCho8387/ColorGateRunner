@@ -130,6 +130,12 @@ namespace ColorGateRunner.Product
         public int Coins;
         public int ShieldCount;
         public int BoosterCount;
+        public int HeartCount = HeartStatePolicy.MaximumHearts;
+        public string HeartRechargeAnchorUtc = string.Empty;
+        public string LastHeartClockUtc = string.Empty;
+        public string UnlimitedHeartsUntilUtc = string.Empty;
+        public int ContinueTicketCount;
+        public bool StarterBundlePurchased;
         public List<string> AppliedTransactionIds = new();
 
         public static LocalEconomyData CreateDefaults()
@@ -144,6 +150,12 @@ namespace ColorGateRunner.Product
                 Coins = Coins,
                 ShieldCount = ShieldCount,
                 BoosterCount = BoosterCount,
+                HeartCount = HeartCount,
+                HeartRechargeAnchorUtc = HeartRechargeAnchorUtc,
+                LastHeartClockUtc = LastHeartClockUtc,
+                UnlimitedHeartsUntilUtc = UnlimitedHeartsUntilUtc,
+                ContinueTicketCount = ContinueTicketCount,
+                StarterBundlePurchased = StarterBundlePurchased,
                 AppliedTransactionIds = AppliedTransactionIds == null
                     ? new List<string>()
                     : new List<string>(AppliedTransactionIds)
@@ -175,7 +187,7 @@ namespace ColorGateRunner.Product
     [Serializable]
     public sealed class LocalSaveData
     {
-        public const int CurrentSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public long SaveRevision;

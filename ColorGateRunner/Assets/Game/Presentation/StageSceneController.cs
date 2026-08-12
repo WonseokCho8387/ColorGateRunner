@@ -110,6 +110,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text failTitleText;
         [SerializeField] private Text failDetailsText;
         [SerializeField] private Text failContinueStatusText;
+        [SerializeField] private Button ticketContinueButton;
         [SerializeField] private Button coinContinueButton;
         [SerializeField] private Button rewardedContinueButton;
         [SerializeField] private Button retryButton;
@@ -225,6 +226,7 @@ namespace ColorGateRunner.Presentation
         internal Button BoosterToggleButton => boosterToggleButton;
         internal Text BoosterToggleText => boosterToggleText;
         internal Text PreRunStatusText => preRunStatusText;
+        internal Button TicketContinueButton => ticketContinueButton;
         internal Button CoinContinueButton => coinContinueButton;
         internal Button RewardedContinueButton => rewardedContinueButton;
         internal Text FailContinueStatusText => failContinueStatusText;
@@ -829,10 +831,14 @@ namespace ColorGateRunner.Presentation
             if (!consumption.Succeeded)
             {
                 _startItemStartError =
-                    consumption.Error.Code ==
-                        ProductErrorCode.InsufficientInventory
-                        ? "NOT ENOUGH START ITEMS"
-                        : "ITEM SAVE FAILED";
+                    consumption.Error.Code switch
+                    {
+                        ProductErrorCode.InsufficientInventory =>
+                            "NOT ENOUGH START ITEMS",
+                        ProductErrorCode.InsufficientHearts =>
+                            "NOT ENOUGH HEARTS",
+                        _ => "START SAVE FAILED"
+                    };
                 RefreshStartItemInventory();
                 NormalizeSelectedItemsToInventory();
                 SynchronizeItemSelection();
@@ -978,6 +984,38 @@ namespace ColorGateRunner.Presentation
                     count,
                     offer.CoinCost);
             if (!authorization.Authorized || !ResumeAuthorizedContinue())
+            {
+                _continueStatus = "CONTINUE UNAVAILABLE";
+                SynchronizeContinueOffers();
+            }
+        }
+
+        internal void RequestTicketContinue()
+        {
+            if (!CanRequestContinue() || !_continueEconomy.IsAvailable ||
+                _continueEconomy.ContinueTicketCount <= 0)
+            {
+                return;
+            }
+
+            _continueRequestPending = true;
+            SynchronizeContinueOffers();
+            string transactionId =
+                $"continue:{_continueAttemptId}:ticket:" +
+                _session.ContinueUseCount;
+            ProductMutationResult spend =
+                _continueEconomy.SpendTicket(transactionId);
+            _continueRequestPending = false;
+            if (!spend.Succeeded)
+            {
+                _continueStatus = spend.Error.Code ==
+                    ProductErrorCode.InsufficientInventory
+                        ? "NO CONTINUE TICKETS"
+                        : "CONTINUE SAVE FAILED";
+                SynchronizeContinueOffers();
+                return;
+            }
+            if (!ResumeAuthorizedContinue())
             {
                 _continueStatus = "CONTINUE UNAVAILABLE";
                 SynchronizeContinueOffers();
@@ -1381,7 +1419,8 @@ namespace ColorGateRunner.Presentation
                 replayButton == null || clearLobbyButton == null ||
                 failPanel == null || failTitleText == null ||
                 failDetailsText == null || failContinueStatusText == null ||
-                coinContinueButton == null || rewardedContinueButton == null ||
+                ticketContinueButton == null || coinContinueButton == null ||
+                rewardedContinueButton == null ||
                 retryButton == null || failLobbyButton == null ||
                 pauseButton == null || pauseOverlayRoot == null ||
                 pauseDim == null || pausePanel == null ||
@@ -1486,6 +1525,7 @@ namespace ColorGateRunner.Presentation
             Text failTitle,
             Text failDetails,
             Text failContinueStatus,
+            Button failTicketContinue,
             Button failCoinContinue,
             Button failRewardedContinue,
             Button retry,
@@ -1566,6 +1606,7 @@ namespace ColorGateRunner.Presentation
             failTitleText = failTitle;
             failDetailsText = failDetails;
             failContinueStatusText = failContinueStatus;
+            ticketContinueButton = failTicketContinue;
             coinContinueButton = failCoinContinue;
             rewardedContinueButton = failRewardedContinue;
             retryButton = retry;
@@ -1592,6 +1633,7 @@ namespace ColorGateRunner.Presentation
             boosterToggleButton.onClick.AddListener(ToggleBoosterSelection);
             startButton.onClick.AddListener(StartSelectedStage);
             backButton.onClick.AddListener(HandlePreRunBack);
+            ticketContinueButton.onClick.AddListener(RequestTicketContinue);
             coinContinueButton.onClick.AddListener(RequestCoinContinue);
             rewardedContinueButton.onClick.AddListener(RequestRewardedContinue);
             retryButton.onClick.AddListener(RetryToItemSelection);
@@ -1637,6 +1679,7 @@ namespace ColorGateRunner.Presentation
             boosterToggleButton.onClick.RemoveListener(ToggleBoosterSelection);
             startButton.onClick.RemoveListener(StartSelectedStage);
             backButton.onClick.RemoveListener(HandlePreRunBack);
+            ticketContinueButton.onClick.RemoveListener(RequestTicketContinue);
             coinContinueButton.onClick.RemoveListener(RequestCoinContinue);
             rewardedContinueButton.onClick.RemoveListener(RequestRewardedContinue);
             retryButton.onClick.RemoveListener(RetryToItemSelection);
@@ -2156,6 +2199,7 @@ namespace ColorGateRunner.Presentation
                     failTitleText.text = "EXPERIMENT FAILED";
                     failDetailsText.text =
                         FormatExperimentResultDetails();
+                    ticketContinueButton.gameObject.SetActive(false);
                     coinContinueButton.gameObject.SetActive(false);
                     rewardedContinueButton.gameObject.SetActive(false);
                     failContinueStatusText.gameObject.SetActive(false);
@@ -2557,7 +2601,8 @@ namespace ColorGateRunner.Presentation
 
         private void SynchronizeContinueOffers()
         {
-            if (coinContinueButton == null || rewardedContinueButton == null ||
+            if (ticketContinueButton == null || coinContinueButton == null ||
+                rewardedContinueButton == null ||
                 failContinueStatusText == null)
             {
                 return;
@@ -2567,6 +2612,16 @@ namespace ColorGateRunner.Presentation
                 _attemptContinuePolicy != null &&
                 _attemptContinuePolicy.HasCapacity(_session.ContinueUseCount);
             int price = _attemptContinuePolicy?.CurrentCoinPrice ?? 300;
+            bool ticketVisible = campaignFailure &&
+                _continueEconomy?.IsAvailable == true &&
+                _continueEconomy.ContinueTicketCount > 0;
+            ticketContinueButton.gameObject.SetActive(ticketVisible);
+            ticketContinueButton.interactable =
+                ticketVisible && !_continueRequestPending;
+            SetButtonLabel(
+                ticketContinueButton,
+                $"CONTINUE TICKET x{_continueEconomy?.ContinueTicketCount ?? 0}");
+
             bool coinVisible = campaignFailure &&
                 _continueEconomy?.IsAvailable == true;
             coinContinueButton.gameObject.SetActive(coinVisible);

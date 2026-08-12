@@ -5,14 +5,23 @@ namespace ColorGateRunner.Presentation
 {
     internal readonly struct StartItemInventorySnapshot
     {
-        internal StartItemInventorySnapshot(int shieldCount, int boosterCount)
+        internal StartItemInventorySnapshot(
+            int shieldCount,
+            int boosterCount,
+            int heartCount = HeartStatePolicy.MaximumHearts,
+            bool unlimitedHearts = false)
         {
             ShieldCount = Math.Max(0, shieldCount);
             BoosterCount = Math.Max(0, boosterCount);
+            HeartCount = Math.Max(0, heartCount);
+            UnlimitedHearts = unlimitedHearts;
         }
 
         internal int ShieldCount { get; }
         internal int BoosterCount { get; }
+        internal int HeartCount { get; }
+        internal bool UnlimitedHearts { get; }
+        internal bool CanStart => UnlimitedHearts || HeartCount > 0;
     }
 
     internal interface IStartItemInventoryGateway
@@ -38,17 +47,21 @@ namespace ColorGateRunner.Presentation
 
         public StartItemInventorySnapshot Read()
         {
+            _session.RefreshHeartState();
             LocalEconomyData economy = _progression.Economy;
+            HeartStateSnapshot hearts = _session.GetHeartState();
             return economy == null
                 ? default
                 : new StartItemInventorySnapshot(
                     economy.ShieldCount,
-                    economy.BoosterCount);
+                    economy.BoosterCount,
+                    hearts.Count,
+                    hearts.Unlimited);
         }
 
         public ProductMutationResult Consume(bool shield, bool booster)
         {
-            return _session.ConsumeStartItems(shield, booster);
+            return _session.AuthorizeStageStart(shield, booster);
         }
     }
 

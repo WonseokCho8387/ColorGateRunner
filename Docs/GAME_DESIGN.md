@@ -600,3 +600,22 @@ Experiment mechanics.
   resumes automatically.
 - Pause changes no Campaign balance, gate timing, modifier rules, item rules,
   Stage progress format, or deterministic simulation result.
+## Iteration 21 commerce reward and Heart contract
+
+- A normal Stage start consumes one Heart in the same atomic Product save as
+  selected Shield/Booster inventory. A failed authorization/save never starts
+  Countdown and publishes no partial spend. Retry/replay is a new Stage start
+  and consumes again.
+- Heart capacity is 5. One missing Heart recharges every 30 minutes from an
+  explicit UTC anchor, including offline time. A backwards local-clock change
+  cannot accelerate recharge. Unlimited Hearts suppress consumption until
+  their UTC expiry and purchased durations extend from the later of now or the
+  existing expiry.
+- Continue Tickets are owned inventory. On failure they are offered before a
+  real rewarded-ad offer, then the existing Coin offer. Ticket use is an
+  atomic, idempotent Product transaction and still counts toward Core's total
+  three-Continue attempt cap.
+- The exact approved catalog IDs and rewards are owned by
+  `CommerceProductCatalog`. All entries are Google Play consumables; Starter
+  reward grant is account-limited locally. Actual store connection, receipt
+  verification, Shop UI and Firebase remain separate work.

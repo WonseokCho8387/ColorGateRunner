@@ -1679,3 +1679,30 @@ Human feedback required
 - Store integration, Firebase SDK/config, server validation, Shop UI and
   internal-track purchase tests.
 - Human review of final original Lobby/Shop art and portrait navigation.
+
+## Iteration 21 — Local Commerce Rewards and Hearts
+
+### Play / Analyze
+
+- Approved bundles referenced Hearts and Continue inventory that the save did
+  not own, so a real purchase grant lacked deterministic local semantics.
+
+### Design / Implementation
+
+- Added schema-3 Hearts, timed unlimited Hearts, Continue Tickets, exact local
+  product definitions and atomic/idempotent Product mutations.
+- Stage start authorizes Heart plus selected items in one save. Failure UI adds
+  Ticket before the existing real-ad and Coin offers.
+
+### Validation / Learning
+
+- Builder passed twice; EditMode passed `408/408`; post-Builder PlayMode passed
+  `218/218`. The actual Editor save stayed byte-, timestamp- and hash-exact.
+- A normal Editor-side Test Runner bridge was required because the installed
+  Unity license did not provide the headless entitlement. Temporary validation
+  files and generated test scenes were removed before commit.
+
+### Deferred / Human Review
+
+- Store connection, receipt/server validation, purchase confirmation, Shop UI,
+  Firebase integration and final original Heart/Ticket visuals.

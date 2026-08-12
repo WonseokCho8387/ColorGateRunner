@@ -1138,3 +1138,20 @@ Status: Approved and implemented.
 - Supplied Lobby/Shop/Journey/Collection screenshots define hierarchy only.
   Color Gate Runner will use original neon sci-fi art and will not copy third-
   party characters, icons, branding or a pixel-exact layout.
+
+## Iteration 21 — Local commerce rewards and Hearts
+
+- Save schema 3 owns a 5-Heart cap, 30-minute recharge anchor, rollback-safe
+  observed UTC, timed unlimited expiry, Continue Ticket inventory and local
+  Starter-granted state. Schema 2 migrates with full Hearts and no wallet or
+  progression loss.
+- A normal Stage start consumes one Heart atomically with selected start items.
+  Retry/replay is a new start; authorization or save failure never begins the
+  attempt or publishes a partial spend.
+- Six Coin products and five approved bundles use stable local IDs and are all
+  consumables. Reward grants use order IDs in the transaction ledger; Starter
+  is locally account-limited. Store receipt authority is not claimed here.
+- Failure priority is Continue Ticket, available real rewarded ad, then Coin.
+  Tickets do not bypass Core's shared three-Continue attempt cap.
+- Unity IAP initialization, receipt verification, Store confirmation, Shop UI
+  and Firebase remain separate iterations.

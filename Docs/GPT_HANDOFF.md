@@ -1,6 +1,22 @@
 # Color Gate Runner — GPT Handoff
 
-## Iteration 20 current update
+## Iteration 21 completed update
+
+- Local implementation now contains schema-3 Hearts, timed unlimited Hearts,
+  Continue Tickets, exact approved commerce products and idempotent reward
+  grants. Stage start authorizes Heart plus selected items atomically.
+- Failure hierarchy is Ticket -> available rewarded ad -> Coin. Actual Unity
+  IAP store initialization, receipt validation, Shop/Lobby redesign and
+  Firebase Functions/App Check are still not implemented.
+- Campaign Builder passed twice, full EditMode passed `408/408`, and full
+  post-Builder PlayMode passed `218/218`. The actual Editor Product save stayed
+  byte-, timestamp- and hash-exact at schema 2 revision 29; schema-3 migration
+  was validated only with isolated saves.
+- Campaign and Step 10 hashes remain the previously approved values because
+  gameplay Core, Stage data and deterministic simulation inputs did not
+  change. Iteration 21 is the current authoritative implementation baseline.
+
+## Iteration 20 prior update (historical snapshot)
 
 - Current completion base is `13afabb`; the new completion commit is named
   `chore: establish monetization platform baseline`.
@@ -27,8 +43,8 @@
 - Final validation: EditMode `400/400`, PlayMode `215/215`; Campaign and Step
   10 hashes remain unchanged because gameplay and simulation inputs did not
   change.
-- Next safest iteration: define the missing Heart/timed/Continue reward models,
-  stable product IDs and purchase-grant transaction before building the Shop.
+- This section records the prior Iteration 20 state; Iteration 21 above
+  supersedes its missing-model statements.
 
 이 문서에 적힌 커밋, 완료 기능, 남은 작업은 인수인계 시점의 요약이다.
 저장소의 CURRENT_STATUS.md와 충돌하면 CURRENT_STATUS.md를 우선한다.

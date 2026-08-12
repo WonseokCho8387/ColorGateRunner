@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `13afabb`
-- Base commit: `feat: add continue economy policy`
+- Implementation base HEAD: `d74f584`
+- Base commit: `chore: establish monetization platform baseline`
 - Authoritative completion HEAD: the commit named
-  `chore: establish monetization platform baseline`; its exact hash is
-  recorded in the Iteration 20 final report because a commit cannot contain
+  `feat: add local commerce rewards and hearts`; its exact hash is
+  recorded in the Iteration 21 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,8 +20,8 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 20 — Monetization Platform
-  Baseline**.
+- Current completed iteration: **Iteration 21 — Local Commerce Rewards and
+  Hearts**.
 - Unity IAP `5.4.2` and its Unity Services Core `1.18.0` dependency are
   installed. Android billing mode is Google Play and the Android application
   ID is `com.wscho.colorgaterunner`.
@@ -54,8 +54,9 @@ iterations but do not override this section.
 - Gameplay Pause freezes attempt time, movement, input, judgment, recycling,
   mechanic timing, camera feedback, and registered attempt VFX. Resume,
   existing Retry, Settings, and confirmed Frontend Lobby return are available.
-- Product save schema 2 owns Profile, Settings, stable-ID Campaign records,
-  Economy inventory, transaction IDs, and Lobby milestone presentation.
+- Product save schema 3 owns Profile, Settings, stable-ID Campaign records,
+  Economy inventory, Hearts, timed unlimited Hearts, Continue Tickets,
+  transaction IDs, Starter entitlement and Lobby milestone presentation.
 - On the first production launch after upgrade, legacy device-wide Campaign
   PlayerPrefs are imported once. Legacy keys remain for rollback safety, but
   Product save becomes the runtime write authority.
@@ -91,12 +92,20 @@ iterations but do not override this section.
   stale callbacks keep the failure state frozen. Retry creates a fresh policy.
   The current release provider is unavailable, so no ad action is displayed
   or simulated as successful.
+- A normal Stage start consumes one Heart atomically with selected start items.
+  Hearts cap at 5 and recover one every 30 minutes, including offline;
+  backwards clock movement cannot accelerate recovery. Unlimited Hearts
+  suppress consumption until UTC expiry and purchased durations stack.
+- The local catalog owns six Coin packs and five bundles. Grants are atomic
+  and order-ID idempotent; Starter is locally account-limited. Continue
+  Tickets are offered before real ads and Coins and still count toward the
+  three-Continue cap. Store, receipt, Shop and Firebase work remains deferred.
 
 ### Automated validation
 
-- EditMode: `400/400`
-- PlayMode: `215/215`
-- Post-Builder PlayMode: `215/215`
+- EditMode: `408/408`
+- PlayMode: `218/218`
+- Post-Builder PlayMode: `218/218`
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -183,6 +192,19 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 21 validation result
+
+- Campaign Builder completed two consecutive passes and regenerated the
+  Ticket-first failure UI with all required references.
+- Full EditMode passed `408/408`; full post-Builder PlayMode passed `218/218`.
+- The actual Editor Product save remained byte-, timestamp- and hash-exact at
+  schema 2 revision 29 with SHA-256
+  `9850956C9219B35ABD6DC5049BE59FA48309A3A17CF72B7CA158986EDA85153E`.
+  Schema-3 migration was validated only with isolated saves.
+- Campaign and Step 10 simulations were not rerun because Core gameplay,
+  Stage data, generation, timing and deterministic inputs are unchanged; the
+  previously approved hashes remain authoritative.
 
 Version
 

@@ -1980,3 +1980,17 @@ Any mismatch blocks implementation.
   Coins, 3 Shields, 3 Boosters; SHA-256
   `9850956C9219B35ABD6DC5049BE59FA48309A3A17CF72B7CA158986EDA85153E`.
   Its last-write time was earlier than the two final validation processes.
+
+## Iteration 21 — Local Commerce Rewards and Hearts
+
+- Campaign Builder completed two consecutive passes with the generated
+  Ticket-first failure action and required-reference validation.
+- Full EditMode passed `408/408`; full post-Builder PlayMode passed `218/218`.
+- New coverage includes schema migration, exact catalog rewards, atomic
+  Heart/item start, recharge/rollback and unlimited policy, idempotent commerce
+  grants, Ticket spending, empty-Heart UX and frozen Ticket-failure UX.
+- Actual Editor Product save remained schema 2 revision 29 with identical
+  length, timestamp and SHA-256
+  `9850956C9219B35ABD6DC5049BE59FA48309A3A17CF72B7CA158986EDA85153E`.
+- Campaign and Step 10 simulations were omitted because Core gameplay, Stage
+  data, timing, generation and deterministic inputs did not change.

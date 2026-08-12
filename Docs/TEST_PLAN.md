@@ -344,6 +344,23 @@ fairness, or polish.
 - Repeated Builder runs and navigation do not create duplicate roots,
   listeners, labels, routers, overlays, AppRoots, or pooled objects.
 
+### Iteration 21 local commerce rewards and Hearts
+
+- Schema 2 migrates to schema 3 with 5 Hearts while preserving identity,
+  Campaign progress, Coins and owned start items.
+- Stage start atomically authorizes one Heart plus selected items; empty
+  Hearts or save failure keeps PreRun open and publishes no partial spend.
+- Hearts recover one per 30 minutes to a cap of 5, tolerate offline elapsed
+  time and do not gain from backwards clock movement. Unlimited duration
+  stacks and suppresses consumption before expiry.
+- Approved commerce grants are order-ID idempotent, Starter is account-limited
+  and unknown products never mutate state.
+- Continue Ticket is offered before available rewarded ad and Coin. Spend
+  failure keeps the failure snapshot frozen; success counts toward the shared
+  maximum of three Continues.
+- Campaign Builder runs twice after the new failure action is generated, then
+  the full post-Builder PlayMode suite runs.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

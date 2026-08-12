@@ -381,6 +381,33 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void SchemaTwo_MigratesToFullHeartsWithoutChangingWallet()
+        {
+            LocalSaveData data = CreateValidData();
+            data.SchemaVersion = 2;
+            data.Economy.Coins = 2600;
+            data.Economy.ShieldCount = 4;
+            data.Economy.BoosterCount = 4;
+            File.WriteAllText(
+                _paths.Primary,
+                new UnityJsonSaveDocumentSerializer().Serialize(data));
+
+            LocalSaveLoadResult load = CreateSave(
+                new MutableClock(_firstUtc)).Load();
+
+            Assert.That(load.Succeeded, Is.True);
+            Assert.That(load.Dirty, Is.True);
+            Assert.That(load.Data.SchemaVersion, Is.EqualTo(3));
+            Assert.That(load.Data.Economy.Coins, Is.EqualTo(2600));
+            Assert.That(load.Data.Economy.ShieldCount, Is.EqualTo(4));
+            Assert.That(load.Data.Economy.BoosterCount, Is.EqualTo(4));
+            Assert.That(load.Data.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts));
+            Assert.That(load.Data.Economy.ContinueTicketCount, Is.Zero);
+            Assert.That(load.Data.Economy.StarterBundlePurchased, Is.False);
+        }
+
+        [Test]
         public void InvalidSettingsReset_DoesNotResetAccountChoice()
         {
             LocalSaveData data = CreateValidData();
@@ -990,13 +1017,193 @@ namespace ColorGateRunner.Tests.EditMode
                 account);
         }
 
+        [Test]
+        public void CommerceCatalog_ContainsApprovedConsumableRewards()
+        {
+            Assert.That(CommerceProductCatalog.All.Count, Is.EqualTo(11));
+            foreach (CommerceProductDefinition product in CommerceProductCatalog.All)
+            {
+                Assert.That(product.ProductType,
+                    Is.EqualTo(CommerceProductType.Consumable));
+            }
+            Assert.That(CommerceProductCatalog.TryGet(
+                "coins_100000", out CommerceProductDefinition coins), Is.True);
+            Assert.That(coins.Reward.Coins, Is.EqualTo(100000));
+            Assert.That(CommerceProductCatalog.TryGet(
+                "bundle_starter", out CommerceProductDefinition starter), Is.True);
+            Assert.That(starter.AccountLimited, Is.True);
+            Assert.That(starter.Reward.Shields, Is.EqualTo(1));
+            Assert.That(starter.Reward.Boosters, Is.EqualTo(1));
+            Assert.That(starter.Reward.ContinueTickets, Is.EqualTo(1));
+            Assert.That(starter.Reward.UnlimitedHeartsDuration,
+                Is.EqualTo(TimeSpan.FromMinutes(30)));
+            Assert.That(CommerceProductCatalog.TryGet(
+                "bundle_xlarge", out CommerceProductDefinition xlarge), Is.True);
+            Assert.That(xlarge.Reward.Coins, Is.EqualTo(10000));
+            Assert.That(xlarge.Reward.Shields, Is.EqualTo(13));
+            Assert.That(xlarge.Reward.Boosters, Is.EqualTo(13));
+            Assert.That(xlarge.Reward.ContinueTickets, Is.EqualTo(3));
+            Assert.That(xlarge.Reward.UnlimitedHeartsDuration,
+                Is.EqualTo(TimeSpan.FromHours(12)));
+        }
+
+        [Test]
+        public void StageStart_ConsumesHeartAndRechargesOfflineWithoutRollbackGain()
+        {
+            LocalSaveData data = CreateValidData();
+            var save = new MutableSessionSaveService(data);
+            var clock = new MutableClock(_firstUtc);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save, clock);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult start =
+                pipeline.Session.AuthorizeStageStart(false, false);
+            Assert.That(start.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(4));
+
+            clock.UtcNowValue = _firstUtc.AddMinutes(61);
+            Assert.That(pipeline.Session.RefreshHeartState().Succeeded, Is.True);
+            HeartStateSnapshot recovered = pipeline.Session.GetHeartState();
+            Assert.That(recovered.Count, Is.EqualTo(5));
+
+            clock.UtcNowValue = _firstUtc.AddMinutes(1);
+            ProductMutationResult noRollbackGain =
+                pipeline.Session.RefreshHeartState();
+            HeartStateSnapshot rollback = pipeline.Session.GetHeartState();
+            Assert.That(noRollbackGain.Succeeded, Is.True);
+            Assert.That(noRollbackGain.Changed, Is.False);
+            Assert.That(rollback.Count, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void StageStart_HeartItemAndSaveAreAtomic()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.HeartCount = 1;
+            data.Economy.ShieldCount = 1;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            int savesBefore = save.SaveCount;
+            save.FailWrites = true;
+
+            ProductMutationResult failed =
+                pipeline.Session.AuthorizeStageStart(true, false);
+
+            Assert.That(failed.Succeeded, Is.False);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 1));
+            Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
+            Assert.That(save.Stored.Economy.ShieldCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void StageStart_RejectsEmptyHeartsWithoutSaving()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.HeartCount = 0;
+            data.Economy.HeartRechargeAnchorUtc =
+                LocalSaveService.ToUtcString(_firstUtc);
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.AuthorizeStageStart(false, false);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.InsufficientHearts));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+        }
+
+        [Test]
+        public void CommerceGrant_IsIdempotentAndStarterIsAccountLimited()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            var clock = new MutableClock(_firstUtc);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save, clock);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult granted = pipeline.Session.GrantCommerceProduct(
+                "order-1", "bundle_starter");
+            ProductMutationResult replay = pipeline.Session.GrantCommerceProduct(
+                "order-1", "bundle_starter");
+            ProductMutationResult second = pipeline.Session.GrantCommerceProduct(
+                "order-2", "bundle_starter");
+
+            Assert.That(granted.Succeeded, Is.True);
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(replay.Changed, Is.False);
+            Assert.That(second.Succeeded, Is.False);
+            Assert.That(second.Error.Code, Is.EqualTo(ProductErrorCode.AlreadyOwned));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Economy.ContinueTicketCount,
+                Is.EqualTo(1));
+            Assert.That(pipeline.Session.GetHeartState().Unlimited, Is.True);
+        }
+
+        [Test]
+        public void UnlimitedHearts_StacksAndDoesNotConsumeStoredHeart()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            var clock = new MutableClock(_firstUtc);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save, clock);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(pipeline.Session.GrantCommerceProduct(
+                "small-1", "bundle_small").Succeeded, Is.True);
+            clock.UtcNowValue = _firstUtc.AddMinutes(30);
+            Assert.That(pipeline.Session.GrantCommerceProduct(
+                "medium-1", "bundle_medium").Succeeded, Is.True);
+
+            DateTime expected = _firstUtc.AddHours(4);
+            Assert.That(pipeline.Session.GetHeartState().UnlimitedUntilUtc,
+                Is.EqualTo(expected));
+            Assert.That(pipeline.Session.AuthorizeStageStart(false, false).Succeeded,
+                Is.True);
+            Assert.That(pipeline.Progression.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts));
+        }
+
+        [Test]
+        public void ContinueTicketSpend_IsPersistentAndIdempotent()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.ContinueTicketCount = 1;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult first =
+                pipeline.Session.SpendContinueTicket("ticket-use-1");
+            ProductMutationResult replay =
+                pipeline.Session.SpendContinueTicket("ticket-use-1");
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(replay.Changed, Is.False);
+            Assert.That(pipeline.Progression.Economy.ContinueTicketCount,
+                Is.EqualTo(0));
+            Assert.That(save.Stored.Economy.ContinueTicketCount, Is.EqualTo(0));
+        }
+
         private AppInitializationPipeline CreateSessionPipeline(
             ILocalSaveService save)
+        {
+            return CreateSessionPipeline(save, new MutableClock(_firstUtc));
+        }
+
+        private AppInitializationPipeline CreateSessionPipeline(
+            ILocalSaveService save,
+            MutableClock clock)
         {
             return new AppInitializationPipeline(
                 save,
                 new ProfileService(
-                    new MutableClock(_firstUtc),
+                    clock,
                     new CountingIdGenerator("unused")),
                 new SettingsService(),
                 new LocalAccountService());

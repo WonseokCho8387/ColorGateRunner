@@ -607,3 +607,27 @@ because no deterministic input changed.
 
 Define the missing reward models and stable product IDs, then build a pure
 purchase grant boundary before exposing a real Shop action.
+
+## Iteration 21 loop learning — close reward semantics before Store UI
+
+### Play / Analyze
+
+Approved bundles could not be represented truthfully while Hearts, unlimited
+time and Continue inventory were absent from the save.
+
+### Decide
+
+Close the local loop first: stable product definitions, atomic order grants,
+Heart start authorization and Ticket-first Continue selection. Keep Store and
+Shop actions hidden until external purchase authority exists.
+
+### Validate
+
+Builder twice, EditMode `408/408`, PlayMode `218/218`, and an exact real-save
+comparison established the local reward baseline without changing gameplay
+simulation inputs.
+
+### Next loop
+
+Connect Unity IAP pending orders to receipt/server validation and this grant
+boundary, then confirm Store orders only after the durable grant succeeds.

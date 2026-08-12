@@ -47,7 +47,8 @@ namespace ColorGateRunner.Product
                 _profileService,
                 _settingsService,
                 _accountService,
-                _progressionService);
+                _progressionService,
+                profileService.Clock);
         }
 
         public int AttemptCount { get; private set; }

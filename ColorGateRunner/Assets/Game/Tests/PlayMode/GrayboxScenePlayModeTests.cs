@@ -147,6 +147,25 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void EmptyHearts_BlockStageStartAndShowTruthfulError()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(0, 0, 0);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.PreRunStatusText.gameObject.activeSelf,
+                Is.True);
+            Assert.That(_controller.PreRunStatusText.text,
+                Is.EqualTo("NOT ENOUGH HEARTS"));
+        }
+
+        [Test]
         public void StartItemSaveFailure_BlocksCountdownAndShowsError()
         {
             _store.HighestUnlocked = 8;
@@ -169,7 +188,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.PreRunStatusText.gameObject.activeSelf,
                 Is.True);
             Assert.That(_controller.PreRunStatusText.text,
-                Is.EqualTo("ITEM SAVE FAILED"));
+                Is.EqualTo("START SAVE FAILED"));
         }
 
         [Test]
@@ -948,6 +967,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ClearPanel.name, Is.EqualTo("StageClearPanel"));
             Assert.That(_controller.FailPanel.name, Is.EqualTo("StageFailedPanel"));
             Assert.That(CountNamed("ClearContinueButton"), Is.EqualTo(1));
+            Assert.That(CountNamed("TicketContinueButton"), Is.EqualTo(1));
             Assert.That(CountNamed("CoinContinueButton"), Is.EqualTo(1));
             Assert.That(CountNamed("RewardedContinueButton"), Is.EqualTo(1));
         }
@@ -1030,6 +1050,57 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void ContinueTicket_IsOfferedFirstAndSpentWithoutCoinOrAd()
+        {
+            var economy = new ContinueEconomyTestGateway(
+                coinBalance: 2000,
+                continueTicketCount: 1);
+            var ads = new RewardedAdTestService();
+            _controller.SetContinueServicesForTests(economy, ads);
+            StartPlaying(false, false);
+            Fail();
+            _controller.Tick(1.1f);
+
+            Assert.That(_controller.TicketContinueButton.gameObject.activeSelf,
+                Is.True);
+            Assert.That(_controller.TicketContinueButton.GetComponentInChildren<Text>().text,
+                Is.EqualTo("CONTINUE TICKET x1"));
+            _controller.RequestTicketContinue();
+
+            Assert.That(economy.TicketSpendCount, Is.EqualTo(1));
+            Assert.That(economy.ContinueTicketCount, Is.Zero);
+            Assert.That(economy.TotalSpent, Is.Zero);
+            Assert.That(ads.ShowCount, Is.Zero);
+            Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ContinueTicketSaveFailure_KeepsFailureFrozen()
+        {
+            var economy = new ContinueEconomyTestGateway(
+                continueTicketCount: 1)
+            {
+                FailureCode = ProductErrorCode.SaveWrite
+            };
+            _controller.SetContinueServicesForTests(
+                economy,
+                new RewardedAdTestService());
+            StartPlaying(false, false);
+            Fail();
+            Vector3 position = _controller.PlayerTransform.position;
+
+            _controller.RequestTicketContinue();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+            Assert.That(economy.ContinueTicketCount, Is.EqualTo(1));
+            Assert.That(_controller.PlayerTransform.position, Is.EqualTo(position));
+            Assert.That(_controller.FailContinueStatusText.text,
+                Is.EqualTo("CONTINUE SAVE FAILED"));
+        }
+
+        [Test]
         public void ContinueSources_CoinAdCoinUseThreeTotalAndEscalateCoins()
         {
             var economy = new ContinueEconomyTestGateway(2000);
@@ -1049,6 +1120,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(economy.TotalSpent, Is.EqualTo(900));
             Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(3));
             Assert.That(_controller.CoinContinueButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.TicketContinueButton.gameObject.activeSelf,
                 Is.False);
             Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
                 Is.False);

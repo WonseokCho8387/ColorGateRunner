@@ -430,3 +430,15 @@ legibility.
 - All future generated art must use Color Gate Runner's neon sci-fi identity,
   original characters/symbols and the portrait Safe Area. Reference branding
   and copyrighted character likenesses must not enter project assets.
+
+## Iteration 21 Heart and Continue Ticket presentation
+
+- Heart status belongs in the persistent top resource chrome when the Lobby
+  redesign is implemented. It must distinguish `5/5`, recharge countdown and
+  timed unlimited state without relying on color alone.
+- Failure Result orders eligible Continue actions as owned Ticket, real ad,
+  then Coin. The Ticket action shows the owned count and never masquerades as
+  a free or paid offer.
+- This iteration adds the functional graybox Ticket action only. Final Heart,
+  Ticket, Shop-card art and animation remain part of the original neon sci-fi
+  visual pass and must not copy the supplied reference assets.
