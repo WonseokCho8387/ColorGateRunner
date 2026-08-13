@@ -74,9 +74,7 @@ namespace ColorGateRunner.Presentation
 
     public sealed class AttemptContinuePolicy
     {
-        public const int MaximumContinuesPerAttempt = 3;
-
-        private static readonly int[] CoinPrices = { 300, 600, 900 };
+        private static readonly int[] CoinPrices = { 900, 1900, 2900, 4900 };
         private int _coinContinueCount;
         private bool _rewardedAdUsed;
 
@@ -87,8 +85,7 @@ namespace ColorGateRunner.Presentation
 
         public bool HasCapacity(int coreContinueCount)
         {
-            return coreContinueCount >= 0 &&
-                coreContinueCount < MaximumContinuesPerAttempt;
+            return coreContinueCount >= 0;
         }
 
         public AttemptContinuePolicyResult GetCoinOffer(

@@ -17,6 +17,10 @@ namespace ColorGateRunner.Tests.PlayMode
         public bool IsAvailable => true;
         public int CoinBalance { get; private set; }
         public int ContinueTicketCount { get; private set; }
+        public HeartStateSnapshot Hearts => new HeartStateSnapshot(
+            HeartStatePolicy.MaximumHearts,
+            false,
+            default);
         internal int SpendCount { get; private set; }
         internal int TicketSpendCount { get; private set; }
         internal int TotalSpent { get; private set; }

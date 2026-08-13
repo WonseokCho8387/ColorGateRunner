@@ -464,6 +464,7 @@ Required information:
 - Failed Gate color.
 - Player color.
 - Mechanic context when useful.
+- Current Coin and Heart status.
 - Continue availability.
 - Retry.
 - Campaign.
@@ -475,16 +476,22 @@ Rules:
 - Flicker may show the collision-time Gate color.
 - Hidden remains an ordinary mismatch result with Hidden context.
 - Continue offers the next Coin price by successful Coin-Continue ordinal:
-  `300`, `600`, then `900` Coins.
+  `900`, `1900`, `2900`, then `4900` Coins for every later Coin Continue.
 - One successful rewarded-ad Continue is available per attempt when a real
   provider reports availability. Taking a Coin Continue first preserves that
-  rewarded-ad opportunity.
-- An attempt permits at most three total Continues across both sources. Retry
-  creates a fresh attempt and resets the Coin ordinal and rewarded-ad right.
+  rewarded-ad opportunity. Ticket and rewarded-ad Continues do not advance
+  the Coin-price ordinal.
+- Continue has no total count cap. Owned Tickets, the one rewarded-ad right,
+  and available Coins are the only source-specific limits. Retry creates a
+  fresh attempt and resets the Coin ordinal and rewarded-ad right.
 - While payment or an ad request is pending, the Failure Result remains frozen
   and cannot submit another Continue. Failed, cancelled, unavailable, or stale
   requests resume the same Failure Result without consuming a Continue.
 - Release builds hide the rewarded-ad action when no provider is configured.
+  The current build has no provider, so the action is intentionally hidden.
+- Insufficient Coins open a truthful local notice. Because Shop navigation is
+  not implemented, the notice must not present a working Shop action or imply
+  that a purchase occurred.
 
 # 10. Clear Result
 
@@ -495,19 +502,27 @@ Required information:
 - Best time.
 - No-item best when relevant.
 - Selected or provided items.
-- Rewards only when an economy exists.
+- Base clear reward and milestone reward as separate entries when earned.
 - Newly unlocked Stage.
 - New mechanic or content unlock.
 - Next Stage.
-- Retry.
 - Campaign.
 - Home.
 
 Rules:
 
 - Clear is recorded once.
+- A finite Heart consumed by this successful attempt is refunded atomically
+  with the Clear mutation. Unlimited-Heart attempts have nothing to refund;
+  failure, Retry, and leaving Gameplay do not refund the failed attempt.
+- First Clear grants the difficulty base reward once: `100` Coins for Normal,
+  `200` for Hard, and `500` for Very Hard. Even-Stage milestone rewards remain
+  separate from the base reward and are also first-Clear only.
 - Continue clears keep current Best restrictions.
-- `Next Stage` resolves through stable Stage IDs.
+- Campaign Clear hides Replay. Experiment Lab may retain its diagnostic Replay.
+- `Next Stage` resolves through stable Stage IDs and opens the unlocked next
+  Stage's PreRun directly. The final Stage, or an unavailable/unpersisted next
+  Stage, falls back to Lobby instead of starting an invalid destination.
 - Empty reward or rating sections remain hidden.
 
 # 11. Account Page
@@ -763,7 +778,10 @@ Implementation status: Completed in Iteration 10.
   stock, save failure, and missing-Product behavior follow the item rules
   above. Coin purchase, Continue economy, Shop, ads, and IAP remain deferred.
 
-## Implemented UX slice — Iteration 19 Continue economy
+## Implemented UX slice — Iteration 19 Continue economy (historical)
+
+The original prices and three-Continue cap below are superseded by Iteration
+23. This section is retained as implementation history.
 
 - Failure Result exposes Coin Continue at `300`, `600`, and `900` Coins by
   successful Coin-Continue ordinal, with a maximum of three total Continues
@@ -905,3 +923,22 @@ not reusable art assets or an exact visual copy.
 - Lobby and Shop composition from the Iteration 20 reference remains deferred;
   this iteration changes only the failure-offer hierarchy needed by the newly
   modeled Continue Ticket reward.
+
+## Implemented UX slice — Iteration 23 result-loop closure
+
+- Failure Result keeps Coin and Heart status visible and uses the uncapped
+  `900 / 1900 / 2900 / 4900+` Coin Continue schedule. Ticket and the single
+  rewarded-ad right remain independent sources; the absent ad provider keeps
+  the ad action hidden.
+- Insufficient Coins show a truthful local notice. Shop navigation remains
+  unavailable and is never presented as a successful or working action.
+- Before the first Continue-countdown frame, retained gate modifier visuals
+  and safe colors match resumed gameplay, while consumed Shield, Booster,
+  Echo, local grants, and their presentation are already inactive.
+- Clear refunds the finite Heart spent by that successful attempt. It presents
+  the difficulty base reward separately from any even-Stage milestone reward.
+- Campaign Clear hides Replay. `Next Stage` opens the unlocked next Stage's
+  PreRun directly; final-Stage and invalid/unpersisted destinations return to
+  Lobby.
+- Final Lobby composition, Fog curtain redesign, and authored Ice approach are
+  deferred to their dedicated visual/gameplay iterations.

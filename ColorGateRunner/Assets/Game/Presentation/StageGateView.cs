@@ -58,6 +58,10 @@ namespace ColorGateRunner.Presentation
             _hiddenVisibility.HideStartCount;
         internal long FlickerPhaseIndex => _flickerPhaseIndex;
         internal float FlickerTransitionPulse => _flickerTransitionPulse;
+        internal Material DisplayMaterial =>
+            gateRenderers != null && gateRenderers.Length > 0
+                ? gateRenderers[0].sharedMaterial
+                : null;
 
         private void Awake()
         {

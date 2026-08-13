@@ -69,13 +69,10 @@ namespace ColorGateRunner.Core
             }
         }
         public StartItemSelection Items => _items;
-        public const int MaximumContinuesPerAttempt = 3;
-
         public int ContinueUseCount { get; private set; }
         public bool ContinueUsed => ContinueUseCount > 0;
         public bool ContinueAvailable =>
-            FlowState == StageFlowState.Failed &&
-            ContinueUseCount < MaximumContinuesPerAttempt;
+            FlowState == StageFlowState.Failed;
         public bool ContinueProtectionActive =>
             _continueProtectionRemaining > 0f;
         public int SafeGateCountRemaining => _safeGateCountRemaining;

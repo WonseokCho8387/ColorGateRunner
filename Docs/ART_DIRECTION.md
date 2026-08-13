@@ -74,8 +74,10 @@ The five-entry picker remains hidden for development.
 
 - A visible neutral Goal appears after the final gate.
 - Clear and failure use separate full-screen panels.
-- Clear prioritizes STAGE CLEAR, time, items, and best time.
-- Failure prioritizes STAGE FAILED, progress, items, and Retry.
+- Clear prioritizes STAGE CLEAR, the difficulty base Coin reward, a separate
+  milestone reward when earned, time, items, and best time.
+- Failure prioritizes STAGE FAILED, progress, current Coin/Heart status,
+  eligible Continue actions, and Retry.
 - Clear waits 1.2 seconds and uses bright positive effects; failure waits 1.0
   second and uses a darker hierarchy. The character animation remains visible
   before either panel.
@@ -95,6 +97,10 @@ The five-entry picker remains hidden for development.
 - Continue keeps the exact failure scene visible and frozen behind the
   `3, 2, 1, GO` overlay. Camera position/rotation, tracks, and unaffected gate
   transforms remain at the failure location.
+- Retained modifier visuals and safe colors must already match the resumed
+  state on the first countdown frame. Consumed Shield, Booster, Echo, local
+  grants, and their HUD/world effects must already be absent; they do not
+  remain visible during countdown and disappear only at `GO`.
 - Only the failed gate's harmful judgment is retired. Continue must read as
   the same run resuming, never as a new scene or distant safe-section spawn.
 - The doubled movement scale does not add camera rotation, follow smoothing,
@@ -396,7 +402,10 @@ legibility.
   within the portrait Safe Area. This iteration adds no new item art, purchase
   affordance, shop surface, animation or gameplay HUD treatment.
 
-## Iteration 19 Continue economy presentation
+## Iteration 19 Continue economy presentation (historical)
+
+The three-Continue cap and original prices below are superseded by Iteration
+23. This section is retained as presentation history.
 
 - Failure Result replaces the ambiguous free `CONTINUE` button with a Coin
   action showing its current exact price and a separate `WATCH AD TO CONTINUE`
@@ -442,3 +451,24 @@ legibility.
 - This iteration adds the functional graybox Ticket action only. Final Heart,
   Ticket, Shop-card art and animation remain part of the original neon sci-fi
   visual pass and must not copy the supplied reference assets.
+
+## Iteration 23 result-loop presentation
+
+- Failure Result exposes a compact wallet row for current Coins and Hearts.
+  Eligible actions remain ordered Ticket, real rewarded ad, then Coin, with
+  the uncapped Coin schedule `900 / 1900 / 2900 / 4900+` clearly labeled.
+- The current build has no rewarded-ad provider, so the ad action is hidden.
+  Insufficient Coins open a truthful local modal; because Shop is not yet a
+  working destination, the modal provides no fake Shop or purchase action.
+- On Continue countdown, modifier visuals and safe colors are already in their
+  resumed state. Consumed Shield, Booster, Echo, local grants, and associated
+  HUD/world effects are already off from the first countdown frame.
+- Clear Result shows the difficulty base Coin reward and any milestone reward
+  as separate rows rather than one ambiguous total. Campaign hides Replay;
+  `Next Stage` is the primary action and enters the next unlocked PreRun
+  directly, with Lobby used for final-Stage or unavailable destinations.
+- Heart refund on Clear is represented by the refreshed Heart value rather
+  than an unapproved reward animation.
+- Final Lobby layout, the distance-based Fog curtain treatment, and authored
+  Ice floor approach/readability remain deferred. This slice does not claim
+  final visual polish for those surfaces.

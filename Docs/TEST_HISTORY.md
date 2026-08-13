@@ -2005,3 +2005,47 @@ Any mismatch blocks implementation.
 - Actual developer save remained schema 3 revision 30, Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, SHA-256
   `77AF3ED2CFBB13591E2119FD77F94C68A5BFC488CF4DB62C2FDCC52C8B443B50`.
+
+## Iteration 23 - Continue and Clear Economy Flow
+
+### Focused acceptance
+
+- Continue has no Attempt cap. Successful Coin uses follow
+  900/1,900/2,900/4,900-repeat; ad and Ticket resumes preserve the Coin
+  ordinal, and Retry resets it.
+- Continue countdown presents active modifiers from its first frame and never
+  re-shows consumed Attempt buffs.
+- Failure shows Coin and Heart balances. Insufficient Coins open a truthful
+  popup and leave the failed Attempt frozen without a spend.
+- Campaign clear hides Replay and opens the next Stage PreRun directly. The
+  final Stage retains Lobby only; Experiment Replay remains unchanged.
+- A normally consumed Heart refunds on clear exactly once. Free or unlimited
+  starts cannot create a refund, and save failure publishes no partial refund,
+  record, unlock or reward.
+- First-clear base rewards are Normal 100, Hard 200 and Very Hard 500 Coins.
+  Stages 11/14/17 are Hard and Stage 20 is Very Hard; Lobby milestones remain
+  separately additive.
+
+### Final automated evidence
+
+- Campaign Builder completed two consecutive passes with structural,
+  required-reference, unique-root, EventSystem and Build Settings validation.
+- Full EditMode: `418/418` passed.
+- Final post-Builder PlayMode: `222/222` passed.
+- Two full Campaign simulation runs were byte-identical. Approved hashes:
+  - Summary:
+    `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`
+  - JSON:
+    `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`
+  - CSV:
+    `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`
+- Step 10 definitions, inputs and approved artifacts remained unchanged.
+- Validation compared against base commit `7858803`.
+
+### Human review
+
+- Confirm on portrait Android and WebGL that failure balances, shortage,
+  repeated 4,900 pricing, Continue countdown continuity, clear reward breakdown
+  and direct next-Stage flow are understandable.
+- Automation verifies state and persistence contracts, not pricing fairness,
+  reward satisfaction or visual polish.

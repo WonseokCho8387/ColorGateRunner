@@ -114,7 +114,7 @@ namespace ColorGateRunner.Product
 
     public readonly struct HeartStateSnapshot
     {
-        internal HeartStateSnapshot(
+        public HeartStateSnapshot(
             int count,
             bool unlimited,
             DateTime unlimitedUntilUtc)
@@ -230,6 +230,20 @@ namespace ColorGateRunner.Product
             if (wasFull || string.IsNullOrWhiteSpace(economy.HeartRechargeAnchorUtc))
             {
                 economy.HeartRechargeAnchorUtc = LocalSaveService.ToUtcString(now);
+            }
+        }
+
+        internal static void RefundOne(LocalEconomyData economy, DateTime now)
+        {
+            Normalize(economy, now);
+            if (economy.HeartCount >= MaximumHearts)
+            {
+                return;
+            }
+            economy.HeartCount++;
+            if (economy.HeartCount >= MaximumHearts)
+            {
+                economy.HeartRechargeAnchorUtc = string.Empty;
             }
         }
 

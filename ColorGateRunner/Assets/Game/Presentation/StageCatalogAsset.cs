@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 7;
+        private const int CurrentCatalogRevision = 8;
 
         [Serializable]
         private sealed class StageEntry
@@ -19,6 +19,7 @@ namespace ColorGateRunner.Presentation
             [SerializeField] private int displayNumber;
             [SerializeField] private string title;
             [SerializeField, TextArea] private string description;
+            [SerializeField] private StageDifficulty difficulty;
             [SerializeField, Min(1)] private int targetGateCount;
             [SerializeField] private RunnerColor[] allowedColors;
             [SerializeField, Range(2, 3)]
@@ -159,7 +160,8 @@ namespace ColorGateRunner.Presentation
                         grantChargeCount,
                         true),
                     CreateHiddenSettings(),
-                    CreateFlickerSettings());
+                    CreateFlickerSettings(),
+                    difficulty);
             }
 
             public static StageEntry Create(
@@ -276,6 +278,12 @@ namespace ColorGateRunner.Presentation
             {
                 shieldAllowed = allowShield;
                 boosterAllowed = allowBooster;
+                return this;
+            }
+
+            public StageEntry WithDifficulty(StageDifficulty value)
+            {
+                difficulty = value;
                 return this;
             }
 
@@ -668,7 +676,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0f, 0f),
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
-                        new Keyframe(1f, 1f)),
+                        new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.Hard),
                 StageEntry.Create(
                     "stage-12", 12, "FOG INTRO",
                     "Learn to read the nearest gates through Fog.",
@@ -744,7 +753,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0f, 0f),
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
-                        new Keyframe(1f, 1f)),
+                        new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.Hard),
                 StageEntry.Create(
                     "stage-15", 15, "ICE INTRO",
                     "Learn Ice momentum with two colors.",
@@ -820,7 +830,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0f, 0f),
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
-                        new Keyframe(1f, 1f)),
+                        new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.Hard),
                 StageEntry.Create(
                     "stage-18", 18, "ECHO INTRO",
                     "Learn to acquire and spend Echo with two colors.",
@@ -900,6 +911,7 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
                         new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.VeryHard)
             };
         }
     }

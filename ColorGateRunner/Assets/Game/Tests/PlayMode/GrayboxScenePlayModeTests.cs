@@ -970,6 +970,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(CountNamed("TicketContinueButton"), Is.EqualTo(1));
             Assert.That(CountNamed("CoinContinueButton"), Is.EqualTo(1));
             Assert.That(CountNamed("RewardedContinueButton"), Is.EqualTo(1));
+            Assert.That(CountNamed("InsufficientCoinsPopup"), Is.EqualTo(1));
+            Assert.That(CountNamed("InsufficientCoinsCloseButton"), Is.EqualTo(1));
         }
 
         [Test]
@@ -1034,7 +1036,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void ContinueSources_AdThenCoinKeepsFirstCoinPrice()
         {
-            var economy = new ContinueEconomyTestGateway(2000);
+            var economy = new ContinueEconomyTestGateway(5000);
             var ads = new RewardedAdTestService();
             _controller.SetContinueServicesForTests(economy, ads);
             StartPlaying(false, false);
@@ -1045,7 +1047,7 @@ namespace ColorGateRunner.Tests.PlayMode
             FailAfterContinue();
             _controller.RequestCoinContinue();
 
-            Assert.That(economy.TotalSpent, Is.EqualTo(300));
+            Assert.That(economy.TotalSpent, Is.EqualTo(900));
             Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(2));
         }
 
@@ -1097,13 +1099,13 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(economy.ContinueTicketCount, Is.EqualTo(1));
             Assert.That(_controller.PlayerTransform.position, Is.EqualTo(position));
             Assert.That(_controller.FailContinueStatusText.text,
-                Is.EqualTo("CONTINUE SAVE FAILED"));
+                Does.Contain("CONTINUE SAVE FAILED"));
         }
 
         [Test]
-        public void ContinueSources_CoinAdCoinUseThreeTotalAndEscalateCoins()
+        public void ContinueSources_CoinAdCoinEscalateWithoutTotalCap()
         {
-            var economy = new ContinueEconomyTestGateway(2000);
+            var economy = new ContinueEconomyTestGateway(20000);
             var ads = new RewardedAdTestService();
             _controller.SetContinueServicesForTests(economy, ads);
             StartPlaying(false, false);
@@ -1117,14 +1119,17 @@ namespace ColorGateRunner.Tests.PlayMode
             FailAfterContinue();
             _controller.Tick(1.1f);
 
-            Assert.That(economy.TotalSpent, Is.EqualTo(900));
+            Assert.That(economy.TotalSpent, Is.EqualTo(2800));
             Assert.That(_controller.Session.ContinueUseCount, Is.EqualTo(3));
             Assert.That(_controller.CoinContinueButton.gameObject.activeSelf,
-                Is.False);
+                Is.True);
             Assert.That(_controller.TicketContinueButton.gameObject.activeSelf,
                 Is.False);
             Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
                 Is.False);
+            Assert.That(_controller.CoinContinueButton
+                .GetComponentInChildren<Text>().text,
+                Is.EqualTo("CONTINUE 2900 COINS"));
         }
 
         [TestCase(ProductErrorCode.InsufficientFunds, "NOT ENOUGH COINS")]
@@ -1151,7 +1156,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
             Assert.That(_controller.PlayerTransform.position, Is.EqualTo(position));
             Assert.That(_controller.FailContinueStatusText.text,
-                Is.EqualTo(expectedStatus));
+                Does.Contain(expectedStatus));
         }
 
         [Test]
@@ -1175,7 +1180,7 @@ namespace ColorGateRunner.Tests.PlayMode
             ads.Complete(RewardedAdResult.Failed);
             Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
             Assert.That(_controller.FailContinueStatusText.text,
-                Is.EqualTo("AD FAILED"));
+                Does.Contain("AD FAILED"));
 
             _controller.RequestRewardedContinue();
             ads.Complete(RewardedAdResult.Completed);
@@ -1237,6 +1242,39 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.RewardedContinueButton.gameObject.activeSelf,
                 Is.False);
             Assert.That(_controller.RetryButton.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.FailContinueStatusText.text,
+                Is.EqualTo("COINS --  HEARTS --"));
+        }
+
+        [Test]
+        public void InsufficientCoins_OpensTruthfulPopupAndKeepsFailureFrozen()
+        {
+            var economy = new ContinueEconomyTestGateway(100);
+            _controller.SetContinueServicesForTests(
+                economy,
+                new UnavailableRewardedAdService());
+            StartPlaying(false, false);
+            Fail();
+            Vector3 position = _controller.PlayerTransform.position;
+
+            _controller.Tick(1.1f);
+            Assert.That(_controller.CoinContinueButton.interactable, Is.True);
+            _controller.RequestCoinContinue();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(_controller.Session.ContinueUseCount, Is.Zero);
+            Assert.That(economy.TotalSpent, Is.Zero);
+            Assert.That(_controller.PlayerTransform.position,
+                Is.EqualTo(position));
+            Assert.That(_controller.InsufficientCoinsPopup.activeSelf, Is.True);
+            Assert.That(_controller.FailContinueStatusText.text,
+                Does.Contain("COINS 100"));
+            Assert.That(_controller.FailContinueStatusText.text,
+                Does.Contain("HEARTS 5/5"));
+
+            _controller.CloseInsufficientCoinsPopup();
+            Assert.That(_controller.InsufficientCoinsPopup.activeSelf, Is.False);
         }
 
         [Test]
@@ -1320,6 +1358,25 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.LobbyPanel.activeSelf, Is.True);
             Assert.That(_controller.SelectedStageNumber, Is.EqualTo(2));
             Assert.That(_controller.LobbyStageText.text, Does.Contain("STAGE 2"));
+        }
+
+        [Test]
+        public void CampaignClear_HidesReplayAndNextOpensPreRunDirectly()
+        {
+            ClearStage();
+            _controller.Tick(1.3f);
+
+            Assert.That(_controller.ReplayButton.gameObject.activeSelf, Is.False);
+            Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
+                Is.True);
+            _controller.OpenNextStagePreRun();
+
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(2));
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.ItemPanel.activeSelf, Is.True);
+            Assert.That(_controller.LobbyPanel.activeSelf, Is.False);
+            Assert.That(_controller.Goal.activeSelf, Is.False);
         }
 
         [Test]

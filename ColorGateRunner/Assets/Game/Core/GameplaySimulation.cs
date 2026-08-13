@@ -533,6 +533,10 @@ namespace ColorGateRunner.Core
                 result.MaximumContinueUseCountObserved = Math.Max(
                     result.MaximumContinueUseCountObserved,
                     continueUseCount);
+                // Every successful Continue resolves exactly one failed gate,
+                // so a finite stage can use at most TargetGateCount Continues.
+                // The histogram is sized from that stage-owned bound instead
+                // of a product Continue cap.
                 result.ContinueUseHistogram[continueUseCount]++;
                 if (items.Shield && session.ShieldActive)
                 {
@@ -666,8 +670,7 @@ namespace ColorGateRunner.Core
                 FailureByGate = new int[stage.TargetGateCount],
                 FailureByPattern = new int[
                     Enum.GetValues(typeof(GatePatternType)).Length],
-                ContinueUseHistogram = new int[
-                    StageSession.MaximumContinuesPerAttempt + 1],
+                ContinueUseHistogram = new int[stage.TargetGateCount + 1],
                 EstimatedNoItemDuration =
                     stage.TargetGateCount *
                     ((stage.CadenceStart + stage.CadenceEnd) * 0.5f)
@@ -930,7 +933,7 @@ namespace ColorGateRunner.Core
                 .AppendLine()
                 .AppendLine("Average profile without start items.")
                 .AppendLine()
-                .AppendLine("| Stage | First clear | With Continue | Continue lift | Avg uses | Max uses | Uses 0/1/2/3 | Continue success |")
+                .AppendLine("| Stage | First clear | With Continue | Continue lift | Avg uses | Max uses | Uses by count (0..gate count) | Continue success |")
                 .AppendLine("|---:|---:|---:|---:|---:|---:|---|---:|");
             for (int stage = 1; stage <= StageCatalog.Count; stage++)
             {

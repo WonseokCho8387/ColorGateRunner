@@ -589,7 +589,31 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.Countdown));
             Assert.That(save.Stored.Economy.ShieldCount, Is.EqualTo(1));
             Assert.That(save.Stored.Economy.BoosterCount, Is.Zero);
+            Assert.That(save.Stored.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts - 1));
             Assert.That(save.SaveCount, Is.EqualTo(savesBeforeStart + 1));
+        }
+
+        [UnityTest]
+        public IEnumerator LastHeart_ClearRefundsAndShowsFirstClearRewards()
+        {
+            var save = new StockedCampaignSaveService(heartCount: 1);
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            RequireController().LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+
+            ClearCurrentStage(campaign);
+            campaign.Tick(1.3f);
+
+            Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(300));
+            Assert.That(campaign.ClearDetailsText.text,
+                Does.Contain("CLEAR REWARD +100 COINS"));
+            Assert.That(campaign.ClearDetailsText.text,
+                Does.Contain("LOBBY REWARD +200 COINS"));
+            Assert.That(campaign.ReplayButton.gameObject.activeSelf, Is.False);
         }
 
         [UnityTest]
@@ -962,7 +986,8 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             private LocalSaveData _data;
 
-            internal StockedCampaignSaveService()
+            internal StockedCampaignSaveService(
+                int heartCount = HeartStatePolicy.MaximumHearts)
             {
                 _data = new ExistingGuestSaveService(true).Load().Data.Clone();
                 _data.CampaignProgress.LegacyMigrationCompleted = true;
@@ -981,6 +1006,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 }
                 _data.Economy.ShieldCount = 2;
                 _data.Economy.BoosterCount = 1;
+                _data.Economy.HeartCount = heartCount;
             }
 
             internal LocalSaveData Stored => _data;

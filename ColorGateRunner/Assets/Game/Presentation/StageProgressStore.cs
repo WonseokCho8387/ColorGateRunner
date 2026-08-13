@@ -23,7 +23,8 @@ namespace ColorGateRunner.Presentation
         ProductMutationResult SaveClearResult(
             int stageNumber,
             StageRecord record,
-            int highestUnlocked);
+            int highestUnlocked,
+            string heartRefundToken);
     }
 
     internal sealed class PlayerPrefsStageProgressStore : IStageProgressStore
@@ -140,7 +141,8 @@ namespace ColorGateRunner.Presentation
         public ProductMutationResult SaveClearResult(
             int stageNumber,
             StageRecord record,
-            int highestUnlocked)
+            int highestUnlocked,
+            string heartRefundToken)
         {
             StageDefinition stage = _catalog.GetByDisplayNumber(stageNumber);
             StageDefinition highest =
@@ -158,7 +160,21 @@ namespace ColorGateRunner.Presentation
                         BestNoItemTime = record.BestNoItemTime,
                         ClearCount = record.ClearCount,
                         ContinuedClearCount = record.ContinuedClearCount
-                    }));
+                    },
+                    MapDifficulty(stage.Difficulty),
+                    heartRefundToken));
+        }
+
+        private static StageRewardDifficulty MapDifficulty(
+            StageDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                StageDifficulty.Normal => StageRewardDifficulty.Normal,
+                StageDifficulty.Hard => StageRewardDifficulty.Hard,
+                StageDifficulty.VeryHard => StageRewardDifficulty.VeryHard,
+                _ => throw new ArgumentOutOfRangeException(nameof(difficulty))
+            };
         }
 
         public void ClearGameplayProgress()

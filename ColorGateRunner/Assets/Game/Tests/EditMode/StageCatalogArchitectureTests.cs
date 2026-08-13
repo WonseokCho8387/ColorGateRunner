@@ -56,6 +56,18 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 catalog.GetByDisplayNumber(18).EchoSettings.Enabled,
                 Is.True);
+            for (int number = 1; number <= 20; number++)
+            {
+                StageDifficulty expected = number == 20
+                    ? StageDifficulty.VeryHard
+                    : number == 11 || number == 14 || number == 17
+                        ? StageDifficulty.Hard
+                        : StageDifficulty.Normal;
+                Assert.That(
+                    catalog.GetByDisplayNumber(number).Difficulty,
+                    Is.EqualTo(expected),
+                    $"Stage {number} difficulty");
+            }
         }
 
         [Test]

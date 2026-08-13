@@ -260,7 +260,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Step9ACoreTests.cs`
 - `LobbyVisualTier_MapsProgression`
 - `TwoColorCycle_OrderAndNextColorAreStable`
 - `ThreeColorCycle_OrderAndNextColorAreStable`
-- `Continue_IsAvailableExactlyThreeTimesPerAttempt`
+- `Continue_HasNoAttemptCapAndRemainsBoundedByFiniteStage`
 - `Continue_CountChangesOnlyOnSuccessAndRetryResetsIt`
 - `Continue_DoesNotRestoreConsumedShieldOrBooster`
 - `Continue_GrantsSafeResumeSequenceAndProtection`
@@ -271,8 +271,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Step9ACoreTests.cs`
 - `SimulationProfiles_AreExplicitAndValid`
 - `PerfectSimulation_IsDeterministicAndCompletes`
 - `StochasticSimulation_ReplaysWithSameSeed`
-- `Simulation_ContinueUseMetricsAreDeterministicAndCapped`
+- `Simulation_ContinueUseMetricsAreDeterministicAndStageBounded`
 - `Simulation_DisabledContinueReportsZeroUseMetrics`
+- `SimulationReport_EmitsContinueUseMetricsInAllFormats`
 - `SimulationReport_ContainsRequiredMechanicalSections`
 
 #### `AttemptContinuePolicyTests.cs`
@@ -282,10 +283,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/AttemptContinuePolicyTests.c
 - `CoinPrices_AdvanceBySuccessfulCoinOrdinal`
 - `CoinFirst_PreservesRewardedAdRight`
 - `RewardedAdFirst_PreservesFirstCoinPrice`
-- `CoinAdCoin_UsesCoinOrdinalsAndCapRejectsWithoutMutation`
-- `MaximumContinueCount_MatchesCoreContract`
+- `CoinAdCoin_UsesOnlySuccessfulCoinOrdinals`
 - `RewardedAd_IsConsumedOnlyByOneCompletedResult`
-- `TotalCap_UsesCoreContinueCount`
+- `NonNegativeCoreContinueCount_HasNoTotalCap`
 - `Retry_UsesFreshAttemptPolicy`
 - `NonCompletedAdResult_DoesNotMutatePolicy`
 - `UnavailableAdService_IsTruthfulAndNeverSucceeds`
@@ -403,6 +403,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `SchemaOneLoad_UpgradesProgressionEconomyAndLobbyDefaults`
 - `LegacyCampaignImport_IsAtomicIdempotentAndBackfillsRewards`
 - `StageClear_FirstClearRewardsOnceAndAcknowledgesLobby`
+- `StageClearRewardPolicy_UsesDifficultyAndKeepsMilestoneSeparate`
 - `StageClear_SaveFailureDoesNotPublishPartialProgression`
 - `ConsumeStartItems_BothSelected_DecrementsAtomically`
 - `ConsumeStartItems_None_IsNoOpWithoutSave`
@@ -416,6 +417,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `SpendContinueCoins_SaveFailureCanRetrySameTransactionOnce`
 - `SpendContinueCoins_SameTransactionDifferentAmountIsReplay`
 - `SpendContinueCoins_ReloadKeepsTransactionIdempotent`
+- `StageStartReceipt_ClearRefundsConsumedHeartAndRewardsOnce`
+- `StageStartReceipt_UnlimitedOrFreeStartCannotCreateHeartRefund`
+- `StageClear_HeartRefundAndRewardsAreAtomicOnSaveFailure`
+- `StageClear_RejectsHeartRefundTokenWithoutStoredHeartSpend`
 
 #### `FrontendContextTests.cs`
 
@@ -555,8 +560,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `Continue_GrantsTemporaryProtection`
 - `SecondFailure_StillOffersContinueBelowCap`
 - `ContinueSources_AdThenCoinKeepsFirstCoinPrice`
-- `ContinueSources_CoinAdCoinUseThreeTotalAndEscalateCoins`
+- `ContinueSources_CoinAdCoinEscalateWithoutTotalCap`
 - `CoinContinueFailure_KeepsFailureFrozen`
+- `InsufficientCoins_OpensTruthfulPopupAndKeepsFailureFrozen`
 - `RewardedFailureAndStaleDuplicateCallbackAreOneShot`
 - `RewardedCallbackAfterRetryCannotResumeNewAttempt`
 - `ContinueRequestsBeforeFailureDoNotSpendOrShowAd`
@@ -567,6 +573,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `StageClear_PersistsRecordAndUnlock`
 - `ContinuedClear_UnlocksButDoesNotReplaceBestRecords`
 - `ClearContinue_ReturnsToUpdatedLobby`
+- `CampaignClear_HidesReplayAndNextOpensPreRunDirectly`
 - `LobbyPlay_UsesStableIdOfDisplayedProgressionStage`
 - `LobbyProgression_ChangesAtMilestones`
 - `ThirtyRepeatedFlows_LeaveNoDuplicateOrStaleVisuals`
@@ -655,6 +662,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/FrontendFlowPlayModeTests.cs
 - `FrontendPreRunBack_ReturnsDirectlyToFrontendLobby`
 - `FrontendPreRunBack_FailureStaysAndAllowsOneRetry`
 - `FrontendStageClear_ReturnsToLobbyAndShowsReward`
+- `LastHeart_ClearRefundsAndShowsFirstClearRewards`
 - `TogglePresentation_MatchesAfterSaveReloadAndInPause`
 - `CampaignStart_UsesProductInventoryAndPersistsSpend`
 - `FrontendReentry_DoesNotDuplicatePersistentOrSceneObjects`
@@ -710,6 +718,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9A1PlayModeTests.cs`
 - `BoosterExit_OriginalPatternResumesAfterShortOverride`
 - `Continue_FreezesTrackDuringCleanRespawn`
 - `Continue_CountdownUsesSameGateLayout`
+- `ContinueCountdown_AppliesCamouflageBeforeFirstFrame`
 - `Continue_UnaffectedGateTransformsRemainUnchanged`
 - `Continue_FailedGateCannotImmediatelyFailAgain`
 - `Continue_ResumesSameTimerProgressSpeedColorAndCursor`
@@ -817,6 +826,24 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `ProductFoundationTests.DevelopmentEconomyReset_PreservesCampaignProgress`
 - `DeveloperConsoleTests.WindowMenu_IsRegisteredOnApprovedPath`
 - `DeveloperConsoleTests.BuildSettings_KeepBootFrontendCampaignOrder`
+
+### Iteration 23 Continue and clear economy coverage
+
+- `AttemptContinuePolicyTests` covers uncapped Continue capacity, the
+  900/1,900/2,900/4,900-repeat Coin ordinal, mixed Coin/ad order and Retry
+  reset.
+- `Step9ACoreTests` covers repeated Core Continue and a finite, Stage-sized
+  simulation histogram instead of a product cap.
+- `StageCatalogArchitectureTests` verifies the approved Normal, Hard and Very
+  Hard assignments in the generated Catalog asset.
+- `ProductFoundationTests` covers difficulty rewards, one-use Heart refund
+  receipts, free/unlimited exclusions, invalid tokens and atomic save failure.
+- `GrayboxScenePlayModeTests` covers failure wallet/shortage presentation,
+  uncapped mixed sources and direct next-Stage PreRun without Campaign Replay.
+- `Step9A1PlayModeTests` covers modifier presentation from the first Continue
+  countdown frame while consumed Attempt buffs remain absent.
+- `FrontendFlowPlayModeTests` covers the last-Heart clear refund and visible
+  first-clear reward breakdown across the Frontend/Campaign boundary.
 
 ## References
 

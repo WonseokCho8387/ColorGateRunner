@@ -362,10 +362,11 @@ Rules:
 
 ## 7.1 Current scope
 
-Schema-2 Product Save owns Coins plus Shield and Booster inventory. Approved
-Stage and Lobby rewards grant them, Lobby displays them, and Stage 8+ may
-consume owned start items. Coin spending, prices, energy, ads, and purchases
-remain unavailable until their rules are separately approved.
+Schema-3 Product Save owns Coins, Shield and Booster inventory, Hearts, timed
+unlimited Hearts, Continue Tickets, and the idempotent transaction ledger.
+Approved Stage and Lobby rewards grant inventory, Stage 8+ may consume owned
+start items, and authorized failure Continue can spend Tickets or Coins.
+Runtime Store purchasing and a real rewarded-ad provider remain unavailable.
 
 ## 7.2 Economy service contract
 
@@ -429,10 +430,12 @@ LocalProductSession
 - SpendContinueCoins(transactionId, amount)
 ```
 
-- Coin prices are `300`, `600`, and `900` by successful Coin-Continue ordinal.
-- The maximum is three total Continues per attempt across Coin and rewarded-ad
-  sources. Core owns the authoritative Continue count; Product policy consumes
-  that count as input rather than creating a second gameplay counter.
+- Coin prices are `900`, `1,900`, `2,900`, and `4,900` by successful
+  Coin-Continue ordinal. The fourth and every later Coin Continue remain
+  `4,900`.
+- Continue count has no per-attempt cap. Core owns the authoritative Continue
+  count; Product policy consumes that count as input rather than creating a
+  second gameplay counter.
 - One completed rewarded ad is allowed per attempt. Coin-first preserves the
   ad right. Retry creates a fresh policy state.
 - Failed, cancelled, unavailable, or stale ad results do not mutate policy or
@@ -1009,3 +1012,34 @@ The local product foundation is complete when:
 - This model does not initialize Unity IAP, confirm purchases, validate
   receipts or contact Firebase. Those boundaries remain the next provider
   iteration after this local model.
+
+### Iteration 23 Continue and clear economy flow
+
+- The active Continue policy has no per-attempt cap. Successful Coin use costs
+  `900`, `1,900`, `2,900`, then `4,900` for the fourth and every later Coin
+  Continue. Ticket and rewarded-ad sources do not advance the Coin ordinal;
+  Retry resets it. Historical Iteration 19 prices and the three-use cap are
+  retained above only as history and are superseded by this contract.
+- The one completed rewarded-ad right per attempt remains, but the release
+  provider is absent and the action is truthfully hidden. Provider integration
+  remains deferred.
+- Stage difficulty is authored content. Stages 11, 14, and 17 are Hard, Stage
+  20 is VeryHard, and other current Stages are Normal. The first-clear base
+  reward policy grants `100 / 200 / 500` Coins respectively. Existing even-
+  Stage Lobby milestone rewards remain separate and idempotent.
+- Start authorization persists whether a stored Heart was actually consumed.
+  Only that receipt can request a clear refund; unlimited-Heart and free or
+  provided starts cannot synthesize one. Clear progress, first-clear reward,
+  milestone reward, and an eligible one-Heart refund are applied to one cloned
+  candidate and published by one successful save. Duplicate ingestion and
+  failed saves cannot double-grant or expose a partial result.
+- Result presentation receives separate base and milestone reward values from
+  Product policy. It does not duplicate reward amounts in presentation code.
+- Iteration 23 does not implement the timed Fog veil, preplaced/rebalanced Ice,
+  Lobby visual redesign, Shop, IAP runtime connection, or advertising SDK.
+- Validation: EditMode `418/418`, PlayMode `222/222`, Campaign Builder twice.
+  Campaign CSV/JSON/Summary SHA-256 are
+  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`,
+  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`,
+  and `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`.
+  Step 10 remains unchanged.

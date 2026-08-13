@@ -79,11 +79,13 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Continue_IsAvailableExactlyThreeTimesPerAttempt()
+        public void Continue_HasNoAttemptCapAndRemainsBoundedByFiniteStage()
         {
-            StageSession session = CreateFailedSession(default);
+            StageSession session = CreatePlaying(20, default);
+            FailCurrentGate(session);
+            const int requestedContinues = 6;
             for (int expectedCount = 1;
-                expectedCount <= StageSession.MaximumContinuesPerAttempt;
+                expectedCount <= requestedContinues;
                 expectedCount++)
             {
                 float elapsedAtFailure = session.ElapsedPlayingSeconds;
@@ -102,13 +104,15 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(session.SequenceCursor, Is.EqualTo(cursorAtFailure));
                 Assert.That(session.GatesPassed, Is.EqualTo(gatesAtFailure + 1));
                 session.CompleteCountdown();
-                FailAfterProtection(session);
+                if (expectedCount < requestedContinues)
+                {
+                    FailAfterProtection(session);
+                }
             }
 
-            Assert.That(session.ContinueAvailable, Is.False);
-            Assert.That(session.ContinueAfterFailure(), Is.False);
+            Assert.That(session.ContinueUseCount, Is.EqualTo(requestedContinues));
             Assert.That(session.ContinueUseCount,
-                Is.EqualTo(StageSession.MaximumContinuesPerAttempt));
+                Is.LessThanOrEqualTo(session.Stage.TargetGateCount));
         }
 
         [Test]
@@ -309,7 +313,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Simulation_ContinueUseMetricsAreDeterministicAndCapped()
+        public void Simulation_ContinueUseMetricsAreDeterministicAndStageBounded()
         {
             StageDefinition stage = StageCatalog.GetByDisplayNumber(3);
             GameplaySimulationSettings settings =
@@ -329,11 +333,11 @@ namespace ColorGateRunner.Tests.EditMode
             }
 
             Assert.That(result.ContinueUseHistogram.Length,
-                Is.EqualTo(StageSession.MaximumContinuesPerAttempt + 1));
+                Is.EqualTo(stage.TargetGateCount + 1));
             Assert.That(histogramRuns, Is.EqualTo(settings.Runs));
             Assert.That(histogramUses, Is.EqualTo(result.TotalContinueUseCount));
             Assert.That(result.MaximumContinueUseCountObserved,
-                Is.LessThanOrEqualTo(StageSession.MaximumContinuesPerAttempt));
+                Is.LessThanOrEqualTo(stage.TargetGateCount));
         }
 
         [Test]
@@ -376,7 +380,8 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(json, Does.Contain("\"averageContinueUseCount\""));
             Assert.That(json, Does.Contain("\"maximumContinueUseCountObserved\""));
             Assert.That(json, Does.Contain("\"continueUseHistogram\":["));
-            Assert.That(markdown, Does.Contain("Uses 0/1/2/3"));
+            Assert.That(markdown,
+                Does.Contain("Uses by count (0..gate count)"));
         }
 
         [Test]
@@ -412,13 +417,18 @@ namespace ColorGateRunner.Tests.EditMode
         private static StageSession CreateFailedSession(StartItemSelection items)
         {
             StageSession session = CreatePlaying(1, items);
+            FailCurrentGate(session);
+            return session;
+        }
+
+        private static void FailCurrentGate(StageSession session)
+        {
             GatePlan plan = session.GetNextGatePlan();
             while (session.CurrentColor == plan.Color)
             {
                 session.TryToggleColor();
             }
             session.ResolveGate(plan.Color);
-            return session;
         }
 
         private static void FailAfterProtection(StageSession session)

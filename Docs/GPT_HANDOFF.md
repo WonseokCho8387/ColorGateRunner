@@ -1,5 +1,37 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 23 completed update
+
+- Implementation base was `7858803`; the completion commit is named
+  `feat: refine continue and clear economy flow`.
+- Continue is unlimited per attempt. Coin prices are `900 -> 1,900 -> 2,900
+  -> 4,900`, and every later Coin Continue repeats `4,900`. Retry resets the
+  price ordinal. Ticket and rewarded-ad Continues do not advance it.
+- The one successful rewarded-ad right per attempt remains, but no release
+  provider is connected. The unavailable action stays hidden and never fakes
+  success.
+- Stage difficulty is now authored data: Stages 11, 14, and 17 are Hard;
+  Stage 20 is VeryHard; all other current Stages are Normal. First-clear base
+  rewards are `100 / 200 / 500` Coins, while existing Lobby milestone rewards
+  remain separate and idempotent. Clear Result displays the two sources
+  separately.
+- Normal Start still spends one stored Heart atomically. A clear atomically
+  records progression and reward and refunds exactly the Heart actually spent
+  by that attempt. Unlimited-Heart and provided/free starts cannot request a
+  refund.
+- Clear Result removes Campaign Replay. `NEXT STAGE` opens the next Stage's
+  PreRun selection directly; the final authored Stage exposes Lobby only.
+- Continue countdown now synchronizes gate modifiers immediately and removes
+  expired item/buff presentation before the countdown is visible.
+- EditMode passed `418/418`, PlayMode passed `222/222`, and Campaign Builder
+  passed twice. Campaign CSV/JSON/Summary SHA-256 are
+  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`,
+  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`,
+  and `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`.
+  Step 10 remains unchanged.
+- Lobby visual redesign, timed Fog veil, preplaced/rebalanced Ice, Shop/IAP
+  runtime, and real rewarded-ad integration remain deferred.
+
 ## Iteration 22 completed update
 
 - Unity now has `Tools > Color Gate Runner > Developer Console` for authored

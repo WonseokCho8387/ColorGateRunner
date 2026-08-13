@@ -241,6 +241,9 @@ namespace ColorGateRunner.Editor
             Button rewardedContinueButton;
             Button retryButton;
             Button failLobbyButton;
+            GameObject insufficientCoinsPopup;
+            Text insufficientCoinsMessage;
+            Button insufficientCoinsCloseButton;
             CreateFailureUi(
                 flowRoots[5].transform,
                 out failPanel,
@@ -251,7 +254,10 @@ namespace ColorGateRunner.Editor
                 out coinContinueButton,
                 out rewardedContinueButton,
                 out retryButton,
-                out failLobbyButton);
+                out failLobbyButton,
+                out insufficientCoinsPopup,
+                out insufficientCoinsMessage,
+                out insufficientCoinsCloseButton);
 
             CreatePauseUi(
                 canvas.transform,
@@ -353,7 +359,10 @@ namespace ColorGateRunner.Editor
                 coinContinueButton,
                 rewardedContinueButton,
                 retryButton,
-                failLobbyButton);
+                failLobbyButton,
+                insufficientCoinsPopup,
+                insufficientCoinsMessage,
+                insufficientCoinsCloseButton);
             controller.ConfigurePause(
                 pauseButton,
                 pauseOverlayRoot,
@@ -585,6 +594,8 @@ namespace ColorGateRunner.Editor
                 "TicketContinueButton",
                 "CoinContinueButton",
                 "RewardedContinueButton",
+                "InsufficientCoinsPopup",
+                "InsufficientCoinsCloseButton",
                 "ReplayButton",
                 "RetryButton",
                 "PauseButton",
@@ -1766,7 +1777,10 @@ namespace ColorGateRunner.Editor
             out Button coinContinueButton,
             out Button rewardedContinueButton,
             out Button retry,
-            out Button select)
+            out Button select,
+            out GameObject insufficientCoinsPopup,
+            out Text insufficientCoinsMessage,
+            out Button insufficientCoinsCloseButton)
         {
             panel = CreatePanel(
                 "StageFailedPanel",
@@ -1813,7 +1827,7 @@ namespace ColorGateRunner.Editor
             coinContinueButton = CreateButton(
                 "CoinContinueButton",
                 panel.transform,
-                "CONTINUE 300 COINS",
+                "CONTINUE 900 COINS",
                 new Vector2(0.16f, 0.215f),
                 new Vector2(0.84f, 0.305f),
                 out coinLabel);
@@ -1833,6 +1847,35 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.16f, 0.025f),
                 new Vector2(0.84f, 0.115f),
                 out selectLabel);
+
+            insufficientCoinsPopup = CreateAnchoredPanel(
+                "InsufficientCoinsPopup",
+                parent,
+                new Vector2(0.10f, 0.31f),
+                new Vector2(0.90f, 0.69f),
+                new Color(0.03f, 0.04f, 0.08f, 0.99f));
+            CreateText(
+                "InsufficientCoinsTitle",
+                insufficientCoinsPopup.transform,
+                "NOT ENOUGH COINS",
+                44,
+                new Vector2(0.08f, 0.68f),
+                new Vector2(0.92f, 0.90f));
+            insufficientCoinsMessage = CreateText(
+                "InsufficientCoinsMessage",
+                insufficientCoinsPopup.transform,
+                string.Empty,
+                27,
+                new Vector2(0.08f, 0.34f),
+                new Vector2(0.92f, 0.66f));
+            insufficientCoinsCloseButton = CreateButton(
+                "InsufficientCoinsCloseButton",
+                insufficientCoinsPopup.transform,
+                "CLOSE",
+                new Vector2(0.20f, 0.08f),
+                new Vector2(0.80f, 0.29f),
+                out Text _);
+            insufficientCoinsPopup.SetActive(false);
         }
 
         private static void CreatePauseUi(

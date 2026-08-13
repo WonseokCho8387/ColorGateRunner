@@ -240,13 +240,17 @@ fairness, or polish.
 - Retry replays the approved layout; Continue consumes the failed gate once
   and preserves the approved timer, speed, color, sequence, pool, and item
   state.
-- Continue is capped at three successful uses per attempt. Coin sources use
-  `300 / 600 / 900` successful-Coin ordinals, one completed rewarded-ad right
-  remains independent of Coin use, and Retry resets the attempt-local policy.
+- Continue has no total count cap. Coin sources use `900 / 1900 / 2900 / 4900`
+  by successful-Coin ordinal and repeat `4900` thereafter. One completed
+  rewarded-ad right remains independent of Coin use, Ticket/ad sources do not
+  advance the Coin ordinal, and Retry resets the attempt-local policy.
 - Coin spending must be atomic and idempotent before Core resume. Insufficient
   funds, save failure, non-completed ads, duplicate callbacks and stale
   callbacks preserve the frozen failure state. Unavailable providers expose
   no rewarded action and cannot simulate success.
+- On the first Continue-countdown frame, retained modifier visuals and safe
+  colors must match resumed gameplay. Consumed Shield, Booster, Echo, local
+  grants, and their presentation must already be inactive.
 - Gate and Track pools remain fixed and recycled objects reset their runtime
   state.
 - Goal is part of deterministic planning, appears continuously, and clears the
@@ -256,12 +260,18 @@ fairness, or polish.
 
 - Catalog IDs remain unique and stable; Lobby display, PreRun, Gameplay,
   persistence, Retry, and Next Stage use the same stable Stage ID.
-- Schema 2 Product Save owns runtime Stage unlock and record writes by stable
+- Schema 3 Product Save owns runtime Stage unlock and record writes by stable
   Stage ID. Legacy device-wide Campaign PlayerPrefs are imported once and then
   retained unchanged as a rollback source; Campaign progression remains scoped
   to the local Product profile and does not derive from Guest identity.
 - Locked stages cannot start; Clear unlocks only the next Stage; Retry returns
   through the existing PreRun/item-selection contract.
+- Campaign Clear hides Replay. Next Stage opens the unlocked next stable Stage
+  directly in PreRun; final-Stage and unavailable/unpersisted destinations
+  return to Lobby.
+- A first Clear grants `100 / 200 / 500` base Coins for Normal/Hard/Very Hard
+  and presents any even-Stage milestone reward separately. Replays do not
+  duplicate either reward.
 - Catalog revision 7 contains 20 contiguous stable IDs. Stages 1–5 remain
   unchanged; Stages 6/7 provide their named item with selection locked;
   Stage 8 is clean three-color item application. Stages 9–20 contain isolated
@@ -350,14 +360,17 @@ fairness, or polish.
   Campaign progress, Coins and owned start items.
 - Stage start atomically authorizes one Heart plus selected items; empty
   Hearts or save failure keeps PreRun open and publishes no partial spend.
+- A successful Clear atomically refunds the finite Heart consumed by that
+  attempt. Unlimited-Heart attempts have no spend to refund, and failure,
+  Retry, or Lobby departure does not refund the failed attempt.
 - Hearts recover one per 30 minutes to a cap of 5, tolerate offline elapsed
   time and do not gain from backwards clock movement. Unlimited duration
   stacks and suppresses consumption before expiry.
 - Approved commerce grants are order-ID idempotent, Starter is account-limited
   and unknown products never mutate state.
 - Continue Ticket is offered before available rewarded ad and Coin. Spend
-  failure keeps the failure snapshot frozen; success counts toward the shared
-  maximum of three Continues.
+  failure keeps the failure snapshot frozen. The former shared maximum of
+  three Continues is historical and is superseded by Iteration 23.
 - Campaign Builder runs twice after the new failure action is generated, then
   the full post-Builder PlayMode suite runs.
 
@@ -373,6 +386,31 @@ fairness, or polish.
   shared Presentation refresh/launch boundaries changed. Builders and
   deterministic simulations are omitted when generated Scenes, Core, Stage
   data and simulation inputs remain unchanged.
+
+### Iteration 23 result-loop closure
+
+- Failure wallet coverage verifies live Coin and Heart values, the uncapped
+  `900 / 1900 / 2900 / 4900+` Coin schedule, Ticket/ad independence, Retry
+  reset, and intentional ad-action hiding while no real provider exists.
+- Insufficient Coin coverage verifies the frozen failure snapshot and a
+  truthful local unavailable notice with no working or simulated Shop action.
+- Continue coverage verifies modifier/safe-color synchronization and consumed
+  buff/local-grant presentation removal before the first countdown frame.
+- Clear coverage verifies the `100 / 200 / 500` first-clear base reward by
+  difficulty, separate milestone reward presentation, duplicate-clear
+  idempotency, finite-Heart refund, and no refund for unlimited Heart.
+- Campaign result coverage verifies Replay hidden, direct next unlocked PreRun,
+  final-Stage Lobby fallback, and Lobby fallback when next unlock persistence
+  is unavailable. Experiment Lab Replay remains available.
+- Final validated evidence: EditMode `418/418`, PlayMode `222/222`, and the
+  Campaign Builder passed twice before the post-Builder suite.
+- Two Campaign simulations produced 400 rows each and byte-identical outputs:
+  Summary `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`,
+  JSON `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`, and
+  CSV `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`.
+- Step 10 simulation artifacts remain unchanged. Final Lobby layout, Fog
+  curtain redesign, and authored Ice approach remain deferred human/product
+  work rather than acceptance claims for this iteration.
 
 ## References
 

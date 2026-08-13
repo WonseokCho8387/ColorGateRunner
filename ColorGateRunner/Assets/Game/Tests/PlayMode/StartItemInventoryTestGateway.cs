@@ -40,7 +40,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 UnlimitedHearts);
         }
 
-        public ProductMutationResult Consume(bool shield, bool booster)
+        private ProductMutationResult Consume(bool shield, bool booster)
         {
             SelectedConsumptionCount++;
             if (FailWrites)
@@ -81,6 +81,21 @@ namespace ColorGateRunner.Tests.PlayMode
                 HeartCount--;
             }
             return ProductMutationResult.Success(true);
+        }
+
+        public StageStartAuthorizationResult Authorize(
+            bool shield,
+            bool booster,
+            string attemptTransactionId)
+        {
+            bool heartConsumed = !UnlimitedHearts && HeartCount > 0;
+            ProductMutationResult result = Consume(shield, booster);
+            return new StageStartAuthorizationResult(
+                result,
+                result.Succeeded && heartConsumed,
+                result.Succeeded && heartConsumed
+                    ? attemptTransactionId
+                    : string.Empty);
         }
     }
 }

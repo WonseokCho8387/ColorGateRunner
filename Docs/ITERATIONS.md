@@ -1734,3 +1734,72 @@ Human feedback required
   console, and a full account wipe remain excluded.
 - Human review should confirm the Window labels and Play/Unlock distinction are
   clear during ordinary Unity use.
+
+## Iteration 23 - Continue and Clear Economy Flow
+
+### Play / Analyze
+
+- Twenty-Stage human play exposed four connected loop problems: Continue
+  pricing stopped after three uses, Continue countdown briefly showed stale
+  modifier and consumed-buff presentation, the failure wallet did not explain
+  affordability, and clear actions returned through redundant or misleading
+  routes.
+- The last-Heart clear also exposed that start-time charging had no success
+  settlement, while the existing first-clear Coin grant was not visible on the
+  result screen.
+
+### Design
+
+- Remove the total Continue cap. Price successful Coin uses at
+  900/1,900/2,900/4,900 and repeat 4,900 thereafter, while keeping ad and
+  Ticket use outside the Coin ordinal and resetting the Attempt policy on
+  Retry.
+- Treat Continue countdown as resumed state for gate modifiers and as consumed
+  state for former Attempt buffs.
+- Show Coin and Heart balances on failure, preserve the frozen failure on
+  shortage, hide Campaign Replay and route `NEXT STAGE` directly to PreRun.
+- Refund a normally charged Heart only on successful clear. Grant first-clear
+  base Coins by Stage difficulty: 100 Normal, 200 Hard and 500 Very Hard.
+
+### Implementation
+
+- Core Continue capacity is no longer capped; finite Stage gate count remains
+  the simulation bound. The attempt policy owns the Coin ordinal independently
+  of total Continue count.
+- Campaign presentation synchronizes modifier/buff state before Continue
+  countdown, exposes the failure wallet and shortage popup, and separates
+  direct next-Stage flow from Lobby and Experiment Replay.
+- Product start receipts carry a one-use Heart refund token into the atomic
+  clear transaction. Catalog data owns difficulty for Stages 11, 14, 17 and
+  20; result UI shows base and Lobby milestone rewards separately.
+
+### Validation
+
+- Campaign Builder and structural validation completed twice.
+- Full EditMode passed `418/418`; final post-Builder PlayMode passed `222/222`.
+- Two complete Campaign simulations were byte-identical. Approved SHA-256:
+  - Summary:
+    `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`
+  - JSON:
+    `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`
+  - CSV:
+    `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`
+- Step 10 inputs and approved artifacts remained unchanged.
+
+### Learning
+
+- Continue count and Coin price ordinal are separate concepts. Keeping them
+  separate allows unlimited mixed-source recovery without charging an ad or
+  Ticket as though it were a Coin purchase.
+- Start-time Heart charging needs an explicit clear settlement so crash/quit
+  remains loss-safe while a successful last-Heart run can continue naturally.
+- A reward contract is incomplete when persistence succeeds but the result UI
+  cannot explain what was granted.
+
+### Deferred / Human Review
+
+- Production rewarded ads, Shop/IAP UI, Lobby layout cleanup, zero-stock
+  start-item purchase and Fog/Ice redesign remain deferred.
+- Human review should judge price pressure, direct next-Stage comprehension,
+  failure wallet readability, countdown visual continuity and difficulty
+  reward satisfaction. Automation does not determine fairness or value.

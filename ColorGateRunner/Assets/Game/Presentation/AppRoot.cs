@@ -274,6 +274,13 @@ namespace ColorGateRunner.Presentation
                         BestNoItemTime = record.BestNoItemTime,
                         ClearCount = record.ClearCount,
                         ContinuedClearCount = record.ContinuedClearCount
+                    },
+                    stage.Difficulty switch
+                    {
+                        StageDifficulty.Normal => StageRewardDifficulty.Normal,
+                        StageDifficulty.Hard => StageRewardDifficulty.Hard,
+                        StageDifficulty.VeryHard => StageRewardDifficulty.VeryHard,
+                        _ => throw new ArgumentOutOfRangeException()
                     }));
             }
             return _graph.ProductSession.ImportLegacyCampaign(

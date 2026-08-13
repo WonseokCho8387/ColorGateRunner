@@ -631,3 +631,36 @@ simulation inputs.
 
 Connect Unity IAP pending orders to receipt/server validation and this grant
 boundary, then confirm Store orders only after the durable grant succeeds.
+
+## Iteration 23 loop learning - close failure-to-next-stage recovery
+
+### Play / Analyze
+
+Twenty-Stage play showed that the recovery loop exposed balances and buttons
+without one coherent contract: Continue ended after three uses, countdown
+briefly revealed stale mechanics, a last-Heart clear blocked natural forward
+motion, and Campaign clear actions converged on Lobby or misleading Replay.
+
+### Decide
+
+Make Continue uncapped at 900/1,900/2,900/4,900-repeat by Coin ordinal, keep ad
+and Ticket outside that ordinal, settle the charged Heart on clear, grant
+100/200/500 first-clear Coins by difficulty, and route Campaign clear directly
+to the next PreRun. Treat the Continue countdown as already-resumed mechanic
+state with consumed buffs absent.
+
+### Validate
+
+Campaign Builder passed twice; EditMode passed `418/418`; post-Builder PlayMode
+passed `222/222`. Two Campaign simulations were byte-identical with Summary
+`698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`,
+JSON `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`
+and CSV `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`.
+Step 10 remained unchanged.
+
+### Next loop
+
+Use the now-coherent economy/result flow as the foundation for Lobby layout,
+zero-stock start-item purchase and real Store/ad integrations. Evaluate Fog
+and Ice presentation in separate gameplay iterations so economy UX does not
+mask mechanic readability changes.

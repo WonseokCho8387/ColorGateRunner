@@ -267,6 +267,57 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.BoosterActive, Is.False);
             Assert.That(_controller.Session.BoosterDistanceRemaining,
                 Is.Zero);
+            Assert.That(_controller.ShieldVisual.activeSelf, Is.False);
+            Assert.That(_controller.BoosterMeterRoot.activeSelf, Is.False);
+            Assert.That(_controller.BoosterWarning.activeSelf, Is.False);
+            Assert.That(_controller.SpeedLines.isPlaying, Is.False);
+        }
+
+        [Test]
+        public void ContinueCountdown_AppliesCamouflageBeforeFirstFrame()
+        {
+            var store = new InMemoryStageProgressStore
+            {
+                HighestUnlocked = 9
+            };
+            _controller.SetProgressStoreForTests(store);
+            _controller.SelectStage(9);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+
+            StageGateView probe = _controller.GetGate(5);
+            GatePlan original = probe.ActivePlan;
+            GatePlan camouflage = new GatePlan(
+                original.GateId,
+                original.Color,
+                original.Spacing,
+                original.TimeToGate,
+                original.BeatMultiplier,
+                original.Pattern,
+                original.IndexInPattern,
+                original.HasShieldPickupBefore,
+                new GateModifier(GateModifierType.Camouflage));
+            probe.Activate(
+                camouflage,
+                _controller.Session.GatesPassed + 5,
+                _controller.GetPresentationMaterial(camouflage.Color),
+                10000f);
+
+            StageGateView failureGate = FindGateByPlanIndex(
+                _controller.Session.GatesPassed);
+            Mismatch(failureGate.AssignedColor);
+            failureGate.TryResolveCrossing();
+            _controller.RequestCoinContinue();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+
+            Assert.That(probe.SymbolVisible, Is.False);
+            Assert.That(probe.DisplayMaterial,
+                Is.EqualTo(_controller.TrackPool
+                    .GetSegment(0).SurfaceMaterial));
         }
 
         [Test]

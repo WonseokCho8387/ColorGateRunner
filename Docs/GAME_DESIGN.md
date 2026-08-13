@@ -26,10 +26,12 @@ stage by matching every gate before crossing the Goal.
 7. A matching gate advances progress. A mismatch fails unless Shield absorbs
    it or Booster is active.
 8. The final gate reveals a Goal. Crossing it clears the stage.
-9. Clear waits for a finish animation, then its result action returns to the
-   updated Lobby. Failure waits for its animation, then offers eligible Coin
-   and rewarded-ad Continue sources, Retry, and Lobby. Retry returns to item
-   selection with toggles retained.
+9. Clear waits for a finish animation, shows the first-clear base reward and
+   any separate Lobby milestone reward, then offers `NEXT STAGE` directly to
+   the next PreRun selection or `LOBBY`. Campaign Replay is not offered.
+   Failure waits for its animation, then offers eligible Ticket, rewarded-ad,
+   and Coin Continue sources, Retry, and Lobby. Retry returns to item selection
+   with toggles retained.
 
 ## Authoritative flow states
 
@@ -47,12 +49,14 @@ development stage picker is hidden from the normal flow.
 
 ## Continue
 
-- At most three Continues are available per attempt.
-- Successful Coin Continues cost `300`, `600`, then `900` Coins by the number
-  of prior successful Coin Continues in that attempt.
+- Continues have no per-attempt count limit. A finite Stage still ends after
+  its remaining authored gates are cleared.
+- Successful Coin Continues cost `900`, `1,900`, `2,900`, then `4,900` Coins
+  by successful Coin-Continue ordinal. Every later Coin Continue in the same
+  attempt remains `4,900` Coins.
 - One completed rewarded-ad Continue may be used per attempt when a real
   provider is available. Coin use preserves the ad right; ad-first preserves
-  the first `300`-Coin price. Failed, cancelled or unavailable ads do not use
+  the first `900`-Coin price. Failed, cancelled or unavailable ads do not use
   the right.
 - Coin authorization is saved atomically before gameplay resumes. Insufficient
   funds or save failure keeps the failure scene frozen and spends nothing.
@@ -619,3 +623,30 @@ Experiment mechanics.
   `CommerceProductCatalog`. All entries are Google Play consumables; Starter
   reward grant is account-limited locally. Actual store connection, receipt
   verification, Shop UI and Firebase remain separate work.
+
+## Iteration 23 Continue, difficulty, reward and Heart contract
+
+This active contract supersedes the three-Continue cap and Coin prices from
+Iterations 19 and 21 without deleting their historical records.
+
+- Continue has no per-attempt count cap. Coin prices are `900`, `1,900`,
+  `2,900`, and `4,900`; the fourth and every later Coin Continue remain
+  `4,900`. Ticket and rewarded-ad Continues do not advance the Coin-price
+  ordinal. Retry starts a new attempt at `900` and restores the one-ad right.
+- The release rewarded-ad provider is still absent. Its action remains hidden
+  and cannot simulate success until a real provider is integrated.
+- Campaign difficulty is authored Stage data: Stages 11, 14, and 17 are
+  `Hard`; Stage 20 is `VeryHard`; all other current Stages are `Normal`.
+- First-clear base rewards are `100` Coins for Normal, `200` for Hard, and
+  `500` for VeryHard. They are idempotent and separate from the existing
+  even-Stage Lobby milestone reward. Result presentation separates both
+  reward sources instead of displaying a combined unexplained amount.
+- A normal Start still atomically spends one stored Heart with selected start
+  items. If that same attempt clears, the Product transaction atomically
+  records progress and rewards and refunds exactly that consumed Heart.
+  Unlimited-Heart and provided/free starts create no refund entitlement.
+  Failed save publication cannot partially grant progress, reward, or refund.
+- Fog remains the current nearest-two-gates implementation and Ice remains the
+  current gate-modifier implementation for Iteration 23. The timed Fog veil,
+  preplaced Ice runway, Ice-speed rebalance, and Lobby visual redesign are
+  explicitly deferred to later approved iterations.

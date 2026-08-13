@@ -2,6 +2,13 @@ using System;
 
 namespace ColorGateRunner.Core
 {
+    public enum StageDifficulty
+    {
+        Normal = 0,
+        Hard = 1,
+        VeryHard = 2
+    }
+
     public sealed class StageDefinition
     {
         private readonly RunnerColor[] _allowedColors;
@@ -35,7 +42,8 @@ namespace ColorGateRunner.Core
             CamouflageSettings camouflageSettings = null,
             StageMechanicGrantSettings mechanicGrantSettings = null,
             HiddenSettings hiddenSettings = null,
-            FlickerSettings flickerSettings = null)
+            FlickerSettings flickerSettings = null,
+            StageDifficulty difficulty = StageDifficulty.Normal)
             : this(
                 stageId,
                 displayNumber,
@@ -62,7 +70,8 @@ namespace ColorGateRunner.Core
                 camouflageSettings,
                 mechanicGrantSettings,
                 hiddenSettings,
-                flickerSettings)
+                flickerSettings,
+                difficulty)
         {
         }
 
@@ -92,7 +101,8 @@ namespace ColorGateRunner.Core
             CamouflageSettings camouflageSettings = null,
             StageMechanicGrantSettings mechanicGrantSettings = null,
             HiddenSettings hiddenSettings = null,
-            FlickerSettings flickerSettings = null)
+            FlickerSettings flickerSettings = null,
+            StageDifficulty difficulty = StageDifficulty.Normal)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -126,6 +136,7 @@ namespace ColorGateRunner.Core
                 StageMechanicGrantSettings.Disabled();
             HiddenSettings = hiddenSettings ?? HiddenSettings.Disabled();
             FlickerSettings = flickerSettings ?? FlickerSettings.Disabled();
+            Difficulty = difficulty;
         }
 
         public string StageId { get; }
@@ -153,6 +164,7 @@ namespace ColorGateRunner.Core
         public StageMechanicGrantSettings MechanicGrantSettings { get; }
         public HiddenSettings HiddenSettings { get; }
         public FlickerSettings FlickerSettings { get; }
+        public StageDifficulty Difficulty { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
 
@@ -293,7 +305,8 @@ namespace ColorGateRunner.Core
                  (GateModifiers & GateModifierType.Hidden) != 0) &&
                 (!FlickerSettings.Enabled ||
                  ((GateModifiers & GateModifierType.Flicker) != 0 &&
-                  AllowedColorCount >= 2));
+                  AllowedColorCount >= 2)) &&
+                Enum.IsDefined(typeof(StageDifficulty), Difficulty);
         }
 
         private bool HasValidFirstGateIndices()

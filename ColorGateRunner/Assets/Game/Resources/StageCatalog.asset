@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 7
+  catalogRevision: 8
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -948,6 +948,7 @@ MonoBehaviour:
     displayNumber: 11
     title: CAMOUFLAGE MASTERY
     description: Master concealed gates after restoring three colors.
+    difficulty: 1
     targetGateCount: 46
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -1254,6 +1255,7 @@ MonoBehaviour:
     displayNumber: 14
     title: FOG MASTERY
     description: Master Fog after restoring three colors.
+    difficulty: 1
     targetGateCount: 48
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -1560,6 +1562,7 @@ MonoBehaviour:
     displayNumber: 17
     title: ICE MASTERY
     description: Master Ice with three-color pressure.
+    difficulty: 1
     targetGateCount: 50
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -1866,6 +1869,7 @@ MonoBehaviour:
     displayNumber: 20
     title: ECHO MASTERY
     description: Master Echo decisions with three-color pressure.
+    difficulty: 2
     targetGateCount: 50
     allowedColors: 000000000100000002000000
     activeColorCount: 3

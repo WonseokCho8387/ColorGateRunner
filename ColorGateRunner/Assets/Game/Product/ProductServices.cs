@@ -295,7 +295,10 @@ namespace ColorGateRunner.Product
             {
                 CampaignProgressImportEntry entry = entries[index];
                 LocalStageProgressData record = entry.Record.Clone();
-                if (!StageRecordIsValid(record))
+                if (!StageRecordIsValid(record) ||
+                    !Enum.IsDefined(
+                        typeof(StageRewardDifficulty),
+                        entry.RewardDifficulty))
                 {
                     return InvalidProgression(
                         $"Legacy Stage {entry.DisplayNumber} is invalid.");
@@ -306,7 +309,8 @@ namespace ColorGateRunner.Product
                     ApplyFirstClearRewards(
                         candidate,
                         entry.DisplayNumber,
-                        record.StageId);
+                        record.StageId,
+                        entry.RewardDifficulty);
                 }
             }
             candidate.CampaignProgress.LegacyMigrationCompleted = true;
@@ -325,7 +329,10 @@ namespace ColorGateRunner.Product
                 string.IsNullOrWhiteSpace(request.HighestUnlockedStageId) ||
                 !StageRecordIsValid(request.Record) ||
                 request.Record.StageId != request.StageId ||
-                !request.Record.Cleared)
+                !request.Record.Cleared ||
+                !Enum.IsDefined(
+                    typeof(StageRewardDifficulty),
+                    request.RewardDifficulty))
             {
                 return InvalidProgression("The Stage clear request is invalid.");
             }
@@ -345,7 +352,24 @@ namespace ColorGateRunner.Product
                 ApplyFirstClearRewards(
                     candidate,
                     request.DisplayNumber,
-                    request.StageId);
+                    request.StageId,
+                    request.RewardDifficulty);
+            }
+            if (!string.IsNullOrWhiteSpace(request.HeartRefundToken))
+            {
+                string spendId = HeartSpendTransactionId(
+                    request.HeartRefundToken);
+                if (!candidate.Economy.AppliedTransactionIds.Contains(spendId))
+                {
+                    return InvalidProgression(
+                        "The Heart refund token was not issued by a stored-Heart Stage start.");
+                }
+                ApplyTransaction(
+                    candidate.Economy,
+                    HeartRefundTransactionId(request.HeartRefundToken),
+                    economy => HeartStatePolicy.RefundOne(
+                        economy,
+                        _clock.UtcNow));
             }
             return Commit(candidate);
         }
@@ -429,6 +453,106 @@ namespace ColorGateRunner.Product
                 return ProductMutationResult.Success(false);
             }
             return Commit(candidate);
+        }
+
+        public StageStartAuthorizationResult AuthorizeStageStartWithReceipt(
+            bool shield,
+            bool booster,
+            string attemptTransactionId,
+            bool consumeHeart = true)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return new StageStartAuthorizationResult(
+                    failure,
+                    false,
+                    string.Empty);
+            }
+            if (string.IsNullOrWhiteSpace(attemptTransactionId))
+            {
+                return new StageStartAuthorizationResult(
+                    InvalidProgression(
+                        "A Stage-start attempt transaction ID is required."),
+                    false,
+                    string.Empty);
+            }
+            if (!shield && !booster && !consumeHeart)
+            {
+                return new StageStartAuthorizationResult(
+                    ProductMutationResult.Success(false),
+                    false,
+                    string.Empty);
+            }
+
+            string startId = StageStartTransactionId(attemptTransactionId);
+            string heartSpendId = HeartSpendTransactionId(attemptTransactionId);
+            if (_current.Economy.AppliedTransactionIds.Contains(startId))
+            {
+                bool replayHeartConsumed =
+                    _current.Economy.AppliedTransactionIds.Contains(heartSpendId);
+                return new StageStartAuthorizationResult(
+                    ProductMutationResult.Success(false),
+                    replayHeartConsumed,
+                    replayHeartConsumed ? attemptTransactionId : string.Empty);
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            LocalEconomyData economy = candidate.Economy;
+            DateTime effectiveNow = _clock.UtcNow;
+            if (consumeHeart)
+            {
+                effectiveNow = HeartStatePolicy.Normalize(economy, effectiveNow);
+            }
+            if ((shield && economy.ShieldCount <= 0) ||
+                (booster && economy.BoosterCount <= 0))
+            {
+                return new StageStartAuthorizationResult(
+                    ProductMutationResult.Failure(
+                        new ProductError(
+                            ProductErrorCode.InsufficientInventory,
+                            "The selected start-item inventory is insufficient.",
+                            true)),
+                    false,
+                    string.Empty);
+            }
+            bool heartConsumed = consumeHeart &&
+                !HeartStatePolicy.IsUnlimited(economy, effectiveNow);
+            if (heartConsumed && economy.HeartCount <= 0)
+            {
+                return new StageStartAuthorizationResult(
+                    ProductMutationResult.Failure(
+                        new ProductError(
+                            ProductErrorCode.InsufficientHearts,
+                            "A Heart is required to start the Stage.",
+                            true)),
+                    false,
+                    string.Empty);
+            }
+            if (shield)
+            {
+                economy.ShieldCount--;
+            }
+            if (booster)
+            {
+                economy.BoosterCount--;
+            }
+            if (consumeHeart)
+            {
+                HeartStatePolicy.Consume(economy, effectiveNow);
+            }
+            economy.AppliedTransactionIds.Add(startId);
+            if (heartConsumed)
+            {
+                economy.AppliedTransactionIds.Add(heartSpendId);
+            }
+
+            ProductMutationResult result = Commit(candidate);
+            return new StageStartAuthorizationResult(
+                result,
+                result.Succeeded && heartConsumed,
+                result.Succeeded && heartConsumed
+                    ? attemptTransactionId
+                    : string.Empty);
         }
 
         public HeartStateSnapshot GetHeartState()
@@ -809,13 +933,14 @@ namespace ColorGateRunner.Product
         private static void ApplyFirstClearRewards(
             LocalSaveData candidate,
             int displayNumber,
-            string stageId)
+            string stageId,
+            StageRewardDifficulty rewardDifficulty)
         {
             ApplyTransaction(
                 candidate.Economy,
                 $"first-clear:{stageId}",
                 economy => economy.Coins +=
-                    LobbyMilestoneRewardPolicy.FirstClearCoins);
+                    StageClearRewardPolicy.GetBaseCoins(rewardDifficulty));
             if (!LobbyMilestoneRewardPolicy.IsMilestone(displayNumber))
             {
                 return;
@@ -849,6 +974,15 @@ namespace ColorGateRunner.Product
             economy.AppliedTransactionIds.Add(transactionId);
             return true;
         }
+
+        private static string StageStartTransactionId(string token) =>
+            $"stage-start:{token}";
+
+        private static string HeartSpendTransactionId(string token) =>
+            $"stage-start-heart:{token}";
+
+        private static string HeartRefundTransactionId(string token) =>
+            $"stage-clear-heart-refund:{token}";
 
         private static bool IsFinite(float value)
         {

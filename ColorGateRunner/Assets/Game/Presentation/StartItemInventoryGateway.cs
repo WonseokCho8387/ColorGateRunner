@@ -27,7 +27,10 @@ namespace ColorGateRunner.Presentation
     internal interface IStartItemInventoryGateway
     {
         StartItemInventorySnapshot Read();
-        ProductMutationResult Consume(bool shield, bool booster);
+        StageStartAuthorizationResult Authorize(
+            bool shield,
+            bool booster,
+            string attemptTransactionId);
     }
 
     internal sealed class ProductStartItemInventoryGateway :
@@ -59,9 +62,15 @@ namespace ColorGateRunner.Presentation
                     hearts.Unlimited);
         }
 
-        public ProductMutationResult Consume(bool shield, bool booster)
+        public StageStartAuthorizationResult Authorize(
+            bool shield,
+            bool booster,
+            string attemptTransactionId)
         {
-            return _session.AuthorizeStageStart(shield, booster);
+            return _session.AuthorizeStageStartWithReceipt(
+                shield,
+                booster,
+                attemptTransactionId);
         }
     }
 
@@ -73,17 +82,22 @@ namespace ColorGateRunner.Presentation
             return default;
         }
 
-        public ProductMutationResult Consume(bool shield, bool booster)
+        public StageStartAuthorizationResult Authorize(
+            bool shield,
+            bool booster,
+            string attemptTransactionId)
         {
-            if (!shield && !booster)
-            {
-                return ProductMutationResult.Success(false);
-            }
-            return ProductMutationResult.Failure(
-                new ProductError(
-                    ProductErrorCode.Initialization,
-                    "Start-item inventory is unavailable.",
-                    true));
+            ProductMutationResult result = !shield && !booster
+                ? ProductMutationResult.Success(false)
+                : ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.Initialization,
+                        "Start-item inventory is unavailable.",
+                        true));
+            return new StageStartAuthorizationResult(
+                result,
+                false,
+                string.Empty);
         }
     }
 }

@@ -7,14 +7,18 @@ namespace ColorGateRunner.Product
     {
         public CampaignProgressImportEntry(
             int displayNumber,
-            LocalStageProgressData record)
+            LocalStageProgressData record,
+            StageRewardDifficulty rewardDifficulty =
+                StageRewardDifficulty.Normal)
         {
             DisplayNumber = displayNumber;
             Record = record ?? throw new ArgumentNullException(nameof(record));
+            RewardDifficulty = rewardDifficulty;
         }
 
         public int DisplayNumber { get; }
         public LocalStageProgressData Record { get; }
+        public StageRewardDifficulty RewardDifficulty { get; }
     }
 
     public readonly struct StageClearProgressRequest
@@ -23,18 +27,119 @@ namespace ColorGateRunner.Product
             int displayNumber,
             string stageId,
             string highestUnlockedStageId,
-            LocalStageProgressData record)
+            LocalStageProgressData record,
+            StageRewardDifficulty rewardDifficulty =
+                StageRewardDifficulty.Normal,
+            string heartRefundToken = null)
         {
             DisplayNumber = displayNumber;
             StageId = stageId;
             HighestUnlockedStageId = highestUnlockedStageId;
             Record = record ?? throw new ArgumentNullException(nameof(record));
+            RewardDifficulty = rewardDifficulty;
+            HeartRefundToken = heartRefundToken ?? string.Empty;
         }
 
         public int DisplayNumber { get; }
         public string StageId { get; }
         public string HighestUnlockedStageId { get; }
         public LocalStageProgressData Record { get; }
+        public StageRewardDifficulty RewardDifficulty { get; }
+        public string HeartRefundToken { get; }
+    }
+
+    public enum StageRewardDifficulty
+    {
+        Normal = 0,
+        Hard = 1,
+        VeryHard = 2
+    }
+
+    public readonly struct StageStartAuthorizationResult
+    {
+        public StageStartAuthorizationResult(
+            ProductMutationResult mutation,
+            bool heartConsumed,
+            string heartRefundToken)
+        {
+            Mutation = mutation;
+            HeartConsumed = heartConsumed;
+            HeartRefundToken = heartRefundToken ?? string.Empty;
+        }
+
+        public ProductMutationResult Mutation { get; }
+        public bool Succeeded => Mutation.Succeeded;
+        public bool Changed => Mutation.Changed;
+        public ProductError Error => Mutation.Error;
+        public bool HeartConsumed { get; }
+        public string HeartRefundToken { get; }
+    }
+
+    public readonly struct StageClearRewardPreview
+    {
+        internal StageClearRewardPreview(
+            int baseCoins,
+            int milestoneCoins,
+            int shields,
+            int boosters)
+        {
+            BaseCoins = baseCoins;
+            MilestoneCoins = milestoneCoins;
+            Shields = shields;
+            Boosters = boosters;
+        }
+
+        public int BaseCoins { get; }
+        public int MilestoneCoins { get; }
+        public int Shields { get; }
+        public int Boosters { get; }
+        public int TotalCoins => BaseCoins + MilestoneCoins;
+    }
+
+    public static class StageClearRewardPolicy
+    {
+        public static int GetBaseCoins(StageRewardDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                StageRewardDifficulty.Normal => 100,
+                StageRewardDifficulty.Hard => 200,
+                StageRewardDifficulty.VeryHard => 500,
+                _ => throw new ArgumentOutOfRangeException(nameof(difficulty))
+            };
+        }
+
+        public static StageClearRewardPreview Preview(
+            int displayNumber,
+            StageRewardDifficulty difficulty)
+        {
+            int milestoneCoins = 0;
+            int shields = 0;
+            int boosters = 0;
+            if (LobbyMilestoneRewardPolicy.IsMilestone(displayNumber))
+            {
+                int milestone = displayNumber / 2;
+                milestoneCoins = milestone % 3 == 0 ? 300 : 200;
+                if (milestone % 3 == 1)
+                {
+                    shields = 1;
+                }
+                else if (milestone % 3 == 2)
+                {
+                    boosters = 1;
+                }
+                else
+                {
+                    shields = 1;
+                    boosters = 1;
+                }
+            }
+            return new StageClearRewardPreview(
+                GetBaseCoins(difficulty),
+                milestoneCoins,
+                shields,
+                boosters);
+        }
     }
 
     public sealed class ProgressionService
@@ -89,8 +194,6 @@ namespace ColorGateRunner.Product
 
     internal static class LobbyMilestoneRewardPolicy
     {
-        internal const int FirstClearCoins = 100;
-
         internal static bool IsMilestone(int displayNumber)
         {
             return displayNumber >= 2 && displayNumber <= 36 &&
@@ -101,21 +204,12 @@ namespace ColorGateRunner.Product
             int displayNumber,
             LocalEconomyData economy)
         {
-            int milestone = displayNumber / 2;
-            economy.Coins += milestone % 3 == 0 ? 300 : 200;
-            if (milestone % 3 == 1)
-            {
-                economy.ShieldCount++;
-            }
-            else if (milestone % 3 == 2)
-            {
-                economy.BoosterCount++;
-            }
-            else
-            {
-                economy.ShieldCount++;
-                economy.BoosterCount++;
-            }
+            StageClearRewardPreview preview = StageClearRewardPolicy.Preview(
+                displayNumber,
+                StageRewardDifficulty.Normal);
+            economy.Coins += preview.MilestoneCoins;
+            economy.ShieldCount += preview.Shields;
+            economy.BoosterCount += preview.Boosters;
         }
     }
 }

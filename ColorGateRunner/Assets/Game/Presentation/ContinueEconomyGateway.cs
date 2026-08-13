@@ -8,6 +8,7 @@ namespace ColorGateRunner.Presentation
         bool IsAvailable { get; }
         int CoinBalance { get; }
         int ContinueTicketCount { get; }
+        HeartStateSnapshot Hearts { get; }
         ProductMutationResult Spend(string transactionId, int amount);
         ProductMutationResult SpendTicket(string transactionId);
     }
@@ -31,6 +32,7 @@ namespace ColorGateRunner.Presentation
         public int CoinBalance => Math.Max(0, _progression.Economy?.Coins ?? 0);
         public int ContinueTicketCount =>
             Math.Max(0, _progression.Economy?.ContinueTicketCount ?? 0);
+        public HeartStateSnapshot Hearts => _session.GetHeartState();
 
         public ProductMutationResult Spend(string transactionId, int amount)
         {
@@ -49,6 +51,7 @@ namespace ColorGateRunner.Presentation
         public bool IsAvailable => false;
         public int CoinBalance => 0;
         public int ContinueTicketCount => 0;
+        public HeartStateSnapshot Hearts => default;
 
         public ProductMutationResult Spend(string transactionId, int amount)
         {

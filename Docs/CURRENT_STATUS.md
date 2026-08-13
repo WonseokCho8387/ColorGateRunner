@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `bdc824d`
-- Base commit: `feat: add local commerce rewards and hearts`
+- Implementation base HEAD: `7858803`
+- Base commit: `fix: group developer console under tools menu`
 - Authoritative completion HEAD: the commit named
-  `feat: add editor developer console`; its exact hash is
-  recorded in the Iteration 22 final report because a commit cannot contain
+  `feat: refine continue and clear economy flow`; its exact hash is
+  recorded in the Iteration 23 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,7 +20,10 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 22 — Editor Developer Console**.
+Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
+below where their contracts differ.
+
+- Current completed iteration: **Iteration 23 — Continue and clear economy flow**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -66,7 +69,9 @@ iterations but do not override this section.
 - On the first production launch after upgrade, legacy device-wide Campaign
   PlayerPrefs are imported once. Legacy keys remain for rollback safety, but
   Product save becomes the runtime write authority.
-- First Stage clear grants 100 Coins once. Every even first-cleared Stage up
+- First clear grants `100 / 200 / 500` Coins for Normal / Hard / Very Hard
+  difficulty. Stages 11, 14 and 17 are Hard; Stage 20 is Very Hard; the other
+  authored Stages are Normal. Every even first-cleared Stage up
   to Stage 36 applies one automatic Lobby milestone and an idempotent reward.
   The starter reward policy grants 200 Coins, or 300 at every third milestone,
   plus alternating Shield/Booster inventory.
@@ -89,29 +94,43 @@ iterations but do not override this section.
   free and do not consume inventory. Without a ready Product session,
   selectable items are unavailable while no-item and provided-item starts
   remain valid.
-- A Stage attempt allows at most three Continues. Coin Continues cost 300,
-  then 600, then 900 Coins by successful Coin-use ordinal. One completed
+- Coin Continues cost `900`, `1,900`, `2,900`, then `4,900` Coins for every
+  later successful Coin use in the same attempt. There is no attempt-wide
+  Continue-count cap; a finite Stage and available authorization sources
+  remain the practical bounds. One completed
   rewarded-ad Continue is available per attempt when a real provider reports
   availability; Coin use does not consume that right and ad-first does not
   raise the first Coin price. Coin spending is atomic and idempotent before
   Core resumes. Insufficient funds, save failure, failed/cancelled ads and
   stale callbacks keep the failure state frozen. Retry creates a fresh policy.
-  The current release provider is unavailable, so no ad action is displayed
-  or simulated as successful.
+  The current release provider is unavailable, so the ad action is
+  intentionally hidden and never simulated as successful. Failure UI shows
+  the current Coin and Heart wallet. Insufficient Coin selection opens a
+  truthful popup while keeping the failed run frozen; the popup does not
+  pretend the still-deferred Shop exists.
 - A normal Stage start consumes one Heart atomically with selected start items.
   Hearts cap at 5 and recover one every 30 minutes, including offline;
   backwards clock movement cannot accelerate recovery. Unlimited Hearts
-  suppress consumption until UTC expiry and purchased durations stack.
+  suppress consumption until UTC expiry and purchased durations stack. A
+  stored Heart actually consumed for an attempt is refunded atomically when
+  that attempt clears, so a successful run has zero net Heart cost while
+  failure, quit, or restart retains the spend.
+- Continue Countdown starts with active gate modifiers already rendered and
+  consumed Shield/Booster state already absent. Campaign Clear hides Replay,
+  separates first-clear and Lobby milestone rewards, and opens the unlocked
+  next Stage directly in PreRun. Final or still-locked next Stages hide that
+  action.
 - The local catalog owns six Coin packs and five bundles. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
-  Tickets are offered before real ads and Coins and still count toward the
-  three-Continue cap. Store, receipt, Shop and Firebase work remains deferred.
+  Tickets are offered before real ads and Coins. Store connection, receipt
+  validation, Shop UI, Firebase integration and a real rewarded-ad provider
+  remain deferred.
 
 ### Automated validation
 
-- EditMode: `414/414`
-- PlayMode: `218/218`
-- Post-Builder PlayMode: `218/218`
+- EditMode: `418/418`
+- PlayMode: `222/222`
+- Post-Builder PlayMode: `222/222`
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -127,11 +146,10 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 30, Guest ID
-  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest Stage 14, 13 records,
-  1,500 Coins, 3 Shields, 3 Boosters, 0 Continue Tickets and 5 Hearts.
+- Schema 3, revision 130, highest Stage 20 with 20 records, 91,100 Coins,
+  2 Shields, 1 Booster and 4 Hearts.
 - SHA-256:
-  `77AF3ED2CFBB13591E2119FD77F94C68A5BFC488CF4DB62C2FDCC52C8B443B50`.
+  `A81C6DA765C17DF44C131650EE73316D0F8B052B41938DC1AA82B18A350C8E18`.
 - Full validation did not mutate this file. Developer Console mutations occur
   only after an explicit Apply, Reset, or Unlock action.
 
@@ -139,13 +157,14 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `400`
 - Summary SHA-256:
-  `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`
+  `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`
 - JSON SHA-256:
-  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
+  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`
 - CSV SHA-256:
-  `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`
+  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
-  and capped at three. Continuity and pool-violation counters are zero.
+  and bounded by each finite Stage. Continuity and pool-violation counters are
+  zero.
 - Step 10 was not rerun because its Experiment contracts and inputs did not
   change; the Step 10 baseline below remains authoritative.
 
@@ -208,6 +227,31 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 23 validation result
+
+- Starting HEAD `7858803` was clean and matched the approved Iteration 22
+  baseline. Completion commit name: `feat: refine continue and clear economy
+  flow`.
+- Continue pricing is `900 / 1,900 / 2,900 / 4,900-repeat` with no attempt
+  cap. Resume Countdown applies modifiers immediately and presents consumed
+  buffs as already gone.
+- Failure shows Coin/Heart resources and a truthful insufficient-Coin popup.
+  Campaign Clear hides Replay, displays first-clear and milestone rewards
+  separately, refunds a consumed stored Heart atomically, and opens an
+  unlocked next Stage directly in PreRun.
+- Normal / Hard / Very Hard first-clear rewards are `100 / 200 / 500` Coins.
+  Stages 11, 14 and 17 are Hard; Stage 20 is Very Hard.
+- Campaign Builder completed two consecutive runs. Full EditMode passed
+  `418/418`; final post-Builder PlayMode passed `222/222`. Missing Script,
+  Missing Reference, duplicate generated root and Build Settings checks passed.
+- Two complete 400-row Campaign simulations were byte-identical with the
+  authoritative hashes above. Step 10 was not rerun because Experiment inputs
+  and contracts were unchanged.
+- The real schema-3 Product save remained byte-identical at SHA-256
+  `A81C6DA765C17DF44C131650EE73316D0F8B052B41938DC1AA82B18A350C8E18`.
+- A real rewarded-ad provider, Shop navigation, Fog/Ice presentation redesign
+  and final Lobby layout remain separate iterations and human review items.
 
 ## Iteration 22 validation result
 

@@ -698,6 +698,26 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void StageClearRewardPolicy_UsesDifficultyAndKeepsMilestoneSeparate()
+        {
+            Assert.That(StageClearRewardPolicy.GetBaseCoins(
+                StageRewardDifficulty.Normal), Is.EqualTo(100));
+            Assert.That(StageClearRewardPolicy.GetBaseCoins(
+                StageRewardDifficulty.Hard), Is.EqualTo(200));
+            Assert.That(StageClearRewardPolicy.GetBaseCoins(
+                StageRewardDifficulty.VeryHard), Is.EqualTo(500));
+
+            StageClearRewardPreview preview = StageClearRewardPolicy.Preview(
+                20,
+                StageRewardDifficulty.VeryHard);
+            Assert.That(preview.BaseCoins, Is.EqualTo(500));
+            Assert.That(preview.MilestoneCoins, Is.EqualTo(200));
+            Assert.That(preview.Shields, Is.EqualTo(1));
+            Assert.That(preview.Boosters, Is.Zero);
+            Assert.That(preview.TotalCoins, Is.EqualTo(700));
+        }
+
+        [Test]
         public void StageClear_SaveFailureDoesNotPublishPartialProgression()
         {
             var save = new MutableSessionSaveService(CreateValidData());
@@ -1188,6 +1208,135 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(noRollbackGain.Succeeded, Is.True);
             Assert.That(noRollbackGain.Changed, Is.False);
             Assert.That(rollback.Count, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void StageStartReceipt_ClearRefundsConsumedHeartAndRewardsOnce()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            StageStartAuthorizationResult start =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "attempt-20");
+            StageStartAuthorizationResult duplicateStart =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "attempt-20");
+            Assert.That(start.Succeeded, Is.True);
+            Assert.That(start.HeartConsumed, Is.True);
+            Assert.That(start.HeartRefundToken, Is.EqualTo("attempt-20"));
+            Assert.That(duplicateStart.Succeeded, Is.True);
+            Assert.That(duplicateStart.Changed, Is.False);
+            Assert.That(duplicateStart.HeartConsumed, Is.True);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(4));
+
+            var request = new StageClearProgressRequest(
+                20,
+                "stage-20",
+                "stage-20",
+                CreateStageRecord("stage-20", true, 1),
+                StageRewardDifficulty.VeryHard,
+                start.HeartRefundToken);
+            ProductMutationResult first =
+                pipeline.Session.RecordStageClear(request);
+            ProductMutationResult replay =
+                pipeline.Session.RecordStageClear(request);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(5));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(700));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void StageStartReceipt_UnlimitedOrFreeStartCannotCreateHeartRefund()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.UnlimitedHeartsUntilUtc =
+                LocalSaveService.ToUtcString(_firstUtc.AddHours(1));
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            StageStartAuthorizationResult unlimited =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "unlimited-attempt");
+            StageStartAuthorizationResult free =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "provided-attempt",
+                    false);
+
+            Assert.That(unlimited.Succeeded, Is.True);
+            Assert.That(unlimited.HeartConsumed, Is.False);
+            Assert.That(unlimited.HeartRefundToken, Is.Empty);
+            Assert.That(free.Succeeded, Is.True);
+            Assert.That(free.Changed, Is.False);
+            Assert.That(free.HeartConsumed, Is.False);
+            Assert.That(free.HeartRefundToken, Is.Empty);
+            Assert.That(pipeline.Progression.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts));
+        }
+
+        [Test]
+        public void StageClear_HeartRefundAndRewardsAreAtomicOnSaveFailure()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            StageStartAuthorizationResult start =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "failed-clear-attempt");
+            Assert.That(start.Succeeded, Is.True);
+            save.FailWrites = true;
+
+            ProductMutationResult result = pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    11,
+                    "stage-11",
+                    "stage-12",
+                    CreateStageRecord("stage-11", true, 1),
+                    StageRewardDifficulty.Hard,
+                    start.HeartRefundToken));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(4));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.Zero);
+            Assert.That(pipeline.Progression.Campaign.StageRecords, Is.Empty);
+        }
+
+        [Test]
+        public void StageClear_RejectsHeartRefundTokenWithoutStoredHeartSpend()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult result = pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    1,
+                    "stage-01",
+                    "stage-02",
+                    CreateStageRecord("stage-01", true, 1),
+                    StageRewardDifficulty.Normal,
+                    "not-issued"));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(pipeline.Progression.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.Zero);
+            Assert.That(pipeline.Progression.Campaign.StageRecords, Is.Empty);
         }
 
         [Test]

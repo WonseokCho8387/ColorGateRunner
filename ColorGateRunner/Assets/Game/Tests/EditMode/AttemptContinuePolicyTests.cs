@@ -11,12 +11,16 @@ namespace ColorGateRunner.Tests.EditMode
         {
             var policy = new AttemptContinuePolicy();
 
-            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(300));
-            Assert.That(policy.ConfirmCoinContinue(0, 300).Authorized, Is.True);
-            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(600));
-            Assert.That(policy.ConfirmCoinContinue(1, 600).Authorized, Is.True);
             Assert.That(policy.CurrentCoinPrice, Is.EqualTo(900));
-            Assert.That(policy.ConfirmCoinContinue(2, 900).Authorized, Is.True);
+            Assert.That(policy.ConfirmCoinContinue(0, 900).Authorized, Is.True);
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(1900));
+            Assert.That(policy.ConfirmCoinContinue(1, 1900).Authorized, Is.True);
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(2900));
+            Assert.That(policy.ConfirmCoinContinue(2, 2900).Authorized, Is.True);
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(4900));
+            Assert.That(policy.ConfirmCoinContinue(3, 4900).Authorized, Is.True);
+            Assert.That(policy.ConfirmCoinContinue(4, 4900).Authorized, Is.True);
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(4900));
         }
 
         [Test]
@@ -26,7 +30,7 @@ namespace ColorGateRunner.Tests.EditMode
             var ads = new AvailableRewardedAdService();
 
             AttemptContinuePolicyResult coin =
-                policy.ConfirmCoinContinue(0, 300);
+                policy.ConfirmCoinContinue(0, 900);
 
             Assert.That(coin.Source, Is.EqualTo(AttemptContinueSource.Coins));
             Assert.That(policy.RewardedAdUsed, Is.False);
@@ -41,55 +45,48 @@ namespace ColorGateRunner.Tests.EditMode
             AttemptContinuePolicyResult ad = policy.ApplyRewardedAdResult(
                 0,
                 RewardedAdResult.Completed);
-            AttemptContinuePolicyResult offer = policy.GetCoinOffer(1, 300);
+            AttemptContinuePolicyResult offer = policy.GetCoinOffer(1, 900);
             AttemptContinuePolicyResult coin =
-                policy.ConfirmCoinContinue(1, 300);
+                policy.ConfirmCoinContinue(1, 900);
 
             Assert.That(ad.Authorized, Is.True);
-            Assert.That(offer.CoinCost, Is.EqualTo(300));
+            Assert.That(offer.CoinCost, Is.EqualTo(900));
             Assert.That(coin.Authorized, Is.True);
-            Assert.That(coin.CoinCost, Is.EqualTo(300));
-            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(600));
+            Assert.That(coin.CoinCost, Is.EqualTo(900));
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(1900));
         }
 
         [Test]
-        public void CoinAdCoin_UsesCoinOrdinalsAndCapRejectsWithoutMutation()
+        public void CoinAdCoin_UsesOnlySuccessfulCoinOrdinals()
         {
             var policy = new AttemptContinuePolicy();
             var ads = new AvailableRewardedAdService();
 
             AttemptContinuePolicyResult firstCoin =
-                policy.ConfirmCoinContinue(0, 300);
+                policy.ConfirmCoinContinue(0, 900);
             AttemptContinuePolicyResult ad = policy.ApplyRewardedAdResult(
                 1,
                 RewardedAdResult.Completed);
             AttemptContinuePolicyResult secondCoin =
-                policy.ConfirmCoinContinue(2, 600);
+                policy.ConfirmCoinContinue(2, 1900);
 
-            Assert.That(firstCoin.CoinCost, Is.EqualTo(300));
+            Assert.That(firstCoin.CoinCost, Is.EqualTo(900));
             Assert.That(ad.Source, Is.EqualTo(AttemptContinueSource.RewardedAd));
-            Assert.That(secondCoin.CoinCost, Is.EqualTo(600));
+            Assert.That(secondCoin.CoinCost, Is.EqualTo(1900));
             Assert.That(policy.CoinContinueCount, Is.EqualTo(2));
             Assert.That(policy.RewardedAdUsed, Is.True);
-            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(900));
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(2900));
 
-            Assert.That(policy.GetCoinOffer(3, 10000).Authorized, Is.False);
+            Assert.That(policy.GetCoinOffer(3, 10000).Authorized, Is.True);
             Assert.That(policy.CanRequestRewardedAd(3, ads), Is.False);
-            Assert.That(policy.ConfirmCoinContinue(3, 900).Authorized, Is.False);
+            Assert.That(policy.ConfirmCoinContinue(3, 2900).Authorized, Is.True);
             Assert.That(policy.ApplyRewardedAdResult(
                 3,
                 RewardedAdResult.Completed).Authorized,
                 Is.False);
-            Assert.That(policy.CoinContinueCount, Is.EqualTo(2));
+            Assert.That(policy.CoinContinueCount, Is.EqualTo(3));
             Assert.That(policy.RewardedAdUsed, Is.True);
-            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(900));
-        }
-
-        [Test]
-        public void MaximumContinueCount_MatchesCoreContract()
-        {
-            Assert.That(AttemptContinuePolicy.MaximumContinuesPerAttempt,
-                Is.EqualTo(StageSession.MaximumContinuesPerAttempt));
+            Assert.That(policy.CurrentCoinPrice, Is.EqualTo(4900));
         }
 
         [Test]
@@ -112,32 +109,33 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void TotalCap_UsesCoreContinueCount()
+        public void NonNegativeCoreContinueCount_HasNoTotalCap()
         {
             var policy = new AttemptContinuePolicy();
             var ads = new AvailableRewardedAdService();
 
             Assert.That(policy.HasCapacity(2), Is.True);
-            Assert.That(policy.HasCapacity(3), Is.False);
-            Assert.That(policy.GetCoinOffer(3, 10000).Authorized, Is.False);
-            Assert.That(policy.CanRequestRewardedAd(3, ads), Is.False);
+            Assert.That(policy.HasCapacity(300), Is.True);
+            Assert.That(policy.GetCoinOffer(300, 10000).Authorized, Is.True);
+            Assert.That(policy.CanRequestRewardedAd(300, ads), Is.True);
             Assert.That(
-                policy.ApplyRewardedAdResult(3, RewardedAdResult.Completed)
+                policy.ApplyRewardedAdResult(300, RewardedAdResult.Completed)
                     .Authorized,
-                Is.False);
+                Is.True);
+            Assert.That(policy.HasCapacity(-1), Is.False);
         }
 
         [Test]
         public void Retry_UsesFreshAttemptPolicy()
         {
             var previous = new AttemptContinuePolicy();
-            previous.ConfirmCoinContinue(0, 300);
+            previous.ConfirmCoinContinue(0, 900);
             previous.ApplyRewardedAdResult(1, RewardedAdResult.Completed);
 
             var retry = new AttemptContinuePolicy();
 
             Assert.That(retry.CoinContinueCount, Is.Zero);
-            Assert.That(retry.CurrentCoinPrice, Is.EqualTo(300));
+            Assert.That(retry.CurrentCoinPrice, Is.EqualTo(900));
             Assert.That(retry.RewardedAdUsed, Is.False);
         }
 
@@ -180,12 +178,12 @@ namespace ColorGateRunner.Tests.EditMode
         {
             var policy = new AttemptContinuePolicy();
 
-            Assert.That(policy.GetCoinOffer(0, 299).Authorized, Is.False);
+            Assert.That(policy.GetCoinOffer(0, 899).Authorized, Is.False);
             AttemptContinuePolicyResult offer =
-                policy.GetCoinOffer(0, 300);
+                policy.GetCoinOffer(0, 900);
 
             Assert.That(offer.Authorized, Is.True);
-            Assert.That(offer.CoinCost, Is.EqualTo(300));
+            Assert.That(offer.CoinCost, Is.EqualTo(900));
             Assert.That(policy.CoinContinueCount, Is.Zero);
             Assert.That(policy.RewardedAdUsed, Is.False);
         }

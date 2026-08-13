@@ -1166,3 +1166,36 @@ Status: Approved and implemented.
   commerce transaction ledger so purchases can be retested intentionally.
 - Edit Mode mutations target the same local Product save and Play Mode
   mutations require the active AppRoot. All writes reuse clone-save-publish.
+
+## Iteration 23 - Continue and clear economy flow
+
+Status: Approved and implemented.
+
+- An Attempt has no product-imposed Continue count cap. Each successful Coin
+  Continue advances only the Coin ordinal through 900, 1,900, 2,900 and 4,900
+  Coins; the fourth price repeats for every later Coin Continue. Rewarded-ad
+  and Continue Ticket resumes do not advance that ordinal. Retry starts a new
+  Attempt and resets it.
+- A successfully completed rewarded ad remains limited to once per Attempt.
+  Release runtime still hides the action when no real provider is available.
+- Continue countdown is already resumed gameplay state: active gate modifiers
+  are visible on its first frame, while consumed Shield, Booster, Echo and
+  mechanic-grant presentation stays absent for the entire countdown.
+- Campaign failure owns a compact wallet readout for Coins and Hearts. An
+  insufficient Coin request keeps failure frozen and opens a truthful shortage
+  popup; it never spends, resumes or pretends that Shop is available.
+- Campaign clear hides Replay. `NEXT STAGE` opens the next unlocked Stage's
+  PreRun directly without a Lobby round trip; the final Stage offers Lobby
+  only. Experiment Lab retains its separate Replay contract.
+- A Heart charged at normal Stage start is refunded atomically when that
+  Attempt clears. Unlimited-Heart and free starts cannot create a refund.
+  Failure, Retry and abandonment retain the original charge.
+- First-clear base Coin rewards are difficulty-owned: Normal 100, Hard 200
+  and Very Hard 500. Stages 11, 14 and 17 are Hard; Stage 20 is Very Hard;
+  all other current Campaign Stages are Normal. Existing Lobby milestone
+  rewards remain additional and separately presented.
+- First-clear reward, Heart refund, Stage record and unlock publish in one
+  Product transaction. Repeated clear, invalid refund tokens and save failure
+  cannot duplicate or partially publish value.
+- Production rewarded-ad integration, Shop purchasing, Lobby relayout and the
+  Fog/Ice redesign remain separate iterations.
