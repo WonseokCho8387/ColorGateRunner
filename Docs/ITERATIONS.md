@@ -1803,3 +1803,34 @@ Human feedback required
 - Human review should judge price pressure, direct next-Stage comprehension,
   failure wallet readability, countdown visual continuity and difficulty
   reward satisfaction. Automation does not determine fairness or value.
+
+## Iteration 24 — Continue Gate-Pool Recycle Hotfix
+
+### Play / Analyze
+
+- Human play on Stage 11 reported that continuing near gate 34 eventually
+  left no gates and crossing Goal did not end the run.
+- Inspection showed that each Continue permanently deactivated the failed
+  `StageGateView`. The fixed pool has six slots, so unlimited Continue exposed
+  the former capped-policy assumption. Fog was not the cause.
+
+### Design / Implementation
+
+- Preserve the consumed-plan and clean-respawn contracts, but recycle the
+  failed slot through the ordinary fixed-pool path so it receives a later
+  authored plan.
+- Avoid invalid velocity writes when the presentation Rigidbody is kinematic.
+
+### Validation / Learning
+
+- A focused Stage 11 test performs more than six late Continues, resolves all
+  46 gates and crosses Goal into Stage Cleared.
+- Focused PlayMode passed `1/1`; EditMode passed `418/418`; PlayMode passed
+  `223/223`. The pool remained fixed and unaffected gates retained transforms.
+- Unlimited recovery policies require presentation-pool tests beyond the old
+  maximum number of recovery actions.
+
+### Deferred / Human Review
+
+- Fog and Ice presentation redesign remain separate approved product work.
+- Human replay should confirm Stage 11 feels continuous at and beyond gate 34.

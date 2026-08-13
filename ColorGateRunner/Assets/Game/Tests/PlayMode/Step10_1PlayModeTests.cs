@@ -143,7 +143,9 @@ namespace ColorGateRunner.Tests.PlayMode
             StageGateView next = FindGate(_controller.Session.GatesPassed);
 
             Assert.That(_controller.Session, Is.SameAs(sameSession));
-            Assert.That(failed.gameObject.activeSelf, Is.False);
+            Assert.That(failed.gameObject.activeSelf, Is.True);
+            Assert.That(failed.PlanIndex,
+                Is.GreaterThan(_controller.Session.GatesPassed));
             Assert.That(next, Is.Not.Null);
             Assert.That(
                 next.transform.position.z -

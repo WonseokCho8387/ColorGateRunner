@@ -1199,3 +1199,12 @@ Status: Approved and implemented.
   cannot duplicate or partially publish value.
 - Production rewarded-ad integration, Shop purchasing, Lobby relayout and the
   Fog/Ice redesign remain separate iterations.
+
+## Iteration 24 — Continue recycles the failed fixed-pool slot
+
+- A successful Continue consumes the failed authored plan exactly once, then
+  immediately reuses that presentation slot for the next available plan.
+- It must not permanently reduce the six-slot gate pool. This is required by
+  the uncapped Continue policy approved in Iteration 23.
+- This hotfix does not change Core Continue rules, stage balance, Fog,
+  Campaign content, pricing or persistence.

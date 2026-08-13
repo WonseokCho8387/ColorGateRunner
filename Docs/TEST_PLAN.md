@@ -237,9 +237,9 @@ fairness, or polish.
 - Initial, Restart, Retry, Continue, Countdown, color switching, scoring,
   difficulty, gate spacing, authored patterns, judgment, and terminal-state
   transitions remain deterministic and one-shot.
-- Retry replays the approved layout; Continue consumes the failed gate once
-  and preserves the approved timer, speed, color, sequence, pool, and item
-  state.
+- Retry replays the approved layout; Continue consumes the failed plan once,
+  immediately recycles that fixed-pool slot with a later plan, and preserves
+  the approved timer, speed, color, sequence, pool, and item state.
 - Continue has no total count cap. Coin sources use `900 / 1900 / 2900 / 4900`
   by successful-Coin ordinal and repeat `4900` thereafter. One completed
   rewarded-ad right remains independent of Coin use, Ticket/ad sources do not
@@ -408,9 +408,20 @@ fairness, or polish.
   Summary `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`,
   JSON `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`, and
   CSV `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`.
-- Step 10 simulation artifacts remain unchanged. Final Lobby layout, Fog
-  curtain redesign, and authored Ice approach remain deferred human/product
-  work rather than acceptance claims for this iteration.
+- Step 10 simulation artifacts remain unchanged.
+
+### Iteration 24 Continue gate-pool hotfix
+
+- A late-stage regression must consume more failed gates than the visible
+  fixed-pool size, verify every later authored gate remains available, and
+  cross Goal into Stage Cleared.
+- Recycling a failed slot must not grow/reset Gate or Track pools, re-expose
+  the consumed plan, or alter unaffected active-gate transforms.
+- Final evidence: focused Stage 11 PlayMode `1/1`, full EditMode `418/418`,
+  full PlayMode `223/223`. No Builder or deterministic simulation input was
+  changed; Iteration 23 artifacts remain authoritative.
+- Final Lobby layout, Fog curtain redesign, and authored Ice approach remain
+  deferred human/product work rather than acceptance claims for this iteration.
 
 ## References
 

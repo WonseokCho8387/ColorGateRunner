@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 23 — Continue and clear economy flow**.
+- Current completed iteration: **Iteration 24 — Continue gate-pool recycle hotfix**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -129,8 +129,8 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `418/418`
-- PlayMode: `222/222`
-- Post-Builder PlayMode: `222/222`
+- PlayMode: `223/223`
+- Post-Builder PlayMode: `222/222` (Iteration 23; no Scene or Builder change)
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -227,6 +227,25 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 24 validation result
+
+- Starting HEAD `61147cd` was clean. Completion commit name:
+  `fix: recycle failed gates after continue`.
+- Continue now recycles the failed gate's fixed-pool slot immediately instead
+  of permanently deactivating it. Repeated Continues therefore keep supplying
+  later gates and preserve Goal completion even after more Continues than the
+  six visible gate slots.
+- The clean respawn path no longer writes velocity to a kinematic Rigidbody.
+- The Stage 11 regression deliberately Continues more than six times from the
+  late Camouflage sequence, resolves all 46 gates, crosses Goal and reaches
+  Stage Cleared.
+- Focused Stage 11 PlayMode passed `1/1`; full EditMode passed `418/418`; full
+  PlayMode passed `223/223`. No Scene, Builder, Core, Catalog, deterministic
+  content or Product-save contract changed, so Builder, Campaign and Step 10
+  artifacts retain the Iteration 23 baseline.
+- The real Product save and backup remained byte-identical to their pre-test
+  snapshots.
 
 ## Iteration 23 validation result
 

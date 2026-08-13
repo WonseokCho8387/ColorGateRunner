@@ -1,5 +1,20 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 24 completed update
+
+- Starting HEAD was `61147cd`; the completion commit is named
+  `fix: recycle failed gates after continue`.
+- The Stage 11 late-run stall was a fixed gate-pool exhaustion bug, not a Fog
+  side effect. Continue deactivated each failed slot permanently; unlimited
+  Continue could therefore exhaust all six visible slots and leave Goal
+  completion unreachable.
+- Continue now recycles the failed slot with the next authored gate. A focused
+  regression Continues more than six times after the late Stage 11 sequence,
+  resolves all 46 gates and clears after crossing Goal.
+- Focused PlayMode passed `1/1`, full EditMode `418/418`, and full PlayMode
+  `223/223`. Scene/Builder, Campaign data, Core rules, Product persistence and
+  Step 10 inputs were unchanged, so their Iteration 23 baselines remain valid.
+
 ## Iteration 23 completed update
 
 - Implementation base was `7858803`; the completion commit is named

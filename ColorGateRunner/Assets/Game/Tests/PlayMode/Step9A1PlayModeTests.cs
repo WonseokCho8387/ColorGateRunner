@@ -143,7 +143,10 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RequestCoinContinue();
             _controller.Tick(3.1f);
 
-            Assert.That(failed.TryResolveCrossing(), Is.False);
+            Assert.That(FindGateByPlanIndex(failedIndex), Is.Null);
+            Assert.That(failed.gameObject.activeSelf, Is.True);
+            Assert.That(failed.PlanIndex,
+                Is.GreaterThan(_controller.Session.GatesPassed));
             Assert.That(_controller.Session.FlowState,
                 Is.Not.EqualTo(StageFlowState.Failed));
             Assert.That(
@@ -172,7 +175,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.CurrentColor,
                 Is.EqualTo(snapshot.PlayerColor));
             Assert.That(_controller.Session.SequenceCursor,
-                Is.EqualTo(snapshot.SequenceCursor));
+                Is.EqualTo(snapshot.SequenceCursor + 1));
         }
 
         [Test]
@@ -186,15 +189,17 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(3.1f);
 
             Assert.That(_controller.Session.SequenceCursor,
-                Is.EqualTo(snapshot.SequenceCursor));
+                Is.EqualTo(snapshot.SequenceCursor + 1));
             for (int index = 0; index < snapshot.ActiveGates.Length; index++)
             {
                 ActiveGateSnapshot expected = snapshot.ActiveGates[index];
                 if (expected.PlanIndex == snapshot.FailedGateIndex)
                 {
-                    Assert.That(
-                        _controller.GetGate(expected.PoolIdentity).gameObject.activeSelf,
-                        Is.False);
+                    StageGateView replacement =
+                        _controller.GetGate(expected.PoolIdentity);
+                    Assert.That(replacement.gameObject.activeSelf, Is.True);
+                    Assert.That(replacement.PlanIndex,
+                        Is.GreaterThan(snapshot.FailedGateIndex));
                     continue;
                 }
                 StageGateView gate =
@@ -220,7 +225,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Continue_GateAndTrackPoolsDoNotResetOrGrow()
+        public void Continue_RecyclesFailedSlotWithoutResettingPools()
         {
             StartPlaying();
             Fail();
@@ -228,7 +233,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 FindObjectsInactive.Include).Length;
             int trackCount = Object.FindObjectsByType<TrackSegmentView>(
                 FindObjectsInactive.Include).Length;
-            float[] gates = CaptureGatePositions();
+            ContinueSnapshot snapshot = _controller.FailureSnapshot;
             Vector3[] tracks = CaptureTrackPositions();
 
             _controller.RequestCoinContinue();
@@ -238,8 +243,22 @@ namespace ColorGateRunner.Tests.PlayMode
                 FindObjectsInactive.Include).Length, Is.EqualTo(gateCount));
             Assert.That(Object.FindObjectsByType<TrackSegmentView>(
                 FindObjectsInactive.Include).Length, Is.EqualTo(trackCount));
-            Assert.That(CaptureGatePositions(), Is.EqualTo(gates));
             Assert.That(CaptureTrackPositions(), Is.EqualTo(tracks));
+            for (int index = 0; index < snapshot.ActiveGates.Length; index++)
+            {
+                ActiveGateSnapshot expected = snapshot.ActiveGates[index];
+                StageGateView gate =
+                    _controller.GetGate(expected.PoolIdentity);
+                if (expected.PlanIndex == snapshot.FailedGateIndex)
+                {
+                    Assert.That(gate.gameObject.activeSelf, Is.True);
+                    Assert.That(gate.PlanIndex,
+                        Is.GreaterThan(expected.PlanIndex));
+                    continue;
+                }
+                Assert.That(gate.transform.position,
+                    Is.EqualTo(expected.Position));
+            }
         }
 
         [Test]
@@ -318,6 +337,88 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(probe.DisplayMaterial,
                 Is.EqualTo(_controller.TrackPool
                     .GetSegment(0).SurfaceMaterial));
+        }
+
+        [UnityTest]
+        public IEnumerator StageEleven_RepeatedContinuesPastGateThirtyFourReachGoal()
+        {
+            var store = new InMemoryStageProgressStore
+            {
+                HighestUnlocked = 11
+            };
+            _controller.SetProgressStoreForTests(store);
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(100000),
+                new RewardedAdTestService());
+            _controller.SelectStage(11);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+
+            int continueCount = 0;
+            int targetGateCount = _controller.Session.Stage.TargetGateCount;
+            for (int resolutionCount = 0;
+                resolutionCount < targetGateCount;
+                resolutionCount++)
+            {
+                if (_controller.Session.FlowState ==
+                    StageFlowState.StageFinishing)
+                {
+                    break;
+                }
+                int planIndex = _controller.Session.GatesPassed;
+                StageGateView gate = FindGateByPlanIndex(planIndex);
+                Assert.That(gate, Is.Not.Null,
+                    $"Gate {planIndex + 1} must stay in the fixed pool.");
+
+                if (planIndex >= 28)
+                {
+                    RunnerColor judgmentColor =
+                        gate.ActivePlan.GetJudgmentColor(
+                            _controller.Session.ElapsedPlayingSeconds);
+                    Mismatch(judgmentColor);
+                    Assert.That(gate.TryResolveCrossing(), Is.True);
+                    Assert.That(_controller.Session.FlowState,
+                        Is.EqualTo(StageFlowState.Failed));
+                    _controller.RequestCoinContinue();
+                    continueCount++;
+                    Assert.That(_controller.Session.GatesPassed,
+                        Is.EqualTo(planIndex + 1));
+                    if (_controller.Session.FlowState ==
+                        StageFlowState.Countdown)
+                    {
+                        _controller.Tick(3.1f);
+                        _controller.Session.Advance(1.1f, 0f);
+                    }
+                    yield return null;
+                    continue;
+                }
+
+                int tapCount = 0;
+                while (_controller.Session.CurrentColor != gate.AssignedColor &&
+                    tapCount < _controller.Session.Stage.AllowedColorCount)
+                {
+                    _controller.HandleGameplayTap();
+                    tapCount++;
+                }
+                Assert.That(_controller.Session.CurrentColor,
+                    Is.EqualTo(gate.AssignedColor));
+                Assert.That(gate.TryResolveCrossing(), Is.True);
+                yield return null;
+            }
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.StageFinishing));
+            Assert.That(continueCount, Is.GreaterThan(6));
+            Assert.That(_controller.Session.GatesPassed,
+                Is.EqualTo(_controller.Session.Stage.TargetGateCount));
+            Vector3 position = _controller.PlayerTransform.position;
+            position.z = _controller.Goal.transform.position.z + 1f;
+            _controller.PlayerTransform.position = position;
+            _controller.TickMovement(0f);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.StageCleared));
         }
 
         [Test]

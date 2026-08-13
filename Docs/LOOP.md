@@ -664,3 +664,15 @@ Use the now-coherent economy/result flow as the foundation for Lobby layout,
 zero-stock start-item purchase and real Store/ad integrations. Evaluate Fog
 and Ice presentation in separate gameplay iterations so economy UX does not
 mask mechanic readability changes.
+
+## Iteration 24 loop learning — Continue pool exhaustion
+
+- **Play:** Stage 11 stalled after repeated late Continues; no gate remained
+  and Goal could not complete the run.
+- **Analyze:** Fog was coincidental. Continue removed one object from the
+  six-slot presentation pool per use.
+- **Design:** consume the failed plan but recycle its object immediately.
+- **Validate:** exceed the pool size with late Continues, finish every gate,
+  then cross Goal and assert Stage Cleared.
+- **Learn:** uncapped product actions must be validated against every bounded
+  presentation resource they repeatedly touch.

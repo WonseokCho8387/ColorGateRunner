@@ -724,8 +724,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9A1PlayModeTests.cs`
 - `Continue_ResumesSameTimerProgressSpeedColorAndCursor`
 - `Continue_ResumesSameActiveSequence`
 - `Continue_ClearsCameraShakeAndDoesNotShowItemSelection`
-- `Continue_GateAndTrackPoolsDoNotResetOrGrow`
+- `Continue_RecyclesFailedSlotWithoutResettingPools`
 - `Continue_DoesNotRestoreShieldOrBooster`
+- `StageEleven_RepeatedContinuesPastGateThirtyFourReachGoal`
 - `ThirtyRepeatedBoosterContinueTransitions_HaveNoTransformDrift`
 
 #### `Step10_1PlayModeTests.cs`

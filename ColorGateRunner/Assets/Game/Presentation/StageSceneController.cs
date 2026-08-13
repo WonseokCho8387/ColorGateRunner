@@ -3001,7 +3001,7 @@ namespace ColorGateRunner.Presentation
             StageGateView consumedGate = _failedGate;
             if (consumedGate != null)
             {
-                consumedGate.Deactivate();
+                RecycleOrDeactivate(consumedGate);
             }
             _failedGate = null;
 
@@ -3021,8 +3021,11 @@ namespace ColorGateRunner.Presentation
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
             playerRenderer.sharedMaterial = GetMaterial(_session.CurrentColor);
-            playerBody.linearVelocity = Vector3.zero;
-            playerBody.angularVelocity = Vector3.zero;
+            if (!playerBody.isKinematic)
+            {
+                playerBody.linearVelocity = Vector3.zero;
+                playerBody.angularVelocity = Vector3.zero;
+            }
             _cameraShakeRemaining = 0f;
             _boosterCameraBlend = 0f;
             gameplayCamera.transform.SetPositionAndRotation(

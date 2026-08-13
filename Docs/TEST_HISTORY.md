@@ -2049,3 +2049,14 @@ Any mismatch blocks implementation.
   and direct next-Stage flow are understandable.
 - Automation verifies state and persistence contracts, not pricing fairness,
   reward satisfaction or visual polish.
+
+## Iteration 24 — Continue Gate-Pool Recycle Hotfix
+
+- Base HEAD: `61147cd`
+- Focused Stage 11 late-Continue regression: `1/1`
+- Full EditMode: `418/418`
+- Full PlayMode: `223/223`
+- Builder: omitted; no Scene or Builder changed.
+- Campaign/Step 10: omitted; no Core, Catalog, generation, timing, balance,
+  judgment, seed or simulation input changed. Iteration 23 hashes preserved.
+- Product save and backup: byte-identical to the captured pre-test snapshots.
