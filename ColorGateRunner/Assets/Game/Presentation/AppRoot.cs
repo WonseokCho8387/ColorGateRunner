@@ -150,6 +150,18 @@ namespace ColorGateRunner.Presentation
             return IsPrimary && _campaignLaunch.TrySet(stageId);
         }
 
+#if UNITY_EDITOR
+        internal bool TryQueueDevelopmentCampaignLaunch(string stageId)
+        {
+            return IsPrimary && _campaignLaunch.TrySet(stageId, true);
+        }
+
+        internal static AppServiceGraph CreateDevelopmentGraph()
+        {
+            return CreateProductionGraph();
+        }
+#endif
+
         internal bool TryConsumeCampaignLaunch(
             out CampaignLaunchRequest request)
         {

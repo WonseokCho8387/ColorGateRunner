@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `d74f584`
-- Base commit: `chore: establish monetization platform baseline`
+- Implementation base HEAD: `bdc824d`
+- Base commit: `feat: add local commerce rewards and hearts`
 - Authoritative completion HEAD: the commit named
-  `feat: add local commerce rewards and hearts`; its exact hash is
-  recorded in the Iteration 21 final report because a commit cannot contain
+  `feat: add editor developer console`; its exact hash is
+  recorded in the Iteration 22 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -20,8 +20,14 @@ iterations but do not override this section.
 
 ### Current product state
 
-- Current completed iteration: **Iteration 21 — Local Commerce Rewards and
-  Hearts**.
+- Current completed iteration: **Iteration 22 — Editor Developer Console**.
+- Unity Editor exposes `Window > Color Gate Runner > Developer Console`.
+  It can open any authored Stage as a non-persistent cheat launch, unlock
+  Campaign through a selected Stage, reset Campaign separately from Economy,
+  and set/reset Coins, Shields, Boosters, Continue Tickets, Hearts and timed
+  unlimited Hearts. Edit Mode writes the same local Product save before Play;
+  Play Mode uses the active AppRoot session and refreshes visible Product UI.
+  The tool is Editor-only and is absent from player builds.
 - Unity IAP `5.4.2` and its Unity Services Core `1.18.0` dependency are
   installed. Android billing mode is Google Play and the Android application
   ID is `com.wscho.colorgaterunner`.
@@ -103,7 +109,7 @@ iterations but do not override this section.
 
 ### Automated validation
 
-- EditMode: `408/408`
+- EditMode: `414/414`
 - PlayMode: `218/218`
 - Post-Builder PlayMode: `218/218`
 - Campaign Builder: 2 consecutive successful runs
@@ -118,6 +124,16 @@ iterations but do not override this section.
 3. `Assets/Scenes/SampleScene.unity`
 
 All three entries are expected to be enabled and unique.
+
+### Developer save snapshot
+
+- Schema 3, revision 30, Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest Stage 14, 13 records,
+  1,500 Coins, 3 Shields, 3 Boosters, 0 Continue Tickets and 5 Hearts.
+- SHA-256:
+  `77AF3ED2CFBB13591E2119FD77F94C68A5BFC488CF4DB62C2FDCC52C8B443B50`.
+- Full validation did not mutate this file. Developer Console mutations occur
+  only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
@@ -192,6 +208,18 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 22 validation result
+
+- Full EditMode passed `414/414`; full PlayMode passed `218/218`.
+- New isolated Product coverage verifies exact Economy edits, invalid-input
+  non-publication, Campaign-only reset and Economy-only reset. Editor coverage
+  verifies the approved menu path and existing Build Settings order.
+- No Scene, Builder-owned hierarchy, gameplay rule, Stage data or deterministic
+  input changed. Builders, Campaign simulation and Step 10 were therefore not
+  rerun; their prior approved baselines remain authoritative.
+- The actual developer save remained schema 3 revision 30 with SHA-256
+  `77AF3ED2CFBB13591E2119FD77F94C68A5BFC488CF4DB62C2FDCC52C8B443B50`.
 
 ## Iteration 21 validation result
 

@@ -90,6 +90,14 @@ namespace ColorGateRunner.Presentation
         internal Button ModalConfirmButton => modalConfirmButton;
         internal Button ModalCancelButton => modalCancelButton;
 
+#if UNITY_EDITOR
+        internal void RefreshProductStateForDevelopment()
+        {
+            BindProductContext();
+            ApplyPermanentVisibilityPolicy();
+        }
+#endif
+
         private void Awake()
         {
             ValidateRequiredReferences();

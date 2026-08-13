@@ -13,6 +13,22 @@ the commercial shell. Iteration 21 authorizes local idempotent reward grants
 but not a live purchase flow or receipt authority. Login, cloud save,
 advertising provider, analytics SDK and remote configuration remain excluded.
 
+### Editor Developer Console
+
+- `Window > Color Gate Runner > Developer Console` is the single Editor-only
+  authority for development progression and wallet cheats.
+- Campaign reset clears stable-ID records/unlocks and derived Lobby milestone
+  presentation while preserving Economy. Economy reset clears wallet,
+  inventory, Hearts, timed entitlement and commerce ledger while preserving
+  Campaign. Both operations are explicit and independently confirmed.
+- Exact Economy edits use the Product session's clone-save-publish boundary;
+  invalid values and write failure publish nothing. In Play Mode the active
+  AppRoot is mandatory. In Edit Mode an explicit mutation initializes and
+  writes the production-format local save; simply opening or reloading the
+  window does not write.
+- `PLAY STAGE` bypasses only the unlock check for one non-persistent launch. It
+  does not grant clears, alter Highest Unlocked, or create Stage records.
+
 ## Purpose
 
 Prepare the project for account, persistence, progression, economy, event

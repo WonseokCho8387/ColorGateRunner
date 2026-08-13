@@ -599,6 +599,98 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult ResetCampaignForDevelopment()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.CampaignProgress =
+                LocalCampaignProgressData.CreateDefaults();
+            candidate.CampaignProgress.LegacyMigrationCompleted = true;
+            candidate.LobbyProgress = LocalLobbyProgressData.CreateDefaults();
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult ResetEconomyForDevelopment()
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.Economy = LocalEconomyData.CreateDefaults();
+            return Commit(candidate);
+        }
+
+        public ProductMutationResult SetEconomyForDevelopment(
+            int coins,
+            int shields,
+            int boosters,
+            int continueTickets,
+            int hearts,
+            TimeSpan unlimitedHeartsRemaining)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (coins < 0 || shields < 0 || boosters < 0 ||
+                continueTickets < 0 || hearts < 0 ||
+                hearts > HeartStatePolicy.MaximumHearts ||
+                unlimitedHeartsRemaining < TimeSpan.Zero)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "Development economy values are outside their " +
+                        "supported range.",
+                        true));
+            }
+
+            DateTime clockNow = _clock.UtcNow;
+            DateTime now = clockNow.Kind switch
+            {
+                DateTimeKind.Utc => clockNow,
+                DateTimeKind.Local => clockNow.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(clockNow, DateTimeKind.Utc)
+            };
+            LocalEconomyData current = _current.Economy;
+            string observedUtc = LocalSaveService.ToUtcString(now);
+            string rechargeUtc = hearts < HeartStatePolicy.MaximumHearts
+                ? observedUtc
+                : string.Empty;
+            string unlimitedUtc = unlimitedHeartsRemaining > TimeSpan.Zero
+                ? LocalSaveService.ToUtcString(
+                    now.Add(unlimitedHeartsRemaining))
+                : string.Empty;
+            if (current.Coins == coins && current.ShieldCount == shields &&
+                current.BoosterCount == boosters &&
+                current.ContinueTicketCount == continueTickets &&
+                current.HeartCount == hearts &&
+                current.HeartRechargeAnchorUtc == rechargeUtc &&
+                current.LastHeartClockUtc == observedUtc &&
+                current.UnlimitedHeartsUntilUtc == unlimitedUtc)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            LocalEconomyData economy = candidate.Economy;
+            economy.Coins = coins;
+            economy.ShieldCount = shields;
+            economy.BoosterCount = boosters;
+            economy.ContinueTicketCount = continueTickets;
+            economy.HeartCount = hearts;
+            economy.HeartRechargeAnchorUtc = rechargeUtc;
+            economy.LastHeartClockUtc = observedUtc;
+            economy.UnlimitedHeartsUntilUtc = unlimitedUtc;
+            return Commit(candidate);
+        }
+
         public ProductMutationResult SetHighestUnlockedForDevelopment(
             string stageId)
         {

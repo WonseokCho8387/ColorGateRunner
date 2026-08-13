@@ -10,22 +10,25 @@ namespace ColorGateRunner.Presentation
 
     internal readonly struct CampaignLaunchRequest
     {
-        internal CampaignLaunchRequest(string stageId)
+        internal CampaignLaunchRequest(string stageId, bool bypassUnlock)
         {
             StageId = stageId;
+            BypassUnlock = bypassUnlock;
         }
 
         internal string StageId { get; }
+        internal bool BypassUnlock { get; }
     }
 
     internal sealed class CampaignLaunchContext
     {
         private string _pendingStageId;
+        private bool _bypassUnlock;
 
         internal bool HasPending =>
             !string.IsNullOrWhiteSpace(_pendingStageId);
 
-        internal bool TrySet(string stageId)
+        internal bool TrySet(string stageId, bool bypassUnlock = false)
         {
             if (HasPending || string.IsNullOrWhiteSpace(stageId))
             {
@@ -33,6 +36,7 @@ namespace ColorGateRunner.Presentation
             }
 
             _pendingStageId = stageId;
+            _bypassUnlock = bypassUnlock;
             return true;
         }
 
@@ -44,8 +48,11 @@ namespace ColorGateRunner.Presentation
                 return false;
             }
 
-            request = new CampaignLaunchRequest(_pendingStageId);
+            request = new CampaignLaunchRequest(
+                _pendingStageId,
+                _bypassUnlock);
             _pendingStageId = null;
+            _bypassUnlock = false;
             return true;
         }
 
@@ -61,6 +68,7 @@ namespace ColorGateRunner.Presentation
             }
 
             _pendingStageId = null;
+            _bypassUnlock = false;
             return true;
         }
     }

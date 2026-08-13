@@ -1155,3 +1155,14 @@ Status: Approved and implemented.
   Tickets do not bypass Core's shared three-Continue attempt cap.
 - Unity IAP initialization, receipt verification, Store confirmation, Shop UI
   and Firebase remain separate iterations.
+
+## Iteration 22 — Editor Developer Console
+
+- Development cheats live in one Editor-only Window menu, not in release UI.
+- Cheat Stage launch bypasses unlock for that launch only; progression remains
+  unchanged unless `UNLOCK THROUGH` is explicitly used.
+- Campaign reset and Economy reset are separate operations. Campaign reset also
+  resets derived Lobby milestone state, while Economy reset includes the local
+  commerce transaction ledger so purchases can be retested intentionally.
+- Edit Mode mutations target the same local Product save and Play Mode
+  mutations require the active AppRoot. All writes reuse clone-save-publish.

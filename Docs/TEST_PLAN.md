@@ -361,6 +361,19 @@ fairness, or polish.
 - Campaign Builder runs twice after the new failure action is generated, then
   the full post-Builder PlayMode suite runs.
 
+### Iteration 22 Editor Developer Console
+
+- Product EditMode coverage must verify exact Coin/item/Ticket/Heart/timed-
+  Heart edits, preservation of commerce ledger during an exact edit, invalid
+  value non-publication, Campaign-only reset and Economy-only reset.
+- Editor coverage must verify the menu registration and preserve enabled Build
+  Settings order. Tests use isolated saves and never invoke the real console
+  mutation path.
+- Full EditMode and PlayMode suites are required because Product save and
+  shared Presentation refresh/launch boundaries changed. Builders and
+  deterministic simulations are omitted when generated Scenes, Core, Stage
+  data and simulation inputs remain unchanged.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

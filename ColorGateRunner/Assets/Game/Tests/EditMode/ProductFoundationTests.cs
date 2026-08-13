@@ -999,6 +999,121 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(reloaded.Progression.Economy.Coins, Is.EqualTo(700));
         }
 
+        [Test]
+        public void DevelopmentEconomy_UpdatesExactValuesAndKeepsCommerceLedger()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.Coins = 10;
+            data.Economy.AppliedTransactionIds.Add("purchase:kept");
+            var save = new MutableSessionSaveService(data);
+            var clock = new MutableClock(_firstUtc);
+            AppInitializationPipeline pipeline =
+                CreateSessionPipeline(save, clock);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult result =
+                pipeline.Session.SetEconomyForDevelopment(
+                    25000,
+                    7,
+                    8,
+                    3,
+                    2,
+                    TimeSpan.FromHours(3));
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(result.Changed, Is.True);
+            LocalEconomyData economy = pipeline.Progression.Economy;
+            Assert.That(economy.Coins, Is.EqualTo(25000));
+            Assert.That(economy.ShieldCount, Is.EqualTo(7));
+            Assert.That(economy.BoosterCount, Is.EqualTo(8));
+            Assert.That(economy.ContinueTicketCount, Is.EqualTo(3));
+            Assert.That(economy.HeartCount, Is.EqualTo(2));
+            Assert.That(economy.HeartRechargeAnchorUtc,
+                Is.EqualTo("2026-08-01T01:02:03.0000000Z"));
+            Assert.That(economy.UnlimitedHeartsUntilUtc,
+                Is.EqualTo("2026-08-01T04:02:03.0000000Z"));
+            Assert.That(economy.AppliedTransactionIds,
+                Is.EqualTo(new[] { "purchase:kept" }));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(25000));
+        }
+
+        [Test]
+        public void DevelopmentEconomy_InvalidValuesDoNotSaveOrPublish()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.SetEconomyForDevelopment(
+                    -1,
+                    0,
+                    0,
+                    0,
+                    HeartStatePolicy.MaximumHearts + 1,
+                    TimeSpan.FromMinutes(-1));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.SaveValidation));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void DevelopmentCampaignReset_PreservesEconomyAndResetsLobby()
+        {
+            LocalSaveData data = CreateValidData();
+            data.CampaignProgress.HighestUnlockedStageId = "stage-12";
+            data.CampaignProgress.StageRecords.Add(
+                CreateStageRecord("stage-01", true, 1));
+            data.Economy.Coins = 9000;
+            data.Economy.ShieldCount = 4;
+            data.LobbyProgress.AppliedMilestoneCount = 6;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult result =
+                pipeline.Session.ResetCampaignForDevelopment();
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Campaign.HighestUnlockedStageId,
+                Is.EqualTo("stage-01"));
+            Assert.That(pipeline.Progression.Campaign.LegacyMigrationCompleted,
+                Is.True);
+            Assert.That(pipeline.Progression.Campaign.StageRecords, Is.Empty);
+            Assert.That(pipeline.Progression.Lobby.AppliedMilestoneCount,
+                Is.EqualTo(0));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(9000));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void DevelopmentEconomyReset_PreservesCampaignProgress()
+        {
+            LocalSaveData data = CreateValidData();
+            data.CampaignProgress.HighestUnlockedStageId = "stage-09";
+            data.Economy.Coins = 5000;
+            data.Economy.ContinueTicketCount = 3;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult result =
+                pipeline.Session.ResetEconomyForDevelopment();
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Campaign.HighestUnlockedStageId,
+                Is.EqualTo("stage-09"));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(0));
+            Assert.That(pipeline.Progression.Economy.ContinueTicketCount,
+                Is.EqualTo(0));
+            Assert.That(pipeline.Progression.Economy.HeartCount,
+                Is.EqualTo(HeartStatePolicy.MaximumHearts));
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,

@@ -700,12 +700,57 @@ namespace ColorGateRunner.Presentation
 
         internal void SelectStageById(string stageId)
         {
-            TrySelectStageById(stageId, false);
+            TrySelectStageById(stageId, false, false);
         }
+
+#if UNITY_EDITOR
+        internal bool SelectStageForDevelopment(string stageId)
+        {
+            return TrySelectStageById(stageId, true, true);
+        }
+
+        internal void RefreshProductStateForDevelopment()
+        {
+            if (!AppRoot.TryGetActive(out AppRoot appRoot) ||
+                appRoot.Graph?.ProductSession?.IsReady != true ||
+                appRoot.Graph.Progression?.Economy == null)
+            {
+                return;
+            }
+
+            _progressStore = new ProductStageProgressStore(
+                appRoot.Graph.ProductSession,
+                appRoot.Graph.Progression,
+                StageCatalog.Current);
+            _startItemInventory = new ProductStartItemInventoryGateway(
+                appRoot.Graph.ProductSession,
+                appRoot.Graph.Progression);
+            _continueEconomy = new ProductContinueEconomyGateway(
+                appRoot.Graph.ProductSession,
+                appRoot.Graph.Progression);
+            _highestUnlocked = _progressStore.LoadHighestUnlocked();
+            RefreshStartItemInventory();
+            if (_session != null)
+            {
+                if (_startItemInventorySnapshot.ShieldCount <= 0)
+                {
+                    _shieldSelected = false;
+                }
+                if (_startItemInventorySnapshot.BoosterCount <= 0)
+                {
+                    _boosterSelected = false;
+                }
+                SynchronizeItemSelection();
+            }
+            SynchronizeContinueOffers();
+            RefreshStageButtons();
+        }
+#endif
 
         private bool TrySelectStageById(
             string stageId,
-            bool enteredFromFrontendLaunch)
+            bool enteredFromFrontendLaunch,
+            bool bypassUnlock)
         {
             StageDefinition definition;
             try
@@ -716,7 +761,7 @@ namespace ColorGateRunner.Presentation
             {
                 return false;
             }
-            if (definition.DisplayNumber > _highestUnlocked)
+            if (!bypassUnlock && definition.DisplayNumber > _highestUnlocked)
             {
                 return false;
             }
@@ -747,7 +792,10 @@ namespace ColorGateRunner.Presentation
                 return false;
             }
 
-            return TrySelectStageById(request.StageId, true);
+            return TrySelectStageById(
+                request.StageId,
+                true,
+                request.BypassUnlock);
         }
 
         internal void HandlePreRunBack()

@@ -1706,3 +1706,31 @@ Human feedback required
 
 - Store connection, receipt/server validation, purchase confirmation, Shop UI,
   Firebase integration and final original Heart/Ticket visuals.
+
+## Iteration 22 — Editor Developer Console
+
+### Play / Analyze
+
+- Existing in-game development controls were difficult to reach from the
+  production Frontend flow and could not configure the full Product wallet.
+
+### Design / Implementation
+
+- Added one Editor Window for Stage launch/unlock, Campaign reset and exact
+  Economy/Heart configuration before or during Play.
+- Split the prior broad development reset into Campaign-only and Economy-only
+  atomic Product operations. Play Stage is a transient unlock bypass.
+
+### Validation / Learning
+
+- Full EditMode passed `414/414`; full PlayMode passed `218/218`. Tests used
+  isolated saves and the developer save remained unchanged.
+- Editor tooling can safely share Product authority without shipping cheat UI
+  or inventing a parallel persistence format.
+
+### Deferred / Human Review
+
+- In-run gate-index teleport, fine-grained Best-record editing, remote dev
+  console, and a full account wipe remain excluded.
+- Human review should confirm the Window labels and Play/Unlock distinction are
+  clear during ordinary Unity use.

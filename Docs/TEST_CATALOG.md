@@ -809,6 +809,15 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   required controller references, no duplicate generated root and one
   EventSystem.
 
+### Iteration 22 Developer Console coverage
+
+- `ProductFoundationTests.DevelopmentEconomy_UpdatesExactValuesAndKeepsCommerceLedger`
+- `ProductFoundationTests.DevelopmentEconomy_InvalidValuesDoNotSaveOrPublish`
+- `ProductFoundationTests.DevelopmentCampaignReset_PreservesEconomyAndResetsLobby`
+- `ProductFoundationTests.DevelopmentEconomyReset_PreservesCampaignProgress`
+- `DeveloperConsoleTests.WindowMenu_IsRegisteredOnApprovedPath`
+- `DeveloperConsoleTests.BuildSettings_KeepBootFrontendCampaignOrder`
+
 ## References
 
 - `TEST_PLAN.md` — validation policy and tier selection.

@@ -1,5 +1,19 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 22 completed update
+
+- Unity now has `Window > Color Gate Runner > Developer Console` for authored
+  Stage 1-20 cheat launch, unlock-through, Campaign reset and exact Coins,
+  Shield, Booster, Continue Ticket, Heart and unlimited-Heart configuration.
+- Edit Mode changes persist before Play. Play Mode uses the active Product
+  session and refreshes visible Frontend/PreRun/Failure values. Cheat Stage
+  launch does not alter progression.
+- Full EditMode passed `414/414`; full PlayMode passed `218/218`. No Scene,
+  gameplay, Catalog or deterministic input changed, so Builder/Campaign/Step10
+  baselines remain unchanged.
+- Store initialization, receipt/server validation, Shop UI, Firebase runtime,
+  real rewarded-ad provider and Stages 21-36 remain pending.
+
 ## Iteration 21 completed update
 
 - Local implementation now contains schema-3 Hearts, timed unlimited Hearts,
