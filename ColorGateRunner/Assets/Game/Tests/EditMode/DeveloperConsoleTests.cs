@@ -19,7 +19,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(open, Is.Not.Null);
             Assert.That(attribute, Is.Not.Null);
             Assert.That(attribute.menuItem,
-                Is.EqualTo("Window/Color Gate Runner/Developer Console"));
+                Is.EqualTo("Tools/Color Gate Runner/Developer Console"));
         }
 
         [Test]

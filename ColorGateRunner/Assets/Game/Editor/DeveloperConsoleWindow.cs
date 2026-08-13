@@ -23,7 +23,7 @@ namespace ColorGateRunner.Editor
         private string _status = "Press Reload to inspect the current save.";
         private MessageType _statusType = MessageType.Info;
 
-        [MenuItem("Window/Color Gate Runner/Developer Console")]
+        [MenuItem("Tools/Color Gate Runner/Developer Console", priority = 1)]
         internal static void Open()
         {
             DeveloperConsoleWindow window =

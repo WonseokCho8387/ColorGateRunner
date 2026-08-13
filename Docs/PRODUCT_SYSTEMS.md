@@ -15,7 +15,7 @@ advertising provider, analytics SDK and remote configuration remain excluded.
 
 ### Editor Developer Console
 
-- `Window > Color Gate Runner > Developer Console` is the single Editor-only
+- `Tools > Color Gate Runner > Developer Console` is the single Editor-only
   authority for development progression and wallet cheats.
 - Campaign reset clears stable-ID records/unlocks and derived Lobby milestone
   presentation while preserving Economy. Economy reset clears wallet,

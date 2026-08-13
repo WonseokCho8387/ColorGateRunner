@@ -21,7 +21,7 @@ iterations but do not override this section.
 ### Current product state
 
 - Current completed iteration: **Iteration 22 — Editor Developer Console**.
-- Unity Editor exposes `Window > Color Gate Runner > Developer Console`.
+- Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
   and set/reset Coins, Shields, Boosters, Continue Tickets, Hearts and timed

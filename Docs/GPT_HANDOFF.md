@@ -2,7 +2,7 @@
 
 ## Iteration 22 completed update
 
-- Unity now has `Window > Color Gate Runner > Developer Console` for authored
+- Unity now has `Tools > Color Gate Runner > Developer Console` for authored
   Stage 1-20 cheat launch, unlock-through, Campaign reset and exact Coins,
   Shield, Booster, Continue Ticket, Heart and unlimited-Heart configuration.
 - Edit Mode changes persist before Play. Play Mode uses the active Product
