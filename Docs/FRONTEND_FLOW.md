@@ -942,3 +942,13 @@ not reusable art assets or an exact visual copy.
   Lobby.
 - Final Lobby composition, Fog curtain redesign, and authored Ice approach are
   deferred to their dedicated visual/gameplay iterations.
+
+## Implemented UX slice — Iteration 25 timed Campaign Fog
+
+- Campaign Stages 12–14 use one timed world-space curtain instead of per-gate
+  nearest-two neutralization. It triggers when the first Fog gate is next,
+  follows at 1.5 seconds of travel distance, holds for 1.5 seconds and fades
+  over 0.5 seconds.
+- Pause and Continue countdown freeze it; Continue preserves/repositions it
+  and Retry resets it. This changes no Frontend navigation or result contract.
+- Final Lobby composition and authored Ice approach remain deferred.

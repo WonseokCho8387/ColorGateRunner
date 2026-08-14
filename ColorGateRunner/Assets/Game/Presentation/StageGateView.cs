@@ -251,12 +251,9 @@ namespace ColorGateRunner.Presentation
             float gameplayTimeSeconds,
             float deltaSeconds)
         {
-            bool fogVisible =
-                !ActivePlan.Modifier.IsFog ||
-                _planIndex - passedGateCount < 2;
             UpdateModifierVisibility(
                 ActivePlan.Modifier.IsCamouflage,
-                fogVisible,
+                true,
                 ActivePlan.Modifier.IsEchoProvider,
                 ActivePlan.Modifier.IsHidden,
                 ActivePlan.Modifier.IsFlicker,

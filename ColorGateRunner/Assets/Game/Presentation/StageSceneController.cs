@@ -51,6 +51,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private ParticleSystem successParticles;
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private TrailRenderer playerTrail;
+        [SerializeField] private TimedFogCurtainView fogCurtain;
         [SerializeField] private bool developmentTelemetryEnabled;
         [SerializeField] private GameObject[] uiFlowRoots;
 
@@ -222,6 +223,7 @@ namespace ColorGateRunner.Presentation
         internal Text LobbyStageDescriptionText => lobbyStageDescriptionText;
         internal ParticleSystem SpeedLines => speedLines;
         internal TrailRenderer PlayerTrail => playerTrail;
+        internal TimedFogCurtainView FogCurtain => fogCurtain;
         internal Text CountdownText => countdownText;
         internal Text ProgressText => progressText;
         internal Text ClearDetailsText => clearDetailsText;
@@ -503,6 +505,7 @@ namespace ColorGateRunner.Presentation
                     ? cyanMaterial
                     : _normalTrackMaterial);
             RecycleResolvedGatesBehindPlayer();
+            UpdateCampaignFogCurtain(deltaTime);
             UpdateCampaignGateVisibility(deltaTime);
             if (_session.FlowState == StageFlowState.StageFinishing &&
                 goal.activeSelf &&
@@ -1182,6 +1185,7 @@ namespace ColorGateRunner.Presentation
             _continueStatus = string.Empty;
             PrepareCleanContinueRespawn();
             ApplySafeOverridesToActiveGates();
+            UpdateCampaignFogCurtain(0f);
             UpdateCampaignGateVisibility();
             ApplyUiFlow(MobileUiFlow.Countdown);
             _countdownRemaining = CountdownDuration;
@@ -1473,7 +1477,8 @@ namespace ColorGateRunner.Presentation
                 echoShellVisual == null || echoShellRenderers == null ||
                 echoShellRenderers.Length == 0 ||
                 successParticles == null || speedLines == null ||
-                playerTrail == null || uiFlowRoots == null ||
+                playerTrail == null || fogCurtain == null ||
+                !fogCurtain.HasRequiredReferences() || uiFlowRoots == null ||
                 uiFlowRoots.Length != 7 || lobbyPanel == null ||
                 lobbyStageText == null || lobbyStageTitleText == null ||
                 lobbyStageDescriptionText == null || lobbyProgressText == null ||
@@ -1565,6 +1570,7 @@ namespace ColorGateRunner.Presentation
             ParticleSystem success,
             ParticleSystem boosterLines,
             TrailRenderer trail,
+            TimedFogCurtainView timedFogCurtain,
             GameObject[] flowRoots,
             GameObject lobby,
             Text lobbyStage,
@@ -1649,6 +1655,7 @@ namespace ColorGateRunner.Presentation
             successParticles = success;
             speedLines = boosterLines;
             playerTrail = trail;
+            fogCurtain = timedFogCurtain;
             uiFlowRoots = flowRoots;
             lobbyPanel = lobby;
             lobbyStageText = lobbyStage;
@@ -2190,6 +2197,24 @@ namespace ColorGateRunner.Presentation
             }
         }
 
+        private void UpdateCampaignFogCurtain(float deltaSeconds)
+        {
+            if (_session == null || fogCurtain == null)
+            {
+                return;
+            }
+
+            StageGateView upcoming = FindActiveGate(_session.GatesPassed);
+            float speed = upcoming == null
+                ? _session.CurrentSpeed
+                : _session.GetSpeedForPlan(upcoming.ActivePlan);
+            if (upcoming != null && upcoming.ActivePlan.Modifier.IsFog)
+            {
+                fogCurtain.TryActivate(player.position, speed);
+            }
+            fogCurtain.Tick(deltaSeconds, player.position, speed);
+        }
+
         private float EstimateCampaignGateEta(
             GatePlan plan,
             float gateWorldZ)
@@ -2507,6 +2532,7 @@ namespace ColorGateRunner.Presentation
             _colorStackTransitionRemaining = 0f;
             playerRenderer.sharedMaterial = redMaterial;
             trackPool.ResetPool();
+            fogCurtain.ResetCurtain();
             goal.SetActive(false);
             shieldVisual.SetActive(false);
             echoShellVisual.SetActive(false);

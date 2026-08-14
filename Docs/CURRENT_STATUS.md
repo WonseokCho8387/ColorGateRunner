@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `7858803`
-- Base commit: `fix: group developer console under tools menu`
+- Implementation base HEAD: `a8f7892`
+- Base commit: `fix: recycle failed gates after continue`
 - Authoritative completion HEAD: the commit named
-  `feat: refine continue and clear economy flow`; its exact hash is
-  recorded in the Iteration 23 final report because a commit cannot contain
+  `feat: add timed fog curtain`; its exact hash is
+  recorded in the Iteration 25 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 24 — Continue gate-pool recycle hotfix**.
+- Current completed iteration: **Iteration 25 — Timed Fog Curtain**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -120,6 +120,13 @@ below where their contracts differ.
   separates first-clear and Lobby milestone rewards, and opens the unlocked
   next Stage directly in PreRun. Final or still-locked next Stages hide that
   action.
+- Campaign Stages 12–14 no longer neutralize all but two Fog gates. When the
+  first Fog gate becomes the next judgment, one world-space curtain appears
+  at 1.5 seconds of current travel distance ahead of the player. It remains at
+  alpha 1 for 1.5 seconds, fades to 0 over 0.5 seconds, and cannot retrigger in
+  that attempt. Pause and Continue countdown freeze it; Continue preserves its
+  state and Retry resets it. Experiment Lab retains its historical nearest-two
+  Fog comparison contract.
 - The local catalog owns six Coin packs and five bundles. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
   Tickets are offered before real ads and Coins. Store connection, receipt
@@ -128,9 +135,9 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `418/418`
-- PlayMode: `223/223`
-- Post-Builder PlayMode: `222/222` (Iteration 23; no Scene or Builder change)
+- EditMode: `421/421`
+- PlayMode: `225/225`
+- Post-Builder PlayMode: `225/225`
 - Campaign Builder: 2 consecutive successful runs
 - Stage Catalog Builder: revision 7 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -227,6 +234,25 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 25 validation result
+
+- Starting HEAD `a8f7892` was clean. Completion commit name:
+  `feat: add timed fog curtain`.
+- Campaign Fog now uses a single speed-adaptive world-space curtain instead
+  of per-gate nearest-two neutralization. The curtain holds for 1.5 seconds,
+  fades for 0.5 seconds, preserves its state through Pause and Continue
+  countdown, and resets on Retry.
+- Campaign judgment, authored gate plans, speed, spacing and stable Stage IDs
+  are unchanged. Experiment Lab keeps the historical nearest-two benchmark.
+- Campaign Builder completed two consecutive runs. Full EditMode passed
+  `421/421`; final post-Builder PlayMode passed `225/225`. Missing references,
+  duplicate generated Fog curtain, fixed pools and Build Settings checks passed.
+- Campaign and Step 10 simulations were not rerun because no Core, Catalog,
+  generator, judgment, seed, balance or simulation input changed; Iteration 23
+  hashes remain authoritative.
+- The real Product save and backup remained byte- and timestamp-identical to
+  their pre-test snapshots.
 
 ## Iteration 24 validation result
 

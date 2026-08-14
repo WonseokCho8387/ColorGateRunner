@@ -781,6 +781,92 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CampaignFog_UsesOneTimedCurtainAtAdaptiveDistance()
+        {
+            SelectAndStartStage(12);
+            StageGateView fog = AdvanceToCampaignModifier(
+                GateModifierType.Fog);
+            float expectedDistance =
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan) *
+                TimedFogCurtainView.ForwardTravelSeconds;
+
+            _controller.TickMovement(0f);
+
+            Assert.That(_controller.FogCurtain.HasTriggered, Is.True);
+            Assert.That(_controller.FogCurtain.IsVisible, Is.True);
+            Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
+            Assert.That(
+                _controller.FogCurtain.transform.position.z -
+                _controller.PlayerTransform.position.z,
+                Is.EqualTo(expectedDistance).Within(0.001f));
+            Assert.That(
+                fog.DisplayMaterial,
+                Is.SameAs(_controller.GetPresentationMaterial(
+                    fog.AssignedColor)));
+
+            _controller.FogCurtain.Tick(
+                1.5f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
+            _controller.FogCurtain.Tick(
+                0.25f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            Assert.That(_controller.FogCurtain.Alpha,
+                Is.EqualTo(0.5f).Within(0.0001f));
+            _controller.FogCurtain.Tick(
+                0.25f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            Assert.That(_controller.FogCurtain.IsVisible, Is.False);
+
+            _controller.TickMovement(0f);
+            Assert.That(_controller.FogCurtain.IsVisible, Is.False,
+                "The same contiguous Fog section cannot retrigger.");
+        }
+
+        [Test]
+        public void CampaignFog_PauseContinueAndRetryPreserveLifecycle()
+        {
+            SelectAndStartStage(12);
+            StageGateView fog = AdvanceToCampaignModifier(
+                GateModifierType.Fog);
+            _controller.TickMovement(0f);
+            _controller.FogCurtain.Tick(
+                1.6f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            float alphaBeforePause = _controller.FogCurtain.Alpha;
+            float elapsedBeforePause = _controller.FogCurtain.ElapsedSeconds;
+
+            _controller.RequestPause();
+            _controller.Tick(1f);
+            Assert.That(_controller.FogCurtain.ElapsedSeconds,
+                Is.EqualTo(elapsedBeforePause));
+            _controller.RequestResume();
+
+            Mismatch(fog.AssignedColor);
+            Assert.That(fog.TryResolveCrossing(), Is.True);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            _controller.RequestCoinContinue();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.FogCurtain.IsVisible, Is.True);
+            Assert.That(_controller.FogCurtain.Alpha,
+                Is.EqualTo(alphaBeforePause).Within(0.0001f));
+            _controller.Tick(1f);
+            Assert.That(_controller.FogCurtain.Alpha,
+                Is.EqualTo(alphaBeforePause).Within(0.0001f));
+
+            _controller.RetryToItemSelection();
+            Assert.That(_controller.FogCurtain.HasTriggered, Is.False);
+            Assert.That(_controller.FogCurtain.IsVisible, Is.False);
+        }
+
+        [Test]
         public void Ice_ChangesFloorPresentationAndKeepsColorJudgment()
         {
             Material normal =

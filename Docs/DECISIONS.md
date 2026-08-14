@@ -1208,3 +1208,16 @@ Status: Approved and implemented.
   the uncapped Continue policy approved in Iteration 23.
 - This hotfix does not change Core Continue rules, stage balance, Fog,
   Campaign content, pricing or persistence.
+
+## Iteration 25 — Campaign Fog is a one-shot timed curtain
+
+- Campaign Fog no longer exposes exactly two readable gates. Its modifier
+  triggers one presentation curtain when the first Fog gate becomes the next
+  judgment in an attempt.
+- Curtain distance is `effective speed * 1.5 seconds`. Alpha stays at 1 for
+  1.5 seconds and fades linearly to 0 over 0.5 seconds.
+- Pause and Continue countdown freeze the timer. Continue preserves and
+  repositions the existing curtain; Retry resets the one-shot state.
+- Experiment Lab preserves the historical nearest-two comparison so its Step
+  10 experiment definition and artifacts are not silently redefined.
+- Gate plans, judgment, Campaign balance, Catalog and persistence are unchanged.

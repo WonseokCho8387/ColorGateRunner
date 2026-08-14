@@ -1834,3 +1834,38 @@ Human feedback required
 
 - Fog and Ice presentation redesign remain separate approved product work.
 - Human replay should confirm Stage 11 feels continuous at and beyond gate 34.
+
+## Iteration 25 — Timed Fog Curtain
+
+### Play / Analyze
+
+- Human play found that nearest-two Fog exposed obstacle spacing and made its
+  authored end predictable, so it read like another gate modifier rather than
+  a temporary visibility event.
+- Campaign and Experiment shared the same gate-level neutralization, while the
+  requested product behavior could remain presentation-only.
+
+### Design / Implementation
+
+- Campaign Fog triggers one speed-adaptive curtain per attempt when the first
+  Fog gate becomes the next judgment. It holds Alpha 1 for 1.5 seconds and
+  fades over 0.5 seconds at 1.5 seconds of travel distance ahead.
+- Pause and Continue countdown freeze state; Continue repositions it after
+  respawn and Retry resets it. Campaign gates retain authored colors.
+- Builder creates exactly one transparent `FogCurtain`; Experiment Lab keeps
+  the prior nearest-two diagnostic behavior.
+
+### Validation / Learning
+
+- New pure-state tests cover hold, fade, one-shot, reset and invalid time.
+- Campaign PlayMode covers adaptive distance, authored gate material,
+  non-retrigger, Pause/Continue preservation and Retry reset.
+- Builder passed twice, EditMode `421/421`, and PlayMode `225/225`.
+- A visual mechanic can change presentation without invalidating deterministic
+  judgment, but the product and diagnostic Experiment contracts must be named
+  separately.
+
+### Deferred / Human Review
+
+- Human review owns curtain softness, opacity, depth and readability on device.
+- Preplaced/rebalanced Ice and the final Lobby layout remain separate work.

@@ -650,3 +650,21 @@ Iterations 19 and 21 without deleting their historical records.
   current gate-modifier implementation for Iteration 23. The timed Fog veil,
   preplaced Ice runway, Ice-speed rebalance, and Lobby visual redesign are
   explicitly deferred to later approved iterations.
+
+## Iteration 25 Campaign Timed Fog Curtain
+
+This section supersedes only the Campaign Fog presentation contract above.
+Experiment Lab retains its historical nearest-two visibility comparison.
+
+- In Campaign Stages 12–14, the first Fog-modified gate becoming the next
+  judgment triggers one Fog curtain per attempt.
+- The curtain follows the player at `current effective speed * 1.5 seconds`
+  ahead, keeping the obstruction at roughly one to two gate intervals as
+  speed changes.
+- Alpha is `1` for `1.5 seconds`, then linearly fades from `1` to `0` over
+  `0.5 seconds`. It cannot retrigger until a new Retry/attempt resets it.
+- Pause and Continue countdown do not advance Fog time. Continue preserves
+  the current Alpha and repositions the curtain relative to the clean respawn;
+  Retry resets it.
+- Fog changes only visibility presentation. Gate color, judgment, sequence,
+  spacing, speed, Goal, item and Continue rules are unchanged.

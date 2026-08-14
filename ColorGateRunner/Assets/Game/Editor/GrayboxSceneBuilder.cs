@@ -69,6 +69,9 @@ namespace ColorGateRunner.Editor
             Material failure = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Failure.mat",
                 FailureColor);
+            Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
+                GeneratedMaterialsFolder + "/FogCurtain.mat",
+                new Color(0.12f, 0.18f, 0.26f, 1f));
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             RemovePreviousSceneObjects(scene);
@@ -85,6 +88,8 @@ namespace ColorGateRunner.Editor
             Renderer playerRenderer = playerObject.GetComponent<Renderer>();
             Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
+            TimedFogCurtainView fogCurtain =
+                CreateFogCurtain(root.transform, fogCurtainMaterial);
             GameObject shieldVisual =
                 CreateShieldVisual(playerObject.transform, blue);
             GameObject echoShellVisual =
@@ -303,6 +308,7 @@ namespace ColorGateRunner.Editor
                 successParticles,
                 speedLines,
                 trail,
+                fogCurtain,
                 flowRoots,
                 lobbyPanel,
                 lobbyStageText,
@@ -482,6 +488,8 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<ShieldPickupView>(true);
             TrackPoolController[] trackPools =
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
+            TimedFogCurtainView[] fogCurtains =
+                generatedRoot.GetComponentsInChildren<TimedFogCurtainView>(true);
             ExperimentLauncher[] experimentLaunchers =
                 generatedRoot.GetComponentsInChildren<ExperimentLauncher>(true);
 
@@ -490,7 +498,10 @@ namespace ColorGateRunner.Editor
                 legacyControllers.Length != 0)
             {
                 throw new InvalidOperationException(
-                    "Stage controller is duplicated, incomplete, or legacy mode is exposed.");
+                    "Stage controller is duplicated, incomplete, or legacy mode is exposed. " +
+                    $"Controllers={controllers.Length}, " +
+                    $"Required={(controllers.Length == 1 && controllers[0].HasRequiredReferences())}, " +
+                    $"Legacy={legacyControllers.Length}.");
             }
             RectTransform pauseDimRect =
                 controllers[0].PauseDim.GetComponent<RectTransform>();
@@ -526,6 +537,12 @@ namespace ColorGateRunner.Editor
                 trackPools[0].SegmentCount != TrackPoolSize)
             {
                 throw new InvalidOperationException("Track pool is invalid.");
+            }
+            if (fogCurtains.Length != 1 ||
+                !fogCurtains[0].HasRequiredReferences())
+            {
+                throw new InvalidOperationException(
+                    "Timed Fog curtain is missing or incomplete.");
             }
             if (experimentLaunchers.Length != 1 ||
                 !experimentLaunchers[0].HasRequiredReferences())
@@ -581,6 +598,7 @@ namespace ColorGateRunner.Editor
                 "BoosterEndWarning",
                 "ShieldIcon",
                 "ShieldVisual",
+                "FogCurtain",
                 "Goal",
                 "FinishLeftPost",
                 "FinishRightPost",
@@ -817,6 +835,24 @@ namespace ColorGateRunner.Editor
             trail.sharedMaterial = material;
             trail.emitting = false;
             return trail;
+        }
+
+        private static TimedFogCurtainView CreateFogCurtain(
+            Transform parent,
+            Material material)
+        {
+            GameObject curtain = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            curtain.name = "FogCurtain";
+            curtain.transform.SetParent(parent, false);
+            curtain.transform.localScale = new Vector3(12f, 8f, 0.35f);
+            Renderer renderer = curtain.GetComponent<Renderer>();
+            renderer.sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(
+                curtain.GetComponent<Collider>());
+            TimedFogCurtainView view =
+                curtain.AddComponent<TimedFogCurtainView>();
+            view.Configure(renderer);
+            return view;
         }
 
         private static GameObject CreateShieldVisual(
@@ -2210,6 +2246,40 @@ namespace ColorGateRunner.Editor
             }
 
             material.color = color;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateTransparentMaterial(
+            string path,
+            Color color)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader shader =
+                Shader.Find("Universal Render Pipeline/Unlit") ??
+                Shader.Find("Standard");
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.color = color;
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat(
+                "_SrcBlend",
+                (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat(
+                "_DstBlend",
+                (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             EditorUtility.SetDirty(material);
             return material;
         }

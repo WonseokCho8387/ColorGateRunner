@@ -174,6 +174,14 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTe
 
 ### Hidden, Flicker, Clone, Echo, and ETA
 
+#### `TimedFogCurtainTests.cs`
+
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/TimedFogCurtainTests.cs`
+
+- `Trigger_HoldsFullOpacityThenFadesToZero`
+- `Trigger_IsOneShotUntilAttemptReset`
+- `Advance_RejectsNegativeTime`
+
 #### `HiddenModifierTests.cs`
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/HiddenModifierTests.cs`
@@ -544,6 +552,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `IceGatePositions_RemainContinuousDuringMovement`
 - `Camouflage_RemainsNeutralThenRevealsWithoutMoving`
 - `Fog_KeepsExactlyTwoGatesFullyReadableWithoutPoolGrowth`
+- `CampaignFog_UsesOneTimedCurtainAtAdaptiveDistance`
+- `CampaignFog_PauseContinueAndRetryPreserveLifecycle`
 - `Ice_ChangesFloorPresentationAndKeepsColorJudgment`
 - `RepeatedExperimentStarts_CreateNoDuplicates`
 - `FailureCameraShake_RestoresOriginalPositionAndRotation`

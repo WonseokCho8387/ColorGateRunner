@@ -1,5 +1,23 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 25 completed update
+
+- Starting HEAD was `a8f7892`; completion commit name is
+  `feat: add timed fog curtain`.
+- Campaign Stages 12–14 now trigger one world-space Fog curtain when their
+  first Fog gate becomes the next judgment. It follows at 1.5 seconds of
+  effective travel distance, holds Alpha 1 for 1.5 seconds and fades for 0.5.
+- Campaign gates keep their authored color and ordinary judgment behind the
+  curtain. The same attempt cannot retrigger it; Pause and Continue countdown
+  freeze it, Continue repositions it after respawn, and Retry resets it.
+- Experiment Lab keeps the historical nearest-two Fog comparison.
+- Campaign Builder passed twice, EditMode `421/421`, PlayMode `225/225`.
+  Campaign and Step 10 hashes remain the Iteration 23 baseline because no
+  deterministic mechanical input changed. Product save and backup remained
+  byte- and timestamp-identical.
+- Human visual review remains required. Ice approach/speed and Lobby layout
+  are the next separate product candidates.
+
 ## Iteration 24 completed update
 
 - Starting HEAD was `61147cd`; the completion commit is named

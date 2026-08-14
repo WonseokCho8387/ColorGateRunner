@@ -2060,3 +2060,15 @@ Any mismatch blocks implementation.
 - Campaign/Step 10: omitted; no Core, Catalog, generation, timing, balance,
   judgment, seed or simulation input changed. Iteration 23 hashes preserved.
 - Product save and backup: byte-identical to the captured pre-test snapshots.
+
+## Iteration 25 — Timed Fog Curtain
+
+- Base HEAD: `a8f7892`
+- Campaign Builder: two consecutive passes with one required Fog curtain.
+- Full EditMode: `421/421`
+- Full post-Builder PlayMode: `225/225`
+- Campaign/Step 10 simulations: omitted because Core, Catalog, gate plans,
+  generator, judgment, seed, balance and simulation inputs are unchanged.
+- Package hashes and non-volatile ProjectSettings semantics remained unchanged.
+- Product save and backup hashes, byte lengths and timestamps were identical
+  to the pre-test snapshot.

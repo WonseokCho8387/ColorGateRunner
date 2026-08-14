@@ -423,6 +423,22 @@ fairness, or polish.
 - Final Lobby layout, Fog curtain redesign, and authored Ice approach remain
   deferred human/product work rather than acceptance claims for this iteration.
 
+### Iteration 25 Campaign timed Fog curtain
+
+- Campaign Fog must trigger once when the first Fog gate becomes the next
+  judgment, follow at 1.5 seconds of effective travel distance, hold Alpha 1
+  for 1.5 seconds, and fade linearly to 0 over 0.5 seconds.
+- The same attempt cannot retrigger the curtain. Pause and Continue countdown
+  freeze its elapsed time and Alpha; Continue repositions the same state after
+  clean respawn and Retry resets it.
+- Campaign Fog gates retain their authored material and ordinary judgment.
+  Experiment Lab retains its nearest-two comparison and Step 10 contract.
+- Builder validation requires exactly one `FogCurtain`, one valid controller
+  reference and the existing fixed Gate/Track pools after two builds.
+- Final evidence: EditMode `421/421`, post-Builder PlayMode `225/225`, Campaign
+  Builder twice. Deterministic simulations are omitted because no mechanical
+  input or result changed.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

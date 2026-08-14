@@ -676,3 +676,15 @@ mask mechanic readability changes.
   then cross Goal and assert Stage Cleared.
 - **Learn:** uncapped product actions must be validated against every bounded
   presentation resource they repeatedly touch.
+
+## Iteration 25 loop learning — Fog as a timed visibility event
+
+- **Play:** nearest-two Fog exposed upcoming spacing and its end boundary.
+- **Analyze:** coloring individual gates neutral made Fog legible as a counted
+  sequence rather than a temporary obstruction.
+- **Design:** keep gate truth intact and place one speed-adaptive curtain
+  between player and upcoming content for a fixed hold-and-fade window.
+- **Validate:** test one-shot timing, distance, Pause/Continue freeze, Retry
+  reset, ordinary judgment and Builder uniqueness separately.
+- **Learn:** visibility challenge should obscure perception without rewriting
+  the underlying deterministic target state.

@@ -472,3 +472,17 @@ The three-Continue cap and original prices below are superseded by Iteration
 - Final Lobby layout, the distance-based Fog curtain treatment, and authored
   Ice floor approach/readability remain deferred. This slice does not claim
   final visual polish for those surfaces.
+
+## Iteration 25 timed Fog curtain presentation
+
+- Campaign Fog is one dark blue-gray translucent world-space curtain spanning
+  the playable road and vertical view, rather than gray materials applied to
+  individual distant gates.
+- It follows the player at 1.5 seconds of effective travel distance, holds at
+  full opacity for 1.5 seconds and fades smoothly over 0.5 seconds.
+- Gates retain their authored colors behind the curtain. The curtain is hidden
+  outside its timed window and must not duplicate across Builder runs.
+- Pause and Continue countdown freeze the visible Alpha. Continue respawn
+  repositions the same curtain without flashing or restarting it.
+- The generated treatment is still a graybox visibility proof. Human review
+  owns final texture, volumetric depth, softness, color and device readability.
