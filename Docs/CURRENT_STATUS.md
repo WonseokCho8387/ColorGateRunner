@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `eddf720`
-- Base commit: `feat: add preplaced ice runway`
+- Implementation base HEAD: `3e9b389`
+- Base commit: `feat: rebalance ice tap rhythm`
 - Authoritative completion HEAD: the commit named
-  `feat: rebalance ice tap rhythm`; its exact hash is
-  recorded in the Iteration 28 final report because a commit cannot contain
+  `feat: simplify lobby hierarchy`; its exact hash is
+  recorded in the Iteration 29 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 28 — Ice Tap Rhythm**.
+- Current completed iteration: **Iteration 29 — Lobby Visual Hierarchy**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -75,8 +75,13 @@ below where their contracts differ.
   to Stage 36 applies one automatic Lobby milestone and an idempotent reward.
   The starter reward policy grants 200 Coins, or 300 at every third milestone,
   plus alternating Shield/Booster inventory.
-- Frontend Lobby displays Coins, inventory, current theme, visible upgrades,
-  the next clear target, and a one-time reward summary. Frontend-origin result
+- Frontend Lobby uses three clear zones: persistent Profile / Coin / Heart /
+  Settings controls at the top, the current Lobby theme and upgrade progress
+  as the dominant center, and one compact Stage card with one primary `PLAY`
+  action at the bottom. Shield and Booster stock remain compact secondary
+  chips. Duplicate `LOBBY` and account labels are removed; milestone rewards
+  appear only as a pending banner. Hearts show `5/5`, next-recharge time, or
+  timed-unlimited remaining time from Product state. Frontend-origin result
   actions return there; direct/development entry keeps Campaign Lobby fallback.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
@@ -148,11 +153,13 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `429/429`
+- EditMode: `430/430`
 - PlayMode: `227/227`
-- Post-Builder PlayMode: `226/226`
+- Post-Builder PlayMode: `227/227`
+- Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
+  generated references, unique roots, EventSystem and Build Settings passed
 - Campaign Builder: Iteration 27 two-pass baseline retained; not rerun because
-  Iteration 28 changes no Scene or Builder-owned content
+  Iteration 29 changes no Campaign Scene or Builder-owned content
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -248,6 +255,28 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 29 validation result
+
+- Starting HEAD `3e9b389` was clean. Completion commit name:
+  `feat: simplify lobby hierarchy`.
+- Frontend Lobby now uses a persistent top resource bar, one dominant theme /
+  upgrade center and one compact bottom Stage card with a single primary
+  `PLAY` action. Duplicate visible Lobby/account labels were removed.
+- Product Heart snapshots expose the next recharge UTC without changing save
+  schema or persistence. Lobby Heart text refreshes once per second and shows
+  full count, next-recharge countdown or unlimited remaining time.
+- The current Stage card includes authored difficulty. Shield/Booster stock is
+  secondary, and milestone reward copy appears only while a reward is pending.
+- Frontend Scene Builder completed two consecutive passes. Focused Lobby
+  EditMode passed `8/8`, focused Product EditMode passed `58/58`, focused
+  Frontend PlayMode passed `18/18`; full EditMode passed `430/430`; full
+  post-Builder PlayMode passed `227/227`.
+- Campaign and Step 10 simulations were not rerun because no Campaign Scene,
+  gameplay, deterministic generation, timing, judgment or Experiment input
+  changed. Their Iteration 28 and Step 10 hashes remain authoritative.
+- Product save and backup remained byte-, timestamp- and SHA-exact. Package
+  and meaningful ProjectSettings hashes remain the authoritative baseline.
 
 ## Iteration 28 validation result
 

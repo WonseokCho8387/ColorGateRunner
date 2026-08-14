@@ -23,7 +23,6 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button titleSettingsButton;
         [SerializeField] private GameObject titleLegalRoot;
         [SerializeField] private Text lobbyProfileText;
-        [SerializeField] private Text lobbyAccountText;
         [SerializeField] private Text lobbyStageText;
         [SerializeField] private Text lobbyStageTitleText;
         [SerializeField] private Text lobbyStageMechanicText;
@@ -57,6 +56,7 @@ namespace ColorGateRunner.Presentation
         private ICampaignLaunchHost _campaignLaunchHost;
         private CampaignLobbyReadModel _campaignLobby;
         private string _queuedStageId;
+        private float _nextHeartRefreshTime;
 
         internal FrontendPageRouter Router => _router;
         internal string CampaignScenePath => campaignScenePath;
@@ -118,6 +118,21 @@ namespace ColorGateRunner.Presentation
 
         private void Update()
         {
+            if (_productReady && _appRoot != null &&
+                lobbyPageRoot.activeInHierarchy &&
+                Time.unscaledTime >= _nextHeartRefreshTime)
+            {
+                _nextHeartRefreshTime = Time.unscaledTime + 1f;
+                ProductMutationResult refresh =
+                    _appRoot.Graph.ProductSession.RefreshHeartState();
+                if (!refresh.Succeeded)
+                {
+                    Debug.LogError(refresh.Error.Diagnostic);
+                }
+                lobbyProgressionPanel.RefreshHeart(
+                    _appRoot.Graph.ProductSession.GetHeartState(),
+                    DateTime.UtcNow);
+            }
             if (Keyboard.current != null &&
                 Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -150,7 +165,6 @@ namespace ColorGateRunner.Presentation
             Button titleSettings,
             GameObject legalRoot,
             Text lobbyProfile,
-            Text lobbyAccount,
             Text lobbyStage,
             Text lobbyStageTitle,
             Text lobbyStageMechanic,
@@ -186,7 +200,6 @@ namespace ColorGateRunner.Presentation
             titleSettingsButton = titleSettings;
             titleLegalRoot = legalRoot;
             lobbyProfileText = lobbyProfile;
-            lobbyAccountText = lobbyAccount;
             lobbyStageText = lobbyStage;
             lobbyStageTitleText = lobbyStageTitle;
             lobbyStageMechanicText = lobbyStageMechanic;
@@ -243,7 +256,7 @@ namespace ColorGateRunner.Presentation
                 titleVersionText != null && titleStartButton != null &&
                 titleAccountButton != null && titleSettingsButton != null &&
                 titleLegalRoot != null && lobbyProfileText != null &&
-                lobbyAccountText != null && lobbyStageText != null &&
+                lobbyStageText != null &&
                 lobbyStageTitleText != null &&
                 lobbyStageMechanicText != null &&
                 lobbyProgressText != null && lobbyPlayButton != null &&
@@ -321,8 +334,17 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             ApplyContext(context);
+            ProductMutationResult heartRefresh =
+                appRoot.Graph.ProductSession.RefreshHeartState();
+            if (!heartRefresh.Succeeded)
+            {
+                Debug.LogError(heartRefresh.Error.Diagnostic);
+            }
             int pendingMilestones =
-                lobbyProgressionPanel.Bind(appRoot.Graph.Progression);
+                lobbyProgressionPanel.Bind(
+                    appRoot.Graph.Progression,
+                    appRoot.Graph.ProductSession.GetHeartState(),
+                    DateTime.UtcNow);
             if (pendingMilestones > 0)
             {
                 ProductMutationResult acknowledgement =
@@ -345,14 +367,14 @@ namespace ColorGateRunner.Presentation
             titleAccountText.text = context.AccountLabel;
             titleVersionText.text = context.VersionLabel;
             lobbyProfileText.text = context.DisplayName;
-            lobbyAccountText.text = context.AccountLabel;
             if (_campaignLobby != null)
             {
                 lobbyStageText.text =
                     $"STAGE {_campaignLobby.DisplayNumber}";
                 lobbyStageTitleText.text = _campaignLobby.Title;
                 lobbyStageMechanicText.text =
-                    _campaignLobby.MechanicLabel;
+                    $"{_campaignLobby.MechanicLabel}   " +
+                    _campaignLobby.DifficultyLabel;
                 lobbyProgressText.text =
                     $"{_campaignLobby.ClearedCount} / " +
                     $"{_campaignLobby.TotalStageCount} CLEARED";

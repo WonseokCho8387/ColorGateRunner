@@ -1,5 +1,7 @@
+using System;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
+using ColorGateRunner.Product;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -26,8 +28,35 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(StageCatalog.GetByDisplayNumber(6).StageId));
             Assert.That(model.Title, Is.EqualTo("SHIELD TRAINING"));
             Assert.That(model.MechanicLabel, Is.EqualTo("SHIELD"));
+            Assert.That(model.DifficultyLabel, Is.EqualTo("NORMAL"));
             Assert.That(model.ClearedCount, Is.EqualTo(5));
             Assert.That(progress.WriteCount, Is.Zero);
+        }
+
+        [Test]
+        public void HeartText_FormatsFullRechargeAndUnlimitedStates()
+        {
+            DateTime now = new DateTime(
+                2026, 8, 14, 1, 0, 0, DateTimeKind.Utc);
+
+            Assert.That(LobbyProgressionPanel.FormatHeart(
+                    new HeartStateSnapshot(5, false, default), now),
+                Is.EqualTo("HEARTS 5/5"));
+            Assert.That(LobbyProgressionPanel.FormatHeart(
+                    new HeartStateSnapshot(
+                        2,
+                        false,
+                        default,
+                        now.AddMinutes(5)),
+                    now),
+                Is.EqualTo("HEARTS 2/5  05:00"));
+            Assert.That(LobbyProgressionPanel.FormatHeart(
+                    new HeartStateSnapshot(
+                        0,
+                        true,
+                        now.AddHours(1)),
+                    now),
+                Is.EqualTo("HEARTS UNLIMITED  1:00:00"));
         }
 
         [Test]
@@ -88,7 +117,7 @@ namespace ColorGateRunner.Tests.EditMode
             }
             finally
             {
-                Object.DestroyImmediate(configuration);
+                UnityEngine.Object.DestroyImmediate(configuration);
             }
         }
 

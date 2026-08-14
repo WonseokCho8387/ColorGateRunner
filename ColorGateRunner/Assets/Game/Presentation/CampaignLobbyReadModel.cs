@@ -10,6 +10,7 @@ namespace ColorGateRunner.Presentation
             int displayNumber,
             string title,
             string mechanicLabel,
+            string difficultyLabel,
             int clearedCount,
             int totalStageCount)
         {
@@ -17,6 +18,7 @@ namespace ColorGateRunner.Presentation
             DisplayNumber = displayNumber;
             Title = title;
             MechanicLabel = mechanicLabel;
+            DifficultyLabel = difficultyLabel;
             ClearedCount = clearedCount;
             TotalStageCount = totalStageCount;
         }
@@ -25,6 +27,7 @@ namespace ColorGateRunner.Presentation
         internal int DisplayNumber { get; }
         internal string Title { get; }
         internal string MechanicLabel { get; }
+        internal string DifficultyLabel { get; }
         internal int ClearedCount { get; }
         internal int TotalStageCount { get; }
     }
@@ -75,6 +78,7 @@ namespace ColorGateRunner.Presentation
                 stage.DisplayNumber,
                 stage.Title,
                 GetMechanicLabel(stage.PrimaryMechanic),
+                GetDifficultyLabel(stage.Difficulty),
                 clearedCount,
                 _catalog.Count);
         }
@@ -85,6 +89,16 @@ namespace ColorGateRunner.Presentation
             return mechanic == StagePrimaryMechanic.None
                 ? "COLOR MATCH"
                 : mechanic.ToString().ToUpperInvariant();
+        }
+
+        private static string GetDifficultyLabel(StageDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                StageDifficulty.Hard => "HARD",
+                StageDifficulty.VeryHard => "VERY HARD",
+                _ => "NORMAL"
+            };
         }
     }
 }

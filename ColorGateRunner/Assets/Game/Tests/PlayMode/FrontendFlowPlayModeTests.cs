@@ -101,6 +101,24 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.CurrencySlotRoot.activeSelf, Is.True);
             Assert.That(controller.LobbyThemeRoot.activeSelf, Is.True);
             Assert.That(controller.LobbyProgressionPanel, Is.Not.Null);
+            Assert.That(controller.LobbyProgressionPanel.HeartText.text,
+                Is.EqualTo("HEARTS 5/5"));
+            Assert.That(GameObject.Find("LobbyTitle"), Is.Null);
+            Assert.That(GameObject.Find("LobbyAccountText"), Is.Null);
+            Assert.That(controller.LobbyStageMechanicText.text,
+                Does.EndWith("NORMAL"));
+            Assert.That(controller.LobbyPlayButton
+                    .GetComponentInChildren<Text>().text,
+                Is.EqualTo("PLAY"));
+            Assert.That(controller.LobbyBackButton
+                    .GetComponent<RectTransform>().anchorMin.y,
+                Is.GreaterThanOrEqualTo(0.84f));
+            Assert.That(controller.LobbySettingsButton
+                    .GetComponent<RectTransform>().anchorMin.y,
+                Is.GreaterThanOrEqualTo(0.84f));
+            Assert.That(controller.LobbyPlayButton
+                    .GetComponent<RectTransform>().anchorMax.y,
+                Is.LessThanOrEqualTo(0.20f));
             Assert.That(controller.EventModuleSlotRoot.activeSelf, Is.False);
             Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
                 Is.True);
@@ -142,14 +160,15 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.Router.CurrentPage,
                 Is.EqualTo(FrontendPage.Lobby));
             Assert.That(panel.CoinText.text, Is.EqualTo("COINS 950"));
+            Assert.That(panel.HeartText.text, Is.EqualTo("HEARTS 5/5"));
             Assert.That(panel.InventoryText.text,
-                Is.EqualTo("SHIELD 2  BOOST 1"));
+                Is.EqualTo("SHIELD 2   BOOSTER 1"));
             Assert.That(panel.ThemeText.text,
-                Is.EqualTo("THEME 1  COLOR COURTYARD"));
+                Is.EqualTo("COLOR COURTYARD"));
             Assert.That(panel.NextUpgradeText.text,
-                Is.EqualTo("NEXT LOBBY UPGRADE  CLEAR STAGE 6"));
+                Is.EqualTo("LOBBY 2/18   NEXT STAGE 6"));
             Assert.That(panel.RewardText.text,
-                Does.Contain("2 LOBBY UPGRADES"));
+                Does.Contain("2 UPGRADES"));
             Assert.That(graph.Progression.Lobby.PresentedMilestoneCount,
                 Is.EqualTo(2));
         }
@@ -518,7 +537,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(returned.LobbyProgressionPanel.CoinText.text,
                 Is.EqualTo("COINS 100"));
             Assert.That(returned.LobbyProgressionPanel.NextUpgradeText.text,
-                Is.EqualTo("NEXT LOBBY UPGRADE  CLEAR STAGE 2"));
+                Is.EqualTo("LOBBY 0/18   NEXT STAGE 2"));
         }
 
         [UnityTest]

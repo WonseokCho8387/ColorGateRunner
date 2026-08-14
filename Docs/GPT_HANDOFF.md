@@ -1,5 +1,26 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 29 completed update
+
+- Starting HEAD was `3e9b389`; completion commit name is
+  `feat: simplify lobby hierarchy`.
+- Frontend Lobby now has a compact Profile / Coin / Heart / Settings top bar,
+  a dominant current-theme and upgrade center, and one bottom Stage card with
+  one primary `PLAY` action. Duplicate Lobby/account labels were removed.
+- The Stage card includes authored difficulty. Shield/Booster stock is
+  secondary and milestone reward copy is visible only while pending.
+- Product Heart state now exposes next recharge time as a read projection.
+  Lobby shows full, recharge-countdown and timed-unlimited states and refreshes
+  while visible without changing save schema or economy ownership.
+- Frontend Builder passed twice, focused Lobby EditMode `8/8`, Product
+  EditMode `58/58`, focused Frontend PlayMode `18/18`, full EditMode `430/430`
+  and PlayMode `227/227` passed.
+  Product save/backup and package/ProjectSettings baselines remained exact.
+- Campaign and Step 10 hashes remain unchanged because gameplay, Campaign
+  content and Experiment inputs were untouched. Human portrait review owns
+  spacing/readability and final visual quality. Shop/IAP runtime and final
+  illustrated Lobby art remain separate next candidates.
+
 ## Iteration 28 completed update
 
 - Starting HEAD was `eddf720`; completion commit name is

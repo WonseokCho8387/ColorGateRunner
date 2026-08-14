@@ -117,16 +117,19 @@ namespace ColorGateRunner.Product
         public HeartStateSnapshot(
             int count,
             bool unlimited,
-            DateTime unlimitedUntilUtc)
+            DateTime unlimitedUntilUtc,
+            DateTime nextHeartAtUtc = default)
         {
             Count = count;
             Unlimited = unlimited;
             UnlimitedUntilUtc = unlimitedUntilUtc;
+            NextHeartAtUtc = nextHeartAtUtc;
         }
 
         public int Count { get; }
         public bool Unlimited { get; }
         public DateTime UnlimitedUntilUtc { get; }
+        public DateTime NextHeartAtUtc { get; }
         public bool CanStart => Unlimited || Count > 0;
     }
 
@@ -147,10 +150,18 @@ namespace ColorGateRunner.Product
             DateTime effectiveNow = Normalize(candidate, utcNow);
             bool unlimited = TryParse(candidate.UnlimitedHeartsUntilUtc,
                 out DateTime unlimitedUntil) && effectiveNow < unlimitedUntil;
+            DateTime nextHeartAt = default;
+            if (candidate.HeartCount < MaximumHearts &&
+                TryParse(candidate.HeartRechargeAnchorUtc,
+                    out DateTime rechargeAnchor))
+            {
+                nextHeartAt = rechargeAnchor.Add(RechargeInterval);
+            }
             return new HeartStateSnapshot(
                 candidate.HeartCount,
                 unlimited,
-                unlimited ? unlimitedUntil : default);
+                unlimited ? unlimitedUntil : default,
+                nextHeartAt);
         }
 
         internal static bool NeedsPersistence(

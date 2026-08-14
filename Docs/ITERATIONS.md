@@ -1985,3 +1985,31 @@ Human feedback required
   target distribution alone does not express the intended physical pressure.
 - Human play must judge the Stage 17 rare double-tap and overall Ice cadence.
 - Lobby visual hierarchy is the next approved, separate iteration.
+
+## Iteration 29 — Lobby Visual Hierarchy
+
+### Play / Analyze
+
+- Human play found that the Lobby presented too many equally weighted text
+  rows and did not show Heart availability alongside the other persistent
+  resources.
+- The approved reference established a top wallet, dominant center scene and
+  one lower Stage action as the target information hierarchy.
+
+### Design / Implementation
+
+- Rebuilt the generated Frontend Lobby into top, center and bottom zones.
+  Removed duplicate visible title/account copy, added Product-backed Heart
+  countdown text and surfaced Stage difficulty in the compact action card.
+- Kept stable-ID launch, automatic Lobby milestones, Settings, reward
+  acknowledgement and all Product save ownership unchanged.
+
+### Validation / Learning / Deferred
+
+- Frontend Builder ran twice. Focused Lobby EditMode passed `8/8`, Product
+  EditMode `58/58`, focused Frontend PlayMode `18/18`, full EditMode `430/430`
+  and PlayMode `227/227`.
+- Hierarchy can be completed before final art: fewer persistent labels and one
+  primary action make later visual production safer and more measurable.
+- Final art, Shop/IAP runtime, navigation modules and device visual review are
+  deferred.

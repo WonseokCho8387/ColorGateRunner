@@ -1043,3 +1043,14 @@ The local product foundation is complete when:
   `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`,
   and `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`.
   Step 10 remains unchanged.
+
+### Iteration 29 Lobby Heart read model
+
+- `HeartStateSnapshot` now exposes the calculated next-heart UTC alongside
+  count and unlimited expiry. This is a read-only projection from the existing
+  schema-3 economy fields; save schema, clock normalization, spend and refund
+  ownership are unchanged.
+- Frontend refreshes normalized Heart state while Lobby is visible and formats
+  full, recharge and unlimited states. Product remains the only owner of
+  recharge persistence and backwards-clock protection.
+- No Shop, purchase action, store initialization or Firebase boundary is added.

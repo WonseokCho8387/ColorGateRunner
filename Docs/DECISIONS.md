@@ -1263,3 +1263,17 @@ Status: Approved and implemented.
   one of 15 Ice gates for two taps; all remaining Ice gates use one tap.
 - Non-Ice Campaign sequences, Continue recovery overrides, Experiment Lab,
   Ice speed/spacing and the fixed runway remain unchanged.
+
+## Iteration 29 — Lobby information hierarchy
+
+- The Frontend Lobby is organized as top resources, central Lobby development
+  and a bottom Stage action card. It is no longer a flat list of status text.
+- Profile, Coins, Hearts and Settings are persistent top-level information.
+  Shield/Booster counts are secondary. One `PLAY` button is the only primary
+  action on Home.
+- Duplicate visible Lobby/account labels are removed. Pending milestone reward
+  text is temporary, not a permanent Lobby row.
+- Product exposes next Heart recharge time through its read snapshot; Frontend
+  formats and refreshes it without owning economy time or save mutation.
+- Shop, bottom navigation destinations and final illustrated assets remain
+  excluded.

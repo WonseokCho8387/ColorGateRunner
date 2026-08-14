@@ -870,3 +870,17 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `CURRENT_STATUS.md` — current counts, hashes, snapshots, and baseline.
 - `TEST_HISTORY.md` — preserved historical mappings and evidence.
 - `Docs/TEST_PLAN.md` in the source repository — original catalog source.
+
+## Iteration 29 current coverage
+
+- `LobbyConsolidationEditModeTests.HeartText_FormatsFullRechargeAndUnlimitedStates`
+  fixes the full, recharge and timed-unlimited Lobby Heart labels.
+- `ProductFoundationTests.StageStart_ConsumesHeartAndRechargesOfflineWithoutRollbackGain`
+  also fixes the Product-calculated next Heart recharge UTC.
+- `LobbyConsolidationEditModeTests.FrontendReader_ReusesLobbyProgressionAndReturnsStableStageId`
+  also verifies the authored difficulty projection.
+- `FrontendFlowPlayModeTests.GuestChoicePersistsThenLobbyBackRequestsExit`
+  verifies removed duplicate labels, top controls, Heart visibility, Stage
+  difficulty and the bottom `PLAY` action in the generated Frontend Scene.
+- Existing Frontend progression and clear-return tests verify the compact
+  theme/upgrades/reward strings and unchanged navigation.

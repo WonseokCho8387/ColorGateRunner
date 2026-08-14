@@ -2123,3 +2123,21 @@ Any mismatch blocks implementation.
 - The captured Product save and backup remained byte-, timestamp- and SHA-
   identical. Package hashes remained exact; the package-managed volatile WebGL
   define was excluded and restored to the approved baseline.
+
+## Iteration 29 — Lobby Visual Hierarchy
+
+- Starting HEAD `3e9b389`; completion message
+  `feat: simplify lobby hierarchy`.
+- Frontend Scene Builder completed two consecutive passes with required
+  references, unique generated roots, one EventSystem and unchanged Build
+  Settings order.
+- Focused Lobby EditMode `8/8`, Product EditMode `58/58`, focused Frontend
+  PlayMode `18/18`, full EditMode `430/430`, full post-Builder PlayMode
+  `227/227` all passed.
+- Product save SHA
+  `410793F21F1CAD39A19330737A9E47A36F06D17C4DAC25ED87B98B5F3FC6F00E`
+  and backup SHA
+  `83D7022C3F06E762407E59CE3009C15820C9DA512BE6D155A67A8FA3661B5D30`
+  remained byte- and timestamp-exact.
+- Package and meaningful ProjectSettings hashes remained exact. Campaign and
+  Step 10 simulations were omitted because this was a Product-shell UI change.

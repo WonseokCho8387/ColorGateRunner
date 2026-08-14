@@ -953,6 +953,22 @@ not reusable art assets or an exact visual copy.
   and Retry resets it. This changes no Frontend navigation or result contract.
 - Final Lobby composition and authored Ice approach remain deferred.
 
+## Implemented UX slice — Iteration 29 Lobby visual hierarchy
+
+- Lobby has three stable zones: Profile / Coins / Hearts / Settings at the
+  top, current theme and automatic upgrade progress in the center, and a
+  compact current-Stage card with one primary `PLAY` action at the bottom.
+- The duplicate visible `LOBBY` title and second account label are removed.
+  Shield and Booster counts remain secondary chips rather than competing
+  headers. A milestone summary appears only while an unpresented reward exists.
+- The Stage card displays Stage number, title, primary mechanic, authored
+  difficulty and cleared count. `PLAY` keeps the existing stable-ID launch.
+- Heart state refreshes while Lobby is visible. It shows `5/5` when full, a
+  next-heart countdown while recharging, or remaining unlimited time. The UI
+  reads Product state and does not own recharge or persistence rules.
+- Shop, IAP product cards, bottom navigation destinations and final illustrated
+  Lobby art remain separate iterations.
+
 ## Implemented UX slice — Iteration 26 Fog visibility curve
 
 - Campaign Fog enters over `0.5 seconds`, stays fully opaque for the authored

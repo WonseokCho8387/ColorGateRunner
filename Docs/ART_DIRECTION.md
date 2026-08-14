@@ -522,3 +522,17 @@ The three-Continue cap and original prices below are superseded by Iteration
   Stage 17 double-tap remains a gameplay cue, not a new visual effect.
 - Human review must confirm the one-tap cycle remains readable against Cyan
   terrain and that the rare double-tap does not look like an input error.
+
+## Iteration 29 Lobby hierarchy
+
+- The graybox Lobby now follows the approved mobile hierarchy rather than a
+  centered text list: compact resource controls at the top, a dominant themed
+  development area, and a bottom Stage action card.
+- Theme name and upgrade rail are the central focal point. The one-time reward
+  banner may temporarily outrank the rail but disappears after presentation.
+- Profile, Coin, Heart and Settings share one dark top bar. Shield and Booster
+  inventory is visually secondary. The bottom card owns the only large green
+  `PLAY` action.
+- This iteration establishes layout and information weight only. Final
+  illustration, icons, materials, typography, animation and responsive device
+  polish remain human-reviewed visual production work.

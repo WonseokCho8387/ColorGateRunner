@@ -56,7 +56,6 @@ namespace ColorGateRunner.Editor
             CreateLobbyPage(
                 lobbyRoot.transform,
                 out Text lobbyProfile,
-                out Text lobbyAccount,
                 out Text lobbyStage,
                 out Text lobbyStageTitle,
                 out Text lobbyStageMechanic,
@@ -131,7 +130,6 @@ namespace ColorGateRunner.Editor
                 titleSettings,
                 legalRoot,
                 lobbyProfile,
-                lobbyAccount,
                 lobbyStage,
                 lobbyStageTitle,
                 lobbyStageMechanic,
@@ -533,7 +531,6 @@ namespace ColorGateRunner.Editor
         private static void CreateLobbyPage(
             Transform parent,
             out Text profile,
-            out Text account,
             out Text stage,
             out Text stageTitle,
             out Text stageMechanic,
@@ -547,84 +544,6 @@ namespace ColorGateRunner.Editor
             out GameObject themeRoot,
             out LobbyProgressionPanel progressionPanel)
         {
-            CreateText(
-                "LobbyTitle",
-                parent,
-                "LOBBY",
-                46,
-                new Vector2(0.1f, 0.74f),
-                new Vector2(0.9f, 0.84f));
-            profile = CreateText(
-                "LobbyProfileText",
-                parent,
-                "GUEST",
-                24,
-                new Vector2(0.14f, 0.62f),
-                new Vector2(0.86f, 0.69f));
-            account = CreateText(
-                "LobbyAccountText",
-                parent,
-                "GUEST",
-                14,
-                new Vector2(0.14f, 0.58f),
-                new Vector2(0.86f, 0.62f));
-            stage = CreateText(
-                "LobbyRecommendedStageText",
-                parent,
-                "STAGE 1",
-                22,
-                new Vector2(0.12f, 0.49f),
-                new Vector2(0.88f, 0.55f));
-            stageTitle = CreateText(
-                "LobbyStageTitleText",
-                parent,
-                "TWO-COLOR BASICS",
-                28,
-                new Vector2(0.10f, 0.42f),
-                new Vector2(0.90f, 0.49f));
-            stageMechanic = CreateText(
-                "LobbyStageMechanicText",
-                parent,
-                "COLOR MATCH",
-                16,
-                new Vector2(0.12f, 0.37f),
-                new Vector2(0.88f, 0.42f));
-            progress = CreateText(
-                "LobbyProgressText",
-                parent,
-                "0 / 13 CLEARED",
-                14,
-                new Vector2(0.12f, 0.33f),
-                new Vector2(0.88f, 0.37f));
-            play = CreateButton(
-                "LobbyPlayCampaignButton",
-                parent,
-                "START STAGE",
-                new Vector2(0.10f, 0.22f),
-                new Vector2(0.90f, 0.33f),
-                FromHex(0x22C55E),
-                out _);
-            back = CreateButton(
-                "LobbyAccountButton",
-                parent,
-                "ACCOUNT",
-                new Vector2(0.10f, 0.12f),
-                new Vector2(0.49f, 0.19f),
-                FromHex(0x253047),
-                out _);
-            settings = CreateButton(
-                "LobbySettingsButton",
-                parent,
-                "SETTINGS",
-                new Vector2(0.51f, 0.12f),
-                new Vector2(0.90f, 0.19f),
-                FromHex(0x253047),
-                out _);
-            currencySlot = CreateFlowRoot("CurrencySlotRoot", parent);
-            eventSlot = CreateFlowRoot("EventModuleSlotRoot", parent);
-            notificationSlot = CreateFlowRoot(
-                "NotificationSlotRoot",
-                parent);
             themeRoot = CreateFlowRoot("LobbyThemeRoot", parent);
             themeRoot.transform.SetAsFirstSibling();
             progressionPanel = themeRoot.AddComponent<LobbyProgressionPanel>();
@@ -636,43 +555,132 @@ namespace ColorGateRunner.Editor
                 new Color(0.10f, 0.16f, 0.24f, 0.84f))
                 .GetComponent<Image>();
             background.raycastTarget = false;
+            CreatePanel(
+                "LobbyTopBar",
+                themeRoot.transform,
+                new Vector2(0.04f, 0.84f),
+                new Vector2(0.96f, 0.96f),
+                new Color(0.04f, 0.07f, 0.13f, 0.92f))
+                .GetComponent<Image>().raycastTarget = false;
+            CreatePanel(
+                "LobbyHeroPanel",
+                themeRoot.transform,
+                new Vector2(0.05f, 0.35f),
+                new Vector2(0.95f, 0.82f),
+                new Color(0.06f, 0.11f, 0.20f, 0.56f))
+                .GetComponent<Image>().raycastTarget = false;
+            CreatePanel(
+                "LobbyStageCard",
+                themeRoot.transform,
+                new Vector2(0.05f, 0.05f),
+                new Vector2(0.95f, 0.33f),
+                new Color(0.04f, 0.07f, 0.13f, 0.92f))
+                .GetComponent<Image>().raycastTarget = false;
+
+            back = CreateButton(
+                "LobbyAccountButton",
+                parent,
+                "GUEST",
+                new Vector2(0.055f, 0.865f),
+                new Vector2(0.25f, 0.935f),
+                FromHex(0x253047),
+                out profile);
+            settings = CreateButton(
+                "LobbySettingsButton",
+                parent,
+                "SETTINGS",
+                new Vector2(0.76f, 0.865f),
+                new Vector2(0.945f, 0.935f),
+                FromHex(0x253047),
+                out _);
+            stage = CreateText(
+                "LobbyRecommendedStageText",
+                parent,
+                "STAGE 1",
+                20,
+                new Vector2(0.10f, 0.255f),
+                new Vector2(0.32f, 0.315f));
+            stage.alignment = TextAnchor.MiddleLeft;
+            stageTitle = CreateText(
+                "LobbyStageTitleText",
+                parent,
+                "TWO-COLOR BASICS",
+                22,
+                new Vector2(0.32f, 0.255f),
+                new Vector2(0.90f, 0.315f));
+            stageTitle.alignment = TextAnchor.MiddleRight;
+            stageMechanic = CreateText(
+                "LobbyStageMechanicText",
+                parent,
+                "COLOR MATCH   NORMAL",
+                14,
+                new Vector2(0.10f, 0.215f),
+                new Vector2(0.58f, 0.255f));
+            stageMechanic.alignment = TextAnchor.MiddleLeft;
+            progress = CreateText(
+                "LobbyProgressText",
+                parent,
+                "0 / 20 CLEARED",
+                14,
+                new Vector2(0.58f, 0.215f),
+                new Vector2(0.90f, 0.255f));
+            progress.alignment = TextAnchor.MiddleRight;
+            play = CreateButton(
+                "LobbyPlayCampaignButton",
+                parent,
+                "PLAY",
+                new Vector2(0.10f, 0.08f),
+                new Vector2(0.90f, 0.20f),
+                FromHex(0x22C55E),
+                out _);
+            currencySlot = CreateFlowRoot("CurrencySlotRoot", parent);
+            eventSlot = CreateFlowRoot("EventModuleSlotRoot", parent);
+            notificationSlot = CreateFlowRoot(
+                "NotificationSlotRoot",
+                parent);
             Text coins = CreateText(
                 "LobbyCoinText",
                 currencySlot.transform,
                 "COINS 0",
-                18,
-                new Vector2(0.62f, 0.85f),
-                new Vector2(0.93f, 0.91f));
-            coins.alignment = TextAnchor.MiddleRight;
+                16,
+                new Vector2(0.27f, 0.865f),
+                new Vector2(0.48f, 0.935f));
+            Text hearts = CreateText(
+                "LobbyHeartText",
+                currencySlot.transform,
+                "HEARTS 5/5",
+                14,
+                new Vector2(0.49f, 0.865f),
+                new Vector2(0.74f, 0.935f));
             Text inventory = CreateText(
                 "LobbyInventoryText",
                 currencySlot.transform,
-                "SHIELD 0  BOOST 0",
+                "SHIELD 0   BOOSTER 0",
                 13,
-                new Vector2(0.55f, 0.81f),
-                new Vector2(0.93f, 0.85f));
+                new Vector2(0.54f, 0.355f),
+                new Vector2(0.92f, 0.405f));
             inventory.alignment = TextAnchor.MiddleRight;
             Text theme = CreateText(
                 "LobbyThemeText",
                 themeRoot.transform,
-                "THEME 1  COLOR COURTYARD",
-                16,
-                new Vector2(0.08f, 0.69f),
-                new Vector2(0.92f, 0.74f));
+                "COLOR COURTYARD",
+                26,
+                new Vector2(0.08f, 0.70f),
+                new Vector2(0.92f, 0.78f));
             Text nextUpgrade = CreateText(
                 "LobbyNextUpgradeText",
                 themeRoot.transform,
-                "NEXT LOBBY UPGRADE  CLEAR STAGE 2",
+                "LOBBY 0/18   NEXT STAGE 2",
                 14,
-                new Vector2(0.08f, 0.65f),
+                new Vector2(0.08f, 0.64f),
                 new Vector2(0.92f, 0.69f));
             Text rewardSummary = CreateText(
                 "LobbyRewardSummaryText",
                 themeRoot.transform,
-                "LOBBY UPGRADED  REWARD ADDED",
+                "LOBBY UPGRADE + REWARD",
                 15,
                 new Vector2(0.10f, 0.56f),
-                new Vector2(0.90f, 0.61f));
+                new Vector2(0.90f, 0.62f));
             var visuals = new GameObject[6];
             Color[] colors =
             {
@@ -686,14 +694,15 @@ namespace ColorGateRunner.Editor
                 visuals[index] = CreatePanel(
                     $"LobbyUpgradeVisual_{index + 1}",
                     themeRoot.transform,
-                    new Vector2(left, 0.25f),
-                    new Vector2(left + 0.10f, 0.31f),
+                    new Vector2(left, 0.43f),
+                    new Vector2(left + 0.10f, 0.50f),
                     colors[index]);
                 visuals[index].GetComponent<Image>().raycastTarget = false;
                 visuals[index].SetActive(false);
             }
             progressionPanel.Configure(
                 coins,
+                hearts,
                 inventory,
                 theme,
                 nextUpgrade,

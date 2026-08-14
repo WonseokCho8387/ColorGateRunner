@@ -1195,6 +1195,8 @@ namespace ColorGateRunner.Tests.EditMode
                 pipeline.Session.AuthorizeStageStart(false, false);
             Assert.That(start.Succeeded, Is.True);
             Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(4));
+            Assert.That(pipeline.Session.GetHeartState().NextHeartAtUtc,
+                Is.EqualTo(_firstUtc.AddMinutes(30)));
 
             clock.UtcNowValue = _firstUtc.AddMinutes(61);
             Assert.That(pipeline.Session.RefreshHeartState().Succeeded, Is.True);

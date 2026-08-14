@@ -8,6 +8,7 @@ namespace ColorGateRunner.Presentation
     public sealed class LobbyProgressionPanel : MonoBehaviour
     {
         [SerializeField] private Text coinText;
+        [SerializeField] private Text heartText;
         [SerializeField] private Text inventoryText;
         [SerializeField] private Text themeText;
         [SerializeField] private Text nextUpgradeText;
@@ -16,12 +17,16 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject[] upgradeVisuals;
 
         internal Text CoinText => coinText;
+        internal Text HeartText => heartText;
         internal Text InventoryText => inventoryText;
         internal Text ThemeText => themeText;
         internal Text NextUpgradeText => nextUpgradeText;
         internal Text RewardText => rewardSummaryText;
 
-        internal int Bind(ProgressionService progression)
+        internal int Bind(
+            ProgressionService progression,
+            HeartStateSnapshot hearts,
+            DateTime utcNow)
         {
             if (progression?.Economy == null || progression.Lobby == null)
             {
@@ -48,11 +53,11 @@ namespace ColorGateRunner.Presentation
             };
 
             coinText.text = $"COINS {progression.Economy.Coins}";
+            RefreshHeart(hearts, utcNow);
             inventoryText.text =
-                $"SHIELD {progression.Economy.ShieldCount}  " +
-                $"BOOST {progression.Economy.BoosterCount}";
-            themeText.text =
-                $"THEME {themeIndex + 1}  {themeNames[themeIndex]}";
+                $"SHIELD {progression.Economy.ShieldCount}   " +
+                $"BOOSTER {progression.Economy.BoosterCount}";
+            themeText.text = themeNames[themeIndex];
             themeBackground.color = themeColors[themeIndex];
             for (int index = 0; index < upgradeVisuals.Length; index++)
             {
@@ -60,20 +65,65 @@ namespace ColorGateRunner.Presentation
             }
 
             nextUpgradeText.text = applied >= 18
-                ? "LOBBY COMPLETE"
-                : $"NEXT LOBBY UPGRADE  CLEAR STAGE {(applied + 1) * 2}";
+                ? "LOBBY 18/18   COMPLETE"
+                : $"LOBBY {applied}/18   NEXT STAGE {(applied + 1) * 2}";
             int pending = Math.Max(
                 0,
                 applied - progression.Lobby.PresentedMilestoneCount);
             rewardSummaryText.gameObject.SetActive(pending > 0);
             rewardSummaryText.text = pending == 1
-                ? "LOBBY UPGRADED  REWARD ADDED"
-                : $"{pending} LOBBY UPGRADES  REWARDS ADDED";
+                ? "LOBBY UPGRADE + REWARD"
+                : $"{pending} UPGRADES + REWARDS";
             return pending;
+        }
+
+        internal void RefreshHeart(
+            HeartStateSnapshot hearts,
+            DateTime utcNow)
+        {
+            heartText.text = FormatHeart(hearts, utcNow);
+        }
+
+        internal static string FormatHeart(
+            HeartStateSnapshot hearts,
+            DateTime utcNow)
+        {
+            DateTime now = utcNow.Kind switch
+            {
+                DateTimeKind.Utc => utcNow,
+                DateTimeKind.Local => utcNow.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(utcNow, DateTimeKind.Utc)
+            };
+            if (hearts.Unlimited)
+            {
+                return $"HEARTS UNLIMITED  " +
+                    FormatRemaining(hearts.UnlimitedUntilUtc - now);
+            }
+            if (hearts.Count >= HeartStatePolicy.MaximumHearts ||
+                hearts.NextHeartAtUtc == default)
+            {
+                return $"HEARTS {hearts.Count}/" +
+                    HeartStatePolicy.MaximumHearts;
+            }
+            return $"HEARTS {hearts.Count}/" +
+                $"{HeartStatePolicy.MaximumHearts}  " +
+                FormatRemaining(hearts.NextHeartAtUtc - now);
+        }
+
+        private static string FormatRemaining(TimeSpan remaining)
+        {
+            int seconds = Math.Max(0, (int)Math.Ceiling(remaining.TotalSeconds));
+            int hours = seconds / 3600;
+            int minutes = (seconds % 3600) / 60;
+            int remainder = seconds % 60;
+            return hours > 0
+                ? $"{hours}:{minutes:00}:{remainder:00}"
+                : $"{minutes:00}:{remainder:00}";
         }
 
         internal void Configure(
             Text coins,
+            Text hearts,
             Text inventory,
             Text theme,
             Text nextUpgrade,
@@ -82,6 +132,7 @@ namespace ColorGateRunner.Presentation
             GameObject[] visuals)
         {
             coinText = coins;
+            heartText = hearts;
             inventoryText = inventory;
             themeText = theme;
             nextUpgradeText = nextUpgrade;
@@ -92,7 +143,8 @@ namespace ColorGateRunner.Presentation
 
         internal bool HasRequiredReferences()
         {
-            if (coinText == null || inventoryText == null ||
+            if (coinText == null || heartText == null ||
+                inventoryText == null ||
                 themeText == null || nextUpgradeText == null ||
                 rewardSummaryText == null || themeBackground == null ||
                 upgradeVisuals == null || upgradeVisuals.Length != 6)

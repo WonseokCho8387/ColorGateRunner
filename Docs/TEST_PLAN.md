@@ -506,3 +506,18 @@ fairness, or polish.
 - `FRONTEND_FLOW.md` — Boot, Frontend, navigation, onboarding, and return-flow
   contracts.
 - `AGENTS.md` — Standard Iteration Protocol and repository operating rules.
+
+### Iteration 29 Lobby visual hierarchy
+
+- Frontend Builder must produce no `LobbyTitle` or duplicate
+  `LobbyAccountText`, and must serialize one Heart label plus required panel
+  references after two consecutive builds.
+- Lobby PlayMode must prove top Profile/Settings placement, visible Coin/Heart
+  state, difficulty in the Stage card, one bottom primary `PLAY` action and
+  unchanged Boot-to-Lobby / Lobby-to-Campaign / clear-return flow.
+- Heart formatting covers full, next-recharge and unlimited countdown states.
+  Full Product save and backup must remain exact.
+- Tier 2 requires focused and full EditMode/PlayMode plus Frontend Builder
+  twice. Campaign and Step 10 simulations are omitted only while gameplay,
+  generated Campaign content, timing, judgment and Experiment inputs remain
+  unchanged.

@@ -727,3 +727,16 @@ mask mechanic readability changes.
   full regression and two byte-identical Campaign matrices.
 - **Learn:** movement pressure and input-burst pressure are independent balance
   dimensions and should be authored independently.
+
+## Iteration 29 — Lobby hierarchy cycle
+
+- **Play:** the implemented Lobby read as a flat diagnostic list and obscured
+  the current play decision.
+- **Analyze:** persistent wallet, progression feedback and Stage launch had the
+  same visual weight, while Heart readiness was missing.
+- **Design:** reserve the top for persistent resources, the center for Lobby
+  development and the bottom for one current-Stage `PLAY` action.
+- **Validate:** Builder twice, exact hierarchy/reference assertions, Product
+  Heart formatting, full regression and save preservation.
+- **Learn:** a stable information hierarchy should precede final illustration;
+  otherwise art production locks in avoidable UX clutter.
