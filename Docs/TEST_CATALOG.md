@@ -173,6 +173,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTe
 - `FogBlock_UsesApprovedVisibilityDurationCurve`
 - `IceBlock_UsesApprovedCampaignSpeedMultiplier`
 - `IceRunwaySettings_RejectNonPositiveSpeed`
+- `IceBlock_PrefersOneTapAndKeepsDoubleTapsBelowTenPercent`
+- `IceTapRhythm_RetryReplaysTheSameColorsAndQuota`
 - `LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated`
 
 ### Hidden, Flicker, Clone, Echo, and ETA
@@ -559,6 +561,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `CampaignFog_UsesOneTimedCurtainAtAdaptiveDistance`
 - `CampaignFog_PauseContinueAndRetryPreserveLifecycle`
 - `CampaignIce_PreplacesFixedRunwayAndKeepsTrackStable`
+- `CampaignIceMastery_RuntimePlanKeepsDoubleTapsBelowTenPercent`
 - `ExperimentIce_ChangesWholeTrackAndKeepsColorJudgment`
 - `RepeatedExperimentStarts_CreateNoDuplicates`
 - `FailureCameraShake_RestoresOriginalPositionAndRotation`

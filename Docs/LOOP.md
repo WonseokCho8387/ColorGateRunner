@@ -714,3 +714,16 @@ mask mechanic readability changes.
   and regenerate the Campaign matrix twice.
 - **Learn:** pre-telegraphed world state should use the full authored sequence;
   a small recycled interaction pool is not the right visual authority.
+
+## Iteration 28 loop learning — separate speed from tap burst
+
+- **Play:** the Ice runway and speed read correctly, but repeated fast taps
+  overloaded the intended terrain challenge.
+- **Analyze:** Stage 17 had a 40% double-tap rate, while earlier Ice stages were
+  dominated by no-input repeats rather than a consistent one-tap cadence.
+- **Design:** make every Ice target one forward tap by default and select only
+  the strict below-10% two-tap quota from the Stage seed.
+- **Validate:** assert exact Stage 15–17 quotas, Retry identity, runtime binding,
+  full regression and two byte-identical Campaign matrices.
+- **Learn:** movement pressure and input-burst pressure are independent balance
+  dimensions and should be authored independently.

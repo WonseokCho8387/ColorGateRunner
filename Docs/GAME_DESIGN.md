@@ -699,3 +699,18 @@ Experiment Lab retains its historical whole-track `1.45` comparison.
 - Continue preserves the preplaced runway. Retry clears and reconstructs the
   same deterministic layout. Gate color judgment, spacing multiplier, seed,
   sequence, items, Goal and Continue rules are unchanged.
+
+## Iteration 28 Ice Tap Rhythm
+
+This section supersedes only the authored color rhythm inside Campaign Ice
+gates. Iteration 27 speed and runway presentation remain authoritative.
+
+- Every Ice gate requires either one or two forward taps from the preceding
+  authored target. Zero-tap and three-or-more-tap Ice gates are forbidden.
+- Stage 15 and 16 require one tap on every Ice gate. Stage 17 uses one tap on
+  14 of 15 Ice gates and one deterministic two-tap gate (`6.67%`).
+- Future Ice sequences must keep `double taps / Ice gates < 10%`. The quota and
+  selected gate are derived deterministically from the Stage seed, and Retry
+  reproduces the same sequence.
+- Continue safe-color recovery remains separate from this authored no-miss
+  rhythm. Non-Ice stages and Experiment Lab retain their existing generators.

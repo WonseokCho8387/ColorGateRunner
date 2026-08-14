@@ -1947,3 +1947,41 @@ Human feedback required
   visual work. Human play owns readability and fairness at `2.0` speed.
 - Lobby hierarchy/redesign, Shop/IAP, Firebase and real rewarded ads remain
   separate iterations.
+
+## Iteration 28 — Ice Tap Rhythm
+
+### Play / Analyze
+
+- Human play accepted the Fog and Ice presentation direction but found rapid
+  color bursts inappropriate at `2.0` Ice speed. Static plan inspection showed
+  Stage 17 required two taps on 6 of 15 Ice gates (`40%`), while Stage 15 / 16
+  contained mostly zero-tap repeats instead of a readable one-tap rhythm.
+
+### Design / Implementation
+
+- Added an Ice-only deterministic tap budget to the Campaign Stage sequence.
+  Every Ice gate now requires one or two forward taps, with a strict double-tap
+  ratio below 10% and a seed-derived quota/position.
+- Stage 15 / 16 now use one tap on all 12 / 14 Ice gates. Stage 17 uses one tap
+  on 14 gates and two taps on one gate (`6.67%`). Retry is identical.
+- Other Stage generators, Continue overrides, Experiment Lab, speed, spacing,
+  runway presentation, stable IDs and Product state were not changed.
+
+### Validation
+
+- Focused EditMode passed `13/13`; focused Campaign PlayMode passed `1/1`.
+  Full EditMode passed `429/429`; full PlayMode passed `227/227`.
+- Two 400-row Campaign simulations were byte-identical. Summary / JSON / CSV
+  hashes are `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`,
+  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`, and
+  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`.
+  Continuity/pool counters are zero; Step 10 remained unchanged.
+- Product save and backup bytes, timestamps and hashes were preserved. No
+  Builder ran because no Scene, Catalog asset or generated hierarchy changed.
+
+### Learning / Human Review
+
+- A high-speed terrain mechanic needs a separate input-burst budget; random
+  target distribution alone does not express the intended physical pressure.
+- Human play must judge the Stage 17 rare double-tap and overall Ice cadence.
+- Lobby visual hierarchy is the next approved, separate iteration.

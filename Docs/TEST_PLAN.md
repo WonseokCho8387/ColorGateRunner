@@ -473,6 +473,24 @@ fairness, or polish.
   two byte-identical 400-row Campaign runs. Step 10 is omitted because its
   Experiment inputs and behavior are unchanged.
 
+### Iteration 28 Ice tap rhythm
+
+- Every Campaign Ice gate requires exactly one or two forward taps from the
+  preceding authored target; zero and three-or-more are rejected.
+- Stage 15 / 16 exact Ice quotas are `12 single + 0 double` and
+  `14 single + 0 double`. Stage 17 is `14 single + 1 double`, so its two-tap
+  rate is `6.67%` and strictly below 10%.
+- Retry must reproduce every target color and the selected two-tap gate.
+  Non-Ice stages, Continue recovery, Experiment Lab, speed, spacing and runway
+  presentation remain unchanged.
+- Tier 3 requires focused Core/runtime coverage, full EditMode/PlayMode and two
+  complete Campaign simulations. Builder is omitted when no generated Scene or
+  Catalog asset changes. Step 10 is omitted only while Experiment inputs and
+  behavior remain unchanged.
+- Final evidence: focused EditMode `13/13`, focused PlayMode `1/1`, full
+  EditMode `429/429`, PlayMode `227/227`, and two byte-identical 400-row
+  Campaign runs with zero continuity/pool violations.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

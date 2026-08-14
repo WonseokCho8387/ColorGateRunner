@@ -6,6 +6,9 @@ namespace ColorGateRunner.Core
     {
         public const float IceSpeedMultiplier = 1.45f;
         public const float IceSpacingMultiplier = 1.30f;
+        public const int PreferredIceTapCount = 1;
+        public const int MaximumIceTapCount = 2;
+        public const float MaximumIceDoubleTapRate = 0.10f;
 
         public static GateModifier CreateForStageGate(
             StageDefinition stage,

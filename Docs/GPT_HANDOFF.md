@@ -1,5 +1,25 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 28 completed update
+
+- Starting HEAD was `eddf720`; completion commit name is
+  `feat: rebalance ice tap rhythm`.
+- Campaign Ice now requires one forward tap by default. Stages 15 / 16 use
+  one tap on all 12 / 14 Ice gates; Stage 17 uses one tap on 14 gates and a
+  seed-selected two-tap on one gate (`6.67%`). Zero and larger Ice bursts are
+  excluded, and Retry reproduces the same sequence.
+- Ice speed, spacing, fixed runway, Continue, non-Ice Campaign and Experiment
+  Lab are unchanged. Human play accepted the current Fog/Ice visual direction.
+- Focused EditMode `13/13`, focused PlayMode `1/1`, full EditMode `429/429`
+  and full PlayMode `227/227` passed. Two 400-row Campaign runs were byte-
+  identical with Summary / JSON / CSV hashes
+  `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`,
+  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`, and
+  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`.
+- Lobby visual hierarchy is the next approved iteration: persistent compact
+  Coin/Heart/Settings chrome, dominant theme/progression, one Stage action and
+  removal of duplicated text. Shop/IAP and final art remain separate.
+
 ## Iteration 27 completed update
 
 - Starting HEAD was `4c3ce13`; completion commit name is

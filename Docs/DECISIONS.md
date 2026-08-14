@@ -1249,3 +1249,17 @@ Status: Approved and implemented.
   Unity script asset. The Fog View was separated from its pure state file after
   a clean reload exposed the old file/class reference instability; Fog
   behavior did not change.
+
+## Iteration 28 — Ice gates own a strict tap budget
+
+- Campaign Ice uses an authored-input rule rather than unconstrained random
+  target colors: one forward tap is preferred, two taps are allowed only while
+  their ratio remains strictly below 10%, and zero or larger bursts are not
+  authored inside Ice.
+- The deterministic Stage sequence owns this rule because it already owns
+  target colors and Retry reproducibility. Presentation does not estimate or
+  rewrite required inputs.
+- Stage 15 / 16 have no two-tap Ice gates. Stage 17 deterministically selects
+  one of 15 Ice gates for two taps; all remaining Ice gates use one tap.
+- Non-Ice Campaign sequences, Continue recovery overrides, Experiment Lab,
+  Ice speed/spacing and the fixed runway remain unchanged.

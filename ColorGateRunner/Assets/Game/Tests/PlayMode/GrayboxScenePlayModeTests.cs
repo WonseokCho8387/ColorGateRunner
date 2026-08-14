@@ -947,6 +947,44 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CampaignIceMastery_RuntimePlanKeepsDoubleTapsBelowTenPercent()
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(17);
+            _controller.StartSelectedStage();
+
+            StageDefinition stage = _controller.Session.Stage;
+            RunnerColor currentColor = stage.GetAllowedColor(0);
+            int iceGateCount = 0;
+            int singleTapCount = 0;
+            int doubleTapCount = 0;
+            for (int gate = 0; gate < stage.TargetGateCount; gate++)
+            {
+                GatePlan plan = _controller.Session.GetGatePlan(gate);
+                int requiredTaps = stage.GetRequiredTapCount(
+                    gate,
+                    currentColor,
+                    plan.Color);
+                if (plan.Modifier.IsIce)
+                {
+                    iceGateCount++;
+                    singleTapCount += requiredTaps == 1 ? 1 : 0;
+                    doubleTapCount += requiredTaps == 2 ? 1 : 0;
+                    Assert.That(requiredTaps, Is.InRange(1, 2));
+                }
+                currentColor = plan.Color;
+            }
+
+            Assert.That(iceGateCount, Is.EqualTo(15));
+            Assert.That(singleTapCount, Is.EqualTo(14));
+            Assert.That(doubleTapCount, Is.EqualTo(1));
+            Assert.That(doubleTapCount / (float)iceGateCount,
+                Is.LessThan(
+                    GateModifierRules.MaximumIceDoubleTapRate));
+        }
+
+        [Test]
         public void ExperimentIce_ChangesWholeTrackAndKeepsColorJudgment()
         {
             Material normal =

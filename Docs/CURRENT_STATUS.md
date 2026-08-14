@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `4c3ce13`
-- Base commit: `feat: add fog visibility curve`
+- Implementation base HEAD: `eddf720`
+- Base commit: `feat: add preplaced ice runway`
 - Authoritative completion HEAD: the commit named
-  `feat: add preplaced ice runway`; its exact hash is
-  recorded in the Iteration 27 final report because a commit cannot contain
+  `feat: rebalance ice tap rhythm`; its exact hash is
+  recorded in the Iteration 28 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 27 — Preplaced Ice Runway**.
+- Current completed iteration: **Iteration 28 — Ice Tap Rhythm**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -136,6 +136,10 @@ below where their contracts differ.
   Continue preserves the same runway and Retry rebuilds it deterministically.
   Experiment Lab intentionally retains its historical whole-track `1.45`
   comparison behavior.
+- Authored Ice gates now prefer one forward tap. Stage 15 and 16 require one
+  tap on every Ice gate; Stage 17 requires one tap on 14 of 15 Ice gates and
+  two taps on one deterministic gate (`6.67%`). Ice gates never require zero
+  or more than two authored taps. Retry reproduces the same quota and colors.
 - The local catalog owns six Coin packs and five bundles. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
   Tickets are offered before real ads and Coins. Store connection, receipt
@@ -144,10 +148,11 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `425/425`
-- PlayMode: `226/226`
+- EditMode: `429/429`
+- PlayMode: `227/227`
 - Post-Builder PlayMode: `226/226`
-- Campaign Builder: 2 consecutive successful runs
+- Campaign Builder: Iteration 27 two-pass baseline retained; not rerun because
+  Iteration 28 changes no Scene or Builder-owned content
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -162,10 +167,10 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 202, highest unlocked Stage ID `stage-13` with 16 records,
-  23,000 Coins, 2 Shields, 1 Booster and 5 Hearts.
+- Schema 3, revision 221, highest unlocked Stage ID `stage-17` with 16 records,
+  800 Coins, 2 Shields, 1 Booster and 3 Hearts.
 - SHA-256:
-  `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.
+  `410793F21F1CAD39A19330737A9E47A36F06D17C4DAC25ED87B98B5F3FC6F00E`.
 - Full validation did not mutate this file. Developer Console mutations occur
   only after an explicit Apply, Reset, or Unlock action.
 
@@ -173,11 +178,11 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `400`
 - Summary SHA-256:
-  `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`
+  `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`
 - JSON SHA-256:
-  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`
+  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`
 - CSV SHA-256:
-  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`
+  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
@@ -243,6 +248,26 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 28 validation result
+
+- Starting HEAD `eddf720` was clean. Completion commit name:
+  `feat: rebalance ice tap rhythm`.
+- The Campaign Stage sequence now applies an Ice-only tap budget. Stage 15 / 16
+  use one tap on all 12 / 14 Ice gates. Stage 17 uses one tap on 14 gates and
+  two taps on one deterministic gate, keeping the double-tap rate at `6.67%`.
+- Non-Ice stages, Ice speed/spacing/runway presentation, Continue, stable Stage
+  IDs and Experiment Lab remain unchanged. Retry reproduces the same colors.
+- Focused EditMode passed `13/13`; focused PlayMode passed `1/1`; full EditMode
+  passed `429/429`; full PlayMode passed `227/227`. No Builder was required.
+- Two complete 400-row Campaign simulations were byte-identical. Summary /
+  JSON / CSV SHA-256 are
+  `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`,
+  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`, and
+  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`.
+  All continuity and pool-violation counters are zero. Step 10 was not rerun
+  because Experiment behavior and inputs are unchanged.
+- The real Product save and backup remained byte-, timestamp- and SHA-exact.
 
 ## Iteration 27 validation result
 

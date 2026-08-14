@@ -158,6 +158,83 @@ namespace ColorGateRunner.Tests.EditMode
                 Throws.TypeOf<System.ArgumentOutOfRangeException>());
         }
 
+        [TestCase(15, 12, 12, 0)]
+        [TestCase(16, 14, 14, 0)]
+        [TestCase(17, 15, 14, 1)]
+        public void IceBlock_PrefersOneTapAndKeepsDoubleTapsBelowTenPercent(
+            int stageNumber,
+            int expectedIceGateCount,
+            int expectedSingleTapCount,
+            int expectedDoubleTapCount)
+        {
+            StageDefinition stage =
+                StageCatalog.GetByDisplayNumber(stageNumber);
+            DeterministicStageGateSequence sequence =
+                new DeterministicStageGateSequence(stage);
+            RunnerColor currentColor = stage.GetAllowedColor(0);
+            int iceGateCount = 0;
+            int singleTapCount = 0;
+            int doubleTapCount = 0;
+
+            for (int gate = 0; gate < stage.TargetGateCount; gate++)
+            {
+                GatePlan plan = sequence.GetPlan(gate);
+                int requiredTaps = stage.GetRequiredTapCount(
+                    gate,
+                    currentColor,
+                    plan.Color);
+                if (plan.Modifier.IsIce)
+                {
+                    iceGateCount++;
+                    Assert.That(requiredTaps,
+                        Is.InRange(
+                            GateModifierRules.PreferredIceTapCount,
+                            GateModifierRules.MaximumIceTapCount));
+                    if (requiredTaps ==
+                        GateModifierRules.PreferredIceTapCount)
+                    {
+                        singleTapCount++;
+                    }
+                    if (requiredTaps ==
+                        GateModifierRules.MaximumIceTapCount)
+                    {
+                        doubleTapCount++;
+                    }
+                }
+
+                currentColor = plan.Color;
+            }
+
+            Assert.That(iceGateCount, Is.EqualTo(expectedIceGateCount));
+            Assert.That(singleTapCount,
+                Is.EqualTo(expectedSingleTapCount));
+            Assert.That(doubleTapCount,
+                Is.EqualTo(expectedDoubleTapCount));
+            Assert.That(
+                doubleTapCount / (float)iceGateCount,
+                Is.LessThan(
+                    GateModifierRules.MaximumIceDoubleTapRate));
+        }
+
+        [Test]
+        public void IceTapRhythm_RetryReplaysTheSameColorsAndQuota()
+        {
+            StageDefinition stage = StageCatalog.GetByDisplayNumber(17);
+            DeterministicStageGateSequence first =
+                new DeterministicStageGateSequence(stage);
+            DeterministicStageGateSequence replay =
+                new DeterministicStageGateSequence(stage);
+
+            for (int gate = 0; gate < stage.TargetGateCount; gate++)
+            {
+                GatePlan firstPlan = first.GetPlan(gate);
+                GatePlan replayPlan = replay.GetPlan(gate);
+                Assert.That(replayPlan.Color, Is.EqualTo(firstPlan.Color));
+                Assert.That(replayPlan.Modifier.Types,
+                    Is.EqualTo(firstPlan.Modifier.Types));
+            }
+        }
+
         [Test]
         public void LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated()
         {

@@ -19,6 +19,7 @@ namespace ColorGateRunner.Core
         private readonly StageDefinition _stage;
         private readonly bool[] _hiddenGateMask;
         private readonly bool[] _flickerGateMask;
+        private readonly bool[] _iceDoubleTapMask;
         private uint _state;
         private RunnerColor _previousColor;
         private int _colorRunLength;
@@ -29,6 +30,7 @@ namespace ColorGateRunner.Core
             _stage = stage ?? throw new ArgumentNullException(nameof(stage));
             _hiddenGateMask = new bool[_stage.TargetGateCount];
             _flickerGateMask = new bool[_stage.TargetGateCount];
+            _iceDoubleTapMask = new bool[_stage.TargetGateCount];
             Reset();
         }
 
@@ -138,6 +140,12 @@ namespace ColorGateRunner.Core
                 _flickerGateMask,
                 0,
                 _flickerGateMask.Length);
+            Array.Clear(
+                _iceDoubleTapMask,
+                0,
+                _iceDoubleTapMask.Length);
+
+            BuildIceDoubleTapMask();
 
             HiddenSettings hidden = _stage.HiddenSettings;
             if ((_stage.GateModifiers & GateModifierType.Hidden) != 0 &&
@@ -176,6 +184,63 @@ namespace ColorGateRunner.Core
                             gateIndex,
                             flicker));
                 Array.Copy(mask, _flickerGateMask, mask.Length);
+            }
+        }
+
+        private void BuildIceDoubleTapMask()
+        {
+            if ((_stage.GateModifiers & GateModifierType.Ice) == 0)
+            {
+                return;
+            }
+
+            int iceGateCount = 0;
+            int[] eligibleGateIndices =
+                new int[_stage.TargetGateCount];
+            int eligibleGateCount = 0;
+            for (int gateIndex = 0;
+                gateIndex < _stage.TargetGateCount;
+                gateIndex++)
+            {
+                GateModifier modifier =
+                    GateModifierRules.CreateForStageGate(
+                        _stage,
+                        gateIndex);
+                if (!modifier.IsIce)
+                {
+                    continue;
+                }
+
+                iceGateCount++;
+                if (_stage.GetActiveColorCount(gateIndex) >= 3)
+                {
+                    eligibleGateIndices[eligibleGateCount++] = gateIndex;
+                }
+            }
+
+            int doubleTapCount = 0;
+            while (doubleTapCount < eligibleGateCount &&
+                (doubleTapCount + 1) / (float)iceGateCount <
+                GateModifierRules.MaximumIceDoubleTapRate)
+            {
+                doubleTapCount++;
+            }
+            uint selectionState =
+                DeterministicGateSequence.NormalizeSeed(
+                    _stage.Seed ^ 0x1CE7A92Du);
+            for (int index = 0; index < doubleTapCount; index++)
+            {
+                selectionState =
+                    DeterministicGateSequence.AdvanceXorshift32(
+                        selectionState);
+                int selectionIndex = index +
+                    (int)(selectionState %
+                        (uint)(eligibleGateCount - index));
+                int selectedGate = eligibleGateIndices[selectionIndex];
+                eligibleGateIndices[selectionIndex] =
+                    eligibleGateIndices[index];
+                eligibleGateIndices[index] = selectedGate;
+                _iceDoubleTapMask[selectedGate] = true;
             }
         }
 
@@ -259,6 +324,13 @@ namespace ColorGateRunner.Core
                 return RecordColor(RunnerColor.Green);
             }
 
+            if (GateModifierRules.CreateForStageGate(
+                    _stage,
+                    gateIndex).IsIce)
+            {
+                return RecordColor(ChooseIceColor(gateIndex));
+            }
+
             int colorCount = _stage.GetGateColorCountAt(gateIndex);
             RunnerColor color = _stage.GetAllowedColor((int)(raw % (uint)colorCount));
             if (_hasPreviousColor &&
@@ -275,6 +347,22 @@ namespace ColorGateRunner.Core
             }
 
             return RecordColor(color);
+        }
+
+        private RunnerColor ChooseIceColor(int gateIndex)
+        {
+            RunnerColor color = _hasPreviousColor
+                ? _previousColor
+                : _stage.GetAllowedColor(0);
+            int tapCount = _iceDoubleTapMask[gateIndex]
+                ? GateModifierRules.MaximumIceTapCount
+                : GateModifierRules.PreferredIceTapCount;
+            for (int tap = 0; tap < tapCount; tap++)
+            {
+                color = _stage.GetNextActiveColor(gateIndex, color);
+            }
+
+            return color;
         }
 
         private static RunnerColor ChooseStageThreeColor(int gateIndex)

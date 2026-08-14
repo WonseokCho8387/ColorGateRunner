@@ -512,3 +512,13 @@ The three-Continue cap and original prices below are superseded by Iteration
 - This remains a graybox Cyan treatment. Human portrait review owns final
   texture, edge glow, depth, transition readability and whether `2.0` speed
   feels forceful without becoming visually unfair.
+
+## Iteration 28 Ice input readability
+
+- Human play accepted the distance-based Fog curtain and preplaced Ice runway
+  directions. Their visual timing, geometry and materials are unchanged here.
+- Campaign Ice now presents a predominantly one-tap color rhythm so its `2.0`
+  movement pressure does not rely on repeated rapid tapping. The single rare
+  Stage 17 double-tap remains a gameplay cue, not a new visual effect.
+- Human review must confirm the one-tap cycle remains readable against Cyan
+  terrain and that the rare double-tap does not look like an input error.

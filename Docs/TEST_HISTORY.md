@@ -2104,3 +2104,22 @@ Any mismatch blocks implementation.
 - Product save remained schema 3 revision 202, 13,580 bytes, timestamp- and
   SHA-identical at
   `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.
+
+## Iteration 28 — Ice Tap Rhythm
+
+- Base HEAD: `eddf720`.
+- Focused `CampaignLearningCurveStageTests`: `13/13`; focused runtime Ice
+  mastery test: `1/1`.
+- Full EditMode: `429/429`; full PlayMode: `227/227`.
+- Campaign simulation: two 400-row runs, byte-identical. SHA-256:
+  - Summary: `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`
+  - JSON: `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`
+  - CSV: `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`
+- Stage 15 / 16 / 17 Ice quotas are exactly `12/0`, `14/0`, and `14/1`
+  single/double taps. Stage 17 double-tap rate is `6.67%`.
+- Booster/Continue displacement, gap, duplicate, cursor-reset and full-pool-
+  reset counters are zero. Step 10 was not rerun because Experiment inputs and
+  behavior are unchanged. Builder was not required.
+- The captured Product save and backup remained byte-, timestamp- and SHA-
+  identical. Package hashes remained exact; the package-managed volatile WebGL
+  define was excluded and restored to the approved baseline.
