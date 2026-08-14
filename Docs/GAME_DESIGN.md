@@ -668,3 +668,17 @@ Experiment Lab retains its historical nearest-two visibility comparison.
   Retry resets it.
 - Fog changes only visibility presentation. Gate color, judgment, sequence,
   spacing, speed, Goal, item and Continue rules are unchanged.
+
+## Iteration 26 Fog Visibility Curve
+
+This section supersedes only the Iteration 25 Campaign curtain alpha and
+duration values. Its one-trigger, positioning and lifecycle contracts remain.
+
+- Every Campaign curtain fades from alpha `0` to `1` over `0.5 seconds` and
+  fades back from `1` to `0` over its final `0.5 seconds`.
+- Full-opacity duration is authored per Stage instead of hard-coded in the
+  view: Stage 12 intro uses `5 seconds`, Stage 13 practice uses `6 seconds`,
+  and Stage 14 mastery uses `7 seconds`.
+- Future Fog stages must author the three phase durations through the Stage
+  Catalog. Runtime code must not infer them from display number or difficulty
+  label.

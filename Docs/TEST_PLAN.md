@@ -439,6 +439,20 @@ fairness, or polish.
   Builder twice. Deterministic simulations are omitted because no mechanical
   input or result changed.
 
+### Iteration 26 Fog visibility curve
+
+- Campaign Fog must fade alpha `0 -> 1` over `0.5 seconds`, remain fully
+  opaque for the Catalog-authored Stage duration, and fade `1 -> 0` over
+  `0.5 seconds`.
+- Stage 12 / 13 / 14 full-opacity values must be exactly `5 / 6 / 7 seconds`.
+  Invalid non-positive phase durations must be rejected.
+- Pause, Continue countdown, one-shot triggering, adaptive positioning, Retry
+  reset, gate judgment and Experiment Lab behavior retain Iteration 25 rules.
+- Final evidence: Stage Catalog revision 9, Campaign Builder twice, EditMode
+  `423/423`, PlayMode `225/225`, and two byte-identical 400-row Campaign runs
+  matching the existing Summary / JSON / CSV hashes. Step 10 is omitted because
+  Experiment inputs and behavior are unchanged.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

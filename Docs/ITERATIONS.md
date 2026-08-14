@@ -1869,3 +1869,34 @@ Human feedback required
 
 - Human review owns curtain softness, opacity, depth and readability on device.
 - Preplaced/rebalanced Ice and the final Lobby layout remain separate work.
+
+## Iteration 26 — Fog Visibility Curve
+
+### Play / Analyze
+
+- Human review found the curtain appeared too abruptly and its 1.5-second full
+  opacity window ended before it created meaningful visibility pressure.
+- The duration was hard-coded inside the view, preventing an authored learning
+  curve across the existing Fog intro / practice / mastery block.
+
+### Design / Implementation
+
+- Added Catalog-owned `FogCurtainSettings` with positive fade-in, full-opacity
+  and fade-out phases. Stage 12 / 13 / 14 author `0.5 + 5/6/7 + 0.5 seconds`.
+- The state now fades alpha `0 -> 1`, holds, then fades `1 -> 0`. Existing
+  one-shot, adaptive position, Pause, Continue and Retry behavior remains.
+- Stage Catalog revision advanced to 9 and the Resource/Scene were rebuilt.
+
+### Validation / Learning
+
+- Builder passed twice, EditMode `423/423`, and PlayMode `225/225`.
+- Two Campaign 400-row runs were byte-identical and retained all three approved
+  hashes. Step 10 remained unchanged because Experiment behavior is unchanged.
+- Product save and backup remained byte- and timestamp-identical.
+- A visibility mechanic's duration belongs in authored stage data when it is
+  part of the learning curve, even if judgment remains mechanically unchanged.
+
+### Deferred / Human Review
+
+- Human play must compare the 5 / 6 / 7-second curve on a portrait device.
+- Preplaced/rebalanced Ice and the final Lobby layout remain separate work.

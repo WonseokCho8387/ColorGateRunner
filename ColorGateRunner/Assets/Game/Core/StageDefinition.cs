@@ -43,7 +43,8 @@ namespace ColorGateRunner.Core
             StageMechanicGrantSettings mechanicGrantSettings = null,
             HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null,
-            StageDifficulty difficulty = StageDifficulty.Normal)
+            StageDifficulty difficulty = StageDifficulty.Normal,
+            FogCurtainSettings fogCurtainSettings = null)
             : this(
                 stageId,
                 displayNumber,
@@ -71,7 +72,8 @@ namespace ColorGateRunner.Core
                 mechanicGrantSettings,
                 hiddenSettings,
                 flickerSettings,
-                difficulty)
+                difficulty,
+                fogCurtainSettings)
         {
         }
 
@@ -102,7 +104,8 @@ namespace ColorGateRunner.Core
             StageMechanicGrantSettings mechanicGrantSettings = null,
             HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null,
-            StageDifficulty difficulty = StageDifficulty.Normal)
+            StageDifficulty difficulty = StageDifficulty.Normal,
+            FogCurtainSettings fogCurtainSettings = null)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -137,6 +140,8 @@ namespace ColorGateRunner.Core
             HiddenSettings = hiddenSettings ?? HiddenSettings.Disabled();
             FlickerSettings = flickerSettings ?? FlickerSettings.Disabled();
             Difficulty = difficulty;
+            FogCurtainSettings = fogCurtainSettings ??
+                FogCurtainSettings.CreateDefault();
         }
 
         public string StageId { get; }
@@ -165,6 +170,7 @@ namespace ColorGateRunner.Core
         public HiddenSettings HiddenSettings { get; }
         public FlickerSettings FlickerSettings { get; }
         public StageDifficulty Difficulty { get; }
+        public FogCurtainSettings FogCurtainSettings { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
 

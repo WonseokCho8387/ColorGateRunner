@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `a8f7892`
-- Base commit: `fix: recycle failed gates after continue`
+- Implementation base HEAD: `74a9953`
+- Base commit: `feat: add timed fog curtain`
 - Authoritative completion HEAD: the commit named
-  `feat: add timed fog curtain`; its exact hash is
-  recorded in the Iteration 25 final report because a commit cannot contain
+  `feat: add fog visibility curve`; its exact hash is
+  recorded in the Iteration 26 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 25 — Timed Fog Curtain**.
+- Current completed iteration: **Iteration 26 — Fog Visibility Curve**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -122,11 +122,12 @@ below where their contracts differ.
   action.
 - Campaign Stages 12–14 no longer neutralize all but two Fog gates. When the
   first Fog gate becomes the next judgment, one world-space curtain appears
-  at 1.5 seconds of current travel distance ahead of the player. It remains at
-  alpha 1 for 1.5 seconds, fades to 0 over 0.5 seconds, and cannot retrigger in
-  that attempt. Pause and Continue countdown freeze it; Continue preserves its
-  state and Retry resets it. Experiment Lab retains its historical nearest-two
-  Fog comparison contract.
+  at 1.5 seconds of current travel distance ahead of the player. It fades from
+  alpha 0 to 1 over 0.5 seconds, stays fully opaque for an authored 5 / 6 / 7
+  seconds across the intro / practice / mastery curve, then fades to 0 over
+  0.5 seconds. It cannot retrigger in that attempt. Pause and Continue
+  countdown freeze it; Continue preserves its state and Retry resets it.
+  Experiment Lab retains its historical nearest-two Fog comparison contract.
 - The local catalog owns six Coin packs and five bundles. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
   Tickets are offered before real ads and Coins. Store connection, receipt
@@ -135,11 +136,11 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `421/421`
+- EditMode: `423/423`
 - PlayMode: `225/225`
 - Post-Builder PlayMode: `225/225`
 - Campaign Builder: 2 consecutive successful runs
-- Stage Catalog Builder: revision 7 Resource contains 20 valid stages
+- Stage Catalog Builder: revision 9 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -234,6 +235,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 26 validation result
+
+- Starting HEAD `74a9953` was clean. Completion commit name:
+  `feat: add fog visibility curve`.
+- Fog curtain timing is authored in Stage Catalog revision 9. Stages 12 / 13 /
+  14 use a 0.5-second fade-in, 5 / 6 / 7 seconds at full opacity, and a
+  0.5-second fade-out respectively.
+- Campaign judgment, gate plans, speed, spacing and stable Stage IDs are
+  unchanged. Experiment Lab retains its historical nearest-two benchmark.
+- Campaign Builder completed two consecutive runs. Full EditMode passed
+  `423/423`; post-Builder PlayMode passed `225/225`. Missing references,
+  duplicate generated objects, fixed pools and Build Settings checks passed.
+- Two complete 400-row Campaign simulations were byte-identical and retained
+  Summary / JSON / CSV hashes
+  `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`,
+  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`, and
+  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`.
+  Step 10 was not rerun because Experiment inputs and behavior are unchanged.
+- The real Product save and backup remained byte- and timestamp-identical to
+  their pre-test snapshots.
 
 ## Iteration 25 validation result
 

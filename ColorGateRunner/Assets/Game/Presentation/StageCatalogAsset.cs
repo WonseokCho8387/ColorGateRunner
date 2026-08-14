@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 8;
+        private const int CurrentCatalogRevision = 9;
 
         [Serializable]
         private sealed class StageEntry
@@ -78,6 +78,12 @@ namespace ColorGateRunner.Presentation
             [SerializeField, Min(0f)]
             [Tooltip("Seconds used to transition from neutral to the target color.")]
             private float camouflageRevealTransition = 0.18f;
+
+            [Header("Fog Curtain")]
+            [SerializeField, Min(0.01f)] private float fogFadeInSeconds = 0.5f;
+            [SerializeField, Min(0.01f)]
+            private float fogFullOpacitySeconds = 5f;
+            [SerializeField, Min(0.01f)] private float fogFadeOutSeconds = 0.5f;
 
             [Header("Hidden")]
             [SerializeField]
@@ -161,7 +167,8 @@ namespace ColorGateRunner.Presentation
                         true),
                     CreateHiddenSettings(),
                     CreateFlickerSettings(),
-                    difficulty);
+                    difficulty,
+                    CreateFogCurtainSettings());
             }
 
             public static StageEntry Create(
@@ -231,6 +238,9 @@ namespace ColorGateRunner.Presentation
                     echoMaxAcquisitions = enableEcho ? 3 : 0,
                     camouflageRevealLeadTime = 1.25f,
                     camouflageRevealTransition = 0.18f,
+                    fogFadeInSeconds = 0.5f,
+                    fogFullOpacitySeconds = 5f,
+                    fogFadeOutSeconds = 0.5f,
                     hiddenEnabled = false,
                     hiddenEligibleStart = 0.15f,
                     hiddenEligibleEnd = 0.85f,
@@ -287,6 +297,14 @@ namespace ColorGateRunner.Presentation
                 return this;
             }
 
+            public StageEntry WithFogCurtain(float fullOpacitySeconds)
+            {
+                fogFadeInSeconds = 0.5f;
+                fogFullOpacitySeconds = fullOpacitySeconds;
+                fogFadeOutSeconds = 0.5f;
+                return this;
+            }
+
             public StageEntry WithHidden()
             {
                 hiddenEnabled = true;
@@ -333,6 +351,14 @@ namespace ColorGateRunner.Presentation
                     additionalEchoChance,
                     echoCooldownGateCount,
                     echoMaxAcquisitions);
+            }
+
+            private FogCurtainSettings CreateFogCurtainSettings()
+            {
+                return new FogCurtainSettings(
+                    fogFadeInSeconds,
+                    fogFullOpacitySeconds,
+                    fogFadeOutSeconds);
             }
 
             private HiddenSettings CreateHiddenSettings()
@@ -702,7 +728,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.45f, 0.28f),
                         new Keyframe(0.78f, 0.70f),
                         new Keyframe(1f, 1f))
-                    .WithActiveColorCount(2),
+                    .WithActiveColorCount(2)
+                    .WithFogCurtain(5f),
                 StageEntry.Create(
                     "stage-13", 13, "FOG PRACTICE",
                     "Practice planning a two-color path through Fog.",
@@ -728,7 +755,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.42f, 0.27f),
                         new Keyframe(0.75f, 0.66f),
                         new Keyframe(1f, 1f))
-                    .WithActiveColorCount(2),
+                    .WithActiveColorCount(2)
+                    .WithFogCurtain(6f),
                 StageEntry.Create(
                     "stage-14", 14, "FOG MASTERY",
                     "Master Fog after restoring three colors.",
@@ -754,7 +782,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
                         new Keyframe(1f, 1f))
-                    .WithDifficulty(StageDifficulty.Hard),
+                    .WithDifficulty(StageDifficulty.Hard)
+                    .WithFogCurtain(7f),
                 StageEntry.Create(
                     "stage-15", 15, "ICE INTRO",
                     "Learn Ice momentum with two colors.",

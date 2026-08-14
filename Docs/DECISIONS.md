@@ -1221,3 +1221,14 @@ Status: Approved and implemented.
 - Experiment Lab preserves the historical nearest-two comparison so its Step
   10 experiment definition and artifacts are not silently redefined.
 - Gate plans, judgment, Campaign balance, Catalog and persistence are unchanged.
+
+## Iteration 26 — Fog visibility duration is authored per Stage
+
+- Campaign Fog uses three explicit phases: `0.5 seconds` fade-in, a Stage-owned
+  full-opacity duration, and `0.5 seconds` fade-out.
+- Stage 12 / 13 / 14 author `5 / 6 / 7 seconds` at full opacity to increase
+  visibility pressure across intro, practice and mastery.
+- Stage Catalog owns the values through `FogCurtainSettings`; controller code
+  must not infer them from Stage number or difficulty label.
+- The Iteration 25 one-shot, adaptive-distance, Pause, Continue, Retry and
+  Experiment Lab contracts remain unchanged.

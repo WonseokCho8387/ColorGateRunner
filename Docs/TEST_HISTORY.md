@@ -2072,3 +2072,15 @@ Any mismatch blocks implementation.
 - Package hashes and non-volatile ProjectSettings semantics remained unchanged.
 - Product save and backup hashes, byte lengths and timestamps were identical
   to the pre-test snapshot.
+
+## Iteration 26 — Fog Visibility Curve
+
+- Base HEAD: `74a9953`
+- Campaign Builder: two consecutive passes with Stage Catalog revision 9.
+- Full EditMode: `423/423`
+- Full post-Builder PlayMode: `225/225`
+- Two Campaign simulations: 400 rows each, byte-identical Summary / JSON / CSV
+  hashes equal to the Iteration 23 baseline.
+- Step 10: omitted because Experiment inputs and behavior are unchanged.
+- Package and ProjectSettings baselines were preserved. Product save and backup
+  remained byte- and timestamp-identical to their pre-test snapshots.

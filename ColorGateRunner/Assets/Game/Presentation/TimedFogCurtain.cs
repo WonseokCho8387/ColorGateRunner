@@ -1,43 +1,58 @@
 using System;
+using ColorGateRunner.Core;
 using UnityEngine;
 
 namespace ColorGateRunner.Presentation
 {
     internal sealed class TimedFogCurtainState
     {
-        internal const float FullOpacitySeconds = 1.5f;
-        internal const float FadeSeconds = 0.5f;
-        internal const float TotalSeconds =
-            FullOpacitySeconds + FadeSeconds;
-
         private float _elapsedSeconds;
+        private float _fadeInSeconds;
+        private float _fullOpacitySeconds;
+        private float _fadeOutSeconds;
 
         internal bool HasTriggered { get; private set; }
-        internal bool IsActive => HasTriggered && Alpha > 0f;
+        internal bool IsActive =>
+            HasTriggered && _elapsedSeconds < TotalSeconds;
         internal float ElapsedSeconds => _elapsedSeconds;
+        internal float TotalSeconds =>
+            _fadeInSeconds + _fullOpacitySeconds + _fadeOutSeconds;
         internal float Alpha
         {
             get
             {
-                if (!HasTriggered || _elapsedSeconds >= TotalSeconds)
+                if (!IsActive)
                 {
                     return 0f;
                 }
-                if (_elapsedSeconds <= FullOpacitySeconds)
+                if (_elapsedSeconds < _fadeInSeconds)
+                {
+                    return _elapsedSeconds / _fadeInSeconds;
+                }
+                float fadeOutStart =
+                    _fadeInSeconds + _fullOpacitySeconds;
+                if (_elapsedSeconds <= fadeOutStart)
                 {
                     return 1f;
                 }
                 return 1f -
-                    ((_elapsedSeconds - FullOpacitySeconds) / FadeSeconds);
+                    ((_elapsedSeconds - fadeOutStart) / _fadeOutSeconds);
             }
         }
 
-        internal bool TryTrigger()
+        internal bool TryTrigger(FogCurtainSettings settings)
         {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
             if (HasTriggered)
             {
                 return false;
             }
+            _fadeInSeconds = settings.FadeInSeconds;
+            _fullOpacitySeconds = settings.FullOpacitySeconds;
+            _fadeOutSeconds = settings.FadeOutSeconds;
             HasTriggered = true;
             _elapsedSeconds = 0f;
             return true;
@@ -99,9 +114,12 @@ namespace ColorGateRunner.Presentation
             return curtainRenderer != null;
         }
 
-        internal bool TryActivate(Vector3 playerPosition, float speed)
+        internal bool TryActivate(
+            Vector3 playerPosition,
+            float speed,
+            FogCurtainSettings settings)
         {
-            bool activated = _state.TryTrigger();
+            bool activated = _state.TryTrigger(settings);
             Synchronize(playerPosition, speed);
             return activated;
         }

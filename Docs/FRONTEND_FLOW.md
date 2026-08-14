@@ -952,3 +952,13 @@ not reusable art assets or an exact visual copy.
 - Pause and Continue countdown freeze it; Continue preserves/repositions it
   and Retry resets it. This changes no Frontend navigation or result contract.
 - Final Lobby composition and authored Ice approach remain deferred.
+
+## Implemented UX slice — Iteration 26 Fog visibility curve
+
+- Campaign Fog enters over `0.5 seconds`, stays fully opaque for the authored
+  Stage 12 / 13 / 14 duration of `5 / 6 / 7 seconds`, then exits over
+  `0.5 seconds`.
+- The values come from Stage Catalog revision 9, so future Fog stages can tune
+  visibility pressure without changing navigation or hard-coding Stage IDs in
+  the controller.
+- Final Lobby composition and authored Ice approach remain deferred.

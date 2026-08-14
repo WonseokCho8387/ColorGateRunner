@@ -486,3 +486,13 @@ The three-Continue cap and original prices below are superseded by Iteration
   repositions the same curtain without flashing or restarting it.
 - The generated treatment is still a graybox visibility proof. Human review
   owns final texture, volumetric depth, softness, color and device readability.
+
+## Iteration 26 Fog entrance and duration presentation
+
+- The Campaign curtain now eases into view over `0.5 seconds` rather than
+  appearing at full opacity on one frame.
+- Full-opacity time follows the learning block: `5 seconds` for intro,
+  `6 seconds` for practice and `7 seconds` for mastery. Every stage then fades
+  out over `0.5 seconds`.
+- Human portrait review must judge whether the longer Stage 14 obstruction is
+  challenging without making the authored gate colors feel arbitrarily hidden.

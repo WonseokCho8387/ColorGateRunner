@@ -2210,7 +2210,10 @@ namespace ColorGateRunner.Presentation
                 : _session.GetSpeedForPlan(upcoming.ActivePlan);
             if (upcoming != null && upcoming.ActivePlan.Modifier.IsFog)
             {
-                fogCurtain.TryActivate(player.position, speed);
+                fogCurtain.TryActivate(
+                    player.position,
+                    speed,
+                    _session.Stage.FogCurtainSettings);
             }
             fogCurtain.Tick(deltaSeconds, player.position, speed);
         }

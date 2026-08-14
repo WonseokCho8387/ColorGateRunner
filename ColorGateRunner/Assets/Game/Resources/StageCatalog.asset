@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 8
+  catalogRevision: 9
   stages:
   - stageId: stage-01
     displayNumber: 1
     title: TWO-COLOR BASICS
     description: Learn the red and blue match.
+    difficulty: 0
     targetGateCount: 24
     allowedColors: 0000000001000000
     activeColorCount: 2
@@ -72,6 +73,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -102,6 +106,7 @@ MonoBehaviour:
     displayNumber: 2
     title: RHYTHM CONTRAST
     description: Read changing gate cadence.
+    difficulty: 0
     targetGateCount: 28
     allowedColors: 0000000001000000
     activeColorCount: 2
@@ -156,6 +161,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -186,6 +194,7 @@ MonoBehaviour:
     displayNumber: 3
     title: EXCEPTION COLOR
     description: Watch for deliberate color exceptions.
+    difficulty: 0
     targetGateCount: 30
     allowedColors: 0000000001000000
     activeColorCount: 2
@@ -240,6 +249,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -270,6 +282,7 @@ MonoBehaviour:
     displayNumber: 4
     title: GREEN INTRODUCTION
     description: Meet green safely, then use all three colors.
+    difficulty: 0
     targetGateCount: 32
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -324,6 +337,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -354,6 +370,7 @@ MonoBehaviour:
     displayNumber: 5
     title: THREE-COLOR CHALLENGE
     description: Master three colors under pressure.
+    difficulty: 0
     targetGateCount: 36
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -408,6 +425,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -438,6 +458,7 @@ MonoBehaviour:
     displayNumber: 6
     title: SHIELD TRAINING
     description: Learn one stage-local Shield charge.
+    difficulty: 0
     targetGateCount: 38
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -510,6 +531,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -540,6 +564,7 @@ MonoBehaviour:
     displayNumber: 7
     title: BOOSTER TIMING
     description: Receive a stage-local Booster from the start.
+    difficulty: 0
     targetGateCount: 40
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -612,6 +637,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -642,6 +670,7 @@ MonoBehaviour:
     displayNumber: 8
     title: ITEM APPLICATION
     description: Apply an available item in a clean three-color run.
+    difficulty: 0
     targetGateCount: 40
     allowedColors: 000000000100000002000000
     activeColorCount: 3
@@ -714,6 +743,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -744,6 +776,7 @@ MonoBehaviour:
     displayNumber: 9
     title: CAMOUFLAGE INTRO
     description: Learn the reveal timing with two colors.
+    difficulty: 0
     targetGateCount: 38
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -816,6 +849,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -846,6 +882,7 @@ MonoBehaviour:
     displayNumber: 10
     title: CAMOUFLAGE PRACTICE
     description: Practice concealed gates through a longer two-color run.
+    difficulty: 0
     targetGateCount: 42
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -918,6 +955,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1021,6 +1061,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1051,6 +1094,7 @@ MonoBehaviour:
     displayNumber: 12
     title: FOG INTRO
     description: Learn to read the nearest gates through Fog.
+    difficulty: 0
     targetGateCount: 40
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1123,6 +1167,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1153,6 +1200,7 @@ MonoBehaviour:
     displayNumber: 13
     title: FOG PRACTICE
     description: Practice planning a two-color path through Fog.
+    difficulty: 0
     targetGateCount: 44
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1225,6 +1273,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 6
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1328,6 +1379,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 7
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1358,6 +1412,7 @@ MonoBehaviour:
     displayNumber: 15
     title: ICE INTRO
     description: Learn Ice momentum with two colors.
+    difficulty: 0
     targetGateCount: 42
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1430,6 +1485,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1460,6 +1518,7 @@ MonoBehaviour:
     displayNumber: 16
     title: ICE PRACTICE
     description: Practice controlling Ice through a longer run.
+    difficulty: 0
     targetGateCount: 46
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1532,6 +1591,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1635,6 +1697,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 0
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1665,6 +1730,7 @@ MonoBehaviour:
     displayNumber: 18
     title: ECHO INTRO
     description: Learn to acquire and spend Echo with two colors.
+    difficulty: 0
     targetGateCount: 42
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1737,6 +1803,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 3
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1767,6 +1836,7 @@ MonoBehaviour:
     displayNumber: 19
     title: ECHO PRACTICE
     description: Practice Echo timing through a longer two-color run.
+    difficulty: 0
     targetGateCount: 46
     allowedColors: 000000000100000002000000
     activeColorCount: 2
@@ -1839,6 +1909,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 3
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1942,6 +2015,9 @@ MonoBehaviour:
     echoMaxAcquisitions: 3
     camouflageRevealLeadTime: 1.25
     camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85

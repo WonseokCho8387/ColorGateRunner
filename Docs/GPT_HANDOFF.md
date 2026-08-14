@@ -1,5 +1,22 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 26 completed update
+
+- Starting HEAD was `74a9953`; completion commit name is
+  `feat: add fog visibility curve`.
+- Campaign Fog now fades alpha `0 -> 1` over `0.5 seconds`, remains fully
+  opaque for Stage 12 / 13 / 14 authored durations of `5 / 6 / 7 seconds`,
+  then fades `1 -> 0` over `0.5 seconds`.
+- Stage Catalog revision 9 owns the phase values. Runtime no longer hard-codes
+  the duration, while one-shot triggering, adaptive distance, Pause, Continue,
+  Retry and Experiment Lab contracts remain unchanged.
+- Campaign Builder passed twice, EditMode `423/423`, PlayMode `225/225`.
+  Two Campaign 400-row runs were byte-identical and retained the Iteration 23
+  Summary / JSON / CSV hashes. Step 10 remained unchanged.
+- The real Product save and backup remained byte- and timestamp-identical.
+- Human review should compare the longer Stage 12–14 obstruction curve. The
+  next product candidate is the preplaced and rebalanced Ice runway.
+
 ## Iteration 25 completed update
 
 - Starting HEAD was `a8f7892`; completion commit name is

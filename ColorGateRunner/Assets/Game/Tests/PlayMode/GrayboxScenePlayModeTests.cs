@@ -794,7 +794,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(_controller.FogCurtain.HasTriggered, Is.True);
             Assert.That(_controller.FogCurtain.IsVisible, Is.True);
-            Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
+            Assert.That(_controller.FogCurtain.Alpha, Is.Zero);
             Assert.That(
                 _controller.FogCurtain.transform.position.z -
                 _controller.PlayerTransform.position.z,
@@ -805,7 +805,18 @@ namespace ColorGateRunner.Tests.PlayMode
                     fog.AssignedColor)));
 
             _controller.FogCurtain.Tick(
-                1.5f,
+                0.25f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            Assert.That(_controller.FogCurtain.Alpha,
+                Is.EqualTo(0.5f).Within(0.0001f));
+            _controller.FogCurtain.Tick(
+                0.25f,
+                _controller.PlayerTransform.position,
+                _controller.Session.GetSpeedForPlan(fog.ActivePlan));
+            Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
+            _controller.FogCurtain.Tick(
+                _controller.Session.Stage.FogCurtainSettings.FullOpacitySeconds,
                 _controller.PlayerTransform.position,
                 _controller.Session.GetSpeedForPlan(fog.ActivePlan));
             Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
@@ -834,7 +845,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 GateModifierType.Fog);
             _controller.TickMovement(0f);
             _controller.FogCurtain.Tick(
-                1.6f,
+                0.25f,
                 _controller.PlayerTransform.position,
                 _controller.Session.GetSpeedForPlan(fog.ActivePlan));
             float alphaBeforePause = _controller.FogCurtain.Alpha;

@@ -221,6 +221,44 @@ namespace ColorGateRunner.Core
         }
     }
 
+    public sealed class FogCurtainSettings
+    {
+        public FogCurtainSettings(
+            float fadeInSeconds,
+            float fullOpacitySeconds,
+            float fadeOutSeconds)
+        {
+            if (fadeInSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fadeInSeconds));
+            }
+            if (fullOpacitySeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(fullOpacitySeconds));
+            }
+            if (fadeOutSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fadeOutSeconds));
+            }
+
+            FadeInSeconds = fadeInSeconds;
+            FullOpacitySeconds = fullOpacitySeconds;
+            FadeOutSeconds = fadeOutSeconds;
+        }
+
+        public float FadeInSeconds { get; }
+        public float FullOpacitySeconds { get; }
+        public float FadeOutSeconds { get; }
+        public float TotalSeconds =>
+            FadeInSeconds + FullOpacitySeconds + FadeOutSeconds;
+
+        public static FogCurtainSettings CreateDefault()
+        {
+            return new FogCurtainSettings(0.5f, 5f, 0.5f);
+        }
+    }
+
     public sealed class HiddenSettings
     {
         public HiddenSettings(

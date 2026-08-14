@@ -170,6 +170,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTe
 
 - `Catalog_ContainsApprovedLearningBlockCurve`
 - `MechanicBlocks_ProgressFromTwoColorIntroToThreeColorMastery`
+- `FogBlock_UsesApprovedVisibilityDurationCurve`
 - `LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated`
 
 ### Hidden, Flicker, Clone, Echo, and ETA
@@ -178,9 +179,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTe
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/TimedFogCurtainTests.cs`
 
-- `Trigger_HoldsFullOpacityThenFadesToZero`
+- `Trigger_FadesInHoldsFullOpacityThenFadesToZero`
 - `Trigger_IsOneShotUntilAttemptReset`
 - `Advance_RejectsNegativeTime`
+- `Settings_RejectNonPositivePhaseDurations`
 
 #### `HiddenModifierTests.cs`
 

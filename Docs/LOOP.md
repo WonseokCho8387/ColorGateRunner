@@ -688,3 +688,15 @@ mask mechanic readability changes.
   reset, ordinary judgment and Builder uniqueness separately.
 - **Learn:** visibility challenge should obscure perception without rewriting
   the underlying deterministic target state.
+
+## Iteration 26 loop learning — authored visibility pressure
+
+- **Play:** the curtain arrived instantly and disappeared too quickly.
+- **Analyze:** a single hard-coded hold duration could not express the existing
+  intro / practice / mastery curve.
+- **Design:** fade in over 0.5 seconds and author full-opacity time as 5 / 6 / 7
+  seconds per Fog Stage before the 0.5-second fade-out.
+- **Validate:** test all alpha phase boundaries, invalid settings, Catalog
+  values, lifecycle preservation and unchanged Campaign artifacts.
+- **Learn:** perception timing that drives difficulty should be stage data,
+  while deterministic target truth remains independent.

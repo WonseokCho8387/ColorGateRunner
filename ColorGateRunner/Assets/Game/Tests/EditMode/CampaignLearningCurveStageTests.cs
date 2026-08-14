@@ -116,6 +116,24 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void FogBlock_UsesApprovedVisibilityDurationCurve()
+        {
+            float[] fullOpacitySeconds = { 5f, 6f, 7f };
+            for (int index = 0; index < fullOpacitySeconds.Length; index++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(index + 12);
+
+                Assert.That(stage.FogCurtainSettings.FadeInSeconds,
+                    Is.EqualTo(0.5f));
+                Assert.That(stage.FogCurtainSettings.FullOpacitySeconds,
+                    Is.EqualTo(fullOpacitySeconds[index]));
+                Assert.That(stage.FogCurtainSettings.FadeOutSeconds,
+                    Is.EqualTo(0.5f));
+            }
+        }
+
+        [Test]
         public void LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated()
         {
             for (int index = 0; index < Modifiers.Length; index++)
