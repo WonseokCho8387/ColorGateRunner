@@ -19,6 +19,7 @@ namespace ColorGateRunner.Editor
             "Assets/Game/Generated/Materials";
         internal const int GatePoolSize = 6;
         internal const int TrackPoolSize = 6;
+        internal const int IceRunwayPanelCount = 50;
         internal const float TrackSegmentLength = 40f;
 
         internal static readonly Color RedColor = FromHex(0xE63946);
@@ -83,6 +84,8 @@ namespace ColorGateRunner.Editor
             CreateDirectionalLight(root.transform);
             TrackPoolController trackPool =
                 CreateTrackPool(root.transform, neutral);
+            IceRunwayView iceRunway =
+                CreateIceRunway(root.transform, cyan);
             GameObject playerObject =
                 CreatePlayer(root.transform, red);
             Renderer playerRenderer = playerObject.GetComponent<Renderer>();
@@ -309,6 +312,7 @@ namespace ColorGateRunner.Editor
                 speedLines,
                 trail,
                 fogCurtain,
+                iceRunway,
                 flowRoots,
                 lobbyPanel,
                 lobbyStageText,
@@ -490,6 +494,8 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
             TimedFogCurtainView[] fogCurtains =
                 generatedRoot.GetComponentsInChildren<TimedFogCurtainView>(true);
+            IceRunwayView[] iceRunways =
+                generatedRoot.GetComponentsInChildren<IceRunwayView>(true);
             ExperimentLauncher[] experimentLaunchers =
                 generatedRoot.GetComponentsInChildren<ExperimentLauncher>(true);
 
@@ -501,6 +507,12 @@ namespace ColorGateRunner.Editor
                     "Stage controller is duplicated, incomplete, or legacy mode is exposed. " +
                     $"Controllers={controllers.Length}, " +
                     $"Required={(controllers.Length == 1 && controllers[0].HasRequiredReferences())}, " +
+                    $"IceRunways={iceRunways.Length}, " +
+                    $"IceRequired={(iceRunways.Length == 1 && iceRunways[0].HasRequiredReferences())}, " +
+                    $"IcePanels={(iceRunways.Length == 1 ? iceRunways[0].PanelCount : 0)}, " +
+                    $"Fog={(controllers.Length == 1 && controllers[0].FogCurtain != null)}, " +
+                    $"FogRequired={(controllers.Length == 1 && controllers[0].FogCurtain != null && controllers[0].FogCurtain.HasRequiredReferences())}, " +
+                    $"Missing={DescribeMissingSerializedReferences(controllers)}, " +
                     $"Legacy={legacyControllers.Length}.");
             }
             RectTransform pauseDimRect =
@@ -543,6 +555,13 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Timed Fog curtain is missing or incomplete.");
+            }
+            if (iceRunways.Length != 1 ||
+                !iceRunways[0].HasRequiredReferences() ||
+                iceRunways[0].PanelCount != IceRunwayPanelCount)
+            {
+                throw new InvalidOperationException(
+                    "Fixed Ice runway pool is missing or incomplete.");
             }
             if (experimentLaunchers.Length != 1 ||
                 !experimentLaunchers[0].HasRequiredReferences())
@@ -599,6 +618,7 @@ namespace ColorGateRunner.Editor
                 "ShieldIcon",
                 "ShieldVisual",
                 "FogCurtain",
+                "IceRunway",
                 "Goal",
                 "FinishLeftPost",
                 "FinishRightPost",
@@ -806,6 +826,67 @@ namespace ColorGateRunner.Editor
             pool.Configure(segments, TrackSegmentLength, -20f, 20f);
             pool.ResetPool();
             return pool;
+        }
+
+        private static IceRunwayView CreateIceRunway(
+            Transform parent,
+            Material material)
+        {
+            GameObject runwayObject = new GameObject(
+                "IceRunway",
+                typeof(IceRunwayView));
+            runwayObject.transform.SetParent(parent, false);
+            Renderer[] panels = new Renderer[IceRunwayPanelCount];
+            for (int index = 0; index < panels.Length; index++)
+            {
+                GameObject panel =
+                    GameObject.CreatePrimitive(PrimitiveType.Cube);
+                panel.name = $"IceRunwayPanel_{index:00}";
+                panel.transform.SetParent(runwayObject.transform, false);
+                panel.GetComponent<Renderer>().sharedMaterial = material;
+                UnityEngine.Object.DestroyImmediate(
+                    panel.GetComponent<Collider>());
+                panels[index] = panel.GetComponent<Renderer>();
+            }
+
+            IceRunwayView runway =
+                runwayObject.GetComponent<IceRunwayView>();
+            runway.Configure(panels);
+            return runway;
+        }
+
+        private static string DescribeMissingSerializedReferences(
+            StageSceneController[] controllers)
+        {
+            if (controllers == null || controllers.Length != 1)
+            {
+                return "controller-count";
+            }
+
+            SerializedObject serialized =
+                new SerializedObject(controllers[0]);
+            SerializedProperty property = serialized.GetIterator();
+            string missing = string.Empty;
+            bool enterChildren = true;
+            while (property.NextVisible(enterChildren))
+            {
+                enterChildren = true;
+                if (property.propertyType !=
+                    SerializedPropertyType.ObjectReference ||
+                    property.objectReferenceValue != null ||
+                    property.name == "m_Script")
+                {
+                    continue;
+                }
+
+                missing += string.IsNullOrEmpty(missing)
+                    ? property.propertyPath
+                    : "," + property.propertyPath;
+            }
+
+            return string.IsNullOrEmpty(missing)
+                ? "none"
+                : missing;
         }
 
         private static GameObject CreatePlayer(

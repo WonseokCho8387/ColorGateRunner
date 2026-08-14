@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 9
+  catalogRevision: 10
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -76,6 +76,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -164,6 +165,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -252,6 +254,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -340,6 +343,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -428,6 +432,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -534,6 +539,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -640,6 +646,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -746,6 +753,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -852,6 +860,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -958,6 +967,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1064,6 +1074,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1170,6 +1181,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1276,6 +1288,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 6
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1382,6 +1395,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 7
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1488,6 +1502,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 2
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1594,6 +1609,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 2
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1700,6 +1716,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 2
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1806,6 +1823,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -1912,6 +1930,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
@@ -2018,6 +2037,7 @@ MonoBehaviour:
     fogFadeInSeconds: 0.5
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85

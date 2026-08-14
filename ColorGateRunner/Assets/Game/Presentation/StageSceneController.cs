@@ -52,6 +52,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private TrailRenderer playerTrail;
         [SerializeField] private TimedFogCurtainView fogCurtain;
+        [SerializeField] private IceRunwayView iceRunway;
         [SerializeField] private bool developmentTelemetryEnabled;
         [SerializeField] private GameObject[] uiFlowRoots;
 
@@ -224,6 +225,7 @@ namespace ColorGateRunner.Presentation
         internal ParticleSystem SpeedLines => speedLines;
         internal TrailRenderer PlayerTrail => playerTrail;
         internal TimedFogCurtainView FogCurtain => fogCurtain;
+        internal IceRunwayView IceRunway => iceRunway;
         internal Text CountdownText => countdownText;
         internal Text ProgressText => progressText;
         internal Text ClearDetailsText => clearDetailsText;
@@ -500,10 +502,6 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             trackPool.Tick(player.position.z);
-            trackPool.SetSurfaceMaterial(
-                upcoming != null && upcoming.ActivePlan.Modifier.IsIce
-                    ? cyanMaterial
-                    : _normalTrackMaterial);
             RecycleResolvedGatesBehindPlayer();
             UpdateCampaignFogCurtain(deltaTime);
             UpdateCampaignGateVisibility(deltaTime);
@@ -1478,7 +1476,8 @@ namespace ColorGateRunner.Presentation
                 echoShellRenderers.Length == 0 ||
                 successParticles == null || speedLines == null ||
                 playerTrail == null || fogCurtain == null ||
-                !fogCurtain.HasRequiredReferences() || uiFlowRoots == null ||
+                !fogCurtain.HasRequiredReferences() || iceRunway == null ||
+                !iceRunway.HasRequiredReferences() || uiFlowRoots == null ||
                 uiFlowRoots.Length != 7 || lobbyPanel == null ||
                 lobbyStageText == null || lobbyStageTitleText == null ||
                 lobbyStageDescriptionText == null || lobbyProgressText == null ||
@@ -1571,6 +1570,7 @@ namespace ColorGateRunner.Presentation
             ParticleSystem boosterLines,
             TrailRenderer trail,
             TimedFogCurtainView timedFogCurtain,
+            IceRunwayView preplacedIceRunway,
             GameObject[] flowRoots,
             GameObject lobby,
             Text lobbyStage,
@@ -1656,6 +1656,7 @@ namespace ColorGateRunner.Presentation
             speedLines = boosterLines;
             playerTrail = trail;
             fogCurtain = timedFogCurtain;
+            iceRunway = preplacedIceRunway;
             uiFlowRoots = flowRoots;
             lobbyPanel = lobby;
             lobbyStageText = lobbyStage;
@@ -1879,6 +1880,11 @@ namespace ColorGateRunner.Presentation
 
         private void BuildInitialGatePool()
         {
+            trackPool.SetSurfaceMaterial(_normalTrackMaterial);
+            iceRunway.Build(
+                _session,
+                player.position.z,
+                CampaignInitialGateLeadDistance);
             _nextPlanIndex = 0;
             _nextGateZ =
                 player.position.z + CampaignInitialGateLeadDistance;
@@ -2536,6 +2542,7 @@ namespace ColorGateRunner.Presentation
             playerRenderer.sharedMaterial = redMaterial;
             trackPool.ResetPool();
             fogCurtain.ResetCurtain();
+            iceRunway.ResetRunway();
             goal.SetActive(false);
             shieldVisual.SetActive(false);
             echoShellVisual.SetActive(false);

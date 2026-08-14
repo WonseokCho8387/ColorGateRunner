@@ -453,6 +453,26 @@ fairness, or polish.
   matching the existing Summary / JSON / CSV hashes. Step 10 is omitted because
   Experiment inputs and behavior are unchanged.
 
+### Iteration 27 Preplaced Ice runway
+
+- Campaign Stages 15–17 must author a positive `2.0` non-Booster Ice speed
+  multiplier. The existing Ice spacing multiplier, gate sequence, seed and
+  color judgment remain unchanged.
+- Campaign Scene must contain exactly 50 prebuilt runway panels. Before
+  Countdown, active panels must match every authored Ice plan and span its
+  deterministic approach; the normal six-segment track material must remain
+  unchanged. Runtime creation or pool growth is forbidden.
+- Continue preserves panel positions and activation. Retry clears and rebuilds
+  the same deterministic runway. Experiment Lab retains whole-track Cyan and
+  `1.45` speed behavior.
+- Builder validation requires one complete runway, the existing one Fog View,
+  fixed Gate/Track pools, unique generated roots, references, EventSystem and
+  Build Settings after two consecutive builds.
+- Final evidence: Stage Catalog revision 10, focused EditMode `8/8`, focused
+  PlayMode `4/4`, full EditMode `425/425`, post-Builder PlayMode `226/226`, and
+  two byte-identical 400-row Campaign runs. Step 10 is omitted because its
+  Experiment inputs and behavior are unchanged.
+
 ## References
 
 - `CURRENT_STATUS.md` — latest Authoritative Baseline, counts, hashes, Build

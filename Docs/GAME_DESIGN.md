@@ -646,10 +646,9 @@ Iterations 19 and 21 without deleting their historical records.
   records progress and rewards and refunds exactly that consumed Heart.
   Unlimited-Heart and provided/free starts create no refund entitlement.
   Failed save publication cannot partially grant progress, reward, or refund.
-- Fog remains the current nearest-two-gates implementation and Ice remains the
-  current gate-modifier implementation for Iteration 23. The timed Fog veil,
-  preplaced Ice runway, Ice-speed rebalance, and Lobby visual redesign are
-  explicitly deferred to later approved iterations.
+- Lobby visual redesign remains deferred. Campaign Fog and Ice are superseded
+  by the Iteration 25–27 contracts below; Experiment Lab keeps its historical
+  diagnostic comparisons.
 
 ## Iteration 25 Campaign Timed Fog Curtain
 
@@ -682,3 +681,21 @@ duration values. Its one-trigger, positioning and lifecycle contracts remain.
 - Future Fog stages must author the three phase durations through the Stage
   Catalog. Runtime code must not infer them from display number or difficulty
   label.
+
+## Iteration 27 Preplaced Ice Runway
+
+This section supersedes only Campaign Ice speed and floor presentation.
+Experiment Lab retains its historical whole-track `1.45` comparison.
+
+- Stage Catalog revision 10 authors `IceRunwaySettings.SpeedMultiplier = 2.0`
+  for Campaign Stages 15–17. Ice still multiplies non-Booster movement only;
+  Booster remains authoritative while active.
+- One fixed 50-panel presentation pool covers the maximum current authored
+  Stage gate count. Before Countdown, each panel mapped to an Ice gate is
+  positioned across that gate's deterministic approach interval. Non-Ice and
+  unused panels remain inactive.
+- Campaign Ice never swaps the material of the recycled six-segment normal
+  track and never instantiates or grows runway content during an attempt.
+- Continue preserves the preplaced runway. Retry clears and reconstructs the
+  same deterministic layout. Gate color judgment, spacing multiplier, seed,
+  sequence, items, Goal and Continue rules are unchanged.

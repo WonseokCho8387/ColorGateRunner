@@ -136,7 +136,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Ice_UsesSharedSpeedAndSpacingMultipliers()
+        public void Ice_UsesAuthoredCampaignSpeedAndSharedSpacingMultipliers()
         {
             StageSession session = CreatePlaying(15, default);
             GatePlan icePlan = FindModifierPlan(
@@ -158,8 +158,11 @@ namespace ColorGateRunner.Tests.EditMode
                 session.GetSpeedForPlan(icePlan),
                 Is.EqualTo(
                     session.CurrentSpeed *
-                    GateModifierRules.IceSpeedMultiplier)
+                    session.Stage.IceRunwaySettings.SpeedMultiplier)
                     .Within(0.001f));
+            Assert.That(
+                session.Stage.IceRunwaySettings.SpeedMultiplier,
+                Is.EqualTo(2f));
         }
 
         [Test]

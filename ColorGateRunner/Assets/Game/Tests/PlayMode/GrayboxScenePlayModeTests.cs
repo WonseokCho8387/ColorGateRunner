@@ -878,7 +878,76 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Ice_ChangesFloorPresentationAndKeepsColorJudgment()
+        public void CampaignIce_PreplacesFixedRunwayAndKeepsTrackStable()
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(15);
+
+            Material normal =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.IceRunway.PanelCount,
+                Is.EqualTo(IceRunwayView.RequiredPanelCount));
+            int expectedIceCount = 0;
+            for (int index = 0;
+                index < _controller.Session.Stage.TargetGateCount;
+                index++)
+            {
+                GatePlan plan = _controller.Session.GetGatePlan(index);
+                Renderer panel = _controller.IceRunway.GetPanel(index);
+                Assert.That(
+                    panel.gameObject.activeSelf,
+                    Is.EqualTo(plan.Modifier.IsIce),
+                    $"panel {index}");
+                if (plan.Modifier.IsIce)
+                {
+                    expectedIceCount++;
+                    Assert.That(panel.transform.localScale.x,
+                        Is.EqualTo(IceRunwayView.PanelWidth));
+                    Assert.That(panel.transform.localScale.z,
+                        Is.GreaterThan(plan.Spacing));
+                }
+            }
+            Assert.That(_controller.IceRunway.ActivePanelCount,
+                Is.EqualTo(expectedIceCount));
+            Assert.That(expectedIceCount, Is.GreaterThan(0));
+            for (int index = 0;
+                index < _controller.TrackPool.SegmentCount;
+                index++)
+            {
+                Assert.That(
+                    _controller.TrackPool.GetSegment(index).SurfaceMaterial,
+                    Is.SameAs(normal));
+            }
+
+            GatePlan icePlan = default;
+            for (int index = 0;
+                index < _controller.Session.Stage.TargetGateCount;
+                index++)
+            {
+                GatePlan candidate =
+                    _controller.Session.GetGatePlan(index);
+                if (candidate.Modifier.IsIce)
+                {
+                    icePlan = candidate;
+                    break;
+                }
+            }
+            Assert.That(
+                _controller.Session.GetSpeedForPlan(icePlan),
+                Is.EqualTo(_controller.Session.CurrentSpeed * 2f)
+                    .Within(0.001f));
+
+            _controller.RetryToItemSelection();
+            Assert.That(_controller.IceRunway.ActivePanelCount, Is.Zero);
+        }
+
+        [Test]
+        public void ExperimentIce_ChangesWholeTrackAndKeepsColorJudgment()
         {
             Material normal =
                 _controller.TrackPool.GetSegment(0).SurfaceMaterial;

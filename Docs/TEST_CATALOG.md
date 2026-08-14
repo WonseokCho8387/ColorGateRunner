@@ -153,7 +153,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignMechanicStageTests.c
 - `BoosterStage_ProvidesLocalChargeAtStageStart`
 - `StartItems_AreLockedThroughGrantTrainingAndUnlockAtStageEight`
 - `GateModifiers_AreDeterministicAndStayInsideAuthoredStages`
-- `Ice_UsesSharedSpeedAndSpacingMultipliers`
+- `Ice_UsesAuthoredCampaignSpeedAndSharedSpacingMultipliers`
 - `EchoStage_AcquiresConsumesAndRestartsDeterministically`
 - `AuthoredSpeedCurves_AreSampledForDeterministicCoreUse`
 
@@ -171,6 +171,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignLearningCurveStageTe
 - `Catalog_ContainsApprovedLearningBlockCurve`
 - `MechanicBlocks_ProgressFromTwoColorIntroToThreeColorMastery`
 - `FogBlock_UsesApprovedVisibilityDurationCurve`
+- `IceBlock_UsesApprovedCampaignSpeedMultiplier`
+- `IceRunwaySettings_RejectNonPositiveSpeed`
 - `LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated`
 
 ### Hidden, Flicker, Clone, Echo, and ETA
@@ -556,7 +558,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `Fog_KeepsExactlyTwoGatesFullyReadableWithoutPoolGrowth`
 - `CampaignFog_UsesOneTimedCurtainAtAdaptiveDistance`
 - `CampaignFog_PauseContinueAndRetryPreserveLifecycle`
-- `Ice_ChangesFloorPresentationAndKeepsColorJudgment`
+- `CampaignIce_PreplacesFixedRunwayAndKeepsTrackStable`
+- `ExperimentIce_ChangesWholeTrackAndKeepsColorJudgment`
 - `RepeatedExperimentStarts_CreateNoDuplicates`
 - `FailureCameraShake_RestoresOriginalPositionAndRotation`
 - `PostBooster_FirstGateMatchesCurrentColor`

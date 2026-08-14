@@ -53,6 +53,13 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 catalog.GetByDisplayNumber(15).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Ice));
+            for (int number = 15; number <= 17; number++)
+            {
+                Assert.That(
+                    catalog.GetByDisplayNumber(number)
+                        .IceRunwaySettings.SpeedMultiplier,
+                    Is.EqualTo(2f));
+            }
             Assert.That(
                 catalog.GetByDisplayNumber(18).EchoSettings.Enabled,
                 Is.True);

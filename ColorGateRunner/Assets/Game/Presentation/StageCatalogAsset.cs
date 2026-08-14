@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 9;
+        private const int CurrentCatalogRevision = 10;
 
         [Serializable]
         private sealed class StageEntry
@@ -84,6 +84,11 @@ namespace ColorGateRunner.Presentation
             [SerializeField, Min(0.01f)]
             private float fogFullOpacitySeconds = 5f;
             [SerializeField, Min(0.01f)] private float fogFadeOutSeconds = 0.5f;
+
+            [Header("Ice Runway")]
+            [SerializeField, Min(0.01f)]
+            private float iceSpeedMultiplier =
+                GateModifierRules.IceSpeedMultiplier;
 
             [Header("Hidden")]
             [SerializeField]
@@ -168,7 +173,8 @@ namespace ColorGateRunner.Presentation
                     CreateHiddenSettings(),
                     CreateFlickerSettings(),
                     difficulty,
-                    CreateFogCurtainSettings());
+                    CreateFogCurtainSettings(),
+                    new IceRunwaySettings(iceSpeedMultiplier));
             }
 
             public static StageEntry Create(
@@ -241,6 +247,7 @@ namespace ColorGateRunner.Presentation
                     fogFadeInSeconds = 0.5f,
                     fogFullOpacitySeconds = 5f,
                     fogFadeOutSeconds = 0.5f,
+                    iceSpeedMultiplier = GateModifierRules.IceSpeedMultiplier,
                     hiddenEnabled = false,
                     hiddenEligibleStart = 0.15f,
                     hiddenEligibleEnd = 0.85f,
@@ -302,6 +309,12 @@ namespace ColorGateRunner.Presentation
                 fogFadeInSeconds = 0.5f;
                 fogFullOpacitySeconds = fullOpacitySeconds;
                 fogFadeOutSeconds = 0.5f;
+                return this;
+            }
+
+            public StageEntry WithIceRunway(float speedMultiplier)
+            {
+                iceSpeedMultiplier = speedMultiplier;
                 return this;
             }
 
@@ -808,7 +821,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.45f, 0.28f),
                         new Keyframe(0.78f, 0.70f),
                         new Keyframe(1f, 1f))
-                    .WithActiveColorCount(2),
+                    .WithActiveColorCount(2)
+                    .WithIceRunway(2f),
                 StageEntry.Create(
                     "stage-16", 16, "ICE PRACTICE",
                     "Practice controlling Ice through a longer run.",
@@ -834,7 +848,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.42f, 0.27f),
                         new Keyframe(0.75f, 0.66f),
                         new Keyframe(1f, 1f))
-                    .WithActiveColorCount(2),
+                    .WithActiveColorCount(2)
+                    .WithIceRunway(2f),
                 StageEntry.Create(
                     "stage-17", 17, "ICE MASTERY",
                     "Master Ice with three-color pressure.",
@@ -860,7 +875,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
                         new Keyframe(1f, 1f))
-                    .WithDifficulty(StageDifficulty.Hard),
+                    .WithDifficulty(StageDifficulty.Hard)
+                    .WithIceRunway(2f),
                 StageEntry.Create(
                     "stage-18", 18, "ECHO INTRO",
                     "Learn to acquire and spend Echo with two colors.",

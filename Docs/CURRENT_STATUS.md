@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `74a9953`
-- Base commit: `feat: add timed fog curtain`
+- Implementation base HEAD: `4c3ce13`
+- Base commit: `feat: add fog visibility curve`
 - Authoritative completion HEAD: the commit named
-  `feat: add fog visibility curve`; its exact hash is
-  recorded in the Iteration 26 final report because a commit cannot contain
+  `feat: add preplaced ice runway`; its exact hash is
+  recorded in the Iteration 27 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 26 — Fog Visibility Curve**.
+- Current completed iteration: **Iteration 27 — Preplaced Ice Runway**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -128,6 +128,14 @@ below where their contracts differ.
   0.5 seconds. It cannot retrigger in that attempt. Pause and Continue
   countdown freeze it; Continue preserves its state and Retry resets it.
   Experiment Lab retains its historical nearest-two Fog comparison contract.
+- Campaign Stages 15–17 preplace every authored Ice approach through one fixed
+  50-panel runway pool before Countdown. Ice panels span the deterministic
+  approach interval into each Ice gate, while the six recycled normal track
+  segments keep their normal material. Campaign Ice multiplies non-Booster
+  speed by an authored `2.0`; Booster remains authoritative while active.
+  Continue preserves the same runway and Retry rebuilds it deterministically.
+  Experiment Lab intentionally retains its historical whole-track `1.45`
+  comparison behavior.
 - The local catalog owns six Coin packs and five bundles. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
   Tickets are offered before real ads and Coins. Store connection, receipt
@@ -136,11 +144,11 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `423/423`
-- PlayMode: `225/225`
-- Post-Builder PlayMode: `225/225`
+- EditMode: `425/425`
+- PlayMode: `226/226`
+- Post-Builder PlayMode: `226/226`
 - Campaign Builder: 2 consecutive successful runs
-- Stage Catalog Builder: revision 9 Resource contains 20 valid stages
+- Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -154,10 +162,10 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 130, highest Stage 20 with 20 records, 91,100 Coins,
-  2 Shields, 1 Booster and 4 Hearts.
+- Schema 3, revision 202, highest unlocked Stage ID `stage-13` with 16 records,
+  23,000 Coins, 2 Shields, 1 Booster and 5 Hearts.
 - SHA-256:
-  `A81C6DA765C17DF44C131650EE73316D0F8B052B41938DC1AA82B18A350C8E18`.
+  `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.
 - Full validation did not mutate this file. Developer Console mutations occur
   only after an explicit Apply, Reset, or Unlock action.
 
@@ -165,11 +173,11 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `400`
 - Summary SHA-256:
-  `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`
+  `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`
 - JSON SHA-256:
-  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`
+  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`
 - CSV SHA-256:
-  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`
+  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
@@ -235,6 +243,36 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 27 validation result
+
+- Starting HEAD `4c3ce13` was clean. Completion commit name:
+  `feat: add preplaced ice runway`.
+- Stage Catalog revision 10 authors a `2.0` Campaign Ice speed multiplier for
+  Stages 15–17. The Stage IDs, gate count, sequence, seed, spacing modifier,
+  judgment and Experiment Lab definitions remain unchanged.
+- Campaign Scene owns one fixed `IceRunway` with exactly 50 prebuilt panels.
+  It activates all deterministic Ice approach intervals before Countdown,
+  never grows at runtime, preserves the layout through Continue and clears it
+  on Retry. The normal six-segment track no longer changes material for
+  Campaign Ice.
+- The Fog View was moved into a matching Unity script asset after a clean
+  domain reload exposed its former file/class-name reference instability.
+  Fog state, timing and behavior are unchanged.
+- Campaign Builder completed two consecutive runs. Focused Ice tests passed
+  EditMode `8/8` and PlayMode `4/4`; full EditMode passed `425/425`; final
+  post-Builder PlayMode passed `226/226`. Missing references, duplicate roots,
+  fixed pool and Build Settings checks passed.
+- Two complete 400-row Campaign simulations were byte-identical. Summary /
+  JSON / CSV SHA-256 are
+  `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`,
+  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`, and
+  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`.
+  All displacement, gap, duplicate-index, cursor-reset and full-pool-reset
+  counters are zero. Step 10 was not rerun because Experiment behavior and
+  inputs retain the historical `1.45` Ice comparison.
+- The real Product save remained byte-, length-, timestamp- and SHA-identical
+  to the captured pre-test snapshot.
 
 ## Iteration 26 validation result
 

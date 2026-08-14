@@ -1232,3 +1232,20 @@ Status: Approved and implemented.
   must not infer them from Stage number or difficulty label.
 - The Iteration 25 one-shot, adaptive-distance, Pause, Continue, Retry and
   Experiment Lab contracts remain unchanged.
+
+## Iteration 27 — Campaign Ice uses a fixed preplaced runway
+
+- Campaign Stages 15–17 author `IceRunwaySettings.SpeedMultiplier = 2.0`.
+  Booster remains authoritative while active; the shared Ice spacing rule,
+  deterministic plans and ordinary color judgment remain unchanged.
+- One Builder-owned pool of exactly 50 Cyan panels is positioned for all
+  authored Ice approach intervals before Countdown. Non-Ice and unused panels
+  are inactive, and runtime allocation or growth is forbidden.
+- The recycled normal track never changes material for Campaign Ice. Continue
+  preserves runway state and Retry deterministically rebuilds it.
+- Experiment Lab retains its historical whole-track `1.45` Ice comparison so
+  existing diagnostic and Step 10 contracts are not silently rebalanced.
+- A MonoBehaviour used as a generated Scene reference must live in a matching
+  Unity script asset. The Fog View was separated from its pure state file after
+  a clean reload exposed the old file/class reference instability; Fog
+  behavior did not change.

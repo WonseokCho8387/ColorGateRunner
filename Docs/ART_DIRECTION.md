@@ -191,8 +191,9 @@ they are not advisory.
   accumulates.
 - Camouflage and distant Fog gates use the existing neutral silhouette
   material and hide the symbol. Reveal restores both without moving the gate.
-- Ice uses the Cyan generated material on the fixed track pool during the
-  development preview. Entry and exit never create or rebuild track objects.
+- Experiment Ice uses the Cyan generated material on the fixed track pool for
+  its historical comparison. Campaign Ice uses the preplaced runway contract
+  below and never recolors the whole normal track.
 - The Reset Progress confirmation and experiment launcher are development
   controls. They are absent from the normal release flow.
 - Experiment must use the same Runtime Flow as Campaign.
@@ -496,3 +497,18 @@ The three-Continue cap and original prices below are superseded by Iteration
   out over `0.5 seconds`.
 - Human portrait review must judge whether the longer Stage 14 obstruction is
   challenging without making the authored gate colors feel arbitrarily hidden.
+
+## Iteration 27 Ice runway presentation
+
+- Campaign Ice is visible on the road before the player reaches it. Cyan floor
+  panels span deterministic gate-approach intervals so entry reads as physical
+  terrain rather than a whole-floor material pop.
+- The Scene contains exactly 50 prebuilt panels, matching the maximum current
+  authored gate count. Only panels belonging to Ice plans are active; no
+  runtime object creation or pool growth is allowed.
+- Panels sit slightly above and inside the normal seven-unit track, overlap at
+  seams, and leave the recycled track material unchanged. Continue preserves
+  their world positions; Retry hides and deterministically rebuilds them.
+- This remains a graybox Cyan treatment. Human portrait review owns final
+  texture, edge glow, depth, transition readability and whether `2.0` speed
+  feels forceful without becoming visually unfair.

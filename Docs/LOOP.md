@@ -700,3 +700,17 @@ mask mechanic readability changes.
   values, lifecycle preservation and unchanged Campaign artifacts.
 - **Learn:** perception timing that drives difficulty should be stage data,
   while deterministic target truth remains independent.
+
+## Iteration 27 loop learning — telegraph terrain from authored plans
+
+- **Play:** Ice appeared as an unexplained whole-floor color pop and lacked a
+  readable physical approach; its speed identity was weak.
+- **Analyze:** runtime inferred floor state from the next gate in a six-slot
+  pool even though all Stage plans were deterministic before Countdown.
+- **Design:** author Campaign Ice at `2.0`, prebuild 50 floor panels and map
+  every Ice approach from the deterministic plan sequence before play.
+- **Validate:** fix the pool size, compare panel activation with every authored
+  plan, keep normal track material stable, verify Retry/Experiment separation,
+  and regenerate the Campaign matrix twice.
+- **Learn:** pre-telegraphed world state should use the full authored sequence;
+  a small recycled interaction pool is not the right visual authority.

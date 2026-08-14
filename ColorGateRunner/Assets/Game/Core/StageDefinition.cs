@@ -44,7 +44,8 @@ namespace ColorGateRunner.Core
             HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null,
             StageDifficulty difficulty = StageDifficulty.Normal,
-            FogCurtainSettings fogCurtainSettings = null)
+            FogCurtainSettings fogCurtainSettings = null,
+            IceRunwaySettings iceRunwaySettings = null)
             : this(
                 stageId,
                 displayNumber,
@@ -73,7 +74,8 @@ namespace ColorGateRunner.Core
                 hiddenSettings,
                 flickerSettings,
                 difficulty,
-                fogCurtainSettings)
+                fogCurtainSettings,
+                iceRunwaySettings)
         {
         }
 
@@ -105,7 +107,8 @@ namespace ColorGateRunner.Core
             HiddenSettings hiddenSettings = null,
             FlickerSettings flickerSettings = null,
             StageDifficulty difficulty = StageDifficulty.Normal,
-            FogCurtainSettings fogCurtainSettings = null)
+            FogCurtainSettings fogCurtainSettings = null,
+            IceRunwaySettings iceRunwaySettings = null)
         {
             StageId = stageId ?? throw new ArgumentNullException(nameof(stageId));
             DisplayNumber = displayNumber;
@@ -142,6 +145,8 @@ namespace ColorGateRunner.Core
             Difficulty = difficulty;
             FogCurtainSettings = fogCurtainSettings ??
                 FogCurtainSettings.CreateDefault();
+            IceRunwaySettings = iceRunwaySettings ??
+                IceRunwaySettings.CreateDefault();
         }
 
         public string StageId { get; }
@@ -171,6 +176,7 @@ namespace ColorGateRunner.Core
         public FlickerSettings FlickerSettings { get; }
         public StageDifficulty Difficulty { get; }
         public FogCurtainSettings FogCurtainSettings { get; }
+        public IceRunwaySettings IceRunwaySettings { get; }
         public int AllowedColorCount => _allowedColors.Length;
         public int AllowedPatternCount => _allowedPatterns.Length;
 

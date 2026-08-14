@@ -443,7 +443,7 @@ namespace ColorGateRunner.Core
         {
             if (plan.Modifier.IsIce && !BoosterActive)
             {
-                return CurrentSpeed * GateModifierRules.IceSpeedMultiplier;
+                return CurrentSpeed * Stage.IceRunwaySettings.SpeedMultiplier;
             }
 
             return CurrentSpeed;

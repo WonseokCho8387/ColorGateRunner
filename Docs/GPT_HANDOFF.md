@@ -1,5 +1,30 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 27 completed update
+
+- Starting HEAD was `4c3ce13`; completion commit name is
+  `feat: add preplaced ice runway`.
+- Campaign Stages 15–17 now preplace their deterministic Ice approach through
+  one fixed 50-panel Cyan runway before Countdown. The recycled normal track
+  never changes material and the runway never grows at runtime.
+- Stage Catalog revision 10 authors Campaign Ice at `2.0` non-Booster speed.
+  Continue preserves the runway; Retry rebuilds it. Experiment Lab retains its
+  historical whole-track `1.45` comparison.
+- A clean Builder reload exposed the former Fog View file/class-name reference
+  instability; the View now has its own matching Unity script asset without a
+  Fog behavior change.
+- Builder passed twice, focused EditMode `8/8`, focused PlayMode `4/4`, full
+  EditMode `425/425`, and PlayMode `226/226`. Two 400-row Campaign runs were
+  byte-identical with Summary / JSON / CSV hashes
+  `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`,
+  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`, and
+  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`.
+  Step 10 remains unchanged.
+- Product save SHA-256 remained
+  `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.
+- Human play should judge advance readability and the `2.0` speed. Lobby
+  visual hierarchy remains the next approved product area.
+
 ## Iteration 26 completed update
 
 - Starting HEAD was `74a9953`; completion commit name is

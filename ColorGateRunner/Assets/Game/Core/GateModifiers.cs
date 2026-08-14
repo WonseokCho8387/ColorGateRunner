@@ -50,6 +50,28 @@ namespace ColorGateRunner.Core
         }
     }
 
+    public sealed class IceRunwaySettings
+    {
+        public IceRunwaySettings(float speedMultiplier)
+        {
+            if (speedMultiplier <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(speedMultiplier));
+            }
+
+            SpeedMultiplier = speedMultiplier;
+        }
+
+        public float SpeedMultiplier { get; }
+
+        public static IceRunwaySettings CreateDefault()
+        {
+            return new IceRunwaySettings(
+                GateModifierRules.IceSpeedMultiplier);
+        }
+    }
+
     [Flags]
     public enum GateModifierType
     {

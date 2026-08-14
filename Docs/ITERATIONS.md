@@ -1900,3 +1900,50 @@ Human feedback required
 
 - Human play must compare the 5 / 6 / 7-second curve on a portrait device.
 - Preplaced/rebalanced Ice and the final Lobby layout remain separate work.
+
+## Iteration 27 — Preplaced Ice Runway
+
+### Play / Analyze
+
+- Human play found that Campaign Ice appeared by abruptly recoloring the whole
+  floor. The terrain had no visible approach and the `1.45` speed increase was
+  too weak for the intended Ice identity.
+- Inspection confirmed that presentation followed only the next six-slot gate
+  view, even though all deterministic gate plans already existed at Start.
+
+### Design / Implementation
+
+- Added Catalog-owned positive Ice runway speed and authored `2.0` for Stages
+  15–17. Experiment definitions retain `1.45`.
+- Added one Builder-owned fixed pool of 50 panels. Start maps each panel to its
+  authored gate approach, activates only Ice plans and leaves the normal track
+  material stable. Continue preserves it; Retry resets and rebuilds it.
+- Split the Fog View into a matching Unity script asset after final Builder
+  reload identified an unstable legacy generated reference. Fog timing and
+  presentation behavior remain unchanged.
+
+### Validation
+
+- Builder passed twice. Focused Ice EditMode passed `8/8`; focused PlayMode
+  passed `4/4`; full EditMode passed `425/425`; PlayMode passed `226/226`.
+- Two complete 400-row Campaign runs were byte-identical. Summary / JSON / CSV
+  SHA-256 are `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`,
+  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`, and
+  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`.
+  All continuity and pool-violation counters are zero. Step 10 was unchanged.
+- Real Product save bytes, length, timestamp and SHA remained exact.
+
+### Learning
+
+- When the deterministic layout already exists, terrain telegraphing should be
+  built from that authority before play rather than inferred frame by frame
+  from a small presentation pool.
+- File/class identity is part of Unity Scene reference stability, even when
+  in-memory Builder execution previously appeared to succeed.
+
+### Deferred / Human Review
+
+- Final Ice material, edge transition, glow and environment integration remain
+  visual work. Human play owns readability and fairness at `2.0` speed.
+- Lobby hierarchy/redesign, Shop/IAP, Firebase and real rewarded ads remain
+  separate iterations.

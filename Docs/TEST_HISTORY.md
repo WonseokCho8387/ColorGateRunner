@@ -2084,3 +2084,23 @@ Any mismatch blocks implementation.
 - Step 10: omitted because Experiment inputs and behavior are unchanged.
 - Package and ProjectSettings baselines were preserved. Product save and backup
   remained byte- and timestamp-identical to their pre-test snapshots.
+
+## Iteration 27 — Preplaced Ice Runway
+
+- Base HEAD: `4c3ce13`.
+- Campaign Builder: two consecutive successful passes with Stage Catalog
+  revision 10, exactly one 50-panel Ice runway, one valid Fog View, fixed
+  six-slot Gate/Track pools, unique roots, references, EventSystem and Build
+  Settings validation.
+- Focused Ice EditMode: `8/8`; focused Ice PlayMode: `4/4`.
+- Full EditMode: `425/425`; final post-Builder PlayMode: `226/226`.
+- Campaign simulation: two 400-row runs, byte-identical. SHA-256:
+  - Summary: `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`
+  - JSON: `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`
+  - CSV: `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`
+- Booster/Continue displacement, index-gap, duplicate-index, cursor-reset and
+  full-pool-reset counters are all zero. Step 10 was omitted because
+  Experiment Ice inputs and behavior remain at `1.45`.
+- Product save remained schema 3 revision 202, 13,580 bytes, timestamp- and
+  SHA-identical at
+  `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.

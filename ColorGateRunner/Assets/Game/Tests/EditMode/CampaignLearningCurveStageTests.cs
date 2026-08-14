@@ -134,6 +134,31 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void IceBlock_UsesApprovedCampaignSpeedMultiplier()
+        {
+            for (int stageNumber = 15; stageNumber <= 17; stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+
+                Assert.That(
+                    stage.IceRunwaySettings.SpeedMultiplier,
+                    Is.EqualTo(2f));
+            }
+        }
+
+        [Test]
+        public void IceRunwaySettings_RejectNonPositiveSpeed()
+        {
+            Assert.That(
+                () => new IceRunwaySettings(0f),
+                Throws.TypeOf<System.ArgumentOutOfRangeException>());
+            Assert.That(
+                () => new IceRunwaySettings(-1f),
+                Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
+
+        [Test]
         public void LearningBlockPlans_AreDeterministicAndKeepModifiersIsolated()
         {
             for (int index = 0; index < Modifiers.Length; index++)
