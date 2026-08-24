@@ -2141,3 +2141,22 @@ Any mismatch blocks implementation.
   remained byte- and timestamp-exact.
 - Package and meaningful ProjectSettings hashes remained exact. Campaign and
   Step 10 simulations were omitted because this was a Product-shell UI change.
+
+## Iteration 30 — Theme 1 Visual Slice
+
+- Starting HEAD `7284cb2`; completion message
+  `feat: add color courtyard visual slice`.
+- Frontend Scene Builder completed two passes with one visual catalog, one
+  Background/Midground/Foreground set, six upgrade nodes, required references,
+  one EventSystem and unchanged Build Settings order.
+- Focused `FrontendSceneBuilderTests`: `9/9`; focused
+  `FrontendFlowPlayModeTests`: `19/19`.
+- Full EditMode: `431/431`; full post-Builder PlayMode: `228/228`.
+- Product save SHA
+  `410793F21F1CAD39A19330737A9E47A36F06D17C4DAC25ED87B98B5F3FC6F00E`
+  and backup SHA
+  `83D7022C3F06E762407E59CE3009C15820C9DA512BE6D155A67A8FA3661B5D30`
+  remained byte- and timestamp-exact.
+- Package and meaningful ProjectSettings hashes remained exact. Campaign and
+  Step 10 simulations were omitted because no gameplay, Stage, timing,
+  generation, judgment or Experiment input changed.

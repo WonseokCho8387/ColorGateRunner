@@ -169,8 +169,46 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo("LOBBY 2/18   NEXT STAGE 6"));
             Assert.That(panel.RewardText.text,
                 Does.Contain("2 UPGRADES"));
+            Assert.That(panel.ActiveUpgradeVisualCount(), Is.EqualTo(2));
             Assert.That(graph.Progression.Lobby.PresentedMilestoneCount,
                 Is.EqualTo(2));
+        }
+
+        [UnityTest]
+        public IEnumerator LobbyThemeOne_ShowsLayeredNonBlockingArtwork()
+        {
+            yield return LoadFrontendThroughBoot();
+            FrontendSceneController controller = RequireController();
+            controller.TitleStartButton.onClick.Invoke();
+            yield return null;
+
+            LobbyProgressionPanel panel = controller.LobbyProgressionPanel;
+            Assert.That(panel.ThemeVisualCatalog, Is.Not.Null);
+            Assert.That(panel.ThemeArtworkBackground.sprite, Is.Not.Null);
+            Assert.That(panel.ThemeArtworkMidground.sprite, Is.Not.Null);
+            Assert.That(panel.ThemeArtworkForeground.sprite, Is.Not.Null);
+            Assert.That(panel.ThemeArtworkBackground.gameObject.activeSelf,
+                Is.True);
+            Assert.That(panel.ThemeArtworkMidground.gameObject.activeSelf,
+                Is.True);
+            Assert.That(panel.ThemeArtworkForeground.gameObject.activeSelf,
+                Is.True);
+            Assert.That(panel.ThemeArtworkBackground.raycastTarget, Is.False);
+            Assert.That(panel.ThemeArtworkMidground.raycastTarget, Is.False);
+            Assert.That(panel.ThemeArtworkForeground.raycastTarget, Is.False);
+            Assert.That(
+                AppRoot.TryGetActive(out AppRoot activeRoot),
+                Is.True);
+            int applied = Mathf.Clamp(
+                activeRoot.Graph.Progression.Lobby.AppliedMilestoneCount,
+                0,
+                18);
+            int expectedVisible = applied == 18 ? 6 : applied % 6;
+            Assert.That(panel.ActiveUpgradeVisualCount(),
+                Is.EqualTo(expectedVisible));
+            Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
+                Is.True);
+            Assert.That(controller.LobbyPlayButton.interactable, Is.True);
         }
 
         [UnityTest]

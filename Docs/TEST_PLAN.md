@@ -521,3 +521,18 @@ fairness, or polish.
   twice. Campaign and Step 10 simulations are omitted only while gameplay,
   generated Campaign content, timing, judgment and Experiment inputs remain
   unchanged.
+
+### Iteration 30 Theme 1 visual slice
+
+- Frontend Builder must import three Theme 1 images as non-mipmapped Sprites,
+  preserve alpha for Midground/Foreground, assign one three-entry catalog and
+  serialize all three decorative layer references after two builds.
+- Theme 1 PlayMode must prove all artwork layers are active, non-null and
+  non-raycast; milestone energy-node activation must equal Product Lobby
+  progress and the existing `PLAY` action must remain interactive.
+- Themes 2 and 3 must retain valid palette-only fallbacks rather than showing
+  unavailable illustrated content as complete.
+- Tier 2 requires focused and full EditMode/PlayMode plus Frontend Builder
+  twice. Campaign and Step 10 simulations are omitted only while gameplay,
+  Stage data, timing, generation, judgment and Experiment inputs remain
+  unchanged.

@@ -884,3 +884,14 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   difficulty and the bottom `PLAY` action in the generated Frontend Scene.
 - Existing Frontend progression and clear-return tests verify the compact
   theme/upgrades/reward strings and unchanged navigation.
+
+## Iteration 30 current coverage
+
+- `FrontendSceneBuilderTests.LobbyThemeCatalog_HasCompleteThemeOneAndFutureFallbacks`
+  verifies the exact three-theme catalog, Theme 1 Sprite paths/import settings
+  and palette-only Theme 2/3 fallbacks.
+- `FrontendFlowPlayModeTests.LobbyThemeOne_ShowsLayeredNonBlockingArtwork`
+  verifies active Background/Midground/Foreground Sprites, non-raycast
+  decoration, Product-derived upgrade-node count and an interactive `PLAY`.
+- `FrontendFlowPlayModeTests.LobbyProgression_ShowsEconomyThemeAndAcknowledgesReward`
+  also verifies that two applied milestones activate exactly two visual nodes.

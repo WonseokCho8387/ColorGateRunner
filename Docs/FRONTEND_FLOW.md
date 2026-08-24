@@ -4,8 +4,9 @@
 
 Approved commercial-flow design baseline. The Account Onboarding, consolidated
 Lobby, Settings, Gameplay Pause, and automatic Lobby progression foundation
-are implemented. Campaign Page, Stage Detail, final result presentation, and
-release-quality Lobby art remain pending.
+are implemented. The first Color Courtyard Lobby art slice is implemented.
+Campaign Page, Stage Detail, final result presentation, additional Lobby themes
+and final device polish remain pending.
 
 This document defines the target player-facing Scene, page, overlay, and
 navigation structure. It does not change gameplay, balance, Stage data,
@@ -966,8 +967,23 @@ not reusable art assets or an exact visual copy.
 - Heart state refreshes while Lobby is visible. It shows `5/5` when full, a
   next-heart countdown while recharging, or remaining unlimited time. The UI
   reads Product state and does not own recharge or persistence rules.
-- Shop, IAP product cards, bottom navigation destinations and final illustrated
-  Lobby art remain separate iterations.
+- Shop, IAP product cards and bottom navigation destinations remain separate
+  iterations.
+
+## Implemented UX slice — Iteration 30 Theme 1 visual slice
+
+- `LobbyThemeVisualCatalog` supplies three theme definitions without adding a
+  Scene. Theme 1 assigns original Background, Midground reactor and Foreground
+  energy artwork; Themes 2 and 3 retain palette-only fallbacks.
+- Frontend Builder owns the Sprite import settings, catalog asset, serialized
+  layer references and six energy-node positions. Rebuilding the Scene is
+  idempotent and creates no duplicate visual root.
+- `LobbyProgressionPanel` selects the theme from the existing automatic
+  milestone count and activates the same six local milestone slots. It does not
+  write Product state or introduce a manual Lobby action.
+- Decorative layers are non-interactive and remain behind persistent resources
+  and the Stage card. Existing `PLAY`, Back, Settings and stable-ID launch paths
+  are unchanged.
 
 ## Implemented UX slice — Iteration 26 Fog visibility curve
 

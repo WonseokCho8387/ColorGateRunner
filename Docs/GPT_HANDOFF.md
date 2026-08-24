@@ -1,5 +1,24 @@
 # Color Gate Runner — GPT Handoff
 
+## Iteration 30 completed update
+
+- Starting HEAD was `7284cb2`; completion commit name is
+  `feat: add color courtyard visual slice`.
+- Theme 1 now presents an original futuristic Color Courtyard in three layers:
+  portrait background, central color-energy reactor and transparent ambient
+  frame. Six automatic Lobby milestones illuminate six reactor energy nodes.
+- A three-theme visual catalog and Frontend Builder own the artwork references.
+  Theme 2 and 3 remain palette fallbacks; no Scene, Product or navigation
+  duplicate was introduced. Decorative layers do not receive raycasts and use
+  only a subtle idle pulse.
+- Frontend Builder completed two passes, focused EditMode `9/9`, focused
+  Frontend PlayMode `19/19`, full EditMode `431/431` and full PlayMode
+  `228/228` passed. Product save/backup, packages and meaningful
+  ProjectSettings remained exact. Campaign and Step 10 hashes remain unchanged.
+- Human portrait play should review crop, text contrast, reactor scale, pulse
+  restraint and milestone-node clarity. Theme 2/3 art, Shop/IAP runtime,
+  bottom navigation and gameplay visual polish remain separate candidates.
+
 ## Iteration 29 completed update
 
 - Starting HEAD was `3e9b389`; completion commit name is

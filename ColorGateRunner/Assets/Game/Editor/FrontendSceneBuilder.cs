@@ -21,6 +21,8 @@ namespace ColorGateRunner.Editor
             priority = 21)]
         public static void BuildFrontendScene()
         {
+            LobbyThemeVisualCatalog themeVisualCatalog =
+                LobbyThemeVisualCatalogBuilder.EnsureAndConfigure();
             string campaignPath = SelectCampaignScenePath(
                 EditorBuildSettings.scenes);
             Scene scene = OpenOrCreateFrontendScene();
@@ -67,7 +69,8 @@ namespace ColorGateRunner.Editor
                 out GameObject eventSlot,
                 out GameObject notificationSlot,
                 out GameObject lobbyTheme,
-                out LobbyProgressionPanel lobbyProgression);
+                out LobbyProgressionPanel lobbyProgression,
+                themeVisualCatalog);
 
             GameObject popupRoot = CreateOverlayRoot(
                 "PopupRoot",
@@ -542,7 +545,8 @@ namespace ColorGateRunner.Editor
             out GameObject eventSlot,
             out GameObject notificationSlot,
             out GameObject themeRoot,
-            out LobbyProgressionPanel progressionPanel)
+            out LobbyProgressionPanel progressionPanel,
+            LobbyThemeVisualCatalog themeVisualCatalog)
         {
             themeRoot = CreateFlowRoot("LobbyThemeRoot", parent);
             themeRoot.transform.SetAsFirstSibling();
@@ -555,6 +559,14 @@ namespace ColorGateRunner.Editor
                 new Color(0.10f, 0.16f, 0.24f, 0.84f))
                 .GetComponent<Image>();
             background.raycastTarget = false;
+            Image artworkBackground = CreatePanel(
+                "LobbyThemeArtworkBackground",
+                themeRoot.transform,
+                Vector2.zero,
+                Vector2.one,
+                Color.white).GetComponent<Image>();
+            artworkBackground.raycastTarget = false;
+            artworkBackground.preserveAspect = true;
             CreatePanel(
                 "LobbyTopBar",
                 themeRoot.transform,
@@ -567,8 +579,24 @@ namespace ColorGateRunner.Editor
                 themeRoot.transform,
                 new Vector2(0.05f, 0.35f),
                 new Vector2(0.95f, 0.82f),
-                new Color(0.06f, 0.11f, 0.20f, 0.56f))
+                new Color(0.02f, 0.05f, 0.11f, 0.22f))
                 .GetComponent<Image>().raycastTarget = false;
+            Image artworkMidground = CreatePanel(
+                "LobbyThemeArtworkMidground",
+                themeRoot.transform,
+                new Vector2(0.14f, 0.33f),
+                new Vector2(0.86f, 0.77f),
+                Color.white).GetComponent<Image>();
+            artworkMidground.raycastTarget = false;
+            artworkMidground.preserveAspect = true;
+            Image artworkForeground = CreatePanel(
+                "LobbyThemeArtworkForeground",
+                themeRoot.transform,
+                Vector2.zero,
+                Vector2.one,
+                Color.white).GetComponent<Image>();
+            artworkForeground.raycastTarget = false;
+            artworkForeground.preserveAspect = true;
             CreatePanel(
                 "LobbyStageCard",
                 themeRoot.transform,
@@ -688,16 +716,36 @@ namespace ColorGateRunner.Editor
                 FromHex(0x22C55E), FromHex(0xF4C430),
                 FromHex(0x9B5DE5), FromHex(0x00B8D9)
             };
+            Vector2[] visualCenters =
+            {
+                new Vector2(0.20f, 0.51f),
+                new Vector2(0.80f, 0.51f),
+                new Vector2(0.27f, 0.41f),
+                new Vector2(0.73f, 0.41f),
+                new Vector2(0.40f, 0.37f),
+                new Vector2(0.60f, 0.37f)
+            };
             for (int index = 0; index < visuals.Length; index++)
             {
-                float left = 0.10f + (index * 0.135f);
+                Vector2 center = visualCenters[index];
+                Vector2 halfSize = new Vector2(0.026f, 0.016f);
                 visuals[index] = CreatePanel(
                     $"LobbyUpgradeVisual_{index + 1}",
                     themeRoot.transform,
-                    new Vector2(left, 0.43f),
-                    new Vector2(left + 0.10f, 0.50f),
+                    center - halfSize,
+                    center + halfSize,
                     colors[index]);
-                visuals[index].GetComponent<Image>().raycastTarget = false;
+                Image visual = visuals[index].GetComponent<Image>();
+                visual.raycastTarget = false;
+                visual.rectTransform.localEulerAngles =
+                    new Vector3(0f, 0f, 45f);
+                Image core = CreatePanel(
+                    "EnergyCore",
+                    visuals[index].transform,
+                    new Vector2(0.25f, 0.25f),
+                    new Vector2(0.75f, 0.75f),
+                    Color.white).GetComponent<Image>();
+                core.raycastTarget = false;
                 visuals[index].SetActive(false);
             }
             progressionPanel.Configure(
@@ -708,6 +756,10 @@ namespace ColorGateRunner.Editor
                 nextUpgrade,
                 rewardSummary,
                 background,
+                artworkBackground,
+                artworkMidground,
+                artworkForeground,
+                themeVisualCatalog,
                 visuals);
         }
 

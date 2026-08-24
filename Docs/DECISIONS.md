@@ -1277,3 +1277,18 @@ Status: Approved and implemented.
   formats and refreshes it without owning economy time or save mutation.
 - Shop, bottom navigation destinations and final illustrated assets remain
   excluded.
+
+## Iteration 30 — Theme 1 uses layered original artwork
+
+- Lobby themes are data-driven definitions selected from the existing Product
+  milestone state. A new theme does not require a new Scene or navigation path.
+- Theme 1 owns three independent UI Sprite layers: Background, central
+  Midground reactor and transparent Foreground ambient energy. Themes 2 and 3
+  remain explicit palette fallbacks until separately approved.
+- Six existing automatic milestone slots are represented as energy nodes
+  around the reactor. This is presentation only; unlock timing, rewards and
+  Product persistence do not change.
+- Decorative Images never block raycasts. Motion is a restrained unscaled-time
+  pulse implemented without an external tween or additional package.
+- The user-supplied Royal Match captures are hierarchy references only. Color
+  Courtyard art and composition must remain original and unbranded.

@@ -14,7 +14,14 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text nextUpgradeText;
         [SerializeField] private Text rewardSummaryText;
         [SerializeField] private Image themeBackground;
+        [SerializeField] private Image themeArtworkBackground;
+        [SerializeField] private Image themeArtworkMidground;
+        [SerializeField] private Image themeArtworkForeground;
+        [SerializeField] private LobbyThemeVisualCatalog themeVisualCatalog;
         [SerializeField] private GameObject[] upgradeVisuals;
+
+        private Vector3 _midgroundBaseScale = Vector3.one;
+        private bool _midgroundScaleCaptured;
 
         internal Text CoinText => coinText;
         internal Text HeartText => heartText;
@@ -22,6 +29,29 @@ namespace ColorGateRunner.Presentation
         internal Text ThemeText => themeText;
         internal Text NextUpgradeText => nextUpgradeText;
         internal Text RewardText => rewardSummaryText;
+        internal Image ThemeArtworkBackground => themeArtworkBackground;
+        internal Image ThemeArtworkMidground => themeArtworkMidground;
+        internal Image ThemeArtworkForeground => themeArtworkForeground;
+        internal LobbyThemeVisualCatalog ThemeVisualCatalog =>
+            themeVisualCatalog;
+
+        internal int ActiveUpgradeVisualCount()
+        {
+            int active = 0;
+            if (upgradeVisuals == null)
+            {
+                return active;
+            }
+            for (int index = 0; index < upgradeVisuals.Length; index++)
+            {
+                if (upgradeVisuals[index] != null &&
+                    upgradeVisuals[index].activeSelf)
+                {
+                    active++;
+                }
+            }
+            return active;
+        }
 
         internal int Bind(
             ProgressionService progression,
@@ -39,26 +69,12 @@ namespace ColorGateRunner.Presentation
                 18);
             int themeIndex = Mathf.Min(2, applied / 6);
             int localApplied = applied == 18 ? 6 : applied % 6;
-            string[] themeNames =
-            {
-                "COLOR COURTYARD",
-                "NEON GARDEN",
-                "SKY FESTIVAL"
-            };
-            Color[] themeColors =
-            {
-                new Color(0.10f, 0.16f, 0.24f, 0.84f),
-                new Color(0.17f, 0.10f, 0.27f, 0.84f),
-                new Color(0.08f, 0.23f, 0.25f, 0.84f)
-            };
-
             coinText.text = $"COINS {progression.Economy.Coins}";
             RefreshHeart(hearts, utcNow);
             inventoryText.text =
                 $"SHIELD {progression.Economy.ShieldCount}   " +
                 $"BOOSTER {progression.Economy.BoosterCount}";
-            themeText.text = themeNames[themeIndex];
-            themeBackground.color = themeColors[themeIndex];
+            ApplyThemeVisual(themeIndex);
             for (int index = 0; index < upgradeVisuals.Length; index++)
             {
                 upgradeVisuals[index].SetActive(index < localApplied);
@@ -75,6 +91,65 @@ namespace ColorGateRunner.Presentation
                 ? "LOBBY UPGRADE + REWARD"
                 : $"{pending} UPGRADES + REWARDS";
             return pending;
+        }
+
+        private void Update()
+        {
+            if (themeArtworkMidground == null ||
+                !themeArtworkMidground.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            CaptureMidgroundScale();
+            float pulse = 1f +
+                (Mathf.Sin(Time.unscaledTime * 1.4f) * 0.008f);
+            themeArtworkMidground.rectTransform.localScale =
+                _midgroundBaseScale * pulse;
+            if (themeArtworkForeground != null &&
+                themeArtworkForeground.gameObject.activeInHierarchy)
+            {
+                Color color = themeArtworkForeground.color;
+                color.a = 0.72f +
+                    (Mathf.Sin(Time.unscaledTime * 1.1f) * 0.08f);
+                themeArtworkForeground.color = color;
+            }
+        }
+
+        private void ApplyThemeVisual(int themeIndex)
+        {
+            if (!themeVisualCatalog.TryGet(
+                    themeIndex,
+                    out LobbyThemeVisualDefinition definition))
+            {
+                throw new InvalidOperationException(
+                    $"Lobby theme {themeIndex} is not configured.");
+            }
+
+            themeText.text = definition.DisplayName;
+            themeBackground.color = definition.BackgroundTint;
+            SetArtwork(themeArtworkBackground, definition.Background);
+            SetArtwork(themeArtworkMidground, definition.Midground);
+            SetArtwork(themeArtworkForeground, definition.Foreground);
+            CaptureMidgroundScale();
+        }
+
+        private static void SetArtwork(Image image, Sprite sprite)
+        {
+            image.sprite = sprite;
+            image.gameObject.SetActive(sprite != null);
+        }
+
+        private void CaptureMidgroundScale()
+        {
+            if (_midgroundScaleCaptured || themeArtworkMidground == null)
+            {
+                return;
+            }
+
+            _midgroundBaseScale =
+                themeArtworkMidground.rectTransform.localScale;
+            _midgroundScaleCaptured = true;
         }
 
         internal void RefreshHeart(
@@ -129,6 +204,10 @@ namespace ColorGateRunner.Presentation
             Text nextUpgrade,
             Text rewardSummary,
             Image background,
+            Image artworkBackground,
+            Image artworkMidground,
+            Image artworkForeground,
+            LobbyThemeVisualCatalog visualCatalog,
             GameObject[] visuals)
         {
             coinText = coins;
@@ -138,6 +217,10 @@ namespace ColorGateRunner.Presentation
             nextUpgradeText = nextUpgrade;
             rewardSummaryText = rewardSummary;
             themeBackground = background;
+            themeArtworkBackground = artworkBackground;
+            themeArtworkMidground = artworkMidground;
+            themeArtworkForeground = artworkForeground;
+            themeVisualCatalog = visualCatalog;
             upgradeVisuals = visuals;
         }
 
@@ -147,6 +230,10 @@ namespace ColorGateRunner.Presentation
                 inventoryText == null ||
                 themeText == null || nextUpgradeText == null ||
                 rewardSummaryText == null || themeBackground == null ||
+                themeArtworkBackground == null ||
+                themeArtworkMidground == null ||
+                themeArtworkForeground == null ||
+                themeVisualCatalog == null ||
                 upgradeVisuals == null || upgradeVisuals.Length != 6)
             {
                 return false;

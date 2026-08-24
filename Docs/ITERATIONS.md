@@ -2013,3 +2013,42 @@ Human feedback required
   primary action make later visual production safer and more measurable.
 - Final art, Shop/IAP runtime, navigation modules and device visual review are
   deferred.
+
+## Iteration 30 — Theme 1 Visual Slice
+
+### Play / Analyze
+
+- Iteration 29 established a readable hierarchy, but the dominant center was
+  still a graybox of flat panels and six rectangular upgrade blocks.
+- The approved direction called for a polished original futuristic Lobby while
+  retaining the proven top resource and bottom Stage-action zones.
+
+### Design / Implementation
+
+- Created original Color Courtyard Background, central color-energy reactor
+  and transparent ambient-energy artwork. The supplied commercial references
+  were used only for hierarchy, not copied assets or branded composition.
+- Added a three-theme visual catalog. Theme 1 has complete layered artwork;
+  Themes 2 and 3 keep their palette fallbacks. Frontend Builder owns imports,
+  catalog assignment, Scene hierarchy and non-raycast presentation layers.
+- Restyled the six automatic milestone visuals as reactor energy nodes and
+  added only a restrained idle pulse. Product progression, wallet, Stage card,
+  Settings and `PLAY` navigation remain unchanged.
+
+### Validation / Learning
+
+- Frontend Builder completed two passes. Focused EditMode passed `9/9` and
+  focused Frontend PlayMode passed `19/19`. Full EditMode passed `431/431` and
+  full post-Builder PlayMode passed `228/228`.
+- Product save and backup remained exact. Package and meaningful
+  ProjectSettings hashes match the baseline; no Missing Script or required-
+  reference failure was found.
+- Separating environment layers from Product state allows future theme art to
+  change without duplicating Scenes or economy logic.
+
+### Deferred / Human Review
+
+- Human portrait review owns artwork crop, visual contrast behind text,
+  reactor scale, pulse restraint and the clarity of each activated node.
+- Theme 2/3 art, final iconography/typography, Shop/IAP runtime, bottom
+  navigation and gameplay visual rework remain separate iterations.

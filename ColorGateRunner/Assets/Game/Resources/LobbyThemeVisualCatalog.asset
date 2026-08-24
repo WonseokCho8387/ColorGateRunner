@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93df1d7fc510b5f4b895cb4f33def9f3, type: 3}
+  m_Name: LobbyThemeVisualCatalog
+  m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.LobbyThemeVisualCatalog
+  themes:
+  - themeId: color-courtyard
+    displayName: COLOR COURTYARD
+    backgroundTint: {r: 0.035, g: 0.07, b: 0.15, a: 1}
+    background: {fileID: 21300000, guid: 448666b4d61db5443b636b4940f2e289, type: 3}
+    midground: {fileID: 21300000, guid: 40f56e609545e3340b62364ebb503434, type: 3}
+    foreground: {fileID: 21300000, guid: 42d7ba0dce363694cb8aa32d8ca9465e, type: 3}
+  - themeId: neon-garden
+    displayName: NEON GARDEN
+    backgroundTint: {r: 0.17, g: 0.1, b: 0.27, a: 1}
+    background: {fileID: 0}
+    midground: {fileID: 0}
+    foreground: {fileID: 0}
+  - themeId: sky-festival
+    displayName: SKY FESTIVAL
+    backgroundTint: {r: 0.08, g: 0.23, b: 0.25, a: 1}
+    background: {fileID: 0}
+    midground: {fileID: 0}
+    foreground: {fileID: 0}

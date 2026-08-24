@@ -1,7 +1,9 @@
 using System;
 using ColorGateRunner.Editor;
+using ColorGateRunner.Presentation;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace ColorGateRunner.Tests.EditMode
 {
@@ -112,6 +114,65 @@ namespace ColorGateRunner.Tests.EditMode
 
             Assert.Throws<InvalidOperationException>(() =>
                 GrayboxSceneBuilder.SelectFrontendScenePath(scenes));
+        }
+
+        [Test]
+        public void LobbyThemeCatalog_HasCompleteThemeOneAndFutureFallbacks()
+        {
+            LobbyThemeVisualCatalog catalog =
+                AssetDatabase.LoadAssetAtPath<LobbyThemeVisualCatalog>(
+                    LobbyThemeVisualCatalogBuilder.AssetPath);
+
+            Assert.That(catalog, Is.Not.Null);
+            Assert.That(catalog.Count, Is.EqualTo(3));
+            Assert.That(catalog.TryGet(
+                0,
+                out LobbyThemeVisualDefinition themeOne), Is.True);
+            Assert.That(themeOne.ThemeId, Is.EqualTo("color-courtyard"));
+            Assert.That(themeOne.DisplayName,
+                Is.EqualTo("COLOR COURTYARD"));
+            Assert.That(themeOne.HasCompleteArtwork, Is.True);
+            Assert.That(AssetDatabase.GetAssetPath(themeOne.Background),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.BackgroundPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeOne.Midground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.ReactorPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeOne.Foreground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.AmbientPath));
+
+            Assert.That(catalog.TryGet(
+                1,
+                out LobbyThemeVisualDefinition themeTwo), Is.True);
+            Assert.That(themeTwo.HasCompleteArtwork, Is.False);
+            Assert.That(catalog.TryGet(
+                2,
+                out LobbyThemeVisualDefinition themeThree), Is.True);
+            Assert.That(themeThree.HasCompleteArtwork, Is.False);
+
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.BackgroundPath,
+                false);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.ReactorPath,
+                true);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.AmbientPath,
+                true);
+        }
+
+        private static void AssertSpriteImporter(
+            string path,
+            bool expectedTransparency)
+        {
+            TextureImporter importer =
+                AssetImporter.GetAtPath(path) as TextureImporter;
+
+            Assert.That(importer, Is.Not.Null);
+            Assert.That(importer.textureType,
+                Is.EqualTo(TextureImporterType.Sprite));
+            Assert.That(importer.mipmapEnabled, Is.False);
+            Assert.That(importer.alphaIsTransparency,
+                Is.EqualTo(expectedTransparency));
+            Assert.That(importer.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
         }
     }
 }

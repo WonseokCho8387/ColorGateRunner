@@ -536,3 +536,23 @@ The three-Continue cap and original prices below are superseded by Iteration
 - This iteration establishes layout and information weight only. Final
   illustration, icons, materials, typography, animation and responsive device
   polish remain human-reviewed visual production work.
+
+## Iteration 30 Color Courtyard visual slice
+
+- Theme 1 is an original futuristic elevated courtyard at night. Deep navy is
+  the base; Cyan/Electric Blue lead the energy language, with Green and Coral
+  used as restrained color-system accents.
+- The Lobby environment is composed as Background, Midground reactor and
+  Foreground ambient energy. The top 18 percent and lower Stage-action region
+  remain dark and low-detail so persistent UI keeps priority.
+- The central reactor has a faceted color-energy crystal and six surrounding
+  attachment nodes. Product Lobby milestones activate those nodes one at a
+  time; no tap or manual construction interaction is added.
+- Ambient motion is limited to a subtle reactor scale pulse and a low-amplitude
+  energy-frame alpha pulse using unscaled time. Decorative Images never receive
+  raycasts.
+- Theme 2 and Theme 3 remain palette fallbacks. Their final illustrations,
+  typography/icon replacement and device-responsive polish require separate
+  visual iterations.
+- The supplied Royal Match screens informed only mobile hierarchy. No Royal
+  Match character, building, prop, iconography or branded composition is used.

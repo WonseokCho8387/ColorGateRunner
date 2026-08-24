@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `3e9b389`
-- Base commit: `feat: rebalance ice tap rhythm`
+- Implementation base HEAD: `7284cb2`
+- Base commit: `feat: simplify lobby hierarchy`
 - Authoritative completion HEAD: the commit named
-  `feat: simplify lobby hierarchy`; its exact hash is
-  recorded in the Iteration 29 final report because a commit cannot contain
+  `feat: add color courtyard visual slice`; its exact hash is
+  recorded in the Iteration 30 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 29 — Lobby Visual Hierarchy**.
+- Current completed iteration: **Iteration 30 — Theme 1 Visual Slice**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -83,6 +83,13 @@ below where their contracts differ.
   appear only as a pending banner. Hearts show `5/5`, next-recharge time, or
   timed-unlimited remaining time from Product state. Frontend-origin result
   actions return there; direct/development entry keeps Campaign Lobby fallback.
+- Theme 1, `COLOR COURTYARD`, now uses original portrait artwork in three
+  Builder-owned layers: a dark futuristic courtyard background, a central
+  color-energy reactor and a transparent ambient energy frame. Six automatic
+  Lobby milestones light six surrounding energy nodes. The presentation uses
+  only a restrained unscaled-time pulse, never blocks UI input and does not
+  change the top wallet, Stage card or `PLAY` navigation. Theme 2 and 3 retain
+  palette fallbacks until their own art slices are approved.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -153,13 +160,13 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `430/430`
-- PlayMode: `227/227`
-- Post-Builder PlayMode: `227/227`
+- EditMode: `431/431`
+- PlayMode: `228/228`
+- Post-Builder PlayMode: `228/228`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, unique roots, EventSystem and Build Settings passed
 - Campaign Builder: Iteration 27 two-pass baseline retained; not rerun because
-  Iteration 29 changes no Campaign Scene or Builder-owned content
+  Iteration 30 changes no Campaign Scene or Builder-owned content
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -255,6 +262,29 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 30 validation result
+
+- Starting HEAD `7284cb2` was clean. Completion commit name:
+  `feat: add color courtyard visual slice`.
+- Added three original Theme 1 raster assets and one data-driven Lobby visual
+  catalog. Frontend Builder imports them as non-mipmapped UI Sprites, assigns
+  the Background / Midground / Foreground layers and preserves palette-only
+  fallbacks for Themes 2 and 3.
+- The six existing automatic milestone visuals are now compact energy nodes
+  around the reactor. Their activation still derives only from Product Lobby
+  progression; all wallet, Stage card and launch behavior is unchanged.
+- Frontend Scene Builder completed two passes. Focused Builder EditMode passed
+  `9/9`, focused Frontend PlayMode passed `19/19`; full EditMode passed
+  `431/431`; full post-Builder PlayMode passed `228/228`.
+- Campaign and Step 10 simulations were not rerun because no gameplay, Stage
+  data, timing, generation, judgment or Experiment input changed. Their
+  existing approved hashes remain authoritative.
+- Product save and backup remained byte-, timestamp- and SHA-exact. Package
+  hashes and the meaningful ProjectSettings hash match the baseline. No
+  Missing Script marker or required-reference failure was found.
+- Human portrait review still owns visual scale, crop, contrast, pulse
+  restraint and milestone-node readability on target devices.
 
 ## Iteration 29 validation result
 
