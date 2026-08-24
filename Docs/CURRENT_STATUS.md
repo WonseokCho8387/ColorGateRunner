@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `3086233`
-- Base commit: `feat: add color courtyard visual slice`
+- Implementation base HEAD: `6a542a9`
+- Base commit: `feat: add neon gameplay visual slice`
 - Authoritative completion HEAD: the commit named
-  `feat: add neon gameplay visual slice`; its exact hash is
-  recorded in the Iteration 31 final report because a commit cannot contain
+  `feat: apply neon ui skin`; its exact hash is
+  recorded in the Iteration 32 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 31 — Neon Gameplay Visual Slice**.
+- Current completed iteration: **Iteration 32 — Neon UI Skin**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -99,6 +99,14 @@ below where their contracts differ.
   restrained four-iteration Bloom and the Builder enables camera
   post-processing. Gate/Track pool sizes, collision, judgment, Stage data and
   balance are unchanged.
+- Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
+  alpha 9-slice panel/button/chip sprites and ten semantic resource/action
+  icons. Builder-created panels retain their existing hierarchy and text;
+  buttons gain primary, secondary and danger surfaces plus distinct hover,
+  press, selected and disabled states. Coin/Heart, Play, Settings, Back,
+  Pause, Shield, Booster, Continue and Retry cues are non-blocking Images.
+  Navigation, Product state, economy values and gameplay authority are
+  unchanged.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -169,13 +177,14 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `433/433`
-- PlayMode: `229/229`
-- Post-Builder PlayMode: `229/229`
+- EditMode: `434/434`
+- PlayMode: `231/231`
+- Post-Builder PlayMode: `231/231`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
-  generated references, unique roots, EventSystem and Build Settings passed
-- Campaign Builder: two consecutive Iteration 31 passes completed; imported
-  art, fixed pools, Volume, references and Build Settings passed
+  generated references, UI skin, unique roots, EventSystem and Build Settings
+  passed
+- Campaign Builder: two consecutive Iteration 32 passes completed; imported
+  art, UI skin, fixed pools, Volume, references and Build Settings passed
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -274,9 +283,30 @@ All three entries are expected to be enabled and unique.
 
 ## Latest Iteration Result and History
 
+## Iteration 32 validation result
+
+- Starting HEAD `6a542a9` was clean. Completion commit name:
+  `feat: apply neon ui skin`.
+- Added a reproducible procedural source for seven transparent 9-slice
+  surfaces and ten neon action/resource icons. One shared Editor skin owner
+  imports and applies them to both generated Frontend and Campaign UI without
+  replacing live labels, navigation events or Product state.
+- Frontend and Campaign Builders each completed two passes. Full EditMode
+  passed `434/434`; final post-Builder PlayMode passed `231/231`. The new
+  coverage checks real alpha, sprite borders, button state surfaces and
+  non-raycast icons in both Scenes.
+- Campaign and Step 10 simulations were not rerun because no Stage data,
+  deterministic generation, timing, balance, judgment or Experiment input
+  changed. Their approved hashes remain authoritative.
+- Validation ran only in the isolated project copy. The developer save stayed
+  at revision 229 and the package and meaningful ProjectSettings hashes match
+  the authoritative baseline.
+- Human portrait/device review owns icon scale, text/icon balance, 9-slice
+  corner quality, disabled-state readability and final typography.
+
 ## Iteration 31 validation result
 
-- Starting HEAD `3086233` was clean. Completion commit name:
+- Starting HEAD `3086233` was clean. Completion commit `6a542a9`:
   `feat: add neon gameplay visual slice`.
 - Added reproducible Blender source/export tooling, one editable Theme 1
   `.blend`, five FBX models, fifteen UV/PBR maps, genuine-alpha Lobby ambient

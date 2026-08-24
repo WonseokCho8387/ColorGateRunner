@@ -915,3 +915,15 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   global Volume and fixed six-view break pool.
 - Existing Ice whole-track material and Booster gate reset tests remain active
   against the imported Renderer ownership path.
+
+## Iteration 32 current coverage
+
+- `Theme01UiArtTests.Theme01UiArt_ImportsTransparentSpritesAndSliceBorders`
+  verifies all seven common surfaces and ten semantic icons, their Sprite
+  import settings, 9-slice borders and real transparent/visible pixels.
+- `FrontendFlowPlayModeTests.ThemeOneUiSkin_UsesSlicedButtonsAndResourceIcons`
+  verifies the Frontend primary surface, non-raycast action icon and Lobby
+  Coin/Heart icons while Product-backed text remains in place.
+- `GrayboxScenePlayModeTests.ThemeOneUiSkin_CoversGameplayButtonsPanelsAndIcons`
+  verifies sliced Pause/failure presentation and semantic Pause/Shield icons
+  across active and inactive Campaign UI roots.

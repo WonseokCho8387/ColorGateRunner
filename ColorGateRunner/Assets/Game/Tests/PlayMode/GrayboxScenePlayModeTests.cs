@@ -77,6 +77,35 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void ThemeOneUiSkin_CoversGameplayButtonsPanelsAndIcons()
+        {
+            Image pauseImage = _controller.PauseButton.GetComponent<Image>();
+            Assert.That(pauseImage.type, Is.EqualTo(Image.Type.Sliced));
+            Assert.That(pauseImage.sprite, Is.Not.Null);
+            Assert.That(pauseImage.sprite.name,
+                Is.EqualTo("ButtonSecondary"));
+            Image pauseIcon = _controller.PauseButton.transform
+                .Find("ThemeIcon")?.GetComponent<Image>();
+            Assert.That(pauseIcon, Is.Not.Null);
+            Assert.That(pauseIcon.raycastTarget, Is.False);
+
+            Transform[] visuals = _controller.transform.root
+                .GetComponentsInChildren<Transform>(true);
+            Transform failure = Array.Find(
+                visuals,
+                candidate => candidate.name == "StageFailedPanel");
+            Assert.That(failure, Is.Not.Null);
+            Image failureImage = failure.GetComponent<Image>();
+            Assert.That(failureImage.type, Is.EqualTo(Image.Type.Sliced));
+            Assert.That(failureImage.sprite.name, Is.EqualTo("Modal"));
+
+            Transform shield = Array.Find(
+                visuals,
+                candidate => candidate.name == "ShieldItemButton");
+            Assert.That(shield.Find("ThemeIcon"), Is.Not.Null);
+        }
+
+        [Test]
         public void Play_OpensItemSelection()
         {
             _controller.PlayFromLobby();

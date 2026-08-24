@@ -1311,3 +1311,19 @@ Status: Approved and implemented.
 - URP Bloom is approved for this visual slice using the existing profile and
   package set. Camera post-processing must be enabled by the Builder; no new
   render package or ProjectSettings change is introduced.
+
+## Iteration 32 — Shared Neon UI Skin
+
+- One Editor-owned Theme 1 skin is applied by both Frontend and Campaign
+  Builders. Runtime controllers continue to own text and state; they do not
+  load art or select style assets dynamically.
+- Seven 9-slice surfaces cover common panel, modal, item-card, primary,
+  secondary, danger and resource-chip roles. Ten semantic icons cover the
+  currently shipped resources and actions.
+- Semantic names choose presentation only. Existing RectTransforms, labels,
+  button listeners, navigation, Product state, prices and rewards are not
+  redesigned by the skin.
+- Icons are child Images with raycasts disabled. Text remains present for
+  localization and accessibility; icon-only interaction is not introduced.
+- IAP runtime, Firebase, Shop navigation, typography replacement, layout
+  redesign and gameplay balance are excluded.

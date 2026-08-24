@@ -21,6 +21,7 @@ namespace ColorGateRunner.Editor
             priority = 21)]
         public static void BuildFrontendScene()
         {
+            Theme01UiSkinBuilder.EnsureAndConfigure();
             LobbyThemeVisualCatalog themeVisualCatalog =
                 LobbyThemeVisualCatalogBuilder.EnsureAndConfigure();
             string campaignPath = SelectCampaignScenePath(
@@ -680,6 +681,18 @@ namespace ColorGateRunner.Editor
                 14,
                 new Vector2(0.49f, 0.865f),
                 new Vector2(0.74f, 0.935f));
+            Theme01UiSkinBuilder.AddStandaloneIcon(
+                "LobbyCoinIcon",
+                currencySlot.transform,
+                "Coin",
+                new Vector2(0.265f, 0.875f),
+                new Vector2(0.31f, 0.925f));
+            Theme01UiSkinBuilder.AddStandaloneIcon(
+                "LobbyHeartIcon",
+                currencySlot.transform,
+                "Heart",
+                new Vector2(0.485f, 0.875f),
+                new Vector2(0.53f, 0.925f));
             Text inventory = CreateText(
                 "LobbyInventoryText",
                 currencySlot.transform,
@@ -916,7 +929,9 @@ namespace ColorGateRunner.Editor
                 panel.GetComponent<RectTransform>(),
                 anchorMin,
                 anchorMax);
-            panel.GetComponent<Image>().color = color;
+            Image image = panel.GetComponent<Image>();
+            image.color = color;
+            Theme01UiSkinBuilder.ApplyPanel(image, name);
             return panel;
         }
 
@@ -978,7 +993,9 @@ namespace ColorGateRunner.Editor
                 19,
                 Vector2.zero,
                 Vector2.one);
-            return buttonObject.GetComponent<Button>();
+            Button button = buttonObject.GetComponent<Button>();
+            Theme01UiSkinBuilder.ApplyButton(button, name, labelText);
+            return button;
         }
 
         private static void CreateEventSystem(Transform parent)

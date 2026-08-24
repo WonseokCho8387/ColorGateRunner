@@ -580,3 +580,21 @@ The three-Continue cap and original prices below are superseded by Iteration
   transparency in an image viewer.
 - Human portrait review owns final scale, silhouette readability, gate-break
   timing, emissive balance, Bloom intensity and performance on target devices.
+
+## Iteration 32 Neon UI skin
+
+- Frontend and Campaign share one original dark-alloy UI language: deep navy
+  translucent interiors, restrained Cyan/Electric Blue edge light, Green for
+  primary actions, Coral for destructive actions and Gold for currency.
+- Panels, modals, item cards, buttons and resource chips use genuine-alpha
+  9-slice sprites. Corners and edge nodes must not distort across portrait
+  aspect ratios; decorative circuitry stays subordinate to text.
+- Coin, Heart, Shield, Booster, Settings, Play, Back, Pause, Retry and Continue
+  use original geometric neon icons. Icon Images never block input and remain
+  paired with existing text until final localization/accessibility review.
+- Button states are visibly distinct through hover, press, selection and
+  disabled tints. Disabled actions must read unavailable without looking like
+  a successful or purchasable state.
+- Existing hierarchy, wording, navigation and runtime values remain the source
+  of truth. Human review owns final typography, icon/text spacing and device-
+  specific scale.

@@ -555,3 +555,19 @@ fairness, or polish.
 - Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
   simulations are omitted because Stage data, generation, timing, judgment,
   balance and Experiment inputs are unchanged.
+
+### Iteration 32 Neon UI skin
+
+- EditMode must prove all seven common surfaces and ten semantic icons import
+  as genuine-alpha Sprites with mipmaps disabled. Common surfaces require the
+  approved non-zero 9-slice border; icons require zero border.
+- Frontend PlayMode must prove the primary account action uses a sliced surface
+  and non-raycast icon, and Lobby Coin/Heart icons exist without replacing
+  Product-backed text.
+- Campaign PlayMode must prove Pause, failure/modal and item-action surfaces
+  use the shared skin and non-raycast semantic icons.
+- Frontend and Campaign Builders must each run twice and preserve required
+  references, unique roots, EventSystem and Build Settings order.
+- Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
+  simulations are omitted while Stage data, generation, timing, judgment,
+  balance and Experiment inputs remain unchanged.

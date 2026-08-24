@@ -44,6 +44,7 @@ namespace ColorGateRunner.Editor
         public static void BuildGrayboxScene()
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            Theme01UiSkinBuilder.EnsureAndConfigure();
             string frontendPath = SelectFrontendScenePath(
                 EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
@@ -2387,6 +2388,7 @@ namespace ColorGateRunner.Editor
             Stretch(panel.GetComponent<RectTransform>());
             Image image = panel.AddComponent<Image>();
             image.color = color;
+            Theme01UiSkinBuilder.ApplyPanel(image, name);
             return panel;
         }
 
@@ -2434,6 +2436,7 @@ namespace ColorGateRunner.Editor
                 34,
                 Vector2.zero,
                 Vector2.one);
+            Theme01UiSkinBuilder.ApplyButton(button, name, label);
             return button;
         }
 

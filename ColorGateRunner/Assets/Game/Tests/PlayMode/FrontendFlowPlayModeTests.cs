@@ -85,6 +85,32 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ThemeOneUiSkin_UsesSlicedButtonsAndResourceIcons()
+        {
+            yield return LoadFrontendThroughBoot();
+
+            FrontendSceneController controller = RequireController();
+            Image startImage = controller.TitleStartButton.GetComponent<Image>();
+            Assert.That(startImage.type, Is.EqualTo(Image.Type.Sliced));
+            Assert.That(startImage.sprite, Is.Not.Null);
+            Assert.That(startImage.sprite.name, Is.EqualTo("ButtonPrimary"));
+            Image startIcon = controller.TitleStartButton.transform
+                .Find("ThemeIcon")?.GetComponent<Image>();
+            Assert.That(startIcon, Is.Not.Null);
+            Assert.That(startIcon.raycastTarget, Is.False);
+
+            controller.TitleStartButton.onClick.Invoke();
+            yield return null;
+            Transform currency = controller.CurrencySlotRoot.transform;
+            Image coin = currency.Find("LobbyCoinIcon")?.GetComponent<Image>();
+            Image heart = currency.Find("LobbyHeartIcon")?.GetComponent<Image>();
+            Assert.That(coin, Is.Not.Null);
+            Assert.That(heart, Is.Not.Null);
+            Assert.That(coin.raycastTarget, Is.False);
+            Assert.That(heart.raycastTarget, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator GuestChoicePersistsThenLobbyBackRequestsExit()
         {
             yield return LoadFrontendThroughBoot();

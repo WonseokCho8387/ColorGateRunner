@@ -2094,3 +2094,37 @@ Human feedback required
   readability, emissive contrast, Bloom intensity and mobile frame cost.
 - Common UI panels, buttons, resource chips, icons and result/pause surfaces
   remain the separately approved Iteration 32.
+
+## Iteration 32 — Neon UI Skin
+
+### Play / Analyze
+
+- The Theme 1 Lobby and Campaign gained environment art, but flat graybox UI
+  surfaces still broke visual continuity and did not communicate action roles
+  consistently.
+
+### Design / Implementation
+
+- Created seven genuine-alpha 9-slice surfaces and ten original geometric
+  resource/action icons through a reproducible Blender-side bitmap pipeline.
+- Added one shared import/style owner used by both Scene Builders. It assigns
+  primary, secondary and danger button roles, complete interaction tints and
+  non-raycast semantic icons while preserving every live label and event.
+- Regenerated Frontend and Campaign Scenes without changing Product, economy,
+  Stage, navigation, gate, timing or judgment contracts.
+
+### Validation / Learning
+
+- Frontend and Campaign Builders each completed two passes. Full EditMode
+  passed `434/434`; post-Builder PlayMode passed `231/231`.
+- Automated coverage decodes alpha, checks all sprite borders/import settings,
+  and proves key Frontend/Campaign panels, buttons and icons are serialized.
+- A semantic Builder skin upgrades many screens consistently without moving
+  runtime state into art code or duplicating controller logic.
+
+### Deferred / Human Review
+
+- Human portrait review owns icon scale, text/icon spacing, small-button
+  readability, slice-corner quality and final typography on target devices.
+- Shop/IAP runtime, Firebase, bottom navigation modules, responsive layout
+  redesign and Theme 2/3 final art remain separate iterations.
