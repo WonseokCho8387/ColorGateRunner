@@ -1292,3 +1292,22 @@ Status: Approved and implemented.
   pulse implemented without an external tween or additional package.
 - The user-supplied Royal Match captures are hierarchy references only. Color
   Courtyard art and composition must remain original and unbranded.
+
+## Iteration 31 — Theme 1 gameplay art preserves fixed runtime contracts
+
+- Theme 1 gameplay art is authored reproducibly in Blender and exported to
+  Unity as FBX plus UV/PBR map families. The checked-in `.blend` and build
+  script are the editable source; the Builder remains the Scene authority.
+- Imported art replaces primitive presentation without changing the six-slot
+  Gate pool, six-slot Track pool, collision geometry, authored sequence,
+  judgment, Stage balance or persistence.
+- Track presentation explicitly owns its imported surface renderers so Ice
+  material changes still cover the whole Experiment track. Gate presentation
+  owns the imported Left / Right / Top renderers and resets their transforms
+  after pooled Booster impact.
+- Gate-break presentation uses a fixed deterministic pool of six views with
+  five fragments each and a `0.3s` lifetime. Runtime Rigidbody creation,
+  random forces and pool growth are prohibited.
+- URP Bloom is approved for this visual slice using the existing profile and
+  package set. Camera post-processing must be enabled by the Builder; no new
+  render package or ProjectSettings change is introduced.

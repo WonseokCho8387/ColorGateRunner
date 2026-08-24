@@ -556,3 +556,27 @@ The three-Continue cap and original prices below are superseded by Iteration
   visual iterations.
 - The supplied Royal Match screens informed only mobile hierarchy. No Royal
   Match character, building, prop, iconography or branded composition is used.
+
+## Iteration 31 Neon gameplay visual slice
+
+- Theme 1 gameplay uses original Blender-authored production assets rather
+  than primitive-only presentation: one spherical cyber vehicle, a modular
+  three-part gate, a neon track segment, distant city silhouettes and a Goal
+  portal. The editable `.blend`, exported FBX files and UV/PBR map families
+  remain together under the Theme 1 gameplay art folder.
+- The runner reads as a compact ball-shaped cyber vehicle with a distinct
+  color shell. Gates keep three separately colorable judgment parts and the
+  fixed six-slot runtime pool; visual replacement must not change collision,
+  authored order or color judgment.
+- A successful gate crossing emits one deterministic `0.3s` break treatment
+  from a fixed six-view pool. The fragments are presentation only and never
+  create runtime physics objects or affect judgment.
+- Track edge rails, lane pulses, city highlights and the Goal portal use
+  emissive Cyan / Electric Blue accents over dark alloy. The existing URP
+  profile enables restrained low-cost Bloom with four iterations; readability
+  and mobile performance take priority over a large glow radius.
+- The Lobby ambient layer must contain genuine transparent pixels. A baked
+  checkerboard or opaque transparency preview is invalid even if it resembles
+  transparency in an image viewer.
+- Human portrait review owns final scale, silhouette readability, gate-break
+  timing, emissive balance, Bloom intensity and performance on target devices.

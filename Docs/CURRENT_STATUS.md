@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `7284cb2`
-- Base commit: `feat: simplify lobby hierarchy`
+- Implementation base HEAD: `3086233`
+- Base commit: `feat: add color courtyard visual slice`
 - Authoritative completion HEAD: the commit named
-  `feat: add color courtyard visual slice`; its exact hash is
-  recorded in the Iteration 30 final report because a commit cannot contain
+  `feat: add neon gameplay visual slice`; its exact hash is
+  recorded in the Iteration 31 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 30 — Theme 1 Visual Slice**.
+- Current completed iteration: **Iteration 31 — Neon Gameplay Visual Slice**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -90,6 +90,15 @@ below where their contracts differ.
   only a restrained unscaled-time pulse, never blocks UI input and does not
   change the top wallet, Stage card or `PLAY` navigation. Theme 2 and 3 retain
   palette fallbacks until their own art slices are approved.
+- Theme 1 Campaign presentation now uses Blender-authored FBX art for the
+  spherical cyber vehicle, modular Left / Right / Top gate, neon track, city
+  backdrop and Goal portal. Editable `.blend` source and Runner / Gate /
+  Environment UV/PBR map families are checked in. A fixed six-view,
+  five-fragment-per-view deterministic pool shows a `0.3s` gate break without
+  physics allocation or gameplay authority. The existing URP profile enables
+  restrained four-iteration Bloom and the Builder enables camera
+  post-processing. Gate/Track pool sizes, collision, judgment, Stage data and
+  balance are unchanged.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -160,13 +169,13 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `431/431`
-- PlayMode: `228/228`
-- Post-Builder PlayMode: `228/228`
+- EditMode: `433/433`
+- PlayMode: `229/229`
+- Post-Builder PlayMode: `229/229`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, unique roots, EventSystem and Build Settings passed
-- Campaign Builder: Iteration 27 two-pass baseline retained; not rerun because
-  Iteration 30 changes no Campaign Scene or Builder-owned content
+- Campaign Builder: two consecutive Iteration 31 passes completed; imported
+  art, fixed pools, Volume, references and Build Settings passed
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -181,12 +190,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 221, highest unlocked Stage ID `stage-17` with 16 records,
-  800 Coins, 2 Shields, 1 Booster and 3 Hearts.
+- Schema 3, revision 229, highest unlocked Stage ID `stage-17` with 16 records,
+  800 Coins, 2 Shields, 1 Booster and 5 Hearts.
 - SHA-256:
-  `410793F21F1CAD39A19330737A9E47A36F06D17C4DAC25ED87B98B5F3FC6F00E`.
-- Full validation did not mutate this file. Developer Console mutations occur
-  only after an explicit Apply, Reset, or Unlock action.
+  `664C7E447463C07B541015B4D8679BF57F41F7A3F306C7C22C4B5D7E9A946B8C`.
+- The already-open original Editor advanced the live Heart clock from the
+  prior revision during implementation. Validation ran in an isolated project
+  copy and did not read, restore or mutate this file. Developer Console
+  mutations still occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
@@ -262,6 +273,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 31 validation result
+
+- Starting HEAD `3086233` was clean. Completion commit name:
+  `feat: add neon gameplay visual slice`.
+- Added reproducible Blender source/export tooling, one editable Theme 1
+  `.blend`, five FBX models, fifteen UV/PBR maps, genuine-alpha Lobby ambient
+  art, imported Campaign presentation and fixed pooled gate-break VFX.
+- Campaign Builder completed two final passes. Full EditMode passed `433/433`
+  and final post-Builder PlayMode passed `229/229`. Missing Script, required
+  reference, duplicate-root and imported-prefab-parenting checks passed.
+- Campaign and Step 10 simulations were not rerun because no Stage data,
+  deterministic generation, timing, balance, judgment or Experiment input
+  changed. Their approved hashes remain authoritative.
+- Product validation ran only in the isolated project copy and did not touch
+  the developer save. The open original Editor independently advanced the
+  Heart clock to revision 229; that live state was preserved and is recorded
+  above rather than restored. Package and meaningful ProjectSettings hashes
+  match the authoritative baseline.
+- Human portrait/device review still owns model scale, runner/gate silhouette,
+  break readability, emissive balance, Bloom intensity and mobile performance.
 
 ## Iteration 30 validation result
 

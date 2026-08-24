@@ -44,6 +44,39 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool()
+        {
+            Assert.That(_controller.PlayerRenderer.transform.name,
+                Is.EqualTo("ColorShell"));
+            Transform[] visuals = _controller.transform.root
+                .GetComponentsInChildren<Transform>(true);
+            Assert.That(Array.Find(
+                visuals,
+                candidate => candidate.name == "GoalPortalArtwork"),
+                Is.Not.Null);
+            Assert.That(Array.Find(
+                visuals,
+                candidate => candidate.name == "NeonCityBackdrop"),
+                Is.Not.Null);
+            Assert.That(_controller.GateBreakEffects, Is.Not.Null);
+            Assert.That(_controller.GateBreakEffects.Capacity, Is.EqualTo(6));
+
+            Camera camera = Camera.main;
+            Assert.That(camera, Is.Not.Null);
+            Component additionalCameraData =
+                camera.GetComponent("UniversalAdditionalCameraData");
+            Assert.That(additionalCameraData, Is.Not.Null);
+            object postProcessing = additionalCameraData.GetType()
+                .GetProperty("renderPostProcessing")
+                ?.GetValue(additionalCameraData);
+            Assert.That(postProcessing, Is.EqualTo(true));
+            Assert.That(Array.Find(
+                visuals,
+                candidate => candidate.name == "Global Volume"),
+                Is.Not.Null);
+        }
+
+        [Test]
         public void Play_OpensItemSelection()
         {
             _controller.PlayFromLobby();
@@ -1097,21 +1130,18 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             StartPlaying(false, true);
             StageGateView gate = _controller.GetGate(0);
-            Vector3 position = gate.transform.Find("Left").localPosition;
-            Quaternion rotation = gate.transform.Find("Left").localRotation;
-            Vector3 scale = gate.transform.Find("Left").localScale;
+            Transform leftPart = gate.GetPartTransform(0);
+            Vector3 position = leftPart.localPosition;
+            Quaternion rotation = leftPart.localRotation;
+            Vector3 scale = leftPart.localScale;
             gate.TryResolveCrossing();
             Assert.That(gate.BoosterDestroyed, Is.True);
-            Assert.That(gate.transform.Find("Left").localPosition,
-                Is.Not.EqualTo(position));
+            Assert.That(leftPart.localPosition, Is.Not.EqualTo(position));
             _controller.Tick(0.25f);
             Assert.That(gate.BoosterDestroyed, Is.False);
-            Assert.That(gate.transform.Find("Left").localPosition,
-                Is.EqualTo(position));
-            Assert.That(gate.transform.Find("Left").localRotation,
-                Is.EqualTo(rotation));
-            Assert.That(gate.transform.Find("Left").localScale,
-                Is.EqualTo(scale));
+            Assert.That(leftPart.localPosition, Is.EqualTo(position));
+            Assert.That(leftPart.localRotation, Is.EqualTo(rotation));
+            Assert.That(leftPart.localScale, Is.EqualTo(scale));
         }
 
         [Test]

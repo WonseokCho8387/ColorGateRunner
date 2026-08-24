@@ -501,6 +501,13 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/FrontendSceneBuilderTests.cs
 - `BuildSceneList_RejectsInvalidCampaign`
 - `CampaignBuilder_SelectsSerializedFrontendWithoutNameHardcode`
 - `CampaignBuilder_RejectsBootOrSelfAsFrontend`
+- `LobbyThemeOne_AmbientContainsRealTransparentPixels`
+
+#### `Theme01GameplayArtTests.cs`
+
+Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Theme01GameplayArtTests.cs`
+
+- `Theme01GameplayArt_PreservesSourceExportsAndPbrMaps`
 
 #### `TestBuildMenuTests.cs`
 
@@ -520,6 +527,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/TestBuildMenuTests.cs`
 Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs`
 
 - `NormalFlow_OpensLobbyRatherThanStageSelect`
+- `ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
 - `Play_OpensItemSelection`
 - `DirectCampaignPreRunBack_ReturnsToCampaignLobby`
 - `StagesOneThroughFive_ShowLockedItemsAndRejectToggles`
@@ -895,3 +903,15 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   decoration, Product-derived upgrade-node count and an interactive `PLAY`.
 - `FrontendFlowPlayModeTests.LobbyProgression_ShowsEconomyThemeAndAcknowledgesReward`
   also verifies that two applied milestones activate exactly two visual nodes.
+
+## Iteration 31 current coverage
+
+- `FrontendSceneBuilderTests.LobbyThemeOne_AmbientContainsRealTransparentPixels`
+  decodes the Lobby ambient PNG and rejects an opaque baked checkerboard.
+- `Theme01GameplayArtTests.Theme01GameplayArt_PreservesSourceExportsAndPbrMaps`
+  verifies the Blender source, five FBX imports and fifteen UV/PBR maps.
+- `GrayboxScenePlayModeTests.ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
+  verifies the imported runner/city/Goal hierarchy, enabled post-processing,
+  global Volume and fixed six-view break pool.
+- Existing Ice whole-track material and Booster gate reset tests remain active
+  against the imported Renderer ownership path.

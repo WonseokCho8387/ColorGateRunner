@@ -17,6 +17,8 @@ namespace ColorGateRunner.Editor
         internal const string GeneratedRootName = "ColorGateRunner_Graybox";
         internal const string GeneratedMaterialsFolder =
             "Assets/Game/Generated/Materials";
+        internal const string Theme01ModelsFolder =
+            "Assets/Game/Art/Gameplay/Theme01/Models";
         internal const int GatePoolSize = 6;
         internal const int TrackPoolSize = 6;
         internal const int IceRunwayPanelCount = 50;
@@ -41,6 +43,7 @@ namespace ColorGateRunner.Editor
         [MenuItem("Tools/Color Gate Runner/Build Graybox Scene")]
         public static void BuildGrayboxScene()
         {
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             string frontendPath = SelectFrontendScenePath(
                 EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
@@ -70,6 +73,9 @@ namespace ColorGateRunner.Editor
             Material failure = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Failure.mat",
                 FailureColor);
+            Material darkAlloy = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/Theme01DarkAlloy.mat",
+                new Color(0.012f, 0.025f, 0.06f, 1f));
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
                 new Color(0.12f, 0.18f, 0.26f, 1f));
@@ -82,13 +88,15 @@ namespace ColorGateRunner.Editor
                 root.AddComponent<StageSceneController>();
             Camera camera = CreateCamera(root.transform);
             CreateDirectionalLight(root.transform);
+            CreateTheme01Volume(root.transform, camera);
+            CreateTheme01City(root.transform, darkAlloy, blue, cyan);
             TrackPoolController trackPool =
-                CreateTrackPool(root.transform, neutral);
+                CreateTrackPool(root.transform, darkAlloy, cyan);
             IceRunwayView iceRunway =
                 CreateIceRunway(root.transform, cyan);
+            Renderer playerRenderer;
             GameObject playerObject =
-                CreatePlayer(root.transform, red);
-            Renderer playerRenderer = playerObject.GetComponent<Renderer>();
+                CreatePlayer(root.transform, red, darkAlloy, cyan, out playerRenderer);
             Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             TimedFogCurtainView fogCurtain =
@@ -97,9 +105,11 @@ namespace ColorGateRunner.Editor
                 CreateShieldVisual(playerObject.transform, blue);
             GameObject echoShellVisual =
                 CreateEchoShellVisual(playerObject.transform, blue);
-            GameObject goal = CreateGoal(root.transform, neutral);
+            GameObject goal = CreateGoal(root.transform, darkAlloy, cyan);
             StageGateView[] gates =
-                CreateGatePool(root.transform, controller, neutral);
+                CreateGatePool(root.transform, controller, darkAlloy, neutral);
+            GateBreakEffectPool gateBreakEffects =
+                CreateGateBreakEffectPool(root.transform, cyan);
             ParticleSystem successParticles =
                 CreateParticleSystem(
                     "SuccessParticles",
@@ -392,6 +402,7 @@ namespace ColorGateRunner.Editor
                 pauseTransitionBlocker,
                 new[] { successParticles, speedLines },
                 frontendPath);
+            controller.ConfigureThemeVisuals(gateBreakEffects);
 
             for (int index = 0; index < flowRoots.Length; index++)
             {
@@ -498,6 +509,8 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<IceRunwayView>(true);
             ExperimentLauncher[] experimentLaunchers =
                 generatedRoot.GetComponentsInChildren<ExperimentLauncher>(true);
+            GateBreakEffectPool[] gateBreakPools =
+                generatedRoot.GetComponentsInChildren<GateBreakEffectPool>(true);
 
             if (controllers.Length != 1 ||
                 !controllers[0].HasRequiredReferences() ||
@@ -569,6 +582,13 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException(
                     "Development experiment launcher is missing or incomplete.");
             }
+            if (gateBreakPools.Length != 1 ||
+                !gateBreakPools[0].HasRequiredReferences() ||
+                gateBreakPools[0].Capacity != GatePoolSize)
+            {
+                throw new InvalidOperationException(
+                    "Fixed gate break effect pool is missing or incomplete.");
+            }
 
             string[] uniqueNames =
             {
@@ -620,6 +640,7 @@ namespace ColorGateRunner.Editor
                 "FogCurtain",
                 "IceRunway",
                 "Goal",
+                "GoalPortalArtwork",
                 "FinishLeftPost",
                 "FinishRightPost",
                 "FinishCrossbar",
@@ -652,6 +673,7 @@ namespace ColorGateRunner.Editor
                 "SettingsCancelButton",
                 "PauseTransitionBlocker",
                 "SuccessParticles",
+                "GateBreakEffectPool",
                 "BoosterSpeedLines",
                 "BoosterSpeedLinesLeft",
                 "BoosterSpeedLinesRight",
@@ -728,15 +750,15 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException(
                     "Default orientation is not Portrait.");
             }
-            if (HasActiveVolume(generatedRoot))
+            if (!HasActiveVolume(generatedRoot))
             {
                 throw new InvalidOperationException(
-                    "An active post-processing volume remains.");
+                    "Theme 01 requires one active post-processing volume.");
             }
-            if (IsCameraPostProcessingEnabled(cameras[0]))
+            if (!IsCameraPostProcessingEnabled(cameras[0]))
             {
                 throw new InvalidOperationException(
-                    "Camera post-processing remains enabled.");
+                    "Theme 01 camera post-processing is disabled.");
             }
         }
 
@@ -789,9 +811,118 @@ namespace ColorGateRunner.Editor
             light.intensity = 1.2f;
         }
 
-        private static TrackPoolController CreateTrackPool(
+        private static void CreateTheme01Volume(
+            Transform parent,
+            Camera camera)
+        {
+            Type cameraDataType = FindLoadedType(
+                "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData");
+            if (cameraDataType == null)
+            {
+                throw new InvalidOperationException(
+                    "URP camera data type is unavailable.");
+            }
+            Component cameraData = camera.GetComponent(cameraDataType) ??
+                camera.gameObject.AddComponent(cameraDataType);
+            cameraDataType.GetProperty("renderPostProcessing")?.SetValue(
+                cameraData,
+                true);
+
+            Type volumeType = FindLoadedType("UnityEngine.Rendering.Volume");
+            if (volumeType == null)
+            {
+                throw new InvalidOperationException(
+                    "Volume type is unavailable.");
+            }
+            ScriptableObject profile = AssetDatabase.LoadAssetAtPath<ScriptableObject>(
+                "Assets/Settings/SampleSceneProfile.asset");
+            if (profile == null)
+            {
+                throw new InvalidOperationException(
+                    "Theme 01 post-processing profile is missing.");
+            }
+            GameObject volumeObject = new GameObject("Global Volume");
+            volumeObject.transform.SetParent(parent, false);
+            Component volume = volumeObject.AddComponent(volumeType);
+            volumeType.GetProperty("isGlobal")?.SetValue(volume, true);
+            volumeType.GetProperty("priority")?.SetValue(volume, 10f);
+            volumeType.GetProperty("sharedProfile")?.SetValue(volume, profile);
+        }
+
+        private static void CreateTheme01City(
+            Transform parent,
+            Material darkMaterial,
+            Material neonBlue,
+            Material neonCyan)
+        {
+            GameObject city = InstantiateTheme01Model(
+                "NeonCityBackdrop.fbx",
+                parent,
+                "NeonCityBackdrop");
+            Renderer[] renderers = city.GetComponentsInChildren<Renderer>(true);
+            for (int index = 0; index < renderers.Length; index++)
+            {
+                string name = renderers[index].name;
+                renderers[index].sharedMaterial = name.Contains("Glow")
+                    ? (index % 2 == 0 ? neonBlue : neonCyan)
+                    : darkMaterial;
+            }
+        }
+
+        private static GateBreakEffectPool CreateGateBreakEffectPool(
             Transform parent,
             Material material)
+        {
+            GameObject root = new GameObject(
+                "GateBreakEffectPool",
+                typeof(GateBreakEffectPool));
+            root.transform.SetParent(parent, false);
+            GateBreakEffectView[] views =
+                new GateBreakEffectView[GatePoolSize];
+            Vector3[] starts =
+            {
+                new Vector3(-2.5f, 1.5f, 0f),
+                new Vector3(2.5f, 1.5f, 0f),
+                new Vector3(-1.6f, 3f, 0f),
+                new Vector3(0f, 3f, 0f),
+                new Vector3(1.6f, 3f, 0f)
+            };
+            for (int slot = 0; slot < views.Length; slot++)
+            {
+                GameObject effectObject = new GameObject(
+                    $"GateBreakEffect_{slot:00}",
+                    typeof(GateBreakEffectView));
+                effectObject.transform.SetParent(root.transform, false);
+                Transform[] fragments = new Transform[starts.Length];
+                Renderer[] renderers = new Renderer[starts.Length];
+                for (int index = 0; index < starts.Length; index++)
+                {
+                    GameObject fragment = GameObject.CreatePrimitive(
+                        PrimitiveType.Cube);
+                    fragment.name = $"GlowFragment_{index:00}";
+                    fragment.transform.SetParent(effectObject.transform, false);
+                    fragment.transform.localPosition = starts[index];
+                    fragment.transform.localScale = index < 2
+                        ? new Vector3(0.45f, 1.25f, 0.28f)
+                        : new Vector3(0.75f, 0.32f, 0.28f);
+                    renderers[index] = fragment.GetComponent<Renderer>();
+                    renderers[index].sharedMaterial = material;
+                    fragments[index] = fragment.transform;
+                    UnityEngine.Object.DestroyImmediate(
+                        fragment.GetComponent<Collider>());
+                }
+                views[slot] = effectObject.GetComponent<GateBreakEffectView>();
+                views[slot].Configure(fragments, renderers);
+            }
+            GateBreakEffectPool pool = root.GetComponent<GateBreakEffectPool>();
+            pool.Configure(views);
+            return pool;
+        }
+
+        private static TrackPoolController CreateTrackPool(
+            Transform parent,
+            Material roadMaterial,
+            Material neonMaterial)
         {
             GameObject poolObject = new GameObject(
                 "TrackPool",
@@ -801,13 +932,13 @@ namespace ColorGateRunner.Editor
                 new TrackSegmentView[TrackPoolSize];
             for (int index = 0; index < segments.Length; index++)
             {
-                GameObject segment = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                segment.name = $"TrackSegment_{index:00}";
+                GameObject segment = new GameObject($"TrackSegment_{index:00}");
                 segment.transform.SetParent(poolObject.transform, false);
-                segment.transform.localScale =
-                    new Vector3(7f, 0.2f, TrackSegmentLength);
-                segment.GetComponent<Renderer>().sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(segment.GetComponent<Collider>());
+                GameObject artwork = InstantiateTheme01Model(
+                    "NeonTrackSegment.fbx",
+                    segment.transform,
+                    "TrackArtwork");
+                ApplyThemeMaterials(artwork, roadMaterial, neonMaterial);
 
                 Transform start = new GameObject("StartAnchor").transform;
                 start.SetParent(segment.transform, false);
@@ -817,7 +948,11 @@ namespace ColorGateRunner.Editor
                 end.localPosition = new Vector3(0f, 0f, 0.5f);
                 TrackSegmentView view =
                     segment.AddComponent<TrackSegmentView>();
-                view.Configure(start, end, false);
+                view.Configure(
+                    start,
+                    end,
+                    false,
+                    artwork.GetComponentsInChildren<Renderer>(true));
                 segments[index] = view;
             }
 
@@ -891,15 +1026,33 @@ namespace ColorGateRunner.Editor
 
         private static GameObject CreatePlayer(
             Transform parent,
-            Material material)
+            Material colorMaterial,
+            Material darkMaterial,
+            Material neonMaterial,
+            out Renderer colorRenderer)
         {
-            GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            player.name = "Player";
+            GameObject player = new GameObject(
+                "Player",
+                typeof(SphereCollider),
+                typeof(Rigidbody));
             player.transform.SetParent(parent, false);
             player.transform.position = PlayerStartPosition;
-            player.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
-            player.GetComponent<Renderer>().sharedMaterial = material;
-            Rigidbody body = player.AddComponent<Rigidbody>();
+            SphereCollider collider = player.GetComponent<SphereCollider>();
+            collider.center = new Vector3(0f, 0.85f, 0f);
+            collider.radius = 0.92f;
+            GameObject artwork = InstantiateTheme01Model(
+                "CyberOrbRunner.fbx",
+                player.transform,
+                "CyberOrbRunnerVisual");
+            ApplyThemeMaterials(artwork, darkMaterial, neonMaterial);
+            Transform shell = FindNamedTransform(artwork.transform, "ColorShell");
+            if (shell == null || !shell.TryGetComponent(out colorRenderer))
+            {
+                throw new InvalidOperationException(
+                    "CyberOrbRunner requires a ColorShell renderer.");
+            }
+            colorRenderer.sharedMaterial = colorMaterial;
+            Rigidbody body = player.GetComponent<Rigidbody>();
             body.isKinematic = true;
             body.useGravity = false;
             return player;
@@ -994,34 +1147,42 @@ namespace ColorGateRunner.Editor
             return shell;
         }
 
-        private static GameObject CreateGoal(Transform parent, Material material)
+        private static GameObject CreateGoal(
+            Transform parent,
+            Material darkMaterial,
+            Material neonMaterial)
         {
             GameObject goal = new GameObject("Goal");
             goal.transform.SetParent(parent, false);
+            GameObject artwork = InstantiateTheme01Model(
+                "NeonGoalPortal.fbx",
+                goal.transform,
+                "GoalPortalArtwork");
+            ApplyThemeMaterials(artwork, darkMaterial, neonMaterial);
             CreateFinishPart(
                 "FinishLeftPost",
                 goal.transform,
                 new Vector3(-2.7f, 2f, 0f),
-                new Vector3(0.35f, 4f, 0.35f),
-                material);
+                new Vector3(0.08f, 3.7f, 0.08f),
+                neonMaterial);
             CreateFinishPart(
                 "FinishRightPost",
                 goal.transform,
                 new Vector3(2.7f, 2f, 0f),
-                new Vector3(0.35f, 4f, 0.35f),
-                material);
+                new Vector3(0.08f, 3.7f, 0.08f),
+                neonMaterial);
             CreateFinishPart(
                 "FinishCrossbar",
                 goal.transform,
                 new Vector3(0f, 4f, 0f),
-                new Vector3(5.75f, 0.55f, 0.45f),
-                material);
+                new Vector3(5.1f, 0.08f, 0.08f),
+                neonMaterial);
             CreateFinishPart(
                 "FinishFloorLine",
                 goal.transform,
                 new Vector3(0f, 0.06f, 0f),
-                new Vector3(6f, 0.12f, 0.8f),
-                material);
+                new Vector3(5.8f, 0.08f, 0.55f),
+                neonMaterial);
 
             GameObject banner = new GameObject(
                 "FinishBanner",
@@ -1030,7 +1191,7 @@ namespace ColorGateRunner.Editor
             banner.transform.localPosition = new Vector3(0f, 4f, -0.25f);
             banner.transform.localRotation = Quaternion.identity;
             TextMesh text = banner.GetComponent<TextMesh>();
-            text.text = "FINISH";
+            text.text = "GOAL";
             text.fontSize = 72;
             text.characterSize = 0.12f;
             text.anchor = TextAnchor.MiddleCenter;
@@ -1058,7 +1219,8 @@ namespace ColorGateRunner.Editor
         private static StageGateView[] CreateGatePool(
             Transform parent,
             StageSceneController controller,
-            Material material)
+            Material darkMaterial,
+            Material colorMaterial)
         {
             GameObject pool = new GameObject("StageGatePool");
             pool.transform.SetParent(parent, false);
@@ -1074,24 +1236,27 @@ namespace ColorGateRunner.Editor
                 trigger.isTrigger = true;
                 trigger.size = new Vector3(6f, 4f, 0.5f);
 
+                GameObject artwork = InstantiateTheme01Model(
+                    "NeonGate.fbx",
+                    gateObject.transform,
+                    "GateArtwork");
+                ApplyThemeMaterials(artwork, darkMaterial, colorMaterial);
+                string[] neonNames = { "LeftNeon", "RightNeon", "TopNeon" };
+                string[] anchorNames = { "Left", "Right", "Top" };
                 Renderer[] renderers = new Renderer[3];
-                renderers[0] = CreateGatePart(
-                    "Left",
-                    gateObject.transform,
-                    new Vector3(-2.5f, 1.5f, 0f),
-                    material);
-                renderers[1] = CreateGatePart(
-                    "Right",
-                    gateObject.transform,
-                    new Vector3(2.5f, 1.5f, 0f),
-                    material);
-                renderers[2] = CreateGatePart(
-                    "Top",
-                    gateObject.transform,
-                    new Vector3(0f, 3f, 0f),
-                    material);
-                renderers[2].transform.localScale =
-                    new Vector3(5.65f, 0.65f, 0.65f);
+                for (int part = 0; part < renderers.Length; part++)
+                {
+                    Transform source = FindNamedTransform(
+                        artwork.transform,
+                        neonNames[part]);
+                    if (source == null || !source.TryGetComponent(out renderers[part]))
+                    {
+                        throw new InvalidOperationException(
+                            $"NeonGate requires {neonNames[part]}.");
+                    }
+                    Transform anchor = new GameObject(anchorNames[part]).transform;
+                    anchor.SetParent(gateObject.transform, false);
+                }
                 GameObject symbolObject = new GameObject(
                     "ColorSymbol",
                     typeof(TextMesh));
@@ -1112,22 +1277,6 @@ namespace ColorGateRunner.Editor
             }
 
             return gates;
-        }
-
-        private static Renderer CreateGatePart(
-            string name,
-            Transform parent,
-            Vector3 localPosition,
-            Material material)
-        {
-            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            part.name = name;
-            part.transform.SetParent(parent, false);
-            part.transform.localPosition = localPosition;
-            part.transform.localScale = new Vector3(0.65f, 3f, 0.65f);
-            part.GetComponent<Renderer>().sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
-            return part.GetComponent<Renderer>();
         }
 
         private static ParticleSystem CreateParticleSystem(
@@ -2327,8 +2476,96 @@ namespace ColorGateRunner.Editor
             }
 
             material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+            if (material.HasProperty("_Metallic"))
+            {
+                material.SetFloat("_Metallic", 0.72f);
+            }
+            if (material.HasProperty("_Smoothness"))
+            {
+                material.SetFloat("_Smoothness", 0.78f);
+            }
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", color * 4.5f);
+                material.EnableKeyword("_EMISSION");
+                material.globalIlluminationFlags =
+                    MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static GameObject InstantiateTheme01Model(
+            string filename,
+            Transform parent,
+            string instanceName)
+        {
+            string path = Theme01ModelsFolder + "/" + filename;
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (source == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme 01 model is missing: {path}");
+            }
+            GameObject instance = PrefabUtility.InstantiatePrefab(source) as GameObject;
+            if (instance == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme 01 model could not be instantiated: {path}");
+            }
+            instance.name = instanceName;
+            instance.transform.SetParent(parent, false);
+            return instance;
+        }
+
+        private static void ApplyThemeMaterials(
+            GameObject root,
+            Material darkMaterial,
+            Material neonMaterial)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            for (int index = 0; index < renderers.Length; index++)
+            {
+                string name = renderers[index].name;
+                bool neon = name.Contains("Neon") || name.Contains("Glow") ||
+                    name.Contains("Pulse") || name.Contains("ColorShell") ||
+                    name.Contains("Arrow");
+                renderers[index].sharedMaterial = neon
+                    ? neonMaterial
+                    : darkMaterial;
+            }
+        }
+
+        private static Transform FindNamedTransform(Transform root, string name)
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            for (int index = 0; index < transforms.Length; index++)
+            {
+                if (transforms[index].name == name)
+                {
+                    return transforms[index];
+                }
+            }
+            return null;
+        }
+
+        private static Type FindLoadedType(string fullName)
+        {
+            System.Reflection.Assembly[] assemblies =
+                AppDomain.CurrentDomain.GetAssemblies();
+            for (int index = 0; index < assemblies.Length; index++)
+            {
+                Type type = assemblies[index].GetType(fullName, false);
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+            return null;
         }
 
         private static Material CreateOrUpdateTransparentMaterial(

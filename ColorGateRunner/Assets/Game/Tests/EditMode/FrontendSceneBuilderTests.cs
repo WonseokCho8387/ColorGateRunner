@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using ColorGateRunner.Editor;
 using ColorGateRunner.Presentation;
 using NUnit.Framework;
@@ -157,6 +158,33 @@ namespace ColorGateRunner.Tests.EditMode
             AssertSpriteImporter(
                 LobbyThemeVisualCatalogBuilder.AmbientPath,
                 true);
+        }
+
+        [Test]
+        public void LobbyThemeOne_AmbientContainsRealTransparentPixels()
+        {
+            string absolutePath = Path.GetFullPath(
+                LobbyThemeVisualCatalogBuilder.AmbientPath);
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            try
+            {
+                Assert.That(texture.LoadImage(File.ReadAllBytes(absolutePath)),
+                    Is.True);
+                Color32[] pixels = texture.GetPixels32();
+                int transparent = 0;
+                int opaque = 0;
+                for (int index = 0; index < pixels.Length; index++)
+                {
+                    transparent += pixels[index].a < 16 ? 1 : 0;
+                    opaque += pixels[index].a > 240 ? 1 : 0;
+                }
+                Assert.That(transparent, Is.GreaterThan(pixels.Length / 2));
+                Assert.That(opaque, Is.GreaterThan(100));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
         }
 
         private static void AssertSpriteImporter(

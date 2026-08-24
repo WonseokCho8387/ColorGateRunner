@@ -2052,3 +2052,45 @@ Human feedback required
   reactor scale, pulse restraint and the clarity of each activated node.
 - Theme 2/3 art, final iconography/typography, Shop/IAP runtime, bottom
   navigation and gameplay visual rework remain separate iterations.
+
+## Iteration 31 — Neon Gameplay Visual Slice
+
+### Play / Analyze
+
+- Human review found that the Lobby artwork had not appeared reliably, the
+  ambient image contained baked checkerboard pixels and gameplay still read as
+  the older primitive graybox. The requested direction was an original neon
+  cyber-city with a spherical vehicle, destructible gates and visible Bloom.
+
+### Design / Implementation
+
+- Rebuilt the Lobby ambient source as genuine RGBA and added a regression that
+  decodes the PNG rather than trusting an image preview.
+- Added a deterministic Blender 5.1 pipeline, editable Theme 1 `.blend`, five
+  FBX exports and Runner / Gate / Environment UV/PBR map families. Campaign
+  Builder now assembles the imported cyber vehicle, modular gate, track, city
+  and Goal portal while preserving fixed pool and judgment ownership.
+- Added one six-view pooled gate-break treatment with five scripted fragments
+  per view and a `0.3s` lifetime. Enabled the existing low-cost URP Bloom
+  profile and camera post-processing without a package or ProjectSettings
+  delta.
+
+### Validation / Learning
+
+- Campaign Builder completed two clean passes after removing an invalid FBX
+  prefab-parenting operation. Full EditMode passed `433/433`; final
+  post-Builder PlayMode passed `229/229`.
+- Imported renderers need explicit presentation ownership: Track material
+  switching and Gate part reset cannot assume a Renderer remains on the old
+  primitive root.
+- Product saves were not used by the isolated validation project. The open
+  original Editor independently advanced the live Heart clock to revision 229;
+  it was preserved rather than restored. Package and meaningful
+  ProjectSettings hashes remained exact.
+
+### Deferred / Human Review
+
+- Human device review owns model scale, vehicle silhouette, gate-break
+  readability, emissive contrast, Bloom intensity and mobile frame cost.
+- Common UI panels, buttons, resource chips, icons and result/pause surfaces
+  remain the separately approved Iteration 32.

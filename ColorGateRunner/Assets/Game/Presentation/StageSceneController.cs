@@ -138,6 +138,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private SettingsPanelController pauseSettingsPanel;
         [SerializeField] private GameObject pauseTransitionBlocker;
         [SerializeField] private ParticleSystem[] attemptEffects;
+        [SerializeField] private GateBreakEffectPool gateBreakEffects;
         [SerializeField] private string frontendScenePath;
 
         private StageSession _session;
@@ -320,6 +321,7 @@ namespace ColorGateRunner.Presentation
         internal bool EnteredFromFrontendLaunch => _enteredFromFrontendLaunch;
         internal bool PreRunReturnTransitioning => _preRunReturnTransitioning;
         internal string PreRunReturnError => _preRunReturnError;
+        internal GateBreakEffectPool GateBreakEffects => gateBreakEffects;
 
         internal bool IsPlayerCollider(Collider other)
         {
@@ -952,6 +954,9 @@ namespace ColorGateRunner.Presentation
                 outcome == GateOutcome.Invulnerable ||
                 outcome == GateOutcome.Echoed)
             {
+                gateBreakEffects.Play(
+                    gate.transform.position,
+                    GetMaterial(plan.Color));
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();
@@ -959,10 +964,16 @@ namespace ColorGateRunner.Presentation
             }
             else if (outcome == GateOutcome.Boosted)
             {
+                gateBreakEffects.Play(
+                    gate.transform.position,
+                    GetMaterial(plan.Color));
                 gate.ShowBoosterImpact(failureMaterial);
             }
             else if (outcome == GateOutcome.Shielded)
             {
+                gateBreakEffects.Play(
+                    gate.transform.position,
+                    GetMaterial(plan.Color));
                 gate.ShowFailure(failureMaterial);
                 RecycleOrDeactivate(gate);
             }
@@ -1408,6 +1419,11 @@ namespace ColorGateRunner.Presentation
             frontendScenePath = frontendPath;
         }
 
+        internal void ConfigureThemeVisuals(GateBreakEffectPool breakEffects)
+        {
+            gateBreakEffects = breakEffects;
+        }
+
         internal void StartDevelopmentExperiment(
             ExperimentDefinition definition,
             StartItemSelection items)
@@ -1532,6 +1548,8 @@ namespace ColorGateRunner.Presentation
                 pauseTransitionBlocker == null || attemptEffects == null ||
                 attemptEffects.Length != 2 || attemptEffects[0] == null ||
                 attemptEffects[1] == null ||
+                gateBreakEffects == null ||
+                !gateBreakEffects.HasRequiredReferences() ||
                 string.IsNullOrWhiteSpace(frontendScenePath) ||
                 frontendScenePath == gameObject.scene.path)
             {
@@ -2011,6 +2029,9 @@ namespace ColorGateRunner.Presentation
                         outcome = GateOutcome.Matched;
                         break;
                 }
+                gateBreakEffects.Play(
+                    gate.transform.position,
+                    GetMaterial(plan.Color));
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();
@@ -2541,6 +2562,7 @@ namespace ColorGateRunner.Presentation
             _colorStackTransitionRemaining = 0f;
             playerRenderer.sharedMaterial = redMaterial;
             trackPool.ResetPool();
+            gateBreakEffects.ResetPool();
             fogCurtain.ResetCurtain();
             iceRunway.ResetRunway();
             goal.SetActive(false);

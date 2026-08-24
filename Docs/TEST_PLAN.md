@@ -536,3 +536,22 @@ fairness, or polish.
   twice. Campaign and Step 10 simulations are omitted only while gameplay,
   Stage data, timing, generation, judgment and Experiment inputs remain
   unchanged.
+
+### Iteration 31 Neon gameplay visual slice
+
+- EditMode must prove the editable Blender source, five imported FBX models
+  and Runner / Gate / Environment BaseColor, Emission, Normal,
+  MetallicSmoothness and UV layout maps all import successfully.
+- The Lobby ambient PNG must decode with a majority of genuinely transparent
+  pixels and retain visible high-alpha energy pixels.
+- Campaign PlayMode must prove the imported `ColorShell` runner, Goal portal,
+  city backdrop, enabled camera post-processing, one global Volume and the
+  fixed six-view gate-break pool. Existing gate-part and whole-track Ice reset
+  tests remain authoritative after imported renderer ownership changes.
+- Campaign Builder must run twice and retain one generated root, one
+  EventSystem, valid references, six Gate slots, six Track slots and Build
+  Settings order. Missing Script, Missing Reference and prefab-parenting
+  warnings are failures.
+- Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
+  simulations are omitted because Stage data, generation, timing, judgment,
+  balance and Experiment inputs are unchanged.
