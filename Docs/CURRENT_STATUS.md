@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `91f17e8`
-- Base commit: `feat: improve runner readability and bloom`
+- Implementation base HEAD: `ff3cc01`
+- Base commit: `fix: tint runner glass shell`
 - Authoritative completion HEAD: the commit named
-  `fix: tint runner glass shell`; its exact hash is recorded in the
-  Iteration 36 follow-up final report because a commit cannot contain
+  `feat: add spline track lab`; its exact hash is recorded in the
+  Iteration 37 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,12 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 36 follow-up — Runner Glass Color**.
+- Current completed iteration: **Iteration 37 — Spline Track Lab**.
+- The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
+  separate horizontal S-curve with distance-to-Spline runner, camera, gate and
+  Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit are
+  Lab-local; Campaign progress, economy and the existing 20 straight Stages
+  remain unchanged.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -211,16 +216,16 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `438/438`
-- PlayMode: `235/235`
-- Post-Builder PlayMode: `235/235`
+- EditMode: `439/439`
+- PlayMode: `237/237`
+- Post-Builder PlayMode: `237/237`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 36 passes completed; runner rear
-  orientation and required parts, HDR/non-emissive material contrast, Bloom,
-  normalized imported-art roots, continuous Track anchors, fixed pools,
-  references and Build Settings passed
+- Campaign Builder: two consecutive Iteration 37 passes completed; the
+  horizontal S-curve, generated two-submesh road, Lab references and initial
+  isolation passed alongside runner readability, continuous straight Campaign
+  anchors, fixed pools, references and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -298,13 +303,14 @@ All three entries are expected to be enabled and unique.
 ### Package and ProjectSettings baseline
 
 - `Packages/manifest.json` SHA-256:
-  `1D7BCAB0E815F5C9BE0779CDF8E88ECB98ADC7EA5BA4C800B5F5402E611FEEE2`
+  `5E44864DB10C6A0A47806035C801D2271F6F48B0BF8BF6F699B88C71D6758C96`
 - `Packages/packages-lock.json` SHA-256:
-  `BF37ABC71E898CAE0498B49D4AACB9075A47D62E2D14A27C355895B2E8CEFB84`
+  `FF4B3AC486B926719707FF2447580CEB1CE33D7C0851BABA229A3CD73C48CBBE`
 - `ProjectSettings/ProjectSettings.asset` SHA-256:
   `BFF9843B9363FF1C20B113108D623026E777311CAEF6372B07C92690049717BC`
 - Approved package delta: Unity IAP `5.4.2`, Unity Services Core `1.18.0`,
-  and `Assets/Resources/BillingMode.json` with Google Play. The incidental
+  Unity Splines `2.9.0` with its Settings Manager dependency, and
+  `Assets/Resources/BillingMode.json` with Google Play. The incidental
   Navigation, Rider, Visual Studio and Visual Scripting upgrades made during
   installation were removed and remain at their prior approved versions.
 - Approved ProjectSettings delta: Android application ID
@@ -322,6 +328,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 37 validation result
+
+- Starting HEAD `ff3cc01` was clean. Completion commit name:
+  `feat: add spline track lab`.
+- Unity Splines `2.9.0` supplies one Builder-authored horizontal S-curve. A
+  shared distance-to-path view evaluates runner, yaw-only chase camera, pooled
+  gates and Goal poses; the Builder generates a dark road with Cyan edge
+  submesh from the same curve.
+- The Experiment panel exposes a development-only Lab entry with its own HUD,
+  Restart and Exit. Lab failure/clear state is non-persistent. Exit restores
+  the straight Campaign track and resets pooled gate positions and rotations.
+- Focused EditMode passed `1/1`, focused PlayMode passed `2/2`, Campaign Builder
+  passed twice, full EditMode passed `439/439`, and full post-Builder PlayMode
+  passed `237/237`.
+- ProjectSettings and the actual developer save were not changed. Campaign and
+  Step 10 simulations were omitted because Core rules, authored Stage data,
+  deterministic generation, timing, judgment, balance and Experiment inputs
+  are unchanged.
+- Human portrait review owns S-curve readability, camera comfort, road-edge
+  Bloom and the transition back to the straight Campaign.
 
 ## Iteration 36 follow-up validation result
 

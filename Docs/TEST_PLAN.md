@@ -645,3 +645,18 @@ fairness, or polish.
 - The glass shared material must be non-emissive with smoothness at least
   `0.9`; its property-block base color must follow the selected semantic
   runner material within serialized color tolerance.
+
+### Iteration 37 Spline Track Lab
+
+- EditMode must prove distance evaluation follows a curved Spline while
+  preserving a horizontal up vector and height offset.
+- Builder validation must prove exactly one complete Lab, one generated
+  two-submesh road, meaningful horizontal X/yaw variation, hidden initial Lab
+  visuals, and six unchanged straight Campaign track segments.
+- PlayMode must enter the Lab, move runner/camera/gates/Goal along the curve,
+  resolve all 12 gates, clear, then Exit to Lobby with the straight track
+  active and pooled gate rotations reset.
+- Campaign Builder runs twice. Full EditMode and post-Builder PlayMode are
+  required. Campaign and Step 10 simulations are omitted because Core rules,
+  Stage data, deterministic generation, timing, judgment, balance and existing
+  Experiment inputs are unchanged.

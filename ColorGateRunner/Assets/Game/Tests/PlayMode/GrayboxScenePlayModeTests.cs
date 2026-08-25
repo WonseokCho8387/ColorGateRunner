@@ -44,6 +44,85 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void SplineTrackLab_IsIsolatedFromStraightCampaignAtRest()
+        {
+            SplineTrackLabController lab = _controller.SplineTrackLab;
+            Assert.That(lab, Is.Not.Null);
+            Assert.That(lab.HasRequiredReferences, Is.True);
+            Assert.That(lab.Active, Is.False);
+            Assert.That(lab.TrackView.VisualsActive, Is.False);
+            Assert.That(lab.HudRoot.activeSelf, Is.False);
+            Assert.That(_controller.TrackPool.gameObject.activeSelf, Is.True);
+            Assert.That(lab.TrackView.PathLength, Is.GreaterThan(280f));
+            Assert.That(lab.TrackView.TrackMesh.subMeshCount, Is.EqualTo(2));
+            for (int index = 0;
+                index < _controller.TrackPool.SegmentCount;
+                index++)
+            {
+                Assert.That(
+                    _controller.TrackPool.GetSegment(index).IsCurveExperiment,
+                    Is.False);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SplineTrackLab_FollowsCurveResolvesGatesAndRestoresLobby()
+        {
+            SplineTrackLabController lab = _controller.SplineTrackLab;
+            _controller.StartSplineTrackLab();
+            yield return null;
+
+            Assert.That(lab.Active, Is.True);
+            Assert.That(lab.Running, Is.True);
+            Assert.That(lab.TrackView.VisualsActive, Is.True);
+            Assert.That(lab.HudRoot.activeSelf, Is.True);
+            Assert.That(_controller.TrackPool.gameObject.activeSelf, Is.False);
+
+            for (int planIndex = 0;
+                planIndex < lab.TotalGateCount;
+                planIndex++)
+            {
+                StageGateView gate = FindGateByPlanIndex(planIndex);
+                Assert.That(gate, Is.Not.Null, $"Gate {planIndex}");
+                while (lab.CurrentColor != gate.ActivePlan.Color)
+                {
+                    _controller.HandleGameplayTap();
+                }
+                int guard = 0;
+                while (lab.GatesPassed == planIndex && guard++ < 30)
+                {
+                    _controller.Tick(0.25f);
+                }
+                Assert.That(lab.GatesPassed, Is.EqualTo(planIndex + 1));
+            }
+
+            int clearGuard = 0;
+            while (!lab.Cleared && clearGuard++ < 30)
+            {
+                _controller.Tick(0.25f);
+            }
+            Assert.That(lab.Cleared, Is.True);
+            Assert.That(
+                Mathf.Abs(_controller.PlayerTransform.position.x),
+                Is.GreaterThan(0.1f));
+
+            _controller.ShowLobby();
+            Assert.That(lab.Active, Is.False);
+            Assert.That(lab.TrackView.VisualsActive, Is.False);
+            Assert.That(lab.HudRoot.activeSelf, Is.False);
+            Assert.That(_controller.TrackPool.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.LobbyPanel.activeSelf, Is.True);
+            for (int index = 0; index < _controller.GatePoolSize; index++)
+            {
+                Assert.That(
+                    Quaternion.Angle(
+                        _controller.GetGate(index).transform.rotation,
+                        Quaternion.identity),
+                    Is.LessThan(0.01f));
+            }
+        }
+
+        [Test]
         public void ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool()
         {
             Assert.That(_controller.PlayerRenderer.transform.name,

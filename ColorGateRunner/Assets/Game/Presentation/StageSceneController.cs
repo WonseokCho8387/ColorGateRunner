@@ -143,6 +143,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject pauseTransitionBlocker;
         [SerializeField] private ParticleSystem[] attemptEffects;
         [SerializeField] private GateBreakEffectPool gateBreakEffects;
+        [SerializeField] private SplineTrackLabController splineTrackLab;
         [SerializeField] private string frontendScenePath;
 
         private StageSession _session;
@@ -329,6 +330,8 @@ namespace ColorGateRunner.Presentation
         internal bool PreRunReturnTransitioning => _preRunReturnTransitioning;
         internal string PreRunReturnError => _preRunReturnError;
         internal GateBreakEffectPool GateBreakEffects => gateBreakEffects;
+        internal SplineTrackLabController SplineTrackLab => splineTrackLab;
+        internal Material SplineLabFailureMaterial => failureMaterial;
 
         internal bool IsPlayerCollider(Collider other)
         {
@@ -425,6 +428,12 @@ namespace ColorGateRunner.Presentation
             TickGateReactions(deltaTime);
             TickOutcomePresentation(deltaTime);
             TickColorStackAnimation(deltaTime);
+
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                splineTrackLab.Tick(deltaTime);
+                return;
+            }
 
             if (_experimentActive)
             {
@@ -528,6 +537,11 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                splineTrackLab.CycleColor();
+                return;
+            }
             if (_experimentActive)
             {
                 if (_experimentSession.TryCycleColor())
@@ -578,6 +592,11 @@ namespace ColorGateRunner.Presentation
 
         internal void HandleBack()
         {
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                ShowLobby();
+                return;
+            }
             if (_pauseCoordinator == null)
             {
                 return;
@@ -668,6 +687,12 @@ namespace ColorGateRunner.Presentation
 
         private StageFlowState GetCurrentFlowState()
         {
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                return splineTrackLab.Running
+                    ? StageFlowState.Playing
+                    : StageFlowState.Failed;
+            }
             if (_experimentActive && _experimentSession != null)
             {
                 return _experimentSession.FlowState;
@@ -948,6 +973,10 @@ namespace ColorGateRunner.Presentation
             {
                 return GateOutcome.Invulnerable;
             }
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                return splineTrackLab.ResolveGate(gate);
+            }
             if (_experimentActive && gate.HasExperimentPlan)
             {
                 return HandleExperimentGateCrossed(gate);
@@ -1019,6 +1048,10 @@ namespace ColorGateRunner.Presentation
             if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
             {
                 return false;
+            }
+            if (splineTrackLab != null && splineTrackLab.Active)
+            {
+                return splineTrackLab.Running;
             }
             if (_experimentActive)
             {
@@ -1249,6 +1282,7 @@ namespace ColorGateRunner.Presentation
             backButton.interactable = true;
             _experimentActive = false;
             _experimentSession = null;
+            splineTrackLab?.Exit();
             if (_normalTrackMaterial != null)
             {
                 trackPool.SetSurfaceMaterial(_normalTrackMaterial);
@@ -1436,6 +1470,35 @@ namespace ColorGateRunner.Presentation
             gateBreakEffects = breakEffects;
         }
 
+        internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
+        {
+            splineTrackLab = lab;
+        }
+
+        internal void StartSplineTrackLab()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (splineTrackLab == null || !splineTrackLab.HasRequiredReferences)
+            {
+                return;
+            }
+            _session = null;
+            _experimentActive = false;
+            _experimentSession = null;
+            ResetRunPresentation();
+            for (int index = 0; index < uiFlowRoots.Length; index++)
+            {
+                uiFlowRoots[index].SetActive(false);
+            }
+            splineTrackLab.Begin();
+#endif
+        }
+
+        internal void ApplySplineLabPlayerColor(RunnerColor color)
+        {
+            ApplyPlayerMaterial(GetMaterial(color));
+        }
+
         internal void StartDevelopmentExperiment(
             ExperimentDefinition definition,
             StartItemSelection items)
@@ -1566,6 +1629,8 @@ namespace ColorGateRunner.Presentation
                 attemptEffects[3] == null ||
                 gateBreakEffects == null ||
                 !gateBreakEffects.HasRequiredReferences() ||
+                splineTrackLab == null ||
+                !splineTrackLab.HasRequiredReferences ||
                 string.IsNullOrWhiteSpace(frontendScenePath) ||
                 frontendScenePath == gameObject.scene.path)
             {

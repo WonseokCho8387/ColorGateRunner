@@ -5,7 +5,9 @@
     "ColorGateRunner.Core",
     "ColorGateRunner.Product",
     "ColorGateRunner.Editor",
-    "ColorGateRunner.Presentation"
+    "ColorGateRunner.Presentation",
+    "Unity.Mathematics",
+    "Unity.Splines"
   ],
   "includePlatforms": [
     "Editor"

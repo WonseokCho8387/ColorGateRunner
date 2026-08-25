@@ -2303,3 +2303,45 @@ Human feedback required
   `1/1`, full EditMode `438/438` and full PlayMode `235/235` passed.
 - Human portrait review still owns perceived glass quality and the balance
   between the broad hull color and localized Bloom accents.
+
+## Iteration 37 — Spline Track Lab
+
+### Play / Analyze
+
+- Human review proposed curved tracks as the next architecture step, including
+  future vertical roller-coaster motion and multi-track racing.
+- Inspection confirmed the existing `curveExperiment` flag had no runtime path
+  behavior. Campaign movement, camera, gates, Goal and track recycling all
+  used world Z, so converting Campaign directly would have coupled an
+  unproven path system to the shipped 20-Stage flow.
+
+### Design / Implementation
+
+- Added Unity Splines `2.9.0` and one `SplineTrackLabView` that converts scalar
+  distance into world position and tangent rotation.
+- The Builder authors a broad horizontal S-curve and samples it into a fixed
+  dark-alloy road mesh with a separate Cyan edge submesh. Runner, yaw-only
+  chase camera, the existing six pooled gates and Goal use that same path.
+- Added a development-only `SPLINE TRACK LAB` entry, dedicated HUD, 12-gate
+  deterministic color run, Restart and Exit. Lab state is non-persistent and
+  Exit restores straight Campaign visuals plus pooled gate transforms.
+
+### Validation / Learning
+
+- Focused EditMode passed `1/1`; focused PlayMode passed `2/2`. Campaign
+  Builder completed two consecutive passes. Full EditMode passed `439/439` and
+  full post-Builder PlayMode passed `237/237`.
+- ProjectSettings and the actual developer save remained untouched. Campaign
+  and Step 10 simulations were omitted because no Core rule, Stage data,
+  deterministic generator, timing, judgment, balance or Experiment input
+  changed.
+- A curve experiment is safest when distance is the shared contract and every
+  visual consumer evaluates the same path. This prevents camera/gate/Goal drift
+  while keeping Campaign conversion an explicit later decision.
+
+### Deferred / Human Review
+
+- Human portrait review must judge curve anticipation, gate readability,
+  camera comfort, Cyan edge Bloom and clean return to Campaign.
+- Vertical curves, banking/roll, Campaign stage conversion, mechanic placement
+  on curves, 3–5 parallel tracks and AI racing remain excluded.

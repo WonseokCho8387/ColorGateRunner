@@ -148,6 +148,11 @@ Retry must reuse the current Stage restart path.
 
 Experiment Lab remains development-only.
 
+Its panel also exposes `SPLINE TRACK LAB`. That route hides all normal flow
+roots and opens a separate non-persistent curved-track HUD with Restart and
+Exit. Exit always restores the Campaign straight track and returns to Lobby;
+it never writes Campaign progress or Economy state.
+
 - It does not read or write campaign progression.
 - It does not award currency.
 - It does not expose account or event UI.

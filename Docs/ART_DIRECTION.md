@@ -664,3 +664,15 @@ The three-Continue cap and original prices below are superseded by Iteration
   silhouette, highly smooth and strictly non-emissive.
 - The rear panel, exhaust rings, chevrons and light bar remain the HDR accents.
   Bloom must not spread across the entire sphere.
+
+## Iteration 37 Spline Track Lab
+
+- The first curved-track slice is a broad horizontal S-curve designed for a
+  portrait chase camera. It changes yaw without banking or rolling the horizon.
+- The road is generated from the same Spline that drives gameplay presentation:
+  near-black alloy center, narrow Cyan emissive edges, seven-unit width and no
+  decorative geometry that implies a second path.
+- Runner, gates and Goal align to the local forward tangent. The camera follows
+  the same tangent with a fixed chase offset and world-up orientation.
+- Human review owns curve anticipation, motion comfort, edge Bloom strength and
+  whether upcoming gates remain readable through both bend directions.

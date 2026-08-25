@@ -3,10 +3,12 @@ using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Splines;
 using UnityEngine.UI;
 
 namespace ColorGateRunner.Editor
@@ -17,6 +19,8 @@ namespace ColorGateRunner.Editor
         internal const string GeneratedRootName = "ColorGateRunner_Graybox";
         internal const string GeneratedMaterialsFolder =
             "Assets/Game/Generated/Materials";
+        internal const string GeneratedSplineFolder =
+            "Assets/Game/Generated/Spline";
         internal const string Theme01ModelsFolder =
             "Assets/Game/Art/Gameplay/Theme01/Models";
         internal const int GatePoolSize = 6;
@@ -51,6 +55,7 @@ namespace ColorGateRunner.Editor
             StageCatalogAsset stageCatalogAsset =
                 StageCatalogAssetBuilder.EnsureAndConfigure();
             EnsureAssetFolder(GeneratedMaterialsFolder);
+            EnsureAssetFolder(GeneratedSplineFolder);
             Material red = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Red.mat",
                 RedColor,
@@ -119,6 +124,8 @@ namespace ColorGateRunner.Editor
             CreateTheme01City(root.transform, darkAlloy, blue, cyan);
             TrackPoolController trackPool =
                 CreateTrackPool(root.transform, darkAlloy, cyan);
+            SplineTrackLabView splineTrackLabView =
+                CreateSplineTrackLab(root.transform, darkAlloy, cyan);
             IceRunwayView iceRunway =
                 CreateIceRunway(root.transform, cyan);
             Renderer playerRenderer;
@@ -221,6 +228,15 @@ namespace ColorGateRunner.Editor
                 out stageSummaries,
                 out unlockAllButton);
             CreateExperimentLauncherUi(flowRoots[6].transform, controller);
+
+            CreateSplineLabHud(
+                safeArea,
+                out GameObject splineLabHud,
+                out Text splineLabTitle,
+                out Text splineLabProgress,
+                out Text splineLabInstruction,
+                out Button splineLabRestart,
+                out Button splineLabExit);
 
             GameObject itemPanel;
             Text selectedStageText;
@@ -457,6 +473,26 @@ namespace ColorGateRunner.Editor
                 },
                 frontendPath);
             controller.ConfigureThemeVisuals(gateBreakEffects);
+            SplineTrackLabController splineLabController =
+                splineTrackLabView.gameObject.AddComponent<
+                    SplineTrackLabController>();
+            splineLabController.Configure(
+                controller,
+                splineTrackLabView,
+                trackPool,
+                playerObject.transform,
+                camera,
+                gates,
+                goal,
+                gateBreakEffects,
+                successParticles,
+                splineLabHud,
+                splineLabTitle,
+                splineLabProgress,
+                splineLabInstruction,
+                splineLabRestart,
+                splineLabExit);
+            controller.ConfigureSplineTrackLab(splineLabController);
 
             for (int index = 0; index < flowRoots.Length; index++)
             {
@@ -474,6 +510,8 @@ namespace ColorGateRunner.Editor
             pauseModalRoot.SetActive(false);
             pauseSettingsPanel.gameObject.SetActive(false);
             pauseTransitionBlocker.SetActive(false);
+            splineLabHud.SetActive(false);
+            splineTrackLabView.SetVisualsActive(false);
             goal.SetActive(false);
             shieldVisual.SetActive(false);
             unlockAllButton.gameObject.SetActive(false);
@@ -563,6 +601,11 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<IceRunwayView>(true);
             ExperimentLauncher[] experimentLaunchers =
                 generatedRoot.GetComponentsInChildren<ExperimentLauncher>(true);
+            SplineTrackLabView[] splineTrackLabs =
+                generatedRoot.GetComponentsInChildren<SplineTrackLabView>(true);
+            SplineTrackLabController[] splineLabControllers =
+                generatedRoot.GetComponentsInChildren<
+                    SplineTrackLabController>(true);
             GateBreakEffectPool[] gateBreakPools =
                 generatedRoot.GetComponentsInChildren<GateBreakEffectPool>(true);
 
@@ -618,6 +661,14 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException("Track pool is invalid.");
             }
             ValidateTrackPoolContinuity(trackPools[0]);
+            for (int index = 0; index < trackPools[0].SegmentCount; index++)
+            {
+                if (trackPools[0].GetSegment(index).IsCurveExperiment)
+                {
+                    throw new InvalidOperationException(
+                        "Campaign track must remain straight after Spline Lab generation.");
+                }
+            }
             if (fogCurtains.Length != 1 ||
                 !fogCurtains[0].HasRequiredReferences())
             {
@@ -636,6 +687,34 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Development experiment launcher is missing or incomplete.");
+            }
+            if (splineTrackLabs.Length != 1 ||
+                !splineTrackLabs[0].HasRequiredReferences ||
+                splineLabControllers.Length != 1 ||
+                !splineLabControllers[0].HasRequiredReferences ||
+                splineTrackLabs[0].VisualsActive ||
+                splineLabControllers[0].HudRoot.activeSelf)
+            {
+                throw new InvalidOperationException(
+                    "Spline Track Lab is duplicated, incomplete, or visible in Campaign.");
+            }
+            splineTrackLabs[0].EvaluatePose(
+                splineTrackLabs[0].PathLength * 0.25f,
+                0f,
+                out Vector3 firstCurvePoint,
+                out Quaternion firstCurveRotation);
+            splineTrackLabs[0].EvaluatePose(
+                splineTrackLabs[0].PathLength * 0.55f,
+                0f,
+                out Vector3 secondCurvePoint,
+                out Quaternion secondCurveRotation);
+            if (Mathf.Abs(firstCurvePoint.x - secondCurvePoint.x) < 2f ||
+                Mathf.Abs(firstCurvePoint.y) > 0.01f ||
+                Mathf.Abs(secondCurvePoint.y) > 0.01f ||
+                Quaternion.Angle(firstCurveRotation, secondCurveRotation) < 5f)
+            {
+                throw new InvalidOperationException(
+                    "Spline Lab must contain a horizontal S-curve with changing yaw.");
             }
             if (gateBreakPools.Length != 1 ||
                 !gateBreakPools[0].HasRequiredReferences() ||
@@ -657,6 +736,10 @@ namespace ColorGateRunner.Editor
                 "ClearResultRoot",
                 "FailedResultRoot",
                 "DevelopmentDebugRoot",
+                "SplineTrackLab",
+                "SplineTrackVisuals",
+                "SplineTrackSurface",
+                "SplineTrackLabHud",
                 "LobbyPanel",
                 "LobbyCurrentStage",
                 "LobbyStageTitle",
@@ -1326,6 +1409,143 @@ namespace ColorGateRunner.Editor
             pool.Configure(segments, TrackSegmentLength, -20f, 20f);
             pool.ResetPool();
             return pool;
+        }
+
+        private static SplineTrackLabView CreateSplineTrackLab(
+            Transform parent,
+            Material surfaceMaterial,
+            Material edgeMaterial)
+        {
+            GameObject labObject = new GameObject(
+                "SplineTrackLab",
+                typeof(SplineContainer),
+                typeof(SplineTrackLabView));
+            labObject.transform.SetParent(parent, false);
+            SplineContainer container =
+                labObject.GetComponent<SplineContainer>();
+            float3[] knots =
+            {
+                new float3(0f, 0f, -8f),
+                new float3(0f, 0f, 38f),
+                new float3(11f, 0f, 83f),
+                new float3(-12f, 0f, 130f),
+                new float3(10f, 0f, 177f),
+                new float3(-8f, 0f, 224f),
+                new float3(0f, 0f, 286f)
+            };
+            container.Spline = new Spline(
+                knots,
+                TangentMode.AutoSmooth,
+                false);
+
+            GameObject visualRoot = new GameObject("SplineTrackVisuals");
+            visualRoot.transform.SetParent(labObject.transform, false);
+            GameObject surface = new GameObject(
+                "SplineTrackSurface",
+                typeof(MeshFilter),
+                typeof(MeshRenderer));
+            surface.transform.SetParent(visualRoot.transform, false);
+            MeshFilter meshFilter = surface.GetComponent<MeshFilter>();
+            MeshRenderer meshRenderer = surface.GetComponent<MeshRenderer>();
+            Mesh mesh = CreateOrUpdateSplineTrackMesh(
+                GeneratedSplineFolder + "/SplineTrackLab.asset",
+                container,
+                7f,
+                144);
+            meshFilter.sharedMesh = mesh;
+            meshRenderer.sharedMaterials = new[]
+            {
+                surfaceMaterial,
+                edgeMaterial
+            };
+            meshRenderer.shadowCastingMode =
+                UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+
+            SplineTrackLabView view =
+                labObject.GetComponent<SplineTrackLabView>();
+            view.Configure(container, visualRoot, meshFilter, 7f);
+            return view;
+        }
+
+        private static Mesh CreateOrUpdateSplineTrackMesh(
+            string assetPath,
+            SplineContainer container,
+            float width,
+            int sampleCount)
+        {
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(assetPath);
+            if (mesh == null)
+            {
+                mesh = new Mesh { name = "SplineTrackLab" };
+                AssetDatabase.CreateAsset(mesh, assetPath);
+            }
+            mesh.Clear();
+            int rowCount = sampleCount + 1;
+            Vector3[] vertices = new Vector3[rowCount * 4];
+            Vector2[] uvs = new Vector2[vertices.Length];
+            int[] roadTriangles = new int[sampleCount * 6];
+            int[] edgeTriangles = new int[sampleCount * 12];
+            float halfWidth = width * 0.5f;
+            float edgeWidth = 0.16f;
+            for (int row = 0; row < rowCount; row++)
+            {
+                float t = row / (float)sampleCount;
+                Vector3 position = container.EvaluatePosition(t);
+                Vector3 tangent = container.EvaluateTangent(t);
+                Vector3 right = Vector3.Cross(Vector3.up, tangent).normalized;
+                if (right.sqrMagnitude < 0.0001f)
+                {
+                    right = Vector3.right;
+                }
+                int vertex = row * 4;
+                vertices[vertex] = position - (right * halfWidth);
+                vertices[vertex + 1] =
+                    position - (right * (halfWidth - edgeWidth));
+                vertices[vertex + 2] =
+                    position + (right * (halfWidth - edgeWidth));
+                vertices[vertex + 3] = position + (right * halfWidth);
+                float v = t * 16f;
+                uvs[vertex] = new Vector2(0f, v);
+                uvs[vertex + 1] = new Vector2(0.02f, v);
+                uvs[vertex + 2] = new Vector2(0.98f, v);
+                uvs[vertex + 3] = new Vector2(1f, v);
+            }
+            for (int row = 0; row < sampleCount; row++)
+            {
+                int current = row * 4;
+                int next = current + 4;
+                int road = row * 6;
+                roadTriangles[road] = current + 1;
+                roadTriangles[road + 1] = next + 1;
+                roadTriangles[road + 2] = current + 2;
+                roadTriangles[road + 3] = current + 2;
+                roadTriangles[road + 4] = next + 1;
+                roadTriangles[road + 5] = next + 2;
+
+                int edge = row * 12;
+                edgeTriangles[edge] = current;
+                edgeTriangles[edge + 1] = next;
+                edgeTriangles[edge + 2] = current + 1;
+                edgeTriangles[edge + 3] = current + 1;
+                edgeTriangles[edge + 4] = next;
+                edgeTriangles[edge + 5] = next + 1;
+                edgeTriangles[edge + 6] = current + 2;
+                edgeTriangles[edge + 7] = next + 2;
+                edgeTriangles[edge + 8] = current + 3;
+                edgeTriangles[edge + 9] = current + 3;
+                edgeTriangles[edge + 10] = next + 2;
+                edgeTriangles[edge + 11] = next + 3;
+            }
+            mesh.vertices = vertices;
+            mesh.uv = uvs;
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(roadTriangles, 0);
+            mesh.SetTriangles(edgeTriangles, 1);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            EditorUtility.SetDirty(mesh);
+            return mesh;
         }
 
         private static void ValidateTrackPoolContinuity(
@@ -2285,15 +2505,22 @@ namespace ColorGateRunner.Editor
                 "ExperimentStartButton",
                 panel.transform,
                 "START EXPERIMENT",
-                new Vector2(0.06f, 0.12f),
-                new Vector2(0.68f, 0.31f),
+                new Vector2(0.06f, 0.20f),
+                new Vector2(0.68f, 0.34f),
+                out unused);
+            Button splineLab = CreateButton(
+                "SplineTrackLabButton",
+                panel.transform,
+                "SPLINE TRACK LAB",
+                new Vector2(0.06f, 0.04f),
+                new Vector2(0.68f, 0.17f),
                 out unused);
             Button leave = CreateButton(
                 "ExperimentLeaveButton",
                 panel.transform,
                 "LEAVE",
-                new Vector2(0.72f, 0.12f),
-                new Vector2(0.94f, 0.31f),
+                new Vector2(0.72f, 0.04f),
+                new Vector2(0.94f, 0.34f),
                 out unused);
             launcher.Configure(
                 controller,
@@ -2306,7 +2533,65 @@ namespace ColorGateRunner.Editor
                 shield,
                 booster,
                 start,
+                splineLab,
                 leave);
+        }
+
+        private static void CreateSplineLabHud(
+            Transform parent,
+            out GameObject root,
+            out Text title,
+            out Text progress,
+            out Text instruction,
+            out Button restart,
+            out Button exit)
+        {
+            root = CreatePanel(
+                "SplineTrackLabHud",
+                parent,
+                new Color(0.01f, 0.02f, 0.04f, 0.76f));
+            SetAnchors(
+                root.GetComponent<RectTransform>(),
+                new Vector2(0.04f, 0.84f),
+                new Vector2(0.96f, 0.97f));
+            title = CreateText(
+                "SplineTrackLabTitle",
+                root.transform,
+                "SPLINE TRACK LAB",
+                24,
+                new Vector2(0.03f, 0.54f),
+                new Vector2(0.42f, 0.95f));
+            title.alignment = TextAnchor.MiddleLeft;
+            progress = CreateText(
+                "SplineTrackLabProgress",
+                root.transform,
+                "0 / 12 · RED",
+                22,
+                new Vector2(0.43f, 0.54f),
+                new Vector2(0.72f, 0.95f));
+            instruction = CreateText(
+                "SplineTrackLabInstruction",
+                root.transform,
+                "TAP TO SWITCH COLOR · HORIZONTAL S-CURVE",
+                17,
+                new Vector2(0.03f, 0.05f),
+                new Vector2(0.72f, 0.50f));
+            instruction.alignment = TextAnchor.MiddleLeft;
+            Text unused;
+            restart = CreateButton(
+                "SplineTrackLabRestartButton",
+                root.transform,
+                "RESTART",
+                new Vector2(0.73f, 0.52f),
+                new Vector2(0.97f, 0.94f),
+                out unused);
+            exit = CreateButton(
+                "SplineTrackLabExitButton",
+                root.transform,
+                "EXIT",
+                new Vector2(0.73f, 0.06f),
+                new Vector2(0.97f, 0.47f),
+                out unused);
         }
 
         private static void CreateCountdownUi(

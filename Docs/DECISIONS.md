@@ -1402,3 +1402,16 @@ Status: Approved and implemented.
 - The glass hull uses an opaque coated-glass approximation instead of alpha
   transparency to preserve portrait silhouette, sorting stability and mobile
   cost.
+
+## Iteration 37 — Spline Track Lab is an isolated distance-path slice
+
+- Unity Splines `2.9.0` is the approved path dependency for Unity `6000.5.1f1`.
+- One `SplineTrackLabView` owns path evaluation and the Builder-generated road.
+  Runner, chase camera, pooled gates and Goal all consume distance along that
+  same path; no parallel world-Z curve approximation is allowed.
+- The first slice is horizontal and yaw-only. Vertical curvature, camera roll,
+  banking, multi-track layouts, AI racers and Campaign conversion remain
+  deferred.
+- The Lab is development-only and non-persistent. It reuses the fixed gate pool
+  and semantic materials, while its HUD, run state and road are isolated from
+  Campaign progression, economy and the existing 20 straight Stages.

@@ -17,6 +17,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button toggleShieldButton;
         [SerializeField] private Button toggleBoosterButton;
         [SerializeField] private Button startButton;
+        [SerializeField] private Button splineLabButton;
         [SerializeField] private Button leaveButton;
         [FormerlySerializedAs("flickerEnabled")]
         [SerializeField, Tooltip("Enables Hidden gate selection.")]
@@ -135,6 +136,7 @@ namespace ColorGateRunner.Presentation
             Button shieldButton,
             Button boosterButton,
             Button launch,
+            Button splineLab,
             Button leave)
         {
             sceneController = controller;
@@ -147,6 +149,7 @@ namespace ColorGateRunner.Presentation
             toggleShieldButton = shieldButton;
             toggleBoosterButton = boosterButton;
             startButton = launch;
+            splineLabButton = splineLab;
             leaveButton = leave;
         }
 
@@ -162,6 +165,7 @@ namespace ColorGateRunner.Presentation
                 toggleShieldButton != null &&
                 toggleBoosterButton != null &&
                 startButton != null &&
+                splineLabButton != null &&
                 leaveButton != null;
         }
 
@@ -245,6 +249,12 @@ namespace ColorGateRunner.Presentation
             RefreshLabel();
         }
 
+        internal void StartSplineTrackLab()
+        {
+            _session = null;
+            sceneController.StartSplineTrackLab();
+        }
+
         private void AddListeners()
         {
             previousColorCountButton.onClick.AddListener(PreviousColorCount);
@@ -255,6 +265,7 @@ namespace ColorGateRunner.Presentation
             toggleShieldButton.onClick.AddListener(ToggleShield);
             toggleBoosterButton.onClick.AddListener(ToggleBooster);
             startButton.onClick.AddListener(StartExperiment);
+            splineLabButton.onClick.AddListener(StartSplineTrackLab);
             leaveButton.onClick.AddListener(LeaveExperiment);
         }
 
@@ -272,6 +283,7 @@ namespace ColorGateRunner.Presentation
             toggleShieldButton.onClick.RemoveListener(ToggleShield);
             toggleBoosterButton.onClick.RemoveListener(ToggleBooster);
             startButton.onClick.RemoveListener(StartExperiment);
+            splineLabButton.onClick.RemoveListener(StartSplineTrackLab);
             leaveButton.onClick.RemoveListener(LeaveExperiment);
         }
 
