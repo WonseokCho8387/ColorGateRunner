@@ -1342,3 +1342,16 @@ Status: Approved and implemented.
 - Builder validation rejects a non-normalized root or a Track whose aggregate
   renderer bounds do not describe a low horizontal surface extending forward
   on Z.
+
+## Iteration 34 — Recycled Track uses authored-length anchors
+
+- A Track segment's runtime placement contract is defined by its start/end
+  anchors, not its GameObject or imported-art pivot.
+- The 40-unit Theme 1 segment owns anchors at local Z `-20 / +20`. `PlaceAt`
+  rotates first and then translates until the start anchor equals the requested
+  world position.
+- Reset and recycling use the same placement path. Recycling appends to the
+  farthest live end anchor and retains exactly six segments.
+- Builder validation rejects a segment with a non-40-unit anchor span or any
+  initial seam gap/overlap. Long-distance PlayMode coverage owns the runtime
+  continuity regression.

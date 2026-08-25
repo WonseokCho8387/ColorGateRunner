@@ -11,8 +11,8 @@ iterations but do not override this section.
 - Implementation base HEAD: `12011cc`
 - Base commit: `feat: apply neon ui skin`
 - Authoritative completion HEAD: the commit named
-  `fix: normalize theme one artwork axes`; its exact hash is
-  recorded in the Iteration 33 final report because a commit cannot contain
+  `fix: preserve recycled track continuity`; its exact hash is
+  recorded in the Iteration 34 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 33 — Theme 1 Artwork Axis Correction**.
+- Current completed iteration: **Iteration 34 — Recycled Track Continuity**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -114,6 +114,11 @@ below where their contracts differ.
   same correction keeps the runner, gates, Goal portal and city in their
   authored Unity-axis orientation. Collision, Track recycling and Stage
   coordinates remain owned by their existing non-art parents.
+- Each pooled 40-unit Track segment now owns matching start/end anchors at
+  local Z `-20 / +20`. Placement aligns the start anchor, rather than the
+  imported-art parent pivot, to the requested world start. Reset and recycling
+  therefore keep all six fixed segments end-to-start continuous beyond the
+  authored Stage distance without pool growth, overlap or a disappearing road.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -185,8 +190,8 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `434/434`
-- PlayMode: `232/232`
-- Post-Builder PlayMode: `232/232`
+- PlayMode: `233/233`
+- Post-Builder PlayMode: `233/233`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
@@ -291,6 +296,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 34 validation result
+
+- Starting HEAD `04826df` was clean. Completion commit name:
+  `fix: preserve recycled track continuity`.
+- Human play exposed the road disappearing after sustained movement. The
+  imported mesh is 40 units long, but generated segment anchors still spanned
+  only one unit; recycled segments therefore accumulated instead of appending.
+- Builder now authors `-20 / +20` anchors and rejects a non-40-unit or
+  discontinuous pool. Runtime placement aligns each start anchor to the prior
+  segment's end anchor.
+- Campaign Builder completed two consecutive passes. The new PlayMode
+  regression recycles the fixed six-segment pool through 1.2 km and checks
+  every span and seam. Full EditMode passed `434/434`; full post-Builder
+  PlayMode passed `233/233`.
+- Campaign and Step 10 simulations were not rerun because Stage data,
+  deterministic gate generation, mechanic timing, judgment, balance and
+  Experiment inputs are unchanged. Package and meaningful ProjectSettings
+  hashes remain exact; isolated validation did not use the developer save.
+- Human portrait play must confirm the road remains continuous through a full
+  Stage and during prolonged development runs.
 
 ## Iteration 33 validation result
 

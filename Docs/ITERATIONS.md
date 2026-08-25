@@ -2166,3 +2166,38 @@ Human feedback required
   scale, camera framing and Bloom composition on the target aspect ratio.
 - No gameplay balance, Stage layout, UI layout, Shop/IAP or Firebase work is
   included in this correction.
+
+## Iteration 34 — Recycled Track Continuity
+
+### Play / Analyze
+
+- Human play found that the road vanished after sustained forward movement.
+- The Theme 1 Track mesh is 40 units long, but Builder-owned start/end anchors
+  remained at `-0.5 / +0.5`. Recycling used those one-unit anchors and stacked
+  subsequent 40-unit visuals instead of appending them.
+
+### Design / Implementation
+
+- Builder now authors anchors at local Z `-20 / +20` and validates every
+  segment span plus all initial seams.
+- `TrackSegmentView.PlaceAt` aligns the start anchor to the requested world
+  point after applying rotation. Both reset and recycle therefore share one
+  correct placement contract.
+- The pool remains six segments; track art, movement speed, Stage data, Ice,
+  camera and judgment contracts are unchanged.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. Full EditMode passed
+  `434/434`; post-Builder PlayMode passed `233/233`.
+- The new regression advances the pool through 1.2 km and verifies a 40-unit
+  span and exact end-to-start continuity after every recycle step.
+- Visual model bounds and runtime placement anchors must be validated together;
+  checking only the rendered orientation cannot prove an infinite-floor pool.
+
+### Deferred / Human Review
+
+- Human portrait play must confirm continuous road presentation through a full
+  Stage and prolonged development runs.
+- Protection-field, Echo exclusion and Warp Booster work remain the separately
+  approved next iteration.

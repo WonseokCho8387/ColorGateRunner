@@ -586,3 +586,15 @@ fairness, or polish.
 - Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
   simulations are omitted because collision, Stage data, deterministic
   generation, timing, judgment, balance and Experiment inputs are unchanged.
+
+### Iteration 34 Recycled Track continuity
+
+- Campaign Builder must author every 40-unit Track segment with start/end
+  anchors at local Z `-20 / +20`, and reject a non-40-unit span or initial
+  seam gap/overlap on both consecutive passes.
+- PlayMode must recycle the fixed six-segment pool beyond one kilometer and
+  prove every segment retains its span, every ordered seam remains exact and
+  the live coverage stays ahead of the player without pool growth.
+- Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
+  simulations are omitted because Stage data, deterministic gate generation,
+  timing, judgment, balance and Experiment inputs are unchanged.

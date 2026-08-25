@@ -936,3 +936,11 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `GrayboxSceneBuilder.ValidateTheme01ArtworkAxes` applies the same contract to
   both consecutive Campaign Builder passes so a regenerated vertical Track is
   rejected before the Scene is accepted.
+
+## Iteration 34 current coverage
+
+- `GrayboxScenePlayModeTests.TrackPool_RecyclesBeyondOneKilometerWithoutGapsOrOverlap`
+  advances the fixed six-segment pool through 1.2 km and verifies each
+  40-unit span, every ordered seam and forward coverage after every step.
+- `GrayboxSceneBuilder.ValidateTrackPoolContinuity` rejects incorrect anchor
+  spans and initial gap/overlap before accepting either Builder pass.

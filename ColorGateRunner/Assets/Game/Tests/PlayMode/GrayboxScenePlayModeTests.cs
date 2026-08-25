@@ -2043,6 +2043,51 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void TrackPool_RecyclesBeyondOneKilometerWithoutGapsOrOverlap()
+        {
+            TrackPoolController pool = _controller.TrackPool;
+            int segmentCount = pool.SegmentCount;
+            pool.ResetPool();
+
+            for (float playerZ = 0f; playerZ <= 1200f; playerZ += 20f)
+            {
+                pool.Tick(playerZ);
+                TrackSegmentView[] ordered = new TrackSegmentView[segmentCount];
+                for (int index = 0; index < segmentCount; index++)
+                {
+                    ordered[index] = pool.GetSegment(index);
+                }
+                Array.Sort(
+                    ordered,
+                    (left, right) => left.StartAnchorPosition.z.CompareTo(
+                        right.StartAnchorPosition.z));
+
+                Assert.That(pool.SegmentCount, Is.EqualTo(6));
+                for (int index = 0; index < ordered.Length; index++)
+                {
+                    Assert.That(
+                        ordered[index].EndAnchorPosition.z -
+                        ordered[index].StartAnchorPosition.z,
+                        Is.EqualTo(pool.SegmentLength).Within(0.001f));
+                    if (index == 0)
+                    {
+                        continue;
+                    }
+                    Assert.That(
+                        ordered[index].StartAnchorPosition.z,
+                        Is.EqualTo(ordered[index - 1].EndAnchorPosition.z)
+                            .Within(0.001f));
+                }
+                Assert.That(
+                    ordered[0].StartAnchorPosition.z,
+                    Is.LessThanOrEqualTo(playerZ));
+                Assert.That(
+                    ordered[ordered.Length - 1].EndAnchorPosition.z,
+                    Is.GreaterThan(playerZ));
+            }
+        }
+
+        [Test]
         public void SafeArea_CalculatesNormalizedAnchorsAndContainsPlayerUi()
         {
             SafeAreaLayout.CalculateAnchors(

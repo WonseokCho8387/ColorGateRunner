@@ -564,6 +564,7 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException("Track pool is invalid.");
             }
+            ValidateTrackPoolContinuity(trackPools[0]);
             if (fogCurtains.Length != 1 ||
                 !fogCurtains[0].HasRequiredReferences())
             {
@@ -1020,10 +1021,16 @@ namespace ColorGateRunner.Editor
 
                 Transform start = new GameObject("StartAnchor").transform;
                 start.SetParent(segment.transform, false);
-                start.localPosition = new Vector3(0f, 0f, -0.5f);
+                start.localPosition = new Vector3(
+                    0f,
+                    0f,
+                    -TrackSegmentLength * 0.5f);
                 Transform end = new GameObject("EndAnchor").transform;
                 end.SetParent(segment.transform, false);
-                end.localPosition = new Vector3(0f, 0f, 0.5f);
+                end.localPosition = new Vector3(
+                    0f,
+                    0f,
+                    TrackSegmentLength * 0.5f);
                 TrackSegmentView view =
                     segment.AddComponent<TrackSegmentView>();
                 view.Configure(
@@ -1039,6 +1046,40 @@ namespace ColorGateRunner.Editor
             pool.Configure(segments, TrackSegmentLength, -20f, 20f);
             pool.ResetPool();
             return pool;
+        }
+
+        private static void ValidateTrackPoolContinuity(
+            TrackPoolController pool)
+        {
+            TrackSegmentView[] ordered = new TrackSegmentView[pool.SegmentCount];
+            for (int index = 0; index < ordered.Length; index++)
+            {
+                ordered[index] = pool.GetSegment(index);
+                float span = ordered[index].EndAnchorPosition.z -
+                    ordered[index].StartAnchorPosition.z;
+                if (!Mathf.Approximately(span, TrackSegmentLength))
+                {
+                    throw new InvalidOperationException(
+                        $"Track segment {index} anchor span is {span}, " +
+                        $"expected {TrackSegmentLength}.");
+                }
+            }
+
+            Array.Sort(
+                ordered,
+                (left, right) => left.StartAnchorPosition.z.CompareTo(
+                    right.StartAnchorPosition.z));
+            for (int index = 1; index < ordered.Length; index++)
+            {
+                if (!Mathf.Approximately(
+                    ordered[index - 1].EndAnchorPosition.z,
+                    ordered[index].StartAnchorPosition.z))
+                {
+                    throw new InvalidOperationException(
+                        $"Track pool gap or overlap between segments " +
+                        $"{index - 1} and {index}.");
+                }
+            }
         }
 
         private static IceRunwayView CreateIceRunway(

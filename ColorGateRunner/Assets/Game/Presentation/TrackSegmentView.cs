@@ -21,6 +21,7 @@ namespace ColorGateRunner.Presentation
         internal void PlaceAt(Vector3 worldStart, Quaternion worldRotation)
         {
             transform.SetPositionAndRotation(worldStart, worldRotation);
+            transform.position += worldStart - startAnchor.position;
         }
 
         internal void Configure(

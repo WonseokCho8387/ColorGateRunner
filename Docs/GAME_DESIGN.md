@@ -147,6 +147,10 @@ no-item best. Corrupt values fall back to safe empty records.
 ## Track and camera
 
 - Six pre-created 40-unit straight track segments recycle behind the player.
+  Each segment spans local Z `-20` to `+20`; reset and recycle placement align
+  the segment's start anchor exactly to the requested world start or the
+  farthest live segment's end anchor. The fixed pool must remain continuous
+  at arbitrary forward distance without gaps, overlap or growth.
 - Normal camera rotation and 60-degree FOV remain fixed.
 - Booster alone temporarily uses 74-degree FOV, pooled speed lines, and trail.
 - Step 9A Booster presentation adds a distance meter, final-20%
