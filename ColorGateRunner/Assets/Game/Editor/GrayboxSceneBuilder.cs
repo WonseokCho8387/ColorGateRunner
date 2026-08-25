@@ -53,31 +53,40 @@ namespace ColorGateRunner.Editor
             EnsureAssetFolder(GeneratedMaterialsFolder);
             Material red = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Red.mat",
-                RedColor);
+                RedColor,
+                4.5f);
             Material blue = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Blue.mat",
-                BlueColor);
+                BlueColor,
+                4.5f);
             Material green = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Green.mat",
-                GreenColor);
+                GreenColor,
+                4.5f);
             Material yellow = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Yellow.mat",
-                YellowColor);
+                YellowColor,
+                4.5f);
             Material purple = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Purple.mat",
-                PurpleColor);
+                PurpleColor,
+                4.5f);
             Material cyan = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Cyan.mat",
-                CyanColor);
+                CyanColor,
+                5.5f);
             Material neutral = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Neutral.mat",
-                NeutralColor);
+                NeutralColor,
+                3f);
             Material failure = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Failure.mat",
-                FailureColor);
+                FailureColor,
+                0f);
             Material darkAlloy = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Theme01DarkAlloy.mat",
-                new Color(0.012f, 0.025f, 0.06f, 1f));
+                new Color(0.004f, 0.008f, 0.018f, 1f),
+                0f);
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
                 new Color(0.12f, 0.18f, 0.26f, 1f));
@@ -796,7 +805,133 @@ namespace ColorGateRunner.Editor
                     "Theme 01 camera post-processing is disabled.");
             }
             ValidateTheme01ArtworkAxes(generatedRoot);
+            ValidateRunnerRearReadability(generatedRoot);
+            ValidateEmissiveContrast();
+            ValidateBloomProfile();
             ValidateProtectionAndWarpEffects(generatedRoot);
+        }
+
+        private static void ValidateRunnerRearReadability(
+            GameObject generatedRoot)
+        {
+            string[] requiredParts =
+            {
+                "HullShell",
+                "ColorShell",
+                "RearBumper",
+                "RearThruster_L",
+                "RearThruster_R",
+                "RearThrusterGlow_L",
+                "RearThrusterGlow_R",
+                "RearChevronGlow_L",
+                "RearChevronGlow_R",
+                "RearLightBar",
+                "SideFin_L",
+                "SideFin_R"
+            };
+            for (int index = 0; index < requiredParts.Length; index++)
+            {
+                if (CountNamedTransforms(
+                    generatedRoot,
+                    requiredParts[index]) != 1)
+                {
+                    throw new InvalidOperationException(
+                        $"Runner rear part {requiredParts[index]} is missing " +
+                        "or duplicated.");
+                }
+            }
+
+            Transform leftThruster = FindNamedTransform(
+                generatedRoot.transform,
+                "RearThrusterGlow_L");
+            Transform rightThruster = FindNamedTransform(
+                generatedRoot.transform,
+                "RearThrusterGlow_R");
+            Transform colorShell = FindNamedTransform(
+                generatedRoot.transform,
+                "ColorShell");
+            if (leftThruster.position.z >= colorShell.position.z ||
+                rightThruster.position.z >= colorShell.position.z ||
+                leftThruster.position.x * rightThruster.position.x >= 0f ||
+                !Mathf.Approximately(
+                    Mathf.Abs(leftThruster.position.x),
+                    Mathf.Abs(rightThruster.position.x)))
+            {
+                throw new InvalidOperationException(
+                    "Runner rear silhouette does not face the chase camera. " +
+                    $"Left={leftThruster.position}, " +
+                    $"Right={rightThruster.position}, " +
+                    $"Color={colorShell.position}.");
+            }
+        }
+
+        private static void ValidateEmissiveContrast()
+        {
+            string[] emissiveNames =
+            {
+                "Red",
+                "Blue",
+                "Green",
+                "Yellow",
+                "Purple",
+                "Cyan",
+                "Neutral"
+            };
+            for (int index = 0; index < emissiveNames.Length; index++)
+            {
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(
+                    GeneratedMaterialsFolder + "/" +
+                    emissiveNames[index] + ".mat");
+                if (material == null ||
+                    !material.IsKeywordEnabled("_EMISSION") ||
+                    material.GetColor("_EmissionColor").maxColorComponent <= 1f)
+                {
+                    throw new InvalidOperationException(
+                        $"{emissiveNames[index]} must provide HDR emission.");
+                }
+            }
+
+            Material dark = AssetDatabase.LoadAssetAtPath<Material>(
+                GeneratedMaterialsFolder + "/Theme01DarkAlloy.mat");
+            if (dark == null || dark.IsKeywordEnabled("_EMISSION") ||
+                dark.GetColor("_EmissionColor").maxColorComponent > 0.001f)
+            {
+                throw new InvalidOperationException(
+                    "Theme 01 dark alloy must remain non-emissive.");
+            }
+        }
+
+        private static void ValidateBloomProfile()
+        {
+            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(
+                "Assets/Settings/SampleSceneProfile.asset");
+            UnityEngine.Object bloom = Array.Find(
+                assets,
+                candidate => candidate != null &&
+                    candidate.GetType().Name == "Bloom");
+            if (bloom == null)
+            {
+                throw new InvalidOperationException(
+                    "Theme 01 Bloom override is missing.");
+            }
+
+            SerializedObject serialized = new SerializedObject(bloom);
+            SerializedProperty threshold = serialized.FindProperty(
+                "threshold.m_Value");
+            SerializedProperty intensity = serialized.FindProperty(
+                "intensity.m_Value");
+            SerializedProperty scatter = serialized.FindProperty(
+                "scatter.m_Value");
+            SerializedProperty iterations = serialized.FindProperty(
+                "maxIterations.m_Value");
+            if (threshold == null || intensity == null || scatter == null ||
+                iterations == null || threshold.floatValue > 0.8f ||
+                intensity.floatValue < 0.85f || scatter.floatValue < 0.58f ||
+                iterations.intValue > 4)
+            {
+                throw new InvalidOperationException(
+                    "Theme 01 Bloom readability profile is not configured.");
+            }
         }
 
         private static void ValidateTheme01ArtworkAxes(GameObject generatedRoot)
@@ -2816,7 +2951,10 @@ namespace ColorGateRunner.Editor
             rect.offsetMax = Vector2.zero;
         }
 
-        private static Material CreateOrUpdateMaterial(string path, Color color)
+        private static Material CreateOrUpdateMaterial(
+            string path,
+            Color color,
+            float emissionIntensity)
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             Shader shader = Shader.Find("Universal Render Pipeline/Lit") ??
@@ -2846,10 +2984,26 @@ namespace ColorGateRunner.Editor
             }
             if (material.HasProperty("_EmissionColor"))
             {
-                material.SetColor("_EmissionColor", color * 4.5f);
-                material.EnableKeyword("_EMISSION");
-                material.globalIlluminationFlags =
-                    MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                if (emissionIntensity > 0f)
+                {
+                    material.SetColor(
+                        "_EmissionColor",
+                        new Color(
+                            color.r * emissionIntensity,
+                            color.g * emissionIntensity,
+                            color.b * emissionIntensity,
+                            1f));
+                    material.EnableKeyword("_EMISSION");
+                    material.globalIlluminationFlags =
+                        MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                }
+                else
+                {
+                    material.SetColor("_EmissionColor", Color.black);
+                    material.DisableKeyword("_EMISSION");
+                    material.globalIlluminationFlags =
+                        MaterialGlobalIlluminationFlags.None;
+                }
             }
             EditorUtility.SetDirty(material);
             return material;

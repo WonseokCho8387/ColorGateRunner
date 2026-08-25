@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `12011cc`
-- Base commit: `feat: apply neon ui skin`
+- Implementation base HEAD: `004e0ec`
+- Base commit: `feat: upgrade protection and booster effects`
 - Authoritative completion HEAD: the commit named
-  `feat: upgrade protection and booster effects`; its exact hash is
-  recorded in the Iteration 35 final report because a commit cannot contain
+  `feat: improve runner readability and bloom`; its exact hash is
+  recorded in the Iteration 36 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 35 — Protection and Warp VFX**.
+- Current completed iteration: **Iteration 36 — Runner Readability and Bloom**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -99,6 +99,12 @@ below where their contracts differ.
   restrained four-iteration Bloom and the Builder enables camera
   post-processing. Gate/Track pool sizes, collision, judgment, Stage data and
   balance are unchanged.
+- The Theme 1 runner now reads from the chase camera as a dark spherical cyber
+  vehicle with a restrained current-color rear panel, wide bumper, side fins,
+  twin exhausts, twin chevrons and a rear light bar. Generated gameplay colors
+  use HDR emission while the Track's dark alloy remains non-emissive. The
+  existing four-iteration Bloom profile uses threshold `0.8`, intensity
+  `0.85` and scatter `0.58`; no render package or ProjectSettings changed.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
   alpha 9-slice panel/button/chip sprites and ten semantic resource/action
   icons. Builder-created panels retain their existing hierarchy and text;
@@ -203,16 +209,16 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `436/436`
+- EditMode: `438/438`
 - PlayMode: `235/235`
 - Post-Builder PlayMode: `235/235`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 35 passes completed; normalized
-  imported-art roots, continuous Track anchors, two protection fields, two
-  fixed collapse emitters, two capped Warp layers, fixed pools, references and
-  Build Settings passed
+- Campaign Builder: two consecutive Iteration 36 passes completed; runner rear
+  orientation and required parts, HDR/non-emissive material contrast, Bloom,
+  normalized imported-art roots, continuous Track anchors, fixed pools,
+  references and Build Settings passed
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -314,6 +320,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 36 validation result
+
+- Starting HEAD `004e0ec` was clean. Completion commit name:
+  `feat: improve runner readability and bloom`.
+- Blender source and the Runner FBX now provide a dark ball-car body with a
+  clearly authored rear silhouette: bumper, side fins, twin thrusters and
+  glows, twin chevrons, rear light bar and a restrained current-color panel.
+- Builder now regenerates the semantic gameplay colors with HDR emission,
+  keeps dark alloy non-emissive and rejects missing/reversed rear parts,
+  invalid material contrast or a weakened Bloom profile.
+- Campaign Builder completed two consecutive passes. Focused EditMode passed
+  `3/3`, focused PlayMode passed `1/1`, full EditMode passed `438/438`, and
+  full post-Builder PlayMode passed `235/235`. Missing Script, Missing
+  Reference, unique roots, EventSystem, fixed pools and Build Settings passed.
+- Campaign and Step 10 simulations were not rerun because this iteration does
+  not change Stage data, deterministic generation, timing, judgment, balance,
+  collision or Experiment inputs. Package and ProjectSettings hashes remain
+  exact to the approved baseline.
+- Human portrait/device review still owns final rear-shape recognition,
+  player/Track separation, Bloom strength and mobile performance.
 
 ## Iteration 35 validation result
 

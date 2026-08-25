@@ -53,5 +53,90 @@ namespace ColorGateRunner.Tests.EditMode
                 }
             }
         }
+
+        [Test]
+        public void CyberOrbRunner_HasReadableRearSilhouetteParts()
+        {
+            GameObject runner = AssetDatabase.LoadAssetAtPath<GameObject>(
+                GrayboxSceneBuilder.Theme01ModelsFolder +
+                "/CyberOrbRunner.fbx");
+            Assert.That(runner, Is.Not.Null);
+            string[] parts =
+            {
+                "HullShell",
+                "ColorShell",
+                "RearBumper",
+                "RearThruster_L",
+                "RearThruster_R",
+                "RearThrusterGlow_L",
+                "RearThrusterGlow_R",
+                "RearChevronGlow_L",
+                "RearChevronGlow_R",
+                "RearLightBar",
+                "SideFin_L",
+                "SideFin_R"
+            };
+            for (int index = 0; index < parts.Length; index++)
+            {
+                Assert.That(
+                    FindNamedTransform(runner.transform, parts[index]),
+                    Is.Not.Null,
+                    parts[index]);
+            }
+        }
+
+        [Test]
+        public void GameplayColorMaterials_EmitWhileDarkAlloyDoesNot()
+        {
+            string[] emissiveNames =
+            {
+                "Red",
+                "Blue",
+                "Green",
+                "Yellow",
+                "Purple",
+                "Cyan",
+                "Neutral"
+            };
+            for (int index = 0; index < emissiveNames.Length; index++)
+            {
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/Game/Generated/Materials/" +
+                    emissiveNames[index] + ".mat");
+                Assert.That(material, Is.Not.Null, emissiveNames[index]);
+                Assert.That(
+                    material.IsKeywordEnabled("_EMISSION"),
+                    Is.True,
+                    emissiveNames[index]);
+                Assert.That(
+                    material.GetColor("_EmissionColor").maxColorComponent,
+                    Is.GreaterThan(1f),
+                    emissiveNames[index]);
+            }
+
+            Material dark = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Game/Generated/Materials/Theme01DarkAlloy.mat");
+            Assert.That(dark, Is.Not.Null);
+            Assert.That(dark.IsKeywordEnabled("_EMISSION"), Is.False);
+            Assert.That(
+                dark.GetColor("_EmissionColor").maxColorComponent,
+                Is.LessThanOrEqualTo(0.001f));
+        }
+
+        private static Transform FindNamedTransform(
+            Transform root,
+            string name)
+        {
+            Transform[] transforms =
+                root.GetComponentsInChildren<Transform>(true);
+            for (int index = 0; index < transforms.Length; index++)
+            {
+                if (transforms[index].name == name)
+                {
+                    return transforms[index];
+                }
+            }
+            return null;
+        }
     }
 }

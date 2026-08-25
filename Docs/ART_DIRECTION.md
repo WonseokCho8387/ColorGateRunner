@@ -638,3 +638,21 @@ The three-Continue cap and original prices below are superseded by Iteration
   remain unchanged. Both collapse emitters participate in the existing attempt
   pause contract. Human device review owns pulse intensity, density, streak
   length, Bloom, field transparency and mobile frame cost.
+
+## Iteration 36 Runner readability and Bloom
+
+- The chase-camera view must communicate a spherical cyber vehicle before
+  close inspection. Its dark ball-car hull is framed by a wide rear bumper,
+  side fins and twin exhaust housings; twin emissive exhaust rings, chevrons
+  and one rear light bar establish a readable rear face.
+- The runner's current gameplay color remains recognizable on a restrained
+  beveled rear panel. It must not tint the whole hull or make the vehicle merge
+  into the Track.
+- Red, Blue, Green, Yellow, Purple, Cyan and Neutral gameplay materials use HDR
+  emission. Track dark alloy remains near-black and non-emissive so Bloom
+  belongs to semantic color and energy accents instead of washing out the road.
+- The existing URP Bloom stays at four iterations and uses threshold `0.8`,
+  intensity `0.85` and scatter `0.58`. Human target-device review owns final
+  apparent glow, silhouette separation and performance.
+- Track curves, Spline packages, camera banking, multiplayer lanes and AI
+  racers are separate iterations and do not alter this visual contract.

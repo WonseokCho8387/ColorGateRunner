@@ -621,3 +621,19 @@ fairness, or polish.
   must match the prior baseline. Step 10 artifacts must remain deterministic.
 - Builder validation must reject missing, looping or play-on-awake protection
   collapse emitters and must retain their fixed 36-particle capacity.
+
+### Iteration 36 Runner readability and Bloom
+
+- EditMode must prove the imported Runner contains exactly the required rear
+  readability vocabulary and that all semantic gameplay materials use HDR
+  emission while Theme 1 dark alloy remains non-emissive.
+- Campaign PlayMode must prove the generated Runner exposes those rear parts,
+  the active player material has HDR emission, the Track remains non-emissive,
+  camera post-processing is enabled and the global Bloom Volume remains active.
+- Campaign Builder must run twice and reject missing/duplicated or chase-camera-
+  reversed rear parts, invalid material contrast, or Bloom weaker than threshold
+  `0.8`, intensity `0.85`, scatter `0.58` with no more than four iterations.
+- Tier 2 requires focused and full EditMode/PlayMode plus Campaign Builder
+  twice. Campaign and Step 10 simulations are omitted because Stage data,
+  deterministic generation, timing, judgment, balance, collision and
+  Experiment inputs are unchanged.

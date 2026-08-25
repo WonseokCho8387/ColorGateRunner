@@ -1377,3 +1377,19 @@ Status: Approved and implemented.
   Gold, under the existing pooled root. Their total emitted capacity is 160;
   runtime creation, external tutorial assets and render-package changes are
   prohibited.
+
+## Iteration 36 — Rear silhouette and emissive contrast precede track curves
+
+- The existing runner asset and Builder remain the owners of Theme 1 vehicle
+  presentation. A parallel player prefab or runtime mesh generator is not
+  introduced.
+- Chase-camera readability is fixed with explicit authored rear parts and a
+  dark hull/current-color-panel split. Builder and tests validate part presence
+  and rear orientation so FBX axis conversion cannot silently reverse it.
+- Semantic gameplay colors are HDR emissive; Track dark alloy and failure gray
+  are non-emissive. Bloom is strengthened only through the existing URP Volume
+  profile and camera post-processing path.
+- This is a presentation-only Tier 2 iteration. Stage content, collision,
+  movement, judgment, pooling and deterministic simulation inputs remain
+  unchanged. Spline/curved-track work is deferred to its own architecture
+  iteration.

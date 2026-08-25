@@ -137,22 +137,44 @@ def cylinder(name, location, rotation, radius, depth, mat, collection, parent=No
 def build_runner():
     collection = make_collection("CyberOrbRunner")
     root = empty("CyberOrbRunner", collection)
-    cube("Chassis", (0, 0.72, 0), (0.82, 0.22, 1.18), DARK, collection, root, 0.16)
-    uv_sphere("ColorShell", (0, 0.96, 0), (0.92, 0.88, 1.04), BLUE, collection, root)
-    uv_sphere("FrontVisor", (0, 1.08, -0.79), (0.60, 0.38, 0.22), DARK, collection, root)
-    cube("VisorGlow", (0, 1.08, -1.01), (0.45, 0.08, 0.025), CYAN, collection, root, 0.04)
+    cube("Chassis", (0, 0.68, 0), (0.86, 0.24, 1.16), DARK, collection, root, 0.16)
+    uv_sphere("HullShell", (0, 0.96, 0), (0.94, 0.84, 1.04), DARK, collection, root)
+    cube("ColorShell", (0, 1.10, -0.93), (0.64, 0.34, 0.11),
+         BLUE, collection, root, 0.18)
+    uv_sphere("FrontVisor", (0, 1.08, 0.79), (0.60, 0.38, 0.22), DARK, collection, root)
+    cube("VisorGlow", (0, 1.08, 1.01), (0.45, 0.08, 0.025),
+         CYAN, collection, root, 0.04)
     for side in (-1, 1):
         torus("SideRing_L" if side < 0 else "SideRing_R",
-              (side * 0.94, 0.72, 0.08), (0, math.pi / 2, 0), 0.46, 0.11,
+              (side * 0.96, 0.72, -0.08), (0, math.pi / 2, 0), 0.48, 0.12,
               DARK, collection, root)
         torus("SideGlow_L" if side < 0 else "SideGlow_R",
-              (side * 0.955, 0.72, 0.08), (0, math.pi / 2, 0), 0.34, 0.045,
+              (side * 0.975, 0.72, -0.08), (0, math.pi / 2, 0), 0.35, 0.05,
               CYAN, collection, root)
-    cylinder("RearThruster", (0, 0.76, 1.12), (math.pi / 2, 0, 0), 0.34, 0.42,
-             DARK, collection, root)
-    torus("RearThrusterGlow", (0, 0.76, 1.34), (math.pi / 2, 0, 0), 0.24, 0.055,
-          CYAN, collection, root)
-    cube("RunnerArrow", (0, 1.58, -0.04), (0.24, 0.035, 0.34), WHITE,
+        fin = cube("SideFin_L" if side < 0 else "SideFin_R",
+                   (side * 1.02, 0.82, -0.58), (0.16, 0.13, 0.52),
+                   DARK, collection, root, 0.07)
+        fin.rotation_euler.y = math.radians(side * 10)
+
+    cube("RearBumper", (0, 0.58, -0.91), (0.88, 0.16, 0.18),
+         DARK, collection, root, 0.08)
+    for side in (-1, 1):
+        cylinder("RearThruster_L" if side < 0 else "RearThruster_R",
+                 (side * 0.38, 0.72, -1.03), (0, 0, 0), 0.25, 0.38,
+                 DARK, collection, root)
+        torus("RearThrusterGlow_L" if side < 0 else "RearThrusterGlow_R",
+              (side * 0.38, 0.72, -1.25), (0, 0, 0), 0.18, 0.05,
+              CYAN, collection, root)
+
+    for side in (-1, 1):
+        chevron = cube(
+            "RearChevronGlow_L" if side < 0 else "RearChevronGlow_R",
+            (side * 0.17, 1.20, -1.065), (0.22, 0.045, 0.025),
+            WHITE, collection, root, 0.025)
+        chevron.rotation_euler.z = math.radians(side * 32)
+    cube("RearLightBar", (0, 0.98, -1.07), (0.48, 0.035, 0.025),
+         CYAN, collection, root, 0.02)
+    cube("RunnerArrow", (0, 1.69, -0.10), (0.22, 0.035, 0.30), WHITE,
          collection, root, 0.03).rotation_euler.y = math.radians(45)
     return root
 

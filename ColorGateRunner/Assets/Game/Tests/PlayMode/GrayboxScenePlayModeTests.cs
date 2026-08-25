@@ -50,6 +50,35 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo("ColorShell"));
             Transform[] visuals = _controller.transform.root
                 .GetComponentsInChildren<Transform>(true);
+            string[] rearParts =
+            {
+                "RearBumper",
+                "RearThruster_L",
+                "RearThruster_R",
+                "RearThrusterGlow_L",
+                "RearThrusterGlow_R",
+                "RearChevronGlow_L",
+                "RearChevronGlow_R",
+                "RearLightBar",
+                "SideFin_L",
+                "SideFin_R"
+            };
+            for (int index = 0; index < rearParts.Length; index++)
+            {
+                Assert.That(Array.Find(
+                    visuals,
+                    candidate => candidate.name == rearParts[index]),
+                    Is.Not.Null,
+                    rearParts[index]);
+            }
+            Assert.That(
+                _controller.PlayerRenderer.sharedMaterial
+                    .GetColor("_EmissionColor").maxColorComponent,
+                Is.GreaterThan(1f));
+            Material trackMaterial =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+            Assert.That(trackMaterial, Is.Not.Null);
+            Assert.That(trackMaterial.IsKeywordEnabled("_EMISSION"), Is.False);
             Assert.That(Array.Find(
                 visuals,
                 candidate => candidate.name == "GoalPortalArtwork"),

@@ -968,3 +968,18 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   semantic colors and hard capacity.
 - `GrayboxSceneBuilder.ValidateProtectionAndWarpEffects` applies the structural
   and capacity contracts to both consecutive Builder passes.
+
+## Iteration 36 current coverage
+
+- `Theme01GameplayArtTests.CyberOrbRunner_HasReadableRearSilhouetteParts`
+  verifies the imported FBX contains the dark hull, color panel, rear bumper,
+  side fins, twin thrusters/glows, twin chevrons and rear light bar.
+- `Theme01GameplayArtTests.GameplayColorMaterials_EmitWhileDarkAlloyDoesNot`
+  verifies HDR semantic color emission and non-emissive Track dark alloy.
+- `GrayboxScenePlayModeTests.ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
+  additionally verifies the live generated rear parts, player HDR emission and
+  non-emissive Track while retaining the existing post-processing, Volume and
+  gate-break pool coverage.
+- `GrayboxSceneBuilder.ValidateRunnerRearReadability`,
+  `ValidateEmissiveContrast` and `ValidateBloomProfile` apply the asset-axis,
+  material and four-iteration Bloom contracts to both Builder passes.

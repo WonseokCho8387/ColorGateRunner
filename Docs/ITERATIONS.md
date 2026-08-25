@@ -2248,3 +2248,45 @@ Human feedback required
   and mobile performance.
 - Texture-authored field noise, sound design, haptic expansion and quality
   tiers remain separate polish work.
+
+## Iteration 36 — Runner Readability and Bloom
+
+### Play / Analyze
+
+- Human play found that Bloom was not visibly contributing and that the blue
+  spherical runner merged with the similarly colored Track. The chase camera
+  also exposed too little rear structure to identify the vehicle's form.
+- Inspection found the generated semantic color materials serialized black
+  emission despite the Builder's intent, while dark alloy was emissive. The
+  Runner FBX was dominated by one color sphere and one small central exhaust.
+
+### Design / Implementation
+
+- Rebuilt the Runner's Blender source and FBX as a dark ball-car hull with a
+  restrained color panel, rear bumper, side fins, twin thrusters and glows,
+  twin chevrons and a rear light bar facing the chase camera.
+- Builder now owns explicit emission intensity per generated material: semantic
+  colors are HDR emissive, failure and dark alloy are non-emissive. Bloom uses
+  threshold `0.8`, intensity `0.85`, scatter `0.58` and the existing four-pass
+  mobile budget.
+- Added Builder, EditMode and PlayMode checks for the rear parts and orientation,
+  material contrast and active Bloom path. Regenerated the Campaign Scene
+  without changing gameplay parents or authority.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. Focused EditMode passed
+  `3/3`, focused PlayMode passed `1/1`, full EditMode passed `438/438`, and
+  full post-Builder PlayMode passed `235/235`.
+- Package and ProjectSettings hashes remain exact. Campaign and Step 10
+  simulations were omitted because no deterministic gameplay input changed.
+- Bloom requires both a valid post-process profile and HDR source pixels;
+  strengthening only the Volume cannot repair black serialized emission.
+
+### Deferred / Human Review
+
+- Human portrait/device play must confirm that the rear reads immediately as
+  a vehicle, the current color remains clear, the Track stays subordinate and
+  Bloom is visible without obscuring gate readability.
+- Spline Track geometry, vertical curves, camera banking, multi-lane racing and
+  AI opponents remain excluded for later iterations.
