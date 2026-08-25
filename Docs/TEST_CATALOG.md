@@ -927,3 +927,12 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `GrayboxScenePlayModeTests.ThemeOneUiSkin_CoversGameplayButtonsPanelsAndIcons`
   verifies sliced Pause/failure presentation and semantic Pause/Shield icons
   across active and inactive Campaign UI roots.
+
+## Iteration 33 current coverage
+
+- `GrayboxScenePlayModeTests.ThemeOneImportedArtwork_RootsAreNormalizedAndTrackIsHorizontal`
+  verifies identity local transforms for the five Theme 1 imported artwork
+  roots and aggregate Track bounds extending forward on Z.
+- `GrayboxSceneBuilder.ValidateTheme01ArtworkAxes` applies the same contract to
+  both consecutive Campaign Builder passes so a regenerated vertical Track is
+  rejected before the Scene is accepted.

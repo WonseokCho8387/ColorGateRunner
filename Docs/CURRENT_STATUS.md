@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `6a542a9`
-- Base commit: `feat: add neon gameplay visual slice`
+- Implementation base HEAD: `12011cc`
+- Base commit: `feat: apply neon ui skin`
 - Authoritative completion HEAD: the commit named
-  `feat: apply neon ui skin`; its exact hash is
-  recorded in the Iteration 32 final report because a commit cannot contain
+  `fix: normalize theme one artwork axes`; its exact hash is
+  recorded in the Iteration 33 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 32 — Neon UI Skin**.
+- Current completed iteration: **Iteration 33 — Theme 1 Artwork Axis Correction**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -107,6 +107,13 @@ below where their contracts differ.
   Pause, Shield, Booster, Continue and Retry cues are non-blocking Images.
   Navigation, Product state, economy values and gameplay authority are
   unchanged.
+- Theme 1 FBX instances now discard the importer-supplied `X -90°` root
+  rotation and use normalized local position, rotation and scale. The Track
+  therefore remains approximately 7 units wide, below 3 units high and 40
+  units long along gameplay Z instead of standing 40 units vertically. The
+  same correction keeps the runner, gates, Goal portal and city in their
+  authored Unity-axis orientation. Collision, Track recycling and Stage
+  coordinates remain owned by their existing non-art parents.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -178,13 +185,14 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `434/434`
-- PlayMode: `231/231`
-- Post-Builder PlayMode: `231/231`
+- PlayMode: `232/232`
+- Post-Builder PlayMode: `232/232`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 32 passes completed; imported
-  art, UI skin, fixed pools, Volume, references and Build Settings passed
+- Campaign Builder: two consecutive Iteration 33 passes completed; normalized
+  imported-art roots, horizontal Track bounds, fixed pools, references and
+  Build Settings passed
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -199,13 +207,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 229, highest unlocked Stage ID `stage-17` with 16 records,
-  800 Coins, 2 Shields, 1 Booster and 5 Hearts.
+- Schema 3, revision 231, highest unlocked Stage ID `stage-17` with 16 records,
+  800 Coins, 2 Shields, 1 Booster and 4 Hearts.
 - SHA-256:
-  `664C7E447463C07B541015B4D8679BF57F41F7A3F306C7C22C4B5D7E9A946B8C`.
+  `D37427A7C23887772F9C95A24D3D23C84260A5EA11E2FB2AB37252D72652F640`.
 - The already-open original Editor advanced the live Heart clock from the
-  prior revision during implementation. Validation ran in an isolated project
-  copy and did not read, restore or mutate this file. Developer Console
+  prior revision and recorded the user's latest play state during
+  implementation. Validation ran in an isolated project copy and did not
+  restore or mutate this file. Developer Console
   mutations still occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
@@ -282,6 +291,29 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 33 validation result
+
+- Starting HEAD `12011cc` was clean. Completion commit name:
+  `fix: normalize theme one artwork axes`.
+- The generated Scene exposed the common imported-FBX root quaternion
+  `(-0.7071068, 0, 0, 0.7071067)`, equivalent to `X -90°`. This rotated the
+  authored 40-unit Z Track into the vertical Y axis. The Theme 1 instantiation
+  boundary now explicitly normalizes all five imported artwork roots.
+- Campaign Builder completed two consecutive passes and now rejects any
+  non-normalized Theme 1 root or Track bounds that are not approximately
+  7 units wide, below 3 units high and 40 units long on Z.
+- Full EditMode passed `434/434`; final post-Builder PlayMode passed `232/232`.
+  Existing Track recycling, Ice, Booster, Continue and fixed-pool coverage
+  remained active.
+- Campaign and Step 10 simulations were not rerun because collision, Stage
+  data, generation, timing, balance, judgment and Experiment inputs did not
+  change. Package and meaningful ProjectSettings hashes remain exact.
+- Isolated validation did not use the developer save. The open original Editor
+  independently advanced the live play state to revision 231; it was preserved
+  and recorded above.
+- Human portrait play must confirm the corrected road plane, runner/gate/Goal
+  silhouettes and camera composition.
 
 ## Iteration 32 validation result
 

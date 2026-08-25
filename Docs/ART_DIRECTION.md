@@ -598,3 +598,17 @@ The three-Continue cap and original prices below are superseded by Iteration
 - Existing hierarchy, wording, navigation and runtime values remain the source
   of truth. Human review owns final typography, icon/text spacing and device-
   specific scale.
+
+## Iteration 33 Theme 1 artwork axis correction
+
+- Every imported Theme 1 FBX instance begins at local position zero, identity
+  rotation and unit scale beneath its gameplay-owned presentation parent. FBX
+  importer rotation is never allowed to become the authored Scene pose.
+- The gameplay track reads as a horizontal road: approximately `7.12` units
+  wide on X, no more than `3` units high on Y and at least `39.5` units long
+  on forward Z. A tall Y-axis wall is a Builder validation failure.
+- Runner, Gate, Track, Goal portal and City backdrop share this normalization
+  contract so their relative Blender composition is preserved consistently.
+- Human portrait review still owns camera composition, road depth, gate/runner
+  contact readability and whether the corrected horizon feels comfortable on
+  the target device.

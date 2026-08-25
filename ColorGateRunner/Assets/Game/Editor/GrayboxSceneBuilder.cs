@@ -761,6 +761,83 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException(
                     "Theme 01 camera post-processing is disabled.");
             }
+            ValidateTheme01ArtworkAxes(generatedRoot);
+        }
+
+        private static void ValidateTheme01ArtworkAxes(GameObject generatedRoot)
+        {
+            string[] artworkNames =
+            {
+                "CyberOrbRunnerVisual",
+                "GateArtwork",
+                "TrackArtwork",
+                "GoalPortalArtwork",
+                "NeonCityBackdrop"
+            };
+            Transform[] transforms =
+                generatedRoot.GetComponentsInChildren<Transform>(true);
+            for (int nameIndex = 0;
+                nameIndex < artworkNames.Length;
+                nameIndex++)
+            {
+                bool found = false;
+                for (int index = 0; index < transforms.Length; index++)
+                {
+                    Transform artwork = transforms[index];
+                    if (artwork.name != artworkNames[nameIndex])
+                    {
+                        continue;
+                    }
+
+                    found = true;
+                    if (artwork.localPosition.sqrMagnitude > 0.000001f ||
+                        Quaternion.Angle(
+                            artwork.localRotation,
+                            Quaternion.identity) > 0.01f ||
+                        (artwork.localScale - Vector3.one)
+                            .sqrMagnitude > 0.000001f)
+                    {
+                        throw new InvalidOperationException(
+                            $"Theme 01 artwork root is not normalized: " +
+                            artwork.name + ".");
+                    }
+                }
+
+                if (!found)
+                {
+                    throw new InvalidOperationException(
+                        $"Theme 01 artwork root is missing: " +
+                        artworkNames[nameIndex] + ".");
+                }
+            }
+
+            Transform trackArtwork = FindNamedTransform(
+                generatedRoot.transform,
+                "TrackArtwork");
+            Renderer[] renderers = trackArtwork == null
+                ? Array.Empty<Renderer>()
+                : trackArtwork.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "Theme 01 track artwork has no renderers.");
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int index = 1; index < renderers.Length; index++)
+            {
+                bounds.Encapsulate(renderers[index].bounds);
+            }
+
+            if (bounds.size.x < 6.5f ||
+                bounds.size.x > 8f ||
+                bounds.size.y > 3f ||
+                bounds.size.z < TrackSegmentLength - 0.5f ||
+                bounds.size.z < bounds.size.y * 10f)
+            {
+                throw new InvalidOperationException(
+                    $"Theme 01 track must be horizontal. Bounds={bounds.size}.");
+            }
         }
 
         private static void RemovePreviousSceneObjects(Scene scene)
@@ -2522,6 +2599,9 @@ namespace ColorGateRunner.Editor
             }
             instance.name = instanceName;
             instance.transform.SetParent(parent, false);
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            instance.transform.localScale = Vector3.one;
             return instance;
         }
 

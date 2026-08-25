@@ -2128,3 +2128,41 @@ Human feedback required
   readability, slice-corner quality and final typography on target devices.
 - Shop/IAP runtime, Firebase, bottom navigation modules, responsive layout
   redesign and Theme 2/3 final art remain separate iterations.
+
+## Iteration 33 — Theme 1 Artwork Axis Correction
+
+### Play / Analyze
+
+- Human play found the new in-game Track standing vertically, which obstructed
+  the route and made normal play difficult.
+- The Blender model itself was authored as a forward Z-axis road. Unity had
+  serialized the imported FBX root's X `-90` degree conversion under an
+  identity gameplay parent, turning its 40-unit length into vertical height.
+
+### Design / Implementation
+
+- Centralized imported-art normalization in Campaign Builder so Runner, Gate,
+  Track, Goal portal and City backdrop all receive local position zero,
+  identity rotation and unit scale after parenting.
+- Added Builder and PlayMode guards for all five root transforms plus aggregate
+  Track bounds. The expected Track is about `7.12 x 2 x 40` in world axes and
+  must extend forward on Z rather than upward on Y.
+- Regenerated the Campaign Scene. Gameplay parents, colliders, pooling,
+  recycling, Stage content, camera and judgment remain unchanged.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. Full EditMode passed
+  `434/434`; full post-Builder PlayMode passed `232/232`, including the new
+  axis-and-bounds regression.
+- Presentation roots need an explicit Scene-space contract even when the raw
+  mesh is correctly authored; importer conversion is not a safe runtime pose.
+- Package and meaningful ProjectSettings hashes remain at the approved
+  baseline. Isolated validation did not mutate the developer Product save.
+
+### Deferred / Human Review
+
+- Human portrait play must confirm the corrected road horizon, runner/gate
+  scale, camera framing and Bloom composition on the target aspect ratio.
+- No gameplay balance, Stage layout, UI layout, Shop/IAP or Firebase work is
+  included in this correction.

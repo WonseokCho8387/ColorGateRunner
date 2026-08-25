@@ -1327,3 +1327,18 @@ Status: Approved and implemented.
   localization and accessibility; icon-only interaction is not introduced.
 - IAP runtime, Firebase, Shop navigation, typography replacement, layout
   redesign and gameplay balance are excluded.
+
+## Iteration 33 — Theme 1 imported artwork uses normalized Scene roots
+
+- Campaign Builder is the authority for the Scene pose of imported Theme 1
+  art. Its shared instantiation boundary explicitly applies local position
+  zero, identity rotation and unit scale after parenting.
+- The five normalized roots are Runner, Gate, Track, Goal portal and City
+  backdrop. The FBX importer's X-axis conversion is not serialized as runtime
+  composition.
+- Gameplay-owned parents retain collision, pooling, recycling, Stage position
+  and judgment ownership. This correction is presentation-only and does not
+  rotate or resize those parents.
+- Builder validation rejects a non-normalized root or a Track whose aggregate
+  renderer bounds do not describe a low horizontal surface extending forward
+  on Z.

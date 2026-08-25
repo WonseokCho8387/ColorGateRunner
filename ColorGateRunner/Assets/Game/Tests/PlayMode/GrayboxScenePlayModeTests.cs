@@ -77,6 +77,65 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void ThemeOneImportedArtwork_RootsAreNormalizedAndTrackIsHorizontal()
+        {
+            Transform[] visuals = _controller.transform.root
+                .GetComponentsInChildren<Transform>(true);
+            string[] artworkNames =
+            {
+                "CyberOrbRunnerVisual",
+                "GateArtwork",
+                "TrackArtwork",
+                "GoalPortalArtwork",
+                "NeonCityBackdrop"
+            };
+            for (int nameIndex = 0;
+                nameIndex < artworkNames.Length;
+                nameIndex++)
+            {
+                bool found = false;
+                for (int index = 0; index < visuals.Length; index++)
+                {
+                    Transform artwork = visuals[index];
+                    if (artwork.name != artworkNames[nameIndex])
+                    {
+                        continue;
+                    }
+
+                    found = true;
+                    Assert.That(artwork.localPosition,
+                        Is.EqualTo(Vector3.zero));
+                    Assert.That(Quaternion.Angle(
+                        artwork.localRotation,
+                        Quaternion.identity), Is.LessThan(0.01f));
+                    Assert.That(artwork.localScale,
+                        Is.EqualTo(Vector3.one));
+                }
+                Assert.That(found, Is.True, artworkNames[nameIndex]);
+            }
+
+            Transform track = Array.Find(
+                visuals,
+                candidate => candidate.name == "TrackArtwork");
+            Assert.That(track, Is.Not.Null);
+            Renderer[] renderers =
+                track.GetComponentsInChildren<Renderer>(true);
+            Assert.That(renderers, Is.Not.Empty);
+            Bounds bounds = renderers[0].bounds;
+            for (int index = 1; index < renderers.Length; index++)
+            {
+                bounds.Encapsulate(renderers[index].bounds);
+            }
+
+            Assert.That(bounds.size.x, Is.InRange(6.5f, 8f));
+            Assert.That(bounds.size.y, Is.LessThan(3f));
+            Assert.That(bounds.size.z,
+                Is.GreaterThanOrEqualTo(39.5f));
+            Assert.That(bounds.size.z,
+                Is.GreaterThan(bounds.size.y * 10f));
+        }
+
+        [Test]
         public void ThemeOneUiSkin_CoversGameplayButtonsPanelsAndIcons()
         {
             Image pauseImage = _controller.PauseButton.GetComponent<Image>();

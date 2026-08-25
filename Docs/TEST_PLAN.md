@@ -571,3 +571,18 @@ fairness, or polish.
 - Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
   simulations are omitted while Stage data, generation, timing, judgment,
   balance and Experiment inputs remain unchanged.
+
+### Iteration 33 Theme 1 artwork axis correction
+
+- Campaign Builder must normalize the imported Runner, Gate, Track, Goal
+  portal and City roots to local position zero, identity rotation and unit
+  scale after parenting.
+- Campaign PlayMode and Builder validation must reject a Track that is not
+  approximately `6.5-8` units wide, no more than `3` units high and at least
+  `39.5` units long on forward Z. The Track length must exceed its height by
+  more than ten times.
+- Campaign Builder must run twice and retain all existing unique-root,
+  reference, EventSystem, pool and Build Settings contracts.
+- Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
+  simulations are omitted because collision, Stage data, deterministic
+  generation, timing, judgment, balance and Experiment inputs are unchanged.
