@@ -75,6 +75,28 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.PlayerRenderer.sharedMaterial
                     .GetColor("_EmissionColor").maxColorComponent,
                 Is.GreaterThan(1f));
+            RunnerColorView colorView = _controller.RunnerColorView;
+            Assert.That(colorView, Is.Not.Null);
+            Assert.That(colorView.HasRequiredReferences, Is.True);
+            Assert.That(colorView.GlassShell.transform.name, Is.EqualTo("HullShell"));
+            Assert.That(
+                colorView.GlassShell.sharedMaterial.IsKeywordEnabled("_EMISSION"),
+                Is.False);
+            Assert.That(
+                colorView.GlassShell.sharedMaterial.GetFloat("_Smoothness"),
+                Is.GreaterThanOrEqualTo(0.9f));
+            Material blue = _controller.GetPresentationMaterial(RunnerColor.Blue);
+            colorView.ApplyMaterial(blue);
+            MaterialPropertyBlock glassProperties = new MaterialPropertyBlock();
+            colorView.GlassShell.GetPropertyBlock(glassProperties);
+            Color glassColor = glassProperties.GetColor("_BaseColor");
+            Color blueColor = blue.GetColor("_BaseColor");
+            Assert.That(glassColor.r, Is.EqualTo(blueColor.r).Within(0.001f));
+            Assert.That(glassColor.g, Is.EqualTo(blueColor.g).Within(0.001f));
+            Assert.That(glassColor.b, Is.EqualTo(blueColor.b).Within(0.001f));
+            Assert.That(
+                glassProperties.GetColor("_EmissionColor").maxColorComponent,
+                Is.LessThanOrEqualTo(0.001f));
             Material trackMaterial =
                 _controller.TrackPool.GetSegment(0).SurfaceMaterial;
             Assert.That(trackMaterial, Is.Not.Null);

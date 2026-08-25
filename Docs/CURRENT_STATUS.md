@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `004e0ec`
-- Base commit: `feat: upgrade protection and booster effects`
+- Implementation base HEAD: `91f17e8`
+- Base commit: `feat: improve runner readability and bloom`
 - Authoritative completion HEAD: the commit named
-  `feat: improve runner readability and bloom`; its exact hash is
-  recorded in the Iteration 36 final report because a commit cannot contain
+  `fix: tint runner glass shell`; its exact hash is recorded in the
+  Iteration 36 follow-up final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 36 — Runner Readability and Bloom**.
+- Current completed iteration: **Iteration 36 follow-up — Runner Glass Color**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -99,10 +99,12 @@ below where their contracts differ.
   restrained four-iteration Bloom and the Builder enables camera
   post-processing. Gate/Track pool sizes, collision, judgment, Stage data and
   balance are unchanged.
-- The Theme 1 runner now reads from the chase camera as a dark spherical cyber
-  vehicle with a restrained current-color rear panel, wide bumper, side fins,
+- The Theme 1 runner now reads from the chase camera as a spherical cyber
+  vehicle with a smooth non-emissive glass-like hull that follows the current
+  runner color, plus an HDR current-color rear panel, wide bumper, side fins,
   twin exhausts, twin chevrons and a rear light bar. Generated gameplay colors
-  use HDR emission while the Track's dark alloy remains non-emissive. The
+  use HDR emission while the glass hull and Track dark alloy remain
+  non-emissive. The
   existing four-iteration Bloom profile uses threshold `0.8`, intensity
   `0.85` and scatter `0.58`; no render package or ProjectSettings changed.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
@@ -320,6 +322,19 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 36 follow-up validation result
+
+- Starting HEAD `91f17e8` was clean. Completion commit name:
+  `fix: tint runner glass shell`.
+- The whole spherical hull now follows the authoritative runner/failure color
+  through one cached material property block while remaining non-emissive and
+  highly smooth. The rear panel retains the existing HDR semantic material.
+- Campaign Builder completed two consecutive passes. Focused EditMode passed
+  `3/3`, focused PlayMode passed `1/1`, full EditMode passed `438/438`, and
+  full post-Builder PlayMode passed `235/235`.
+- Package and ProjectSettings hashes remain exact. Campaign and Step 10
+  simulations were omitted because no gameplay or deterministic input changed.
 
 ## Iteration 36 validation result
 

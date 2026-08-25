@@ -2290,3 +2290,16 @@ Human feedback required
   Bloom is visible without obscuring gate readability.
 - Spline Track geometry, vertical curves, camera banking, multi-lane racing and
   AI opponents remain excluded for later iterations.
+
+### Follow-up — Runner Glass Color
+
+- Human review found the rear color panel too small for fast runner-color
+  recognition. The spherical hull now follows the same authoritative color
+  through a smooth non-emissive glass material while the rear accents retain
+  HDR emission.
+- `RunnerColorView` updates both surfaces without material cloning and also
+  covers failure, Continue, Retry and Experiment color paths.
+- Campaign Builder passed twice; focused EditMode `3/3`, focused PlayMode
+  `1/1`, full EditMode `438/438` and full PlayMode `235/235` passed.
+- Human portrait review still owns perceived glass quality and the balance
+  between the broad hull color and localized Bloom accents.

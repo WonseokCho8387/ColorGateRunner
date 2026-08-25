@@ -51,6 +51,7 @@ def material(name, base, emission=None, strength=0.0, metallic=0.65, roughness=0
 
 
 DARK = material("DarkAlloy", (0.012, 0.025, 0.06), metallic=0.9, roughness=0.18)
+GLASS = material("RunnerGlass", (0.035, 0.24, 0.62), metallic=0.15, roughness=0.08)
 BLUE = material("NeonBlue", (0.015, 0.18, 0.45), (0.0, 0.65, 1.0), 8.0)
 CYAN = material("NeonCyan", (0.01, 0.24, 0.35), (0.0, 1.0, 1.0), 10.0)
 WHITE = material("NeonWhite", (0.4, 0.55, 0.7), (0.75, 0.95, 1.0), 6.0)
@@ -138,7 +139,7 @@ def build_runner():
     collection = make_collection("CyberOrbRunner")
     root = empty("CyberOrbRunner", collection)
     cube("Chassis", (0, 0.68, 0), (0.86, 0.24, 1.16), DARK, collection, root, 0.16)
-    uv_sphere("HullShell", (0, 0.96, 0), (0.94, 0.84, 1.04), DARK, collection, root)
+    uv_sphere("HullShell", (0, 0.96, 0), (0.94, 0.84, 1.04), GLASS, collection, root)
     cube("ColorShell", (0, 1.10, -0.93), (0.64, 0.34, 0.11),
          BLUE, collection, root, 0.18)
     uv_sphere("FrontVisor", (0, 1.08, 0.79), (0.60, 0.38, 0.22), DARK, collection, root)

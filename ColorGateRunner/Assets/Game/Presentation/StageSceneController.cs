@@ -34,6 +34,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private StageCatalogAsset stageCatalogAsset;
         [SerializeField] private Transform player;
         [SerializeField] private Renderer playerRenderer;
+        [SerializeField] private RunnerColorView runnerColorView;
         [SerializeField] private Rigidbody playerBody;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Material redMaterial;
@@ -253,6 +254,7 @@ namespace ColorGateRunner.Presentation
         internal Button FailLobbyButton => failLobbyButton;
         internal Transform PlayerTransform => player;
         internal Renderer PlayerRenderer => playerRenderer;
+        internal RunnerColorView RunnerColorView => runnerColorView;
         internal Camera GameplayCamera => gameplayCamera;
         internal int GatePoolSize => gates == null ? 0 : gates.Length;
         internal float FailurePanelDelaySeconds => FailurePanelDelay;
@@ -1489,6 +1491,8 @@ namespace ColorGateRunner.Presentation
         {
             if (stageCatalogAsset == null ||
                 player == null || playerRenderer == null ||
+                runnerColorView == null ||
+                !runnerColorView.HasRequiredReferences ||
                 gameplayCamera == null || playerBody == null ||
                 redMaterial == null ||
                 blueMaterial == null || greenMaterial == null ||
@@ -1581,6 +1585,7 @@ namespace ColorGateRunner.Presentation
             StageCatalogAsset catalogAsset,
             Transform playerTransform,
             Renderer runnerRenderer,
+            RunnerColorView colorView,
             Rigidbody runnerBody,
             Camera camera,
             Material red,
@@ -1665,6 +1670,7 @@ namespace ColorGateRunner.Presentation
             stageCatalogAsset = catalogAsset;
             player = playerTransform;
             playerRenderer = runnerRenderer;
+            runnerColorView = colorView;
             playerBody = runnerBody;
             gameplayCamera = camera;
             redMaterial = red;
@@ -2136,7 +2142,7 @@ namespace ColorGateRunner.Presentation
             }
 
             _failureDelayRemaining = FailurePanelDelay;
-            playerRenderer.sharedMaterial = failureMaterial;
+            ApplyPlayerMaterial(failureMaterial);
             player.localRotation = Quaternion.Euler(65f, 0f, 18f);
             player.localScale = Vector3.one * 0.8f;
             shieldVisual.SetActive(false);
@@ -2413,7 +2419,7 @@ namespace ColorGateRunner.Presentation
             _continueSnapshot = CaptureContinueSnapshot(failedGate);
             _cameraShakeRemaining = 0.3f;
             _failureDelayRemaining = FailurePanelDelay;
-            playerRenderer.sharedMaterial = failureMaterial;
+            ApplyPlayerMaterial(failureMaterial);
             player.localRotation = Quaternion.Euler(65f, 0f, 18f);
             player.localScale = Vector3.one * 0.8f;
             shieldVisual.SetActive(false);
@@ -2580,7 +2586,7 @@ namespace ColorGateRunner.Presentation
             gameplayCamera.fieldOfView = NormalFov;
             _colorStackInitialized = false;
             _colorStackTransitionRemaining = 0f;
-            playerRenderer.sharedMaterial = redMaterial;
+            ApplyPlayerMaterial(redMaterial);
             trackPool.ResetPool();
             gateBreakEffects.ResetPool();
             fogCurtain.ResetCurtain();
@@ -2751,10 +2757,10 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
-            playerRenderer.sharedMaterial =
+            ApplyPlayerMaterial(
                 _session.FlowState == StageFlowState.Failed
                 ? failureMaterial
-                : GetMaterial(_session.CurrentColor);
+                : GetMaterial(_session.CurrentColor));
             echoShellVisual.SetActive(_session.EchoActive);
             if (_session.EchoActive)
             {
@@ -3095,7 +3101,7 @@ namespace ColorGateRunner.Presentation
 
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
-            playerRenderer.sharedMaterial = GetMaterial(_session.CurrentColor);
+            ApplyPlayerMaterial(GetMaterial(_session.CurrentColor));
             if (!playerBody.isKinematic)
             {
                 playerBody.linearVelocity = Vector3.zero;
@@ -3258,6 +3264,16 @@ namespace ColorGateRunner.Presentation
             return redMaterial;
         }
 
+        private void ApplyPlayerMaterial(Material material)
+        {
+            if (runnerColorView != null)
+            {
+                runnerColorView.ApplyMaterial(material);
+                return;
+            }
+            playerRenderer.sharedMaterial = material;
+        }
+
         private void ApplyUiFlow(MobileUiFlow flow)
         {
             _uiFlow = flow;
@@ -3328,10 +3344,10 @@ namespace ColorGateRunner.Presentation
         {
             bool countdown =
                 _experimentSession.FlowState == StageFlowState.Countdown;
-            playerRenderer.sharedMaterial =
+            ApplyPlayerMaterial(
                 _experimentSession.Failed
                     ? failureMaterial
-                    : GetMaterial(_experimentSession.CurrentColor);
+                    : GetMaterial(_experimentSession.CurrentColor));
             stageHudText.text = _experimentSession.Failed
                 ? "EXPERIMENT FAILED"
                 : _experimentSession.Completed

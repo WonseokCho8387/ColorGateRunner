@@ -983,3 +983,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `GrayboxSceneBuilder.ValidateRunnerRearReadability`,
   `ValidateEmissiveContrast` and `ValidateBloomProfile` apply the asset-axis,
   material and four-iteration Bloom contracts to both Builder passes.
+- `Theme01GameplayArtTests.GameplayColorMaterials_EmitWhileDarkAlloyDoesNot`
+  also verifies the generated Runner Glass material is smooth and non-emissive.
+- `GrayboxScenePlayModeTests.ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
+  verifies `RunnerColorView` maps Blue into the glass property block without
+  emission while the rear accent remains HDR emissive.

@@ -87,6 +87,9 @@ namespace ColorGateRunner.Editor
                 GeneratedMaterialsFolder + "/Theme01DarkAlloy.mat",
                 new Color(0.004f, 0.008f, 0.018f, 1f),
                 0f);
+            Material runnerGlass = CreateOrUpdateRunnerGlassMaterial(
+                GeneratedMaterialsFolder + "/RunnerGlass.mat",
+                BlueColor);
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
                 new Color(0.12f, 0.18f, 0.26f, 1f));
@@ -120,7 +123,14 @@ namespace ColorGateRunner.Editor
                 CreateIceRunway(root.transform, cyan);
             Renderer playerRenderer;
             GameObject playerObject =
-                CreatePlayer(root.transform, red, darkAlloy, cyan, out playerRenderer);
+                CreatePlayer(
+                    root.transform,
+                    red,
+                    darkAlloy,
+                    cyan,
+                    runnerGlass,
+                    out playerRenderer,
+                    out RunnerColorView runnerColorView);
             Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             TimedFogCurtainView fogCurtain =
@@ -340,6 +350,7 @@ namespace ColorGateRunner.Editor
                 stageCatalogAsset,
                 playerObject.transform,
                 playerRenderer,
+                runnerColorView,
                 playerBody,
                 camera,
                 red,
@@ -850,6 +861,21 @@ namespace ColorGateRunner.Editor
             Transform colorShell = FindNamedTransform(
                 generatedRoot.transform,
                 "ColorShell");
+            RunnerColorView[] colorViews =
+                generatedRoot.GetComponentsInChildren<RunnerColorView>(true);
+            if (colorViews.Length != 1 ||
+                !colorViews[0].HasRequiredReferences ||
+                colorViews[0].EmissiveAccent.transform != colorShell ||
+                colorViews[0].GlassShell.transform.name != "HullShell" ||
+                colorViews[0].GlassShell.sharedMaterial == null ||
+                colorViews[0].GlassShell.sharedMaterial.IsKeywordEnabled(
+                    "_EMISSION") ||
+                colorViews[0].GlassShell.sharedMaterial.GetFloat(
+                    "_Smoothness") < 0.9f)
+            {
+                throw new InvalidOperationException(
+                    "Runner glass color presentation is incomplete.");
+            }
             if (leftThruster.position.z >= colorShell.position.z ||
                 rightThruster.position.z >= colorShell.position.z ||
                 leftThruster.position.x * rightThruster.position.x >= 0f ||
@@ -1402,7 +1428,9 @@ namespace ColorGateRunner.Editor
             Material colorMaterial,
             Material darkMaterial,
             Material neonMaterial,
-            out Renderer colorRenderer)
+            Material glassMaterial,
+            out Renderer colorRenderer,
+            out RunnerColorView colorView)
         {
             GameObject player = new GameObject(
                 "Player",
@@ -1425,6 +1453,16 @@ namespace ColorGateRunner.Editor
                     "CyberOrbRunner requires a ColorShell renderer.");
             }
             colorRenderer.sharedMaterial = colorMaterial;
+            Transform hull = FindNamedTransform(artwork.transform, "HullShell");
+            if (hull == null || !hull.TryGetComponent(out Renderer hullRenderer))
+            {
+                throw new InvalidOperationException(
+                    "CyberOrbRunner requires a HullShell renderer.");
+            }
+            hullRenderer.sharedMaterial = glassMaterial;
+            colorView = player.AddComponent<RunnerColorView>();
+            colorView.Configure(colorRenderer, hullRenderer);
+            colorView.ApplyMaterial(colorMaterial);
             Rigidbody body = player.GetComponent<Rigidbody>();
             body.isKinematic = true;
             body.useGravity = false;
@@ -3005,6 +3043,47 @@ namespace ColorGateRunner.Editor
                         MaterialGlobalIlluminationFlags.None;
                 }
             }
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateRunnerGlassMaterial(
+            string path,
+            Color color)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ??
+                Shader.Find("Standard");
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+            if (material.HasProperty("_Metallic"))
+            {
+                material.SetFloat("_Metallic", 0.15f);
+            }
+            if (material.HasProperty("_Smoothness"))
+            {
+                material.SetFloat("_Smoothness", 0.95f);
+            }
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", Color.black);
+            }
+            material.DisableKeyword("_EMISSION");
+            material.globalIlluminationFlags =
+                MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(material);
             return material;
         }

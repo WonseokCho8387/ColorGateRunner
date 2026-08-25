@@ -121,6 +121,15 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 dark.GetColor("_EmissionColor").maxColorComponent,
                 Is.LessThanOrEqualTo(0.001f));
+
+            Material glass = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/Game/Generated/Materials/RunnerGlass.mat");
+            Assert.That(glass, Is.Not.Null);
+            Assert.That(glass.IsKeywordEnabled("_EMISSION"), Is.False);
+            Assert.That(
+                glass.GetColor("_EmissionColor").maxColorComponent,
+                Is.LessThanOrEqualTo(0.001f));
+            Assert.That(glass.GetFloat("_Smoothness"), Is.GreaterThanOrEqualTo(0.9f));
         }
 
         private static Transform FindNamedTransform(

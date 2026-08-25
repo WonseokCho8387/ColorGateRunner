@@ -637,3 +637,11 @@ fairness, or polish.
   twice. Campaign and Step 10 simulations are omitted because Stage data,
   deterministic generation, timing, judgment, balance, collision and
   Experiment inputs are unchanged.
+
+#### Runner glass color follow-up
+
+- Builder and PlayMode must prove exactly one `RunnerColorView` binds the
+  existing `ColorShell` HDR accent and `HullShell` glass renderer.
+- The glass shared material must be non-emissive with smoothness at least
+  `0.9`; its property-block base color must follow the selected semantic
+  runner material within serialized color tolerance.

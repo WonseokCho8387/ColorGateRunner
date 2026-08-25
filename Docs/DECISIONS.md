@@ -1393,3 +1393,12 @@ Status: Approved and implemented.
   movement, judgment, pooling and deterministic simulation inputs remain
   unchanged. Spline/curved-track work is deferred to its own architecture
   iteration.
+
+### Runner glass color follow-up
+
+- One `RunnerColorView` owns both the HDR rear accent and non-emissive glass
+  hull. Runtime color changes use one cached material property block and do not
+  clone materials or create per-frame presentation objects.
+- The glass hull uses an opaque coated-glass approximation instead of alpha
+  transparency to preserve portrait silhouette, sorting stability and mobile
+  cost.

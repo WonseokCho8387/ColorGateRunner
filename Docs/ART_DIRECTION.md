@@ -656,3 +656,11 @@ The three-Continue cap and original prices below are superseded by Iteration
   apparent glow, silhouette separation and performance.
 - Track curves, Spline packages, camera banking, multiplayer lanes and AI
   racers are separate iterations and do not alter this visual contract.
+
+### Runner glass color follow-up
+
+- The main spherical hull follows the current runner color with a smooth,
+  coated-glass appearance. It remains opaque enough for a stable mobile
+  silhouette, highly smooth and strictly non-emissive.
+- The rear panel, exhaust rings, chevrons and light bar remain the HDR accents.
+  Bloom must not spread across the entire sphere.
