@@ -159,11 +159,11 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Flicker_EchoMatchConsumesEchoAndPreservesShield()
+        public void Flicker_EchoMatchConsumesStoredEcho()
         {
             _controller.StartDevelopmentExperiment(
                 ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
-                new StartItemSelection(true, false));
+                new StartItemSelection(false, false));
             EnterPlaying();
             StageGateView provider = PassUntilProvider();
             MatchColor(provider.AssignedColor);
@@ -184,7 +184,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.ExperimentSession.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
             Assert.That(_controller.ExperimentSession.EchoActive, Is.False);
-            Assert.That(_controller.ExperimentSession.ShieldActive, Is.True);
+            Assert.That(_controller.ExperimentSession.ShieldActive, Is.False);
         }
 
         [Test]

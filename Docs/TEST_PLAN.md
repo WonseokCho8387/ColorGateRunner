@@ -598,3 +598,26 @@ fairness, or polish.
 - Tier 2 requires full EditMode and post-Builder PlayMode. Campaign and Step 10
   simulations are omitted because Stage data, deterministic gate generation,
   timing, judgment, balance and Experiment inputs are unchanged.
+
+### Iteration 35 Protection field and Warp Booster
+
+- Core coverage must prove an attempt-level block returns no Echo Provider and
+  does not alter the deterministic first-offer slot. Campaign Stage 18 and the
+  Echo Experiment must generate zero providers with normal Shield and preserve
+  existing deterministic offers without Shield.
+- PlayMode must prove both protection roots use one valid field renderer and
+  the `ColorGateRunner/ProtectionField` shader. Held Echo field RGB must equal
+  the exact stored runner-material RGB. Shield and Echo consumption must each
+  play its fixed collapse emitter while hiding the consumed field; emitters
+  must be registered in the attempt pause set.
+- Warp Booster must contain exactly one non-emitting controller root and two
+  centered Circle emitters, Cyan and Gold, with 1.5-second lifetime, speed 35,
+  Stretch rendering, radius five and at most 160 emitted particles combined.
+  Existing activation, pause, end-clear and normal-play hidden behavior remain
+  active regressions.
+- Tier 3 requires Campaign Builder twice, full EditMode/post-Builder PlayMode,
+  two Campaign simulations and two Step 10 simulations. Campaign differences
+  are permitted only for Shield-bearing Echo Stage rows; every no-Shield row
+  must match the prior baseline. Step 10 artifacts must remain deterministic.
+- Builder validation must reject missing, looping or play-on-awake protection
+  collapse emitters and must retain their fixed 36-particle capacity.

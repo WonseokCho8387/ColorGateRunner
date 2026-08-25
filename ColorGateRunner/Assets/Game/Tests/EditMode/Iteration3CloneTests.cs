@@ -38,16 +38,17 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ProviderAcquisition_RequiresDirectPlayerMatch()
+        public void ShieldedAttempt_HasNoEchoProviderForEntireRun()
         {
             ExperimentSession session = CreatePlayingEcho(true);
-            ExperimentGatePlan provider = AdvanceToProvider(session);
-            SetDifferentColor(session, provider.Color);
+            for (int index = 0; index < session.Definition.GateCount; index++)
+            {
+                ExperimentGatePlan plan = session.GetPlan(index);
+                Assert.That(plan.IsEchoProvider, Is.False);
+                MatchColor(session, plan.Color);
+                Assert.That(session.Resolve(plan), Is.True);
+            }
 
-            Assert.That(session.Resolve(provider), Is.True);
-            Assert.That(
-                session.LastResolution,
-                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
             Assert.That(session.EchoActive, Is.False);
             Assert.That(session.EchoAcquisitionCount, Is.Zero);
         }
@@ -66,9 +67,9 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ResolutionPriority_PlayerThenEchoThenShield()
+        public void ResolutionPriority_PlayerThenEcho()
         {
-            ExperimentSession session = CreatePlayingEcho(true);
+            ExperimentSession session = CreatePlayingEcho(false);
             ExperimentGatePlan provider = AdvanceToProvider(session);
             MatchColor(session, provider.Color);
             Assert.That(session.Resolve(provider), Is.True);
@@ -83,7 +84,7 @@ namespace ColorGateRunner.Tests.EditMode
                 session.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.PlayerColorMatch));
             Assert.That(session.EchoActive, Is.True);
-            Assert.That(session.ShieldActive, Is.True);
+            Assert.That(session.ShieldActive, Is.False);
 
             SetDifferentColor(session, stored);
             ExperimentGatePlan echoMatch = CreatePlan(
@@ -94,16 +95,6 @@ namespace ColorGateRunner.Tests.EditMode
                 session.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
             Assert.That(session.EchoActive, Is.False);
-            Assert.That(session.ShieldActive, Is.True);
-
-            RunnerColor mismatch = NextColor(session, session.CurrentColor);
-            ExperimentGatePlan shielded = CreatePlan(
-                session.GatesPassed,
-                mismatch);
-            Assert.That(session.Resolve(shielded), Is.True);
-            Assert.That(
-                session.LastResolution,
-                Is.EqualTo(ExperimentGateResolution.ShieldDefense));
             Assert.That(session.ShieldActive, Is.False);
         }
 

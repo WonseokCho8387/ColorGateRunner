@@ -66,13 +66,21 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(_controller.ExperimentSession.EchoActive, Is.True);
             Assert.That(_controller.EchoShellVisual.activeSelf, Is.True);
+            Color expected = _controller.GetPresentationMaterial(
+                _controller.ExperimentSession.EchoColor).color;
+            Assert.That(_controller.EchoField.FieldColor.r,
+                Is.EqualTo(expected.r).Within(0.0001f));
+            Assert.That(_controller.EchoField.FieldColor.g,
+                Is.EqualTo(expected.g).Within(0.0001f));
+            Assert.That(_controller.EchoField.FieldColor.b,
+                Is.EqualTo(expected.b).Within(0.0001f));
             yield return null;
         }
 
         [UnityTest]
         public IEnumerator EchoConsumptionHidesShellWithoutUsingShield()
         {
-            StartEcho(true);
+            StartEcho();
             EnterPlaying();
             StageGateView provider = PassUntilProvider();
             MatchColor(provider.AssignedColor);
@@ -82,9 +90,6 @@ namespace ColorGateRunner.Tests.PlayMode
             StageGateView current = FindGate(
                 _controller.ExperimentSession.GatesPassed);
             SetDifferentColor(echoColor);
-            current.ApplyTemporaryPlan(
-                current.ActivePlan.WithTemporaryColorOverride(echoColor),
-                _controller.GetPresentationMaterial(echoColor));
 
             ExperimentGatePlan echoPlan = new ExperimentGatePlan(
                 _controller.ExperimentSession.GatesPassed,
@@ -95,10 +100,46 @@ namespace ColorGateRunner.Tests.PlayMode
                 current.ActiveExperimentPlan.Spacing,
                 MechanicExperimentType.Echo,
                 GateModifier.None);
-            _controller.ExperimentSession.Resolve(echoPlan);
-            _controller.HandleGameplayTap();
+            ExperimentDefinition definition =
+                _controller.ExperimentSession.Definition;
+            Material echoMaterial =
+                _controller.GetPresentationMaterial(echoColor);
+            current.ActivateExperiment(
+                echoPlan,
+                echoMaterial,
+                echoMaterial,
+                current.transform.position.z,
+                _controller.ExperimentSession.GatesPassed,
+                0f,
+                definition.Camouflage,
+                definition.Hidden,
+                definition.Flicker,
+                _controller.ExperimentSession.ElapsedPlayingSeconds);
+            Assert.That(current.TryResolveCrossing(), Is.True);
 
             Assert.That(_controller.ExperimentSession.EchoActive, Is.False);
+            Assert.That(_controller.ExperimentSession.ShieldActive, Is.False);
+            Assert.That(_controller.EchoShellVisual.activeSelf, Is.False);
+            Assert.That(
+                _controller.EchoField.CollapseParticles.isPlaying,
+                Is.True);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ShieldedEchoAttempt_HasNoProvider()
+        {
+            StartEcho(true);
+            EnterPlaying();
+
+            for (int gate = 0; gate < _controller.GatePoolSize; gate++)
+            {
+                Assert.That(
+                    _controller.GetGate(gate)
+                        .ActiveExperimentPlan.IsEchoProvider,
+                    Is.False);
+            }
+
             Assert.That(_controller.ExperimentSession.ShieldActive, Is.True);
             Assert.That(_controller.EchoShellVisual.activeSelf, Is.False);
             yield return null;

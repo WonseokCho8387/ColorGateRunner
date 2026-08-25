@@ -200,6 +200,23 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void EchoStage_SelectedShieldBlocksProvidersForWholeAttempt()
+        {
+            StageSession session = CreatePlaying(
+                18,
+                new StartItemSelection(true, false));
+
+            for (int gate = 0; gate < session.Stage.TargetGateCount; gate++)
+            {
+                GatePlan plan = session.GetGatePlan(gate);
+                Assert.That(plan.Modifier.IsEchoProvider, Is.False);
+            }
+
+            Assert.That(session.EchoActive, Is.False);
+            Assert.That(session.EchoAcquisitionCount, Is.Zero);
+        }
+
+        [Test]
         public void AuthoredSpeedCurves_AreSampledForDeterministicCoreUse()
         {
             Assert.That(

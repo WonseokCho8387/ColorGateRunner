@@ -2201,3 +2201,50 @@ Human feedback required
   Stage and prolonged development runs.
 - Protection-field, Echo exclusion and Warp Booster work remain the separately
   approved next iteration.
+
+## Iteration 35 — Protection Field and Warp Booster
+
+### Play / Analyze
+
+- The existing Shield and Echo shells were six/four block segments and did not
+  match the requested transparent energy-field direction. Booster used two
+  opaque side box emitters rather than a forward Warp field.
+- Allowing Echo Providers after an attempt selected normal Shield could create
+  redundant protection and undermine the requested single-purpose Echo color.
+
+### Design / Implementation
+
+- Added one original URP transparent shader with procedural hex cells, Fresnel
+  rim, subtle motion and emissive output. Two Builder-owned
+  `ProtectionFieldView` instances reuse it; normal Shield is Cyan and Echo sets
+  only the exact stored hue through a property block. Each view references one
+  fixed sibling emitter that plays a 0.35-second exact-hue outward pulse when
+  the protection is consumed and freezes through the existing pause contract.
+- Rebuilt Booster under its existing particle root as centered Cyan and Gold
+  radius-five circle layers with stretched additive streaks, 35-unit speed,
+  1.5-second lifetime, two-ended fade and 160 combined particle capacity.
+- Added an immutable attempt-level block to the existing Echo offer API.
+  Selected or stage-provided normal Shield suppresses all Campaign and
+  Experiment Echo Providers through consumption, Continue and retained Retry.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes and validates both field
+  instances, shader ownership, both collapse emitters, two Warp layers, exact
+  configuration and cap.
+- Focused Core/EditMode and PlayMode coverage passed, including real Shield and
+  Echo consumption paths. Full EditMode passed `436/436`; full post-Builder
+  PlayMode passed `235/235`.
+- Two Campaign simulation runs produced 400 byte-identical rows. Exactly 24
+  Shield-bearing rows in Echo Stages 18–20 changed; every no-Shield row is
+  exact. Two Step 10 runs retained all five approved artifact hashes.
+- Attempt setup is the stable place to enforce mechanic mutual exclusion;
+  checking live Shield state would make future gates change after consumption.
+
+### Deferred / Human Review
+
+- Human portrait/device play owns protection-field transparency and scale,
+  exact Echo color recognition, Warp density, center readability, Bloom balance
+  and mobile performance.
+- Texture-authored field noise, sound design, haptic expansion and quality
+  tiers remain separate polish work.

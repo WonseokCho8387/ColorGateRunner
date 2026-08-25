@@ -11,8 +11,8 @@ iterations but do not override this section.
 - Implementation base HEAD: `12011cc`
 - Base commit: `feat: apply neon ui skin`
 - Authoritative completion HEAD: the commit named
-  `fix: preserve recycled track continuity`; its exact hash is
-  recorded in the Iteration 34 final report because a commit cannot contain
+  `feat: upgrade protection and booster effects`; its exact hash is
+  recorded in the Iteration 35 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 34 — Recycled Track Continuity**.
+- Current completed iteration: **Iteration 35 — Protection and Warp VFX**.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -119,6 +119,20 @@ below where their contracts differ.
   imported-art parent pivot, to the requested world start. Reset and recycling
   therefore keep all six fixed segments end-to-start continuous beyond the
   authored Stage distance without pool growth, overlap or a disappearing road.
+- Shield and Echo now share one original transparent spherical protection-field
+  presentation with a procedural hex grid, Fresnel rim, restrained motion and
+  Bloom-reactive emission. Normal Shield is fixed Cyan/Electric Blue; held Echo
+  uses only its exact stored runner hue through a property block. Consumption
+  emits one short outward pulse in that same exact field hue before the surface
+  disappears. An attempt
+  that starts with a selected or stage-provided normal Shield generates no Echo
+  Provider gates for that entire attempt in Campaign or Experiment, including
+  after Shield consumption, Continue or Retry with the retained selection.
+- Booster presentation is a fixed camera-local Warp field with centered Cyan
+  and Gold circle layers, stretched additive particles, two-ended lifetime
+  fade and a hard 160-particle emitted capacity. It reuses the existing
+  Booster state, distance, FOV, warning and pause ownership and allocates no
+  runtime emitter.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
@@ -189,14 +203,15 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `434/434`
-- PlayMode: `233/233`
-- Post-Builder PlayMode: `233/233`
+- EditMode: `436/436`
+- PlayMode: `235/235`
+- Post-Builder PlayMode: `235/235`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 33 passes completed; normalized
-  imported-art roots, horizontal Track bounds, fixed pools, references and
+- Campaign Builder: two consecutive Iteration 35 passes completed; normalized
+  imported-art roots, continuous Track anchors, two protection fields, two
+  fixed collapse emitters, two capped Warp layers, fixed pools, references and
   Build Settings passed
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
@@ -212,30 +227,33 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 231, highest unlocked Stage ID `stage-17` with 16 records,
-  800 Coins, 2 Shields, 1 Booster and 4 Hearts.
+- Schema 3, revision 237, highest unlocked Stage ID `stage-17` with 16 records,
+  800 Coins, 0 Shields, 0 Boosters and 1 Heart.
 - SHA-256:
-  `D37427A7C23887772F9C95A24D3D23C84260A5EA11E2FB2AB37252D72652F640`.
+  `2B0C672FD2DB24AEC8308640534FD89641670031A80150F36FB4403387D50068`.
 - The already-open original Editor advanced the live Heart clock from the
-  prior revision and recorded the user's latest play state during
-  implementation. Validation ran in an isolated project copy and did not
-  restore or mutate this file. Developer Console
+  prior revision and recorded the user's later play/item state before this
+  iteration's validation. Validation ran in an isolated project copy and did
+  not restore or mutate this file. Developer Console
   mutations still occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
 - Rows: `400`
 - Summary SHA-256:
-  `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`
+  `32FA88ABFE9D818A5021FF910E14AA194A65997FBEF740D8E0D7CA7DD4177194`
 - JSON SHA-256:
-  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`
+  `26CEADE2C12301EA6A238C528C6D435A8CEAAAC0D0D774B4792A56882B43A188`
 - CSV SHA-256:
-  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`
+  `99DDA8E9CED187E54EEE90BD3CC62950EF938CF6D7894A5826EC2F22A927DD57`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
-- Step 10 was not rerun because its Experiment contracts and inputs did not
-  change; the Step 10 baseline below remains authoritative.
+- Exactly 24 of 400 rows changed: Shield and Shield+Booster profiles for Echo
+  Stages 18–20, excluding perfect-play rows whose metrics remain identical.
+  Every no-Shield row is exact to the prior baseline.
+- Step 10 was rerun twice. Its 80-row, 64,016-run artifacts remain byte-exact
+  to the baseline below.
 
 ### Step 10 simulation baseline
 
@@ -296,6 +314,33 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 35 validation result
+
+- Starting HEAD `c4462e5` was clean. Completion commit name:
+  `feat: upgrade protection and booster effects`.
+- Campaign and Experiment now pass an immutable attempt-level normal-Shield
+  exclusion into the existing deterministic Echo coordinator. Selected and
+  stage-provided Shield suppress every Echo Provider; Echo itself does not.
+- Builder replaced the six/four cube Shield/Echo shells with two instances of
+  one transparent procedural-hex field and replaced side box speed lines with
+  centered Cyan/Gold Warp layers capped at 160 emitted particles. Shield and
+  Echo consumption now trigger fixed, pause-owned 0.35-second outward pulses
+  using the exact consumed field hue.
+- Campaign Builder completed two consecutive passes. Focused Core and
+  PlayMode coverage, including both consumption pulses, passed; full EditMode
+  passed `436/436`, and full final post-Builder PlayMode passed `235/235`.
+- Campaign simulation ran twice with 400 byte-identical rows and the new hashes
+  above. Only 24 Shield-bearing rows in Echo Stages 18–20 changed; all
+  no-Shield rows are exact. Step 10 ran twice and retained every approved hash.
+- Package and meaningful ProjectSettings hashes remain exact. Isolated
+  validation did not use or mutate the developer Product save. The already-open
+  original Editor had independently advanced that save from revision 231 to
+  revision 237 before final validation; the revision 237 snapshot above was
+  preserved rather than restored.
+- Human portrait/device review owns field transparency, hex scale, Echo hue
+  recognition, Warp density, central readability, Bloom balance and mobile
+  frame cost.
 
 ## Iteration 34 validation result
 

@@ -612,3 +612,29 @@ The three-Continue cap and original prices below are superseded by Iteration
 - Human portrait review still owns camera composition, road depth, gate/runner
   contact readability and whether the corrected horizon feels comfortable on
   the target device.
+
+## Iteration 35 Protection field and Warp Booster
+
+- This section supersedes the Iteration 4 cube-segment Shield/Echo shells and
+  simultaneous separation requirement. A normal Shield attempt cannot generate
+  Echo Providers, so the two fields never need to communicate simultaneous
+  layers in normal play.
+- Shield and held Echo use the same original transparent sphere language:
+  procedural hex cells, Fresnel edge, subtle surface motion and emissive output
+  that reacts to the existing restrained URP Bloom. No tutorial asset or new
+  render package is imported.
+- Normal Shield is Cyan/Electric Blue. Echo uses only its stored effective
+  runner color; brightness and alpha may animate, but no secondary hue,
+  rainbow edge or color gradient may contaminate recognition.
+- Consumption collapses the surface immediately and emits one 0.35-second
+  outward particle pulse in the exact same field hue. Shield and Echo each own
+  one fixed Builder-created emitter; no runtime effect object is created.
+- Warp Booster is camera-local and centered. Two additive stretched-particle
+  layers use Cyan and Gold, emit from a radius-five circle toward the camera,
+  travel at 35 units/second for 1.5 seconds and fade at both lifetime ends.
+  Their combined emitted capacity is capped at 160 and the center remains
+  readable through a hollow radial origin rather than an opaque overlay.
+- Existing Booster distance, FOV, warning, camera blend, pause and state timing
+  remain unchanged. Both collapse emitters participate in the existing attempt
+  pause contract. Human device review owns pulse intensity, density, streak
+  length, Bloom, field transparency and mobile frame cost.

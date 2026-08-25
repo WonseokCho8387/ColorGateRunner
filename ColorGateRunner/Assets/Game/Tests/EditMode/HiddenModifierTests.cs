@@ -322,11 +322,11 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void HeldEcho_ResolvesHiddenWithoutConsumingShield()
+        public void HeldEcho_ResolvesHiddenUsingStoredColor()
         {
             ExperimentSession session = new ExperimentSession(
                 ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
-                new StartItemSelection(true, false));
+                new StartItemSelection(false, false));
             session.CompleteCountdown();
             ExperimentGatePlan provider = AdvanceToProvider(session);
             MatchColor(session, provider.Color);
@@ -351,7 +351,7 @@ namespace ColorGateRunner.Tests.EditMode
                 session.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
             Assert.That(session.EchoActive, Is.False);
-            Assert.That(session.ShieldActive, Is.True);
+            Assert.That(session.ShieldActive, Is.False);
         }
 
         private static HiddenSettings CreateSettings(

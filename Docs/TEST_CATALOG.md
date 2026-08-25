@@ -944,3 +944,27 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   40-unit span, every ordered seam and forward coverage after every step.
 - `GrayboxSceneBuilder.ValidateTrackPoolContinuity` rejects incorrect anchor
   spans and initial gap/overlap before accepting either Builder pass.
+
+## Iteration 35 current coverage
+
+- `EchoOfferCoordinatorTests.AttemptBlock_PreventsOfferWithoutChangingDeterministicSlot`
+  fixes the offer API's attempt-block behavior.
+- `CampaignMechanicStageTests.EchoStage_SelectedShieldBlocksProvidersForWholeAttempt`
+  and `Iteration3EchoTests.ShieldedAttempt_HasNoEchoProviderForEntireRun`
+  cover Campaign and Experiment exclusion while existing no-Shield Echo tests
+  retain deterministic acquisition and consumption.
+- `Iteration3EchoPlayModeTests.DirectMatchActivatesColoredEchoShell` verifies
+  exact stored RGB on the active field, and
+  `EchoConsumptionHidesShellWithoutUsingShield` verifies the real gate path
+  hides the field and starts its collapse emitter. `ShieldedEchoAttempt_HasNoProvider`
+  verifies generated initial pool output.
+- `GrayboxScenePlayModeTests.ShieldBreak_EntersRecoveryAndRecoversPresentation`
+  verifies Shield consumption hides the surface and starts its collapse
+  emitter before recovery.
+- `GrayboxScenePlayModeTests.ProtectionFields_UseTransparentHexShaderWithoutHidingRunner`
+  verifies the shared field structure and shader.
+- `GrayboxScenePlayModeTests.WarpBooster_UsesCenteredCyanGoldLayersWithinParticleCap`
+  fixes the two centered Circle layers, motion/lifetime/rendering parameters,
+  semantic colors and hard capacity.
+- `GrayboxSceneBuilder.ValidateProtectionAndWarpEffects` applies the structural
+  and capacity contracts to both consecutive Builder passes.

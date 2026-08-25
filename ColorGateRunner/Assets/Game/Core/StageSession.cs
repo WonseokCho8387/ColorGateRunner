@@ -237,7 +237,8 @@ namespace ColorGateRunner.Core
                 plan.GateId,
                 progress,
                 false,
-                plan.Modifier);
+                plan.Modifier,
+                _items.Shield || StageProvidesShield);
             return plan.WithModifier(modifier);
         }
 

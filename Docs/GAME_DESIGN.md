@@ -331,10 +331,19 @@ relationship, `0.45s` insertion gap, or `CLONE MISS`.
   count. An exact player-color match stores the gate's effective color in one
   non-stacking player Echo.
 - Judgment priority is Player match, Echo match, Shield, then failure. Echo
-  and Shield cannot be consumed by the same judgment.
+  and Shield cannot be consumed by the same judgment. A consumed Shield or
+  Echo emits one short presentation-only pulse in its own field color; this
+  does not extend protection or alter judgment timing.
 - Echo cannot be acquired from Echo-assisted, Shielded, Continue-protected, or
   automatic success. Runtime offer state prevents a second visible provider
   while Echo is held or another offer is active.
+- Iteration 35 adds attempt-level normal-Shield exclusion. If an attempt begins
+  with selected Shield or a stage-provided Shield grant, no Echo Provider is
+  generated for that entire attempt in Campaign or Experiment. Consuming the
+  Shield or using Continue does not reopen offers; Retry with the retained
+  Shield selection remains excluded. Starting without normal Shield preserves
+  the existing deterministic Echo slots, and a held Echo is not a normal
+  Shield for this rule.
 - Camouflage reveal is based on deterministic ETA rather than gate count. A
   reveal never reverses, and visibility never exempts judgment.
 - Stages 1-5 do not allow start-item selection. Stage 6 grants one stage-local

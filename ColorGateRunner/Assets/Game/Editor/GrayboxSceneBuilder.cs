@@ -32,6 +32,7 @@ namespace ColorGateRunner.Editor
         internal static readonly Color CyanColor = FromHex(0x00B8D9);
         internal static readonly Color NeutralColor = FromHex(0xD9D9D9);
         internal static readonly Color FailureColor = FromHex(0x6B7280);
+        internal static readonly Color WarpGoldColor = FromHex(0xFF9D18);
 
         private static readonly Vector3 PlayerStartPosition =
             new Vector3(0f, 1f, 0f);
@@ -80,6 +81,19 @@ namespace ColorGateRunner.Editor
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
                 new Color(0.12f, 0.18f, 0.26f, 1f));
+            Material protectionFieldMaterial =
+                CreateOrUpdateProtectionFieldMaterial(
+                    GeneratedMaterialsFolder + "/ProtectionField.mat");
+            Material warpCyanMaterial = CreateOrUpdateAdditiveParticleMaterial(
+                GeneratedMaterialsFolder + "/WarpCyan.mat",
+                CyanColor);
+            Material warpGoldMaterial = CreateOrUpdateAdditiveParticleMaterial(
+                GeneratedMaterialsFolder + "/WarpGold.mat",
+                WarpGoldColor);
+            Material protectionPulseMaterial =
+                CreateOrUpdateAdditiveParticleMaterial(
+                    GeneratedMaterialsFolder + "/ProtectionPulse.mat",
+                    Color.white);
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             RemovePreviousSceneObjects(scene);
@@ -102,10 +116,20 @@ namespace ColorGateRunner.Editor
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             TimedFogCurtainView fogCurtain =
                 CreateFogCurtain(root.transform, fogCurtainMaterial);
+            ParticleSystem shieldCollapse;
             GameObject shieldVisual =
-                CreateShieldVisual(playerObject.transform, blue);
+                CreateShieldVisual(
+                    playerObject.transform,
+                    protectionFieldMaterial,
+                    protectionPulseMaterial,
+                    out shieldCollapse);
+            ParticleSystem echoCollapse;
             GameObject echoShellVisual =
-                CreateEchoShellVisual(playerObject.transform, blue);
+                CreateEchoShellVisual(
+                    playerObject.transform,
+                    protectionFieldMaterial,
+                    protectionPulseMaterial,
+                    out echoCollapse);
             GameObject goal = CreateGoal(root.transform, darkAlloy, cyan);
             StageGateView[] gates =
                 CreateGatePool(root.transform, controller, darkAlloy, neutral);
@@ -118,7 +142,10 @@ namespace ColorGateRunner.Editor
                     green,
                     false);
             ParticleSystem speedLines =
-                CreateBoosterSpeedLines(camera.transform, blue);
+                CreateBoosterSpeedLines(
+                    camera.transform,
+                    warpCyanMaterial,
+                    warpGoldMaterial);
 
             Canvas canvas = CreateCanvas(root.transform);
             GameplayTapSurface tapSurface =
@@ -401,7 +428,13 @@ namespace ColorGateRunner.Editor
                 pauseModalCancel,
                 pauseSettingsPanel,
                 pauseTransitionBlocker,
-                new[] { successParticles, speedLines },
+                new[]
+                {
+                    successParticles,
+                    speedLines,
+                    shieldCollapse,
+                    echoCollapse
+                },
                 frontendPath);
             controller.ConfigureThemeVisuals(gateBreakEffects);
 
@@ -677,8 +710,8 @@ namespace ColorGateRunner.Editor
                 "SuccessParticles",
                 "GateBreakEffectPool",
                 "BoosterSpeedLines",
-                "BoosterSpeedLinesLeft",
-                "BoosterSpeedLinesRight",
+                "BoosterWarpCyan",
+                "BoosterWarpGold",
                 "EventSystem"
             };
             for (int index = 0; index < uniqueNames.Length; index++)
@@ -763,6 +796,7 @@ namespace ColorGateRunner.Editor
                     "Theme 01 camera post-processing is disabled.");
             }
             ValidateTheme01ArtworkAxes(generatedRoot);
+            ValidateProtectionAndWarpEffects(generatedRoot);
         }
 
         private static void ValidateTheme01ArtworkAxes(GameObject generatedRoot)
@@ -838,6 +872,91 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     $"Theme 01 track must be horizontal. Bounds={bounds.size}.");
+            }
+        }
+
+        private static void ValidateProtectionAndWarpEffects(
+            GameObject generatedRoot)
+        {
+            ProtectionFieldView[] fields =
+                generatedRoot.GetComponentsInChildren<ProtectionFieldView>(true);
+            if (fields.Length != 2)
+            {
+                throw new InvalidOperationException(
+                    $"Expected two protection fields, found {fields.Length}.");
+            }
+            for (int index = 0; index < fields.Length; index++)
+            {
+                Renderer[] renderers =
+                    fields[index].GetComponentsInChildren<Renderer>(true);
+                if (!fields[index].HasRequiredReferences() ||
+                    fields[index].RendererCount != 1 ||
+                    renderers.Length != 1 ||
+                    renderers[0].sharedMaterial == null ||
+                    renderers[0].sharedMaterial.shader == null ||
+                    renderers[0].sharedMaterial.shader.name !=
+                        "ColorGateRunner/ProtectionField")
+                {
+                    throw new InvalidOperationException(
+                        $"Protection field {fields[index].name} is incomplete.");
+                }
+                ParticleSystem collapse = fields[index].CollapseParticles;
+                ParticleSystem.MainModule collapseMain = collapse.main;
+                ParticleSystem.ShapeModule collapseShape = collapse.shape;
+                ParticleSystemRenderer collapseRenderer =
+                    collapse.GetComponent<ParticleSystemRenderer>();
+                if (collapseMain.loop || collapseMain.playOnAwake ||
+                    collapseMain.maxParticles != 36 ||
+                    !Mathf.Approximately(
+                        collapseMain.startLifetime.constant,
+                        0.35f) ||
+                    collapseShape.shapeType != ParticleSystemShapeType.Sphere ||
+                    collapseRenderer.sharedMaterial == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Protection collapse {collapse.name} is incomplete.");
+                }
+            }
+
+            Transform warpRoot = FindNamedTransform(
+                generatedRoot.transform,
+                "BoosterSpeedLines");
+            ParticleSystem[] systems = warpRoot == null
+                ? Array.Empty<ParticleSystem>()
+                : warpRoot.GetComponentsInChildren<ParticleSystem>(true);
+            if (systems.Length != 3)
+            {
+                throw new InvalidOperationException(
+                    $"Warp Booster requires one root and two layers, found " +
+                    systems.Length + ".");
+            }
+            int emittedCapacity = 0;
+            for (int index = 0; index < systems.Length; index++)
+            {
+                if (systems[index].transform == warpRoot)
+                {
+                    continue;
+                }
+                ParticleSystem.MainModule main = systems[index].main;
+                ParticleSystem.ShapeModule shape = systems[index].shape;
+                ParticleSystemRenderer renderer =
+                    systems[index].GetComponent<ParticleSystemRenderer>();
+                emittedCapacity += main.maxParticles;
+                if (!Mathf.Approximately(main.startLifetime.constant, 1.5f) ||
+                    !Mathf.Approximately(main.startSpeed.constant, 35f) ||
+                    shape.shapeType != ParticleSystemShapeType.Circle ||
+                    shape.radius < 4.9f ||
+                    renderer.renderMode != ParticleSystemRenderMode.Stretch ||
+                    renderer.sharedMaterial == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Warp layer {systems[index].name} is not configured.");
+                }
+            }
+            if (emittedCapacity > 160)
+            {
+                throw new InvalidOperationException(
+                    $"Warp Booster particle cap is {emittedCapacity}, max 160.");
             }
         }
 
@@ -1210,60 +1329,131 @@ namespace ColorGateRunner.Editor
 
         private static GameObject CreateShieldVisual(
             Transform player,
-            Material material)
+            Material material,
+            Material pulseMaterial,
+            out ParticleSystem collapse)
         {
-            GameObject shield = new GameObject("ShieldVisual");
-            shield.transform.SetParent(player, false);
-            for (int index = 0; index < 6; index++)
-            {
-                GameObject segment =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                segment.name = $"ShieldArc_{index:00}";
-                segment.transform.SetParent(shield.transform, false);
-                float angle = index * 60f * Mathf.Deg2Rad;
-                segment.transform.localPosition = new Vector3(
-                    Mathf.Cos(angle) * 1.15f,
-                    Mathf.Sin(angle) * 1.15f,
-                    0f);
-                segment.transform.localRotation =
-                    Quaternion.Euler(0f, 0f, index * 60f);
-                segment.transform.localScale =
-                    new Vector3(0.7f, 0.12f, 0.12f);
-                segment.GetComponent<Renderer>().sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(
-                    segment.GetComponent<Collider>());
-            }
-            return shield;
+            return CreateProtectionField(
+                "ShieldVisual",
+                "ShieldFieldSurface",
+                "ShieldFieldCollapse",
+                player,
+                material,
+                pulseMaterial,
+                CyanColor,
+                2.9f,
+                out collapse);
         }
 
         private static GameObject CreateEchoShellVisual(
             Transform player,
-            Material material)
+            Material material,
+            Material pulseMaterial,
+            out ParticleSystem collapse)
         {
-            GameObject shell = new GameObject("EchoShellVisual");
-            shell.transform.SetParent(player, false);
-            shell.transform.localScale = Vector3.one * 0.92f;
-            for (int index = 0; index < 4; index++)
-            {
-                GameObject segment =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                segment.name = $"EchoShellSegment_{index:00}";
-                segment.transform.SetParent(shell.transform, false);
-                float angle = index * 90f * Mathf.Deg2Rad;
-                segment.transform.localPosition = new Vector3(
-                    Mathf.Cos(angle) * 0.82f,
-                    Mathf.Sin(angle) * 0.82f,
-                    -0.08f);
-                segment.transform.localRotation =
-                    Quaternion.Euler(0f, 0f, 45f + (index * 90f));
-                segment.transform.localScale =
-                    new Vector3(0.52f, 0.09f, 0.09f);
-                segment.GetComponent<Renderer>().sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(
-                    segment.GetComponent<Collider>());
-            }
+            GameObject shell = CreateProtectionField(
+                "EchoShellVisual",
+                "EchoFieldSurface",
+                "EchoFieldCollapse",
+                player,
+                material,
+                pulseMaterial,
+                BlueColor,
+                2.65f,
+                out collapse);
             shell.SetActive(false);
             return shell;
+        }
+
+        private static GameObject CreateProtectionField(
+            string rootName,
+            string surfaceName,
+            string collapseName,
+            Transform player,
+            Material material,
+            Material pulseMaterial,
+            Color initialColor,
+            float diameter,
+            out ParticleSystem collapse)
+        {
+            GameObject root = new GameObject(
+                rootName,
+                typeof(ProtectionFieldView));
+            root.transform.SetParent(player, false);
+            root.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+
+            GameObject surface =
+                GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            surface.name = surfaceName;
+            surface.transform.SetParent(root.transform, false);
+            surface.transform.localScale = Vector3.one * diameter;
+            Renderer renderer = surface.GetComponent<Renderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode =
+                UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            UnityEngine.Object.DestroyImmediate(surface.GetComponent<Collider>());
+
+            collapse = CreateProtectionCollapse(
+                collapseName,
+                player,
+                pulseMaterial,
+                diameter);
+
+            ProtectionFieldView view = root.GetComponent<ProtectionFieldView>();
+            view.Configure(new[] { renderer }, collapse, initialColor);
+            return root;
+        }
+
+        private static ParticleSystem CreateProtectionCollapse(
+            string name,
+            Transform player,
+            Material material,
+            float diameter)
+        {
+            GameObject effect = new GameObject(name, typeof(ParticleSystem));
+            effect.transform.SetParent(player, false);
+            effect.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule main = particles.main;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.duration = 0.35f;
+            main.startLifetime = 0.35f;
+            main.startSpeed = 2.5f;
+            main.startSize = 0.08f;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.maxParticles = 36;
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(
+                new[] { new ParticleSystem.Burst(0f, 32) });
+            ParticleSystem.ShapeModule shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = diameter * 0.5f;
+            shape.radiusThickness = 0.02f;
+
+            ParticleSystem.ColorOverLifetimeModule colorOverLifetime =
+                particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            Gradient fade = new Gradient();
+            fade.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(Color.white, 0f),
+                    new GradientColorKey(Color.white, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = fade;
+
+            ParticleSystemRenderer renderer =
+                effect.GetComponent<ParticleSystemRenderer>();
+            renderer.sharedMaterial = material;
+            return particles;
         }
 
         private static GameObject CreateGoal(
@@ -1429,7 +1619,8 @@ namespace ColorGateRunner.Editor
 
         private static ParticleSystem CreateBoosterSpeedLines(
             Transform camera,
-            Material material)
+            Material cyanMaterial,
+            Material goldMaterial)
         {
             GameObject root = new GameObject(
                 "BoosterSpeedLines",
@@ -1437,54 +1628,98 @@ namespace ColorGateRunner.Editor
             root.transform.SetParent(camera, false);
             ParticleSystem rootParticles = root.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule rootMain = rootParticles.main;
-            rootMain.loop = false;
+            rootMain.loop = true;
             rootMain.playOnAwake = false;
+            rootMain.maxParticles = 1;
             ParticleSystem.EmissionModule rootEmission =
                 rootParticles.emission;
             rootEmission.enabled = false;
             root.GetComponent<ParticleSystemRenderer>().enabled = false;
 
-            CreateSpeedLineEmitter(
-                "BoosterSpeedLinesLeft",
+            CreateWarpEmitter(
+                "BoosterWarpCyan",
                 root.transform,
-                new Vector3(-3.4f, -0.8f, 5f),
-                material);
-            CreateSpeedLineEmitter(
-                "BoosterSpeedLinesRight",
+                cyanMaterial,
+                48f,
+                0f);
+            CreateWarpEmitter(
+                "BoosterWarpGold",
                 root.transform,
-                new Vector3(3.4f, -0.8f, 5f),
-                material);
+                goldMaterial,
+                34f,
+                11.25f);
             return rootParticles;
         }
 
-        private static void CreateSpeedLineEmitter(
+        private static void CreateWarpEmitter(
             string name,
             Transform parent,
-            Vector3 localPosition,
-            Material material)
+            Material material,
+            float emissionRate,
+            float arcOffset)
         {
             GameObject emitter = new GameObject(name, typeof(ParticleSystem));
             emitter.transform.SetParent(parent, false);
-            emitter.transform.localPosition = localPosition;
+            emitter.transform.localPosition = new Vector3(0f, 0f, 18f);
+            emitter.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             ParticleSystem particles = emitter.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule main = particles.main;
             main.loop = true;
             main.playOnAwake = false;
-            main.duration = 0.5f;
-            main.startLifetime = 0.3f;
-            main.startSpeed = 18f;
-            main.startSize = 0.06f;
+            main.duration = 2f;
+            main.startLifetime = 1.5f;
+            main.startSpeed = 35f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.035f, 0.075f);
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.maxParticles = 80;
             ParticleSystem.EmissionModule emission = particles.emission;
-            emission.rateOverTime = 32f;
+            emission.rateOverTime = emissionRate;
             ParticleSystem.ShapeModule shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(1.2f, 5f, 0.2f);
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 5f;
+            shape.radiusThickness = 0.72f;
+            shape.arc = 360f;
+            shape.arcMode = ParticleSystemShapeMultiModeValue.Random;
+            shape.arcSpread = 0.08f;
+            shape.rotation = new Vector3(0f, 0f, arcOffset);
+
+            ParticleSystem.ColorOverLifetimeModule colorOverLifetime =
+                particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            Gradient fade = new Gradient();
+            fade.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(Color.white, 0f),
+                    new GradientColorKey(Color.white, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(0f, 0f),
+                    new GradientAlphaKey(1f, 0.12f),
+                    new GradientAlphaKey(0.9f, 0.78f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = fade;
+
+            ParticleSystem.SizeOverLifetimeModule sizeOverLifetime =
+                particles.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            AnimationCurve sizeCurve = new AnimationCurve(
+                new Keyframe(0f, 0.25f),
+                new Keyframe(0.18f, 1f),
+                new Keyframe(1f, 0.45f));
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(
+                1f,
+                sizeCurve);
+
             ParticleSystemRenderer renderer =
                 emitter.GetComponent<ParticleSystemRenderer>();
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
-            renderer.lengthScale = 3.5f;
-            renderer.velocityScale = 0.25f;
+            renderer.lengthScale = 7f;
+            renderer.velocityScale = 0.22f;
+            renderer.cameraVelocityScale = 0f;
+            renderer.maxParticleSize = 0.12f;
             renderer.sharedMaterial = material;
         }
 
@@ -2722,6 +2957,71 @@ namespace ColorGateRunner.Editor
             material.SetFloat("_ZWrite", 0f);
             material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateProtectionFieldMaterial(
+            string path)
+        {
+            Shader shader = Shader.Find("ColorGateRunner/ProtectionField");
+            if (shader == null)
+            {
+                throw new InvalidOperationException(
+                    "ColorGateRunner/ProtectionField shader is missing.");
+            }
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+            material.SetColor("_FieldColor", CyanColor);
+            material.SetFloat("_FieldPulse", 1f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateAdditiveParticleMaterial(
+            string path,
+            Color color)
+        {
+            Shader shader =
+                Shader.Find("Universal Render Pipeline/Particles/Unlit") ??
+                Shader.Find("Universal Render Pipeline/Unlit") ??
+                Shader.Find("Standard");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 2f);
+            material.SetFloat(
+                "_SrcBlend",
+                (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat(
+                "_DstBlend",
+                (float)UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue =
+                (int)UnityEngine.Rendering.RenderQueue.Transparent + 10;
             EditorUtility.SetDirty(material);
             return material;
         }

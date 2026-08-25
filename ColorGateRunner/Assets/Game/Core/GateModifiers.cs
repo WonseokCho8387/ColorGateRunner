@@ -979,7 +979,8 @@ namespace ColorGateRunner.Core
             int gateId,
             float progress,
             bool isGoal,
-            GateModifier existingModifier)
+            GateModifier existingModifier,
+            bool offersBlockedForAttempt = false)
         {
             if (gateId < 0)
             {
@@ -989,7 +990,8 @@ namespace ColorGateRunner.Core
             {
                 throw new ArgumentOutOfRangeException(nameof(progress));
             }
-            if (!_settings.Enabled ||
+            if (offersBlockedForAttempt ||
+                !_settings.Enabled ||
                 isGoal ||
                 EchoActive ||
                 EchoCooldownRemaining > 0 ||

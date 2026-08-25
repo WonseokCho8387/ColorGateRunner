@@ -1355,3 +1355,25 @@ Status: Approved and implemented.
 - Builder validation rejects a segment with a non-40-unit anchor span or any
   initial seam gap/overlap. Long-distance PlayMode coverage owns the runtime
   continuity regression.
+
+## Iteration 35 — Normal Shield excludes Echo for the attempt
+
+- Campaign and Experiment share one attempt-level exclusion passed into the
+  existing deterministic `EchoOfferCoordinator`; no parallel gate generator or
+  runtime service is introduced.
+- Selected Shield and stage-provided Shield both exclude Echo Providers for the
+  whole attempt. The decision is based on attempt setup, not current
+  `ShieldActive`, so consumption and Continue cannot dynamically reopen Echo.
+- Retry retains the selected item and therefore remains excluded. An attempt
+  started without normal Shield keeps the prior deterministic Echo behavior;
+  held Echo does not trigger this exclusion.
+- Shield and Echo presentation share one `ProtectionFieldView` and one original
+  procedural-hex shader. Material property blocks apply a fixed Cyan Shield or
+  the exact stored Echo hue without cloning materials at runtime.
+- Each field references one fixed sibling collapse emitter. Consumption hides
+  the field and plays a 0.35-second outward pulse using that exact field color;
+  both emitters are registered with the existing pause-owned attempt effects.
+- Booster uses two prebuilt, camera-local additive particle layers, Cyan and
+  Gold, under the existing pooled root. Their total emitted capacity is 160;
+  runtime creation, external tutorial assets and render-package changes are
+  prohibited.

@@ -26,6 +26,8 @@ namespace ColorGateRunner.Presentation
             new Vector3(0f, 5.4f, -7.4f);
         private static readonly Quaternion BoosterCameraRotation =
             Quaternion.Euler(14f, 0f, 0f);
+        private static readonly Color ShieldFieldColor =
+            new Color(0f, 0.7215686f, 0.8509804f, 1f);
         private static readonly float[] ColorStackPositions =
             { -34f, -91f, -137f, -176f, -211f, -243f };
 
@@ -47,7 +49,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
         [SerializeField] private GameObject echoShellVisual;
-        [SerializeField] private Renderer[] echoShellRenderers;
+        [SerializeField] private ProtectionFieldView shieldField;
+        [SerializeField] private ProtectionFieldView echoField;
         [SerializeField] private ParticleSystem successParticles;
         [SerializeField] private ParticleSystem speedLines;
         [SerializeField] private TrailRenderer playerTrail;
@@ -217,6 +220,8 @@ namespace ColorGateRunner.Presentation
         internal Button ExperimentLabButton => experimentLabButton;
         internal GameObject ShieldVisual => shieldVisual;
         internal GameObject EchoShellVisual => echoShellVisual;
+        internal ProtectionFieldView ShieldField => shieldField;
+        internal ProtectionFieldView EchoField => echoField;
         internal GameObject BoosterWarning => boosterWarning;
         internal GameObject BoosterMeterRoot => boosterMeterRoot;
         internal Image BoosterMeterFill => boosterMeterFill;
@@ -954,6 +959,10 @@ namespace ColorGateRunner.Presentation
                 outcome == GateOutcome.Invulnerable ||
                 outcome == GateOutcome.Echoed)
             {
+                if (outcome == GateOutcome.Echoed)
+                {
+                    echoField.PlayCollapse();
+                }
                 gateBreakEffects.Play(
                     gate.transform.position,
                     GetMaterial(plan.Color));
@@ -971,6 +980,7 @@ namespace ColorGateRunner.Presentation
             }
             else if (outcome == GateOutcome.Shielded)
             {
+                shieldField.PlayCollapse();
                 gateBreakEffects.Play(
                     gate.transform.position,
                     GetMaterial(plan.Color));
@@ -1488,8 +1498,9 @@ namespace ColorGateRunner.Presentation
                 !tapSurface.HasRequiredReference() || trackPool == null ||
                 !trackPool.HasRequiredReferences() || gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
-                echoShellVisual == null || echoShellRenderers == null ||
-                echoShellRenderers.Length == 0 ||
+                echoShellVisual == null || shieldField == null ||
+                !shieldField.HasRequiredReferences() || echoField == null ||
+                !echoField.HasRequiredReferences() ||
                 successParticles == null || speedLines == null ||
                 playerTrail == null || fogCurtain == null ||
                 !fogCurtain.HasRequiredReferences() || iceRunway == null ||
@@ -1546,8 +1557,9 @@ namespace ColorGateRunner.Presentation
                 pauseSettingsPanel == null ||
                 !pauseSettingsPanel.HasRequiredReferences() ||
                 pauseTransitionBlocker == null || attemptEffects == null ||
-                attemptEffects.Length != 2 || attemptEffects[0] == null ||
-                attemptEffects[1] == null ||
+                attemptEffects.Length != 4 || attemptEffects[0] == null ||
+                attemptEffects[1] == null || attemptEffects[2] == null ||
+                attemptEffects[3] == null ||
                 gateBreakEffects == null ||
                 !gateBreakEffects.HasRequiredReferences() ||
                 string.IsNullOrWhiteSpace(frontendScenePath) ||
@@ -1668,8 +1680,8 @@ namespace ColorGateRunner.Presentation
             goal = goalObject;
             shieldVisual = shieldObject;
             echoShellVisual = echoShellObject;
-            echoShellRenderers =
-                echoShellObject.GetComponentsInChildren<Renderer>(true);
+            shieldField = shieldObject.GetComponent<ProtectionFieldView>();
+            echoField = echoShellObject.GetComponent<ProtectionFieldView>();
             successParticles = success;
             speedLines = boosterLines;
             playerTrail = trail;
@@ -2028,6 +2040,14 @@ namespace ColorGateRunner.Presentation
                     default:
                         outcome = GateOutcome.Matched;
                         break;
+                }
+                if (outcome == GateOutcome.Echoed)
+                {
+                    echoField.PlayCollapse();
+                }
+                else if (outcome == GateOutcome.Shielded)
+                {
+                    shieldField.PlayCollapse();
                 }
                 gateBreakEffects.Play(
                     gate.transform.position,
@@ -2566,6 +2586,8 @@ namespace ColorGateRunner.Presentation
             fogCurtain.ResetCurtain();
             iceRunway.ResetRunway();
             goal.SetActive(false);
+            shieldField.ResetCollapse();
+            echoField.ResetCollapse();
             shieldVisual.SetActive(false);
             echoShellVisual.SetActive(false);
             successParticles.Stop(
@@ -2736,14 +2758,9 @@ namespace ColorGateRunner.Presentation
             echoShellVisual.SetActive(_session.EchoActive);
             if (_session.EchoActive)
             {
-                Material echoMaterial = GetMaterial(_session.EchoColor);
-                for (int index = 0;
-                    index < echoShellRenderers.Length;
-                    index++)
-                {
-                    echoShellRenderers[index].sharedMaterial = echoMaterial;
-                }
+                echoField.SetColor(GetMaterial(_session.EchoColor).color);
             }
+            shieldField.SetColor(ShieldFieldColor);
             shieldVisual.SetActive(
                 _session.ShieldActive ||
                 (_session.FlowState == StageFlowState.Countdown &&
@@ -3340,15 +3357,10 @@ namespace ColorGateRunner.Presentation
             echoShellVisual.SetActive(echoRelevant);
             if (echoRelevant)
             {
-                Material echoMaterial =
-                    GetMaterial(_experimentSession.EchoColor);
-                for (int index = 0;
-                    index < echoShellRenderers.Length;
-                    index++)
-                {
-                    echoShellRenderers[index].sharedMaterial = echoMaterial;
-                }
+                echoField.SetColor(
+                    GetMaterial(_experimentSession.EchoColor).color);
             }
+            shieldField.SetColor(ShieldFieldColor);
             boosterMeterRoot.SetActive(_experimentSession.BoosterActive);
             boosterMeterFill.fillAmount = Mathf.Clamp01(
                 _experimentSession.BoosterDistanceRemaining / 160f);

@@ -349,9 +349,9 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void FlickerJudgment_UsesEchoBeforeShield()
+        public void FlickerJudgment_UsesStoredEchoColor()
         {
-            ExperimentSession session = AcquireEchoWithShield();
+            ExperimentSession session = AcquireEcho();
             RunnerColor echoColor = session.EchoColor;
             RunnerColor other = GetDifferentColor(session, echoColor);
             ExperimentGatePlan plan = CreatePlanAtCurrentGate(
@@ -365,7 +365,7 @@ namespace ColorGateRunner.Tests.EditMode
                 session.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.EchoColorMatch));
             Assert.That(session.EchoActive, Is.False);
-            Assert.That(session.ShieldActive, Is.True);
+            Assert.That(session.ShieldActive, Is.False);
         }
 
         [Test]
@@ -547,11 +547,11 @@ namespace ColorGateRunner.Tests.EditMode
                 session.Definition.Seed);
         }
 
-        private static ExperimentSession AcquireEchoWithShield()
+        private static ExperimentSession AcquireEcho()
         {
             ExperimentSession session = new ExperimentSession(
                 ExperimentCatalog.Get(4, MechanicExperimentType.Echo),
-                new StartItemSelection(true, false));
+                new StartItemSelection(false, false));
             session.CompleteCountdown();
             while (session.GatesPassed < session.Definition.GateCount)
             {

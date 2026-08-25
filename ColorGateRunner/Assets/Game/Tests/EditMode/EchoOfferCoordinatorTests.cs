@@ -78,6 +78,25 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void AttemptBlock_PreventsOfferWithoutChangingDeterministicSlot()
+        {
+            EchoOfferCoordinator coordinator =
+                new EchoOfferCoordinator(EchoSettings.CreateDefault(), 7u, 40);
+            int offerId = coordinator.FirstOfferGateId;
+
+            GateModifier blocked = coordinator.RegisterGate(
+                offerId,
+                offerId / 39f,
+                false,
+                GateModifier.None,
+                true);
+
+            Assert.That(blocked.IsNone, Is.True);
+            Assert.That(coordinator.EchoOfferPending, Is.False);
+            Assert.That(coordinator.FirstOfferGateId, Is.EqualTo(offerId));
+        }
+
+        [Test]
         public void AcquireRequiresPlayerMatch_AndStoresEffectiveColor()
         {
             EchoOfferCoordinator coordinator =

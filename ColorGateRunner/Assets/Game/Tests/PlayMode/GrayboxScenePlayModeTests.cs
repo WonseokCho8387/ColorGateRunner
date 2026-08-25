@@ -463,12 +463,19 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void Shield_DoesNotHidePlayerMaterialStructurally()
+        public void ProtectionFields_UseTransparentHexShaderWithoutHidingRunner()
         {
             Assert.That(_controller.ShieldVisual.GetComponent<Renderer>(), Is.Null);
             Assert.That(
                 _controller.ShieldVisual.GetComponentsInChildren<Renderer>(true).Length,
-                Is.EqualTo(6));
+                Is.EqualTo(1));
+            Assert.That(_controller.ShieldField.HasRequiredReferences(), Is.True);
+            Assert.That(_controller.EchoField.HasRequiredReferences(), Is.True);
+            Assert.That(
+                _controller.ShieldVisual
+                    .GetComponentInChildren<Renderer>(true)
+                    .sharedMaterial.shader.name,
+                Is.EqualTo("ColorGateRunner/ProtectionField"));
             Assert.That(_controller.PlayerRenderer, Is.Not.Null);
         }
 
@@ -494,6 +501,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.ShieldRecovery));
             Assert.That(_controller.Session.ShieldActive, Is.False);
             Assert.That(_controller.ShieldVisual.activeSelf, Is.False);
+            Assert.That(
+                _controller.ShieldField.CollapseParticles.isPlaying,
+                Is.True);
 
             _controller.Session.Advance(
                 GameRules.ShieldRecoveryDuration,
@@ -2305,12 +2315,54 @@ namespace ColorGateRunner.Tests.PlayMode
             {
                 Assert.That(systems[index].isPlaying, Is.False);
             }
-            Assert.That(
-                Mathf.Abs(FindTransform("BoosterSpeedLinesLeft").localPosition.x),
-                Is.GreaterThanOrEqualTo(3f));
-            Assert.That(
-                Mathf.Abs(FindTransform("BoosterSpeedLinesRight").localPosition.x),
-                Is.GreaterThanOrEqualTo(3f));
+            Assert.That(FindTransform("BoosterWarpCyan").localPosition.x,
+                Is.EqualTo(0f).Within(0.001f));
+            Assert.That(FindTransform("BoosterWarpGold").localPosition.x,
+                Is.EqualTo(0f).Within(0.001f));
+        }
+
+        [Test]
+        public void WarpBooster_UsesCenteredCyanGoldLayersWithinParticleCap()
+        {
+            ParticleSystem[] systems =
+                _controller.SpeedLines.GetComponentsInChildren<ParticleSystem>(true);
+            Assert.That(systems.Length, Is.EqualTo(3));
+
+            int emittedCapacity = 0;
+            for (int index = 0; index < systems.Length; index++)
+            {
+                if (systems[index] == _controller.SpeedLines)
+                {
+                    continue;
+                }
+                ParticleSystem.MainModule main = systems[index].main;
+                ParticleSystem.ShapeModule shape = systems[index].shape;
+                ParticleSystemRenderer renderer =
+                    systems[index].GetComponent<ParticleSystemRenderer>();
+                emittedCapacity += main.maxParticles;
+                Assert.That(main.startLifetime.constant,
+                    Is.EqualTo(1.5f).Within(0.001f));
+                Assert.That(main.startSpeed.constant,
+                    Is.EqualTo(35f).Within(0.001f));
+                Assert.That(shape.shapeType,
+                    Is.EqualTo(ParticleSystemShapeType.Circle));
+                Assert.That(shape.radius, Is.EqualTo(5f).Within(0.001f));
+                Assert.That(renderer.renderMode,
+                    Is.EqualTo(ParticleSystemRenderMode.Stretch));
+                Assert.That(renderer.lengthScale, Is.GreaterThanOrEqualTo(7f));
+                Assert.That(systems[index].transform.localPosition.x,
+                    Is.EqualTo(0f).Within(0.001f));
+                Assert.That(systems[index].transform.localPosition.y,
+                    Is.EqualTo(0f).Within(0.001f));
+            }
+            Assert.That(emittedCapacity, Is.EqualTo(160));
+
+            Material cyan = FindTransform("BoosterWarpCyan")
+                .GetComponent<ParticleSystemRenderer>().sharedMaterial;
+            Material gold = FindTransform("BoosterWarpGold")
+                .GetComponent<ParticleSystemRenderer>().sharedMaterial;
+            Assert.That(cyan.color.b, Is.GreaterThan(cyan.color.r));
+            Assert.That(gold.color.r, Is.GreaterThan(gold.color.b));
         }
 
         [Test]
