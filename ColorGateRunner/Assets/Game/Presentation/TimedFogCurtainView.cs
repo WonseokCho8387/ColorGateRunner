@@ -56,6 +56,51 @@ namespace ColorGateRunner.Presentation
             Synchronize(playerPosition, speed);
         }
 
+        internal bool TryActivateOnPath(
+            CampaignSplinePathView path,
+            float playerDistance,
+            float speed,
+            FogCurtainSettings settings)
+        {
+            bool activated = _state.TryTrigger(settings);
+            SynchronizeOnPath(path, playerDistance, speed);
+            return activated;
+        }
+
+        internal void TickOnPath(
+            float deltaSeconds,
+            CampaignSplinePathView path,
+            float playerDistance,
+            float speed)
+        {
+            _state.Advance(Mathf.Max(0f, deltaSeconds));
+            SynchronizeOnPath(path, playerDistance, speed);
+        }
+
+        internal void SynchronizeOnPath(
+            CampaignSplinePathView path,
+            float playerDistance,
+            float speed)
+        {
+            if (!_state.IsActive)
+            {
+                ApplyAlpha(0f);
+                gameObject.SetActive(false);
+                return;
+            }
+
+            float distance = playerDistance +
+                (Mathf.Max(0f, speed) * ForwardTravelSeconds);
+            path.EvaluatePose(
+                distance,
+                HeightOffset,
+                out Vector3 position,
+                out Quaternion rotation);
+            gameObject.SetActive(true);
+            transform.SetPositionAndRotation(position, rotation);
+            ApplyAlpha(_state.Alpha);
+        }
+
         internal void Synchronize(Vector3 playerPosition, float speed)
         {
             if (!_state.IsActive)

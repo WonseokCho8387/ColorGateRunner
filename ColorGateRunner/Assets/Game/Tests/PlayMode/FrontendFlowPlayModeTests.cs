@@ -834,10 +834,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 }
                 Assert.That(gate.TryResolveCrossing(), Is.True);
             }
-            Vector3 position = controller.PlayerTransform.position;
-            position.z = controller.Goal.transform.position.z - 1f;
-            controller.PlayerTransform.position = position;
-            controller.TickMovement(2f);
+            float remaining = controller.GoalPathDistance -
+                controller.CampaignDistance + 1f;
+            controller.TickMovement(
+                remaining / controller.Session.CurrentSpeed);
             Assert.That(controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));
         }

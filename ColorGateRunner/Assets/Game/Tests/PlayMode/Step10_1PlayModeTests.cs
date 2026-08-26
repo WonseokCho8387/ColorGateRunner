@@ -73,18 +73,18 @@ namespace ColorGateRunner.Tests.PlayMode
         public void Goal_IsVisibleAtLongRangeAndApproachesContinuously()
         {
             StartStage(4);
-            float initialGoalZ = _controller.Goal.transform.position.z;
-            float initialDistance =
-                initialGoalZ - _controller.PlayerTransform.position.z;
+            Vector3 initialGoalPosition = _controller.Goal.transform.position;
+            float initialDistance = _controller.GoalPathDistance -
+                _controller.CampaignDistance;
 
             _controller.TickMovement(0.5f);
-            float movedDistance =
-                initialGoalZ - _controller.PlayerTransform.position.z;
+            float movedDistance = _controller.GoalPathDistance -
+                _controller.CampaignDistance;
 
             Assert.That(_controller.Goal.activeSelf, Is.True);
             Assert.That(initialDistance, Is.GreaterThan(500f));
-            Assert.That(_controller.Goal.transform.position.z,
-                Is.EqualTo(initialGoalZ));
+            Assert.That(_controller.Goal.transform.position,
+                Is.EqualTo(initialGoalPosition));
             Assert.That(movedDistance, Is.LessThan(initialDistance));
         }
 
@@ -148,8 +148,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThan(_controller.Session.GatesPassed));
             Assert.That(next, Is.Not.Null);
             Assert.That(
-                next.transform.position.z -
-                _controller.PlayerTransform.position.z,
+                next.PathDistance - _controller.CampaignDistance,
                 Is.GreaterThanOrEqualTo(47.99f));
             Assert.That(_controller.Goal.transform.position,
                 Is.EqualTo(goalPosition));

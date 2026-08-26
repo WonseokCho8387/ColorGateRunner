@@ -46,6 +46,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Material failureMaterial;
         [SerializeField] private GameplayTapSurface tapSurface;
         [SerializeField] private TrackPoolController trackPool;
+        [SerializeField] private CampaignSplinePathView campaignSplinePath;
+        [SerializeField] private SplineCityPoolView splineCityPool;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -173,6 +175,8 @@ namespace ColorGateRunner.Presentation
         private bool _boosterSelected;
         private float _countdownRemaining;
         private float _nextGateZ;
+        private float _campaignDistance;
+        private float _goalPathDistance;
         private int _nextPlanIndex;
         private float _cameraShakeRemaining;
         private float _failureDelayRemaining;
@@ -274,8 +278,13 @@ namespace ColorGateRunner.Presentation
         internal float ClearPanelDelaySeconds => ClearPanelDelay;
         internal int NextPlanIndex => _nextPlanIndex;
         internal float NextGateZ => _nextGateZ;
+        internal float CampaignDistance => _campaignDistance;
+        internal float GoalPathDistance => _goalPathDistance;
         internal ContinueSnapshot FailureSnapshot => _continueSnapshot;
         internal TrackPoolController TrackPool => trackPool;
+        internal CampaignSplinePathView CampaignSplinePath =>
+            campaignSplinePath;
+        internal SplineCityPoolView SplineCityPool => splineCityPool;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -525,19 +534,20 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
-            player.position += Vector3.forward * distance;
+            _campaignDistance += distance;
+            ApplyCampaignPlayerPose();
             ResolveCrossedGatePlanes();
             if (_session.FlowState == StageFlowState.Failed)
             {
                 return;
             }
-            trackPool.Tick(player.position.z);
+            splineCityPool.Tick(_campaignDistance);
             RecycleResolvedGatesBehindPlayer();
             UpdateCampaignFogCurtain(deltaTime);
             UpdateCampaignGateVisibility(deltaTime);
             if (_session.FlowState == StageFlowState.StageFinishing &&
                 goal.activeSelf &&
-                player.position.z >= goal.transform.position.z)
+                _campaignDistance >= _goalPathDistance)
             {
                 CompleteStageAtGoal();
             }
@@ -1071,6 +1081,7 @@ namespace ColorGateRunner.Presentation
             ResetRunPresentation();
             _attemptContinuePolicy = new AttemptContinuePolicy();
             _continueAttemptId = Guid.NewGuid().ToString("N");
+            BuildCampaignRoute();
             BuildInitialGatePool();
             PlacePlannedGoal();
             ApplyUiFlow(MobileUiFlow.Countdown);
@@ -1684,7 +1695,11 @@ namespace ColorGateRunner.Presentation
                 cyanMaterial == null ||
                 failureMaterial == null || tapSurface == null ||
                 !tapSurface.HasRequiredReference() || trackPool == null ||
-                !trackPool.HasRequiredReferences() || gates == null ||
+                !trackPool.HasRequiredReferences() ||
+                campaignSplinePath == null ||
+                !campaignSplinePath.HasRequiredReferences ||
+                splineCityPool == null ||
+                !splineCityPool.HasRequiredReferences || gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
                 !shieldField.HasRequiredReferences() || echoField == null ||
@@ -1788,6 +1803,8 @@ namespace ColorGateRunner.Presentation
             Material failure,
             GameplayTapSurface gameplayTapSurface,
             TrackPoolController pool,
+            CampaignSplinePathView campaignPath,
+            SplineCityPoolView cityPool,
             StageGateView[] gatePool,
             GameObject goalObject,
             GameObject shieldObject,
@@ -1879,6 +1896,8 @@ namespace ColorGateRunner.Presentation
             failureMaterial = failure;
             tapSurface = gameplayTapSurface;
             trackPool = pool;
+            campaignSplinePath = campaignPath;
+            splineCityPool = cityPool;
             gates = gatePool;
             goal = goalObject;
             shieldVisual = shieldObject;
@@ -2125,16 +2144,46 @@ namespace ColorGateRunner.Presentation
             }
         }
 
+        private void BuildCampaignRoute()
+        {
+            StageGoalPlan goalPlan = StageGoalPlanner.Create(
+                _session.Stage,
+                CampaignInitialGateLeadDistance,
+                CampaignGoalDistance);
+            _campaignDistance = 0f;
+            _goalPathDistance = goalPlan.DistanceFromPlayer;
+            campaignSplinePath.BuildRoute(
+                _session.Stage.DisplayNumber,
+                _goalPathDistance);
+            trackPool.gameObject.SetActive(false);
+            splineCityPool.Build(
+                campaignSplinePath,
+                _session.Stage.Seed,
+                _goalPathDistance);
+            ApplyCampaignPlayerPose();
+        }
+
+        private void ApplyCampaignPlayerPose()
+        {
+            campaignSplinePath.EvaluatePose(
+                _campaignDistance,
+                _playerStartPosition.y,
+                out Vector3 playerPosition,
+                out Quaternion playerRotation);
+            player.SetPositionAndRotation(
+                playerPosition,
+                playerRotation);
+        }
+
         private void BuildInitialGatePool()
         {
             trackPool.SetSurfaceMaterial(_normalTrackMaterial);
             iceRunway.Build(
                 _session,
-                player.position.z,
+                campaignSplinePath,
                 CampaignInitialGateLeadDistance);
             _nextPlanIndex = 0;
-            _nextGateZ =
-                player.position.z + CampaignInitialGateLeadDistance;
+            _nextGateZ = CampaignInitialGateLeadDistance;
             for (int index = 0; index < gates.Length; index++)
             {
                 ActivateNextGate(gates[index]);
@@ -2163,11 +2212,18 @@ namespace ColorGateRunner.Presentation
             }
             GatePlan plan = _session.GetGatePlan(_nextPlanIndex);
             _nextGateZ += plan.Spacing;
-            gate.Activate(
+            campaignSplinePath.EvaluatePose(
+                _nextGateZ,
+                0f,
+                out Vector3 gatePosition,
+                out Quaternion gateRotation);
+            gate.ActivateOnPath(
                 plan,
                 _nextPlanIndex,
                 GetMaterial(plan.Color),
-                _nextGateZ);
+                _nextGateZ,
+                gatePosition,
+                gateRotation);
             gate.UpdateCampaignVisibility(
                 _session.GatesPassed,
                 EstimateCampaignGateEta(plan, _nextGateZ),
@@ -2408,7 +2464,7 @@ namespace ColorGateRunner.Presentation
                         _experimentSession.GatesPassed,
                         EstimateExperimentGateEta(
                             gate.ActiveExperimentPlan,
-                            gate.transform.position.z),
+                            gate.PathDistance),
                         _normalTrackMaterial,
                         _experimentSession.Definition.Camouflage,
                         _experimentSession.Definition.Hidden,
@@ -2450,7 +2506,7 @@ namespace ColorGateRunner.Presentation
                         _session.GatesPassed,
                         EstimateCampaignGateEta(
                             gate.ActivePlan,
-                            gate.transform.position.z),
+                            gate.PathDistance),
                         _normalTrackMaterial,
                         _session.Stage.CamouflageSettings,
                         _session.Stage.HiddenSettings,
@@ -2474,21 +2530,26 @@ namespace ColorGateRunner.Presentation
                 : _session.GetSpeedForPlan(upcoming.ActivePlan);
             if (upcoming != null && upcoming.ActivePlan.Modifier.IsFog)
             {
-                fogCurtain.TryActivate(
-                    player.position,
+                fogCurtain.TryActivateOnPath(
+                    campaignSplinePath,
+                    _campaignDistance,
                     speed,
                     _session.Stage.FogCurtainSettings);
             }
-            fogCurtain.Tick(deltaSeconds, player.position, speed);
+            fogCurtain.TickOnPath(
+                deltaSeconds,
+                campaignSplinePath,
+                _campaignDistance,
+                speed);
         }
 
         private float EstimateCampaignGateEta(
             GatePlan plan,
-            float gateWorldZ)
+            float gatePathDistance)
         {
             float remainingDistance = Mathf.Max(
                 0f,
-                gateWorldZ - player.position.z);
+                gatePathDistance - _campaignDistance);
             return GateEtaEstimator.EstimateSeconds(
                 remainingDistance,
                 _session.GetSpeedForPlan(plan));
@@ -2496,14 +2557,14 @@ namespace ColorGateRunner.Presentation
 
         private void PlacePlannedGoal()
         {
-            StageGoalPlan plan = StageGoalPlanner.Create(
-                _session.Stage,
-                CampaignInitialGateLeadDistance,
-                CampaignGoalDistance);
-            goal.transform.position = new Vector3(
+            campaignSplinePath.EvaluatePose(
+                _goalPathDistance,
                 0f,
-                0f,
-                player.position.z + plan.DistanceFromPlayer);
+                out Vector3 goalPosition,
+                out Quaternion goalRotation);
+            goal.transform.SetPositionAndRotation(
+                goalPosition,
+                goalRotation);
             goal.SetActive(true);
         }
 
@@ -2783,6 +2844,8 @@ namespace ColorGateRunner.Presentation
             _wasBoosterActive = false;
             _boosterCameraBlend = 0f;
             _boosterExitOverridesApplied = false;
+            _campaignDistance = 0f;
+            _goalPathDistance = 0f;
             _failedGate = null;
             _continueSnapshot = null;
             _continueRequestGeneration++;
@@ -2798,6 +2861,9 @@ namespace ColorGateRunner.Presentation
             _colorStackInitialized = false;
             _colorStackTransitionRemaining = 0f;
             ApplyPlayerMaterial(redMaterial);
+            campaignSplinePath.ResetRoute();
+            splineCityPool.ResetPool();
+            trackPool.gameObject.SetActive(true);
             trackPool.ResetPool();
             gateBreakEffects.ResetPool();
             fogCurtain.ResetCurtain();
@@ -3210,7 +3276,7 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.StageId,
                 _session.ElapsedPlayingSeconds,
                 _session.Progress,
-                player.position.z - _playerStartPosition.z,
+                _campaignDistance,
                 _session.SpeedBeforeFailure,
                 _session.CurrentColor,
                 _session.SequenceCursor,
@@ -3285,7 +3351,7 @@ namespace ColorGateRunner.Presentation
             {
                 StageGateView gate = FindActiveGate(_session.GatesPassed);
                 if (gate == null ||
-                    gate.transform.position.z > player.position.z ||
+                    gate.PathDistance > _campaignDistance ||
                     !gate.TryResolveCrossing())
                 {
                     return;
@@ -3310,17 +3376,14 @@ namespace ColorGateRunner.Presentation
             StageGateView nextGate = FindActiveGate(_session.GatesPassed);
             if (nextGate != null)
             {
-                Vector3 position = player.position;
-                position.x = _playerStartPosition.x;
-                position.y = _playerStartPosition.y;
-                position.z = Mathf.Min(
-                    position.z,
-                    nextGate.transform.position.z -
+                _campaignDistance = Mathf.Min(
+                    _campaignDistance,
+                    nextGate.PathDistance -
                     CampaignInitialGateLeadDistance);
-                player.position = position;
+                _campaignDistance = Mathf.Max(0f, _campaignDistance);
+                ApplyCampaignPlayerPose();
             }
 
-            player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
             ApplyPlayerMaterial(GetMaterial(_session.CurrentColor));
             if (!playerBody.isKinematic)
@@ -3330,9 +3393,7 @@ namespace ColorGateRunner.Presentation
             }
             _cameraShakeRemaining = 0f;
             _boosterCameraBlend = 0f;
-            gameplayCamera.transform.SetPositionAndRotation(
-                player.position + _cameraFollowOffset,
-                _cameraStartRotation);
+            ApplyCampaignCameraPose(Vector3.zero, 0f);
             gameplayCamera.fieldOfView = NormalFov;
             ResetBoosterPresentation();
         }
@@ -3346,7 +3407,7 @@ namespace ColorGateRunner.Presentation
                     gate.HasResolved &&
                     !gate.ReactionActive &&
                     !gate.BoosterDestroyed &&
-                    gate.transform.position.z < player.position.z)
+                    gate.PathDistance < _campaignDistance)
                 {
                     RecycleOrDeactivate(gate);
                 }
@@ -3395,7 +3456,7 @@ namespace ColorGateRunner.Presentation
                 _cameraStartRotation,
                 BoosterCameraRotation,
                 _boosterCameraBlend);
-            Vector3 cameraPosition = player.position + followOffset;
+            Vector3 shakeOffset = Vector3.zero;
 
             if (_cameraShakeRemaining > 0f)
             {
@@ -3405,7 +3466,7 @@ namespace ColorGateRunner.Presentation
                 if (_cameraShakeRemaining > 0f)
                 {
                     float phase = _cameraShakeRemaining * 100f;
-                    cameraPosition += new Vector3(
+                    shakeOffset = new Vector3(
                         Mathf.Sin(phase) * 0.15f,
                         Mathf.Cos(phase * 0.7f) * 0.05f,
                         Mathf.Sin(phase * 0.5f) * 0.06f *
@@ -3413,13 +3474,52 @@ namespace ColorGateRunner.Presentation
                 }
             }
 
-            gameplayCamera.transform.SetPositionAndRotation(
-                cameraPosition,
-                rotation);
+            if (!_experimentActive && _session != null &&
+                campaignSplinePath.VisualsActive)
+            {
+                campaignSplinePath.EvaluatePose(
+                    _campaignDistance,
+                    0f,
+                    out _,
+                    out Quaternion pathRotation);
+                gameplayCamera.transform.SetPositionAndRotation(
+                    player.position +
+                        (pathRotation * (followOffset + shakeOffset)),
+                    pathRotation * rotation);
+            }
+            else
+            {
+                gameplayCamera.transform.SetPositionAndRotation(
+                    player.position + followOffset + shakeOffset,
+                    rotation);
+            }
             gameplayCamera.fieldOfView = Mathf.Lerp(
                 NormalFov,
                 BoosterFov,
                 _boosterCameraBlend);
+        }
+
+        private void ApplyCampaignCameraPose(
+            Vector3 localShakeOffset,
+            float boosterBlend)
+        {
+            Vector3 followOffset = Vector3.Lerp(
+                _cameraFollowOffset,
+                BoosterCameraFollowOffset,
+                boosterBlend);
+            Quaternion localRotation = Quaternion.Slerp(
+                _cameraStartRotation,
+                BoosterCameraRotation,
+                boosterBlend);
+            campaignSplinePath.EvaluatePose(
+                _campaignDistance,
+                0f,
+                out _,
+                out Quaternion pathRotation);
+            gameplayCamera.transform.SetPositionAndRotation(
+                player.position +
+                    (pathRotation * (followOffset + localShakeOffset)),
+                pathRotation * localRotation);
         }
 
         private void UpdateCountdownText()

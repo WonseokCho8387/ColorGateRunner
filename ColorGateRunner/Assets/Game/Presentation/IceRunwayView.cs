@@ -111,6 +111,68 @@ namespace ColorGateRunner.Presentation
             }
         }
 
+        internal void Build(
+            StageSession session,
+            CampaignSplinePathView path,
+            float initialGateLeadDistance)
+        {
+            if (session == null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+            if (path == null || path.PathLength <= 0f)
+            {
+                throw new ArgumentException(
+                    "Ice runway requires a built Campaign Spline.",
+                    nameof(path));
+            }
+            if (!HasRequiredReferences())
+            {
+                throw new InvalidOperationException(
+                    "Ice runway requires exactly 50 configured panels.");
+            }
+            if (session.Stage.TargetGateCount > panels.Length)
+            {
+                throw new InvalidOperationException(
+                    "The authored stage exceeds the fixed Ice runway pool.");
+            }
+
+            float previousGateDistance = initialGateLeadDistance;
+            for (int index = 0; index < panels.Length; index++)
+            {
+                Renderer panel = panels[index];
+                if (index >= session.Stage.TargetGateCount)
+                {
+                    panel.gameObject.SetActive(false);
+                    continue;
+                }
+
+                GatePlan plan = session.GetGatePlan(index);
+                float gateDistance = previousGateDistance + plan.Spacing;
+                bool isIce = plan.Modifier.IsIce;
+                panel.gameObject.SetActive(isIce);
+                if (isIce)
+                {
+                    float length = Mathf.Max(
+                        0.01f,
+                        gateDistance - previousGateDistance + SeamOverlap);
+                    float centerDistance = previousGateDistance +
+                        (length * 0.5f);
+                    path.EvaluatePose(
+                        centerDistance,
+                        PanelCenterY,
+                        out Vector3 position,
+                        out Quaternion rotation);
+                    panel.transform.SetPositionAndRotation(position, rotation);
+                    panel.transform.localScale = new Vector3(
+                        PanelWidth,
+                        PanelThickness,
+                        length);
+                }
+                previousGateDistance = gateDistance;
+            }
+        }
+
         internal void ResetRunway()
         {
             if (panels == null)

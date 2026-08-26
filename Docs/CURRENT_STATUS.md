@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `56c2c11`
-- Base commit: `fix: restore world-space protection effects`
+- Implementation base HEAD: `db7443336a4533aa4bca72f20bea1bd8848af93f`
+- Base commit: `feat: add start-item quick buy and refine vfx`
 - Authoritative completion HEAD: the commit named
-  `feat: add start-item quick buy and refine vfx`; its exact hash is recorded in
-  the Iteration 39 final report because a commit cannot contain
+  `feat: convert campaign to spline routes and city pool`; its exact hash is
+  recorded in the Iteration 40 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,12 +23,23 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 39 — PreRun Quick Buy and VFX Framing**.
+- Current completed iteration: **Iteration 40 — Campaign Spline Conversion and Continuous City**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
-  Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit are
-  Lab-local; Campaign progress, economy and the existing 20 straight Stages
-  remain unchanged.
+  Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
+  Lab-local and non-persistent.
+- All 20 active Campaign Stages now use one scalar-distance Spline route rather
+  than the legacy recycled straight-track placement. The same evaluated pose
+  owns runner, chase camera, pooled gates, Goal, Fog curtain and preplaced Ice
+  runway. Stages 1–7 introduce restrained horizontal curvature, Stages 8–13
+  broaden it and begin gentle elevation, and Stages 14–20 increase both within
+  a stable world-up/no-roll portrait camera contract.
+- Campaign track presentation is one generated seven-unit two-submesh road for
+  the full attempt. The legacy six-segment straight pool remains available only
+  to existing Experiment paths and is inactive during Campaign play.
+- The 24 imported Theme 1 city body/glow pairs form a deterministic fixed pool.
+  They follow the Spline outside a 7.5-unit minimum lateral clearance, recycle
+  behind the runner without allocation and continue through the Goal buffer.
 - Unity Editor exposes `Tools > Color Gate Runner > Developer Console`.
   It can open any authored Stage as a non-persistent cheat launch, unlock
   Campaign through a selected Stage, reset Campaign separately from Economy,
@@ -230,16 +241,15 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `444/444`
-- PlayMode: `241/241`
-- Post-Builder PlayMode: `241/241`
+- PlayMode: `242/242`
+- Post-Builder PlayMode: `242/242`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 39 passes completed; the PreRun
-  purchase modal and references, protection shader compilation, centered
-  Shield/Echo fields, enlarged Player-owned World Space Warp volumes and the
-  160-particle cap passed alongside the Spline Lab, runner readability,
-  continuous straight Campaign anchors, fixed pools and Build Settings
+- Campaign Builder: two consecutive Iteration 40 passes completed; the active
+  Campaign Spline path, generated full-route road, deterministic 24-slot city
+  pool and migrated controller references passed alongside the Spline Lab,
+  quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -343,6 +353,30 @@ All three entries are expected to be enabled and unique.
 
 ## Latest Iteration Result and History
 
+## Iteration 40 validation result
+
+- Starting HEAD `db7443336a4533aa4bca72f20bea1bd8848af93f` was clean.
+  Completion commit name: `feat: convert campaign to spline routes and city
+  pool`.
+- All active Campaign Stages now map scalar progress to one Spline pose. Runner,
+  camera, pooled gates, Goal, Fog, Ice and Continue share that authority; the
+  generated full-route road replaces the legacy straight pool during Campaign.
+- The 24 existing Theme 1 body/glow pairs now form one deterministic fixed city
+  pool with at least 7.5 units of lateral road clearance and coverage through
+  the Goal buffer.
+- Focused Spline/city PlayMode passed `1/1`; full EditMode passed `444/444` and
+  full post-Builder PlayMode passed `242/242`. Campaign Builder completed two
+  consecutive passes with valid references, unique roots, EventSystem and Build
+  Settings.
+- Two Campaign simulations retained all three approved 400-row hashes. Two
+  Step 10 simulations retained all five approved 80-row / 64,016-run hashes.
+  Package manifest, package lock and `ProjectSettings.asset` hashes remain
+  exact; isolated validation did not mutate the original Editor Product save.
+- Human portrait/device review owns curve anticipation, gate readability on
+  slopes, Fog/Ice visibility, Continue comfort, city density/pop, stable
+  horizon, Bloom and mobile performance. Banking, loops, inversions, Race Mode,
+  Stages 21–36 and new city art remain deferred.
+
 ## Iteration 39 validation result
 
 - Starting HEAD `56c2c11` was clean. Completion commit name:
@@ -370,11 +404,9 @@ All three entries are expected to be enabled and unique.
 - Human portrait/device review owns the modal hierarchy and wording, Shield
   centering/transparency, Warp coverage above and beside the runner, closer
   camera comfort, gate visibility, Bloom and mobile frame cost.
-- Existing Iteration 37 remains the completed Spline foundation. A future
-  Iteration 40 candidate may integrate approved horizontal and gentle vertical
-  curves into later Campaign Stages after Fog, Ice, Continue and visibility
-  validation. Multi-lane Ghost AI Race Mode remains a later roadmap item and
-  is not implemented.
+- This Iteration 39 roadmap note is historical and is superseded by Iteration
+  40's whole-Campaign Spline conversion. Multi-lane Ghost AI Race Mode remains
+  a later roadmap item and is not implemented.
 
 ## Iteration 38 validation result
 

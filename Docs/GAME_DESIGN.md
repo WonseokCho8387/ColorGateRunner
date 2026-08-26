@@ -149,18 +149,22 @@ no-item best. Corrupt values fall back to safe empty records.
 
 ## Track and camera
 
-- Six pre-created 40-unit straight track segments recycle behind the player.
-  Each segment spans local Z `-20` to `+20`; reset and recycle placement align
-  the segment's start anchor exactly to the requested world start or the
-  farthest live segment's end anchor. The fixed pool must remain continuous
-  at arbitrary forward distance without gaps, overlap or growth.
-- The straight Campaign normal chase pose is `(0, 7, -8.2)` with `18°` pitch
-  and fixed 60-degree FOV.
+- Campaign progress is one scalar distance evaluated on a Builder-owned Spline.
+  Runner, camera, pooled gates, Goal, Fog curtain and Ice runway all consume
+  that same distance-to-pose contract; world Z is not Campaign authority.
+- The Campaign road is generated for the full route at attempt setup. It is
+  seven units wide and has a 20-unit rear extension, so it cannot expose a gap
+  before the runner or disappear before the Goal.
+- The route uses broad horizontal turns and gentle elevation only. The camera
+  retains world-up with no banking, roll, loop or inversion. Normal chase uses
+  the existing `(0, 7, -8.2)` / `18°` local path-relative pose and fixed
+  60-degree FOV.
 - Booster blends closer/lower to `(0, 5, -6.5)` with `13°` pitch, temporarily
   uses 74-degree FOV, world-space Warp particles and the existing trail.
 - Step 9A Booster presentation adds a distance meter, final-20%
   warning, launch pulse/shake/haptic request, and two safe exit gates.
-- No post-processing or normal-speed camera escalation is used.
+- The legacy six-segment 40-unit straight pool remains an Experiment-only
+  compatibility path and is inactive during Campaign play.
 
 ## Legacy and deferred
 
@@ -170,21 +174,18 @@ Shop/bundle purchasing beyond the one-item Coin quick buy, extra mechanics or
 colors, audio or BPM placement, ads, analytics, networking, and online ranking
 are deferred.
 
-## Curved Campaign and Race roadmap
+## Campaign Spline and Race roadmap
 
 - Iteration 37 already completed the isolated horizontal `SPLINE TRACK LAB` and
-  proved scalar-distance path evaluation for runner, camera, pooled gates,
-  Goal and generated road. It remains development-only.
-- A future Iteration 40 candidate may introduce a reusable Straight/Spline
-  distance-path contract, broad horizontal turns and gentle climb/descent.
-  Campaign adoption is limited to human-approved later Stages after Fog
-  look-ahead, Ice runway sampling, Continue restoration, pooling, gate/Goal
-  visibility and portrait camera comfort pass on the same path.
+  remains a development-only comparison entry.
+- Iteration 40 makes Spline distance the sole active Campaign spatial contract
+  for all 20 authored Stages. Existing stage distances, speeds, gate plans,
+  judgment, Continue and economy remain unchanged; only their world poses are
+  sampled from the route.
 - Future Race Mode may derive three default and at most five parallel routes
   from one center Spline. Initial opponents are non-colliding Ghost AI with
   independent scalar progress and result UI. Physics interference, economy or
-  rank rewards, online play and conversion of all existing Stages are not part
-  of that first race slice.
+  rank rewards and online play are not part of that first race slice.
 
 ## Step 9C player-facing presentation
 

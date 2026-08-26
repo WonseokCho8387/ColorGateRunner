@@ -35,6 +35,7 @@ namespace ColorGateRunner.Presentation
         internal RunnerColor AssignedColor { get; private set; }
         internal GatePlan ActivePlan { get; private set; }
         internal int PlanIndex => _planIndex;
+        internal float PathDistance { get; private set; }
         internal bool HasResolved => _resolved;
         internal bool ReactionActive => _reactionRemaining > 0f;
         internal bool BoosterDestroyed => _boosterDestroyed;
@@ -118,6 +119,8 @@ namespace ColorGateRunner.Presentation
             Vector3 position = transform.position;
             position.z = worldZ;
             transform.position = position;
+            transform.rotation = Quaternion.identity;
+            PathDistance = worldZ;
             _baseScale = Vector3.one;
             transform.localScale = _baseScale;
             ResetParts();
@@ -127,6 +130,19 @@ namespace ColorGateRunner.Presentation
             {
                 ApplyEchoProviderPresentation();
             }
+        }
+
+        internal void ActivateOnPath(
+            GatePlan plan,
+            int planIndex,
+            Material material,
+            float pathDistance,
+            Vector3 position,
+            Quaternion rotation)
+        {
+            Activate(plan, planIndex, material, pathDistance);
+            PathDistance = pathDistance;
+            transform.SetPositionAndRotation(position, rotation);
         }
 
         internal void ApplyTemporaryPlan(
@@ -553,6 +569,7 @@ namespace ColorGateRunner.Presentation
             _boosterDestroyed = false;
             ActivePlan = default;
             _planIndex = -1;
+            PathDistance = 0f;
             _hasExperimentPlan = false;
             _experimentWasHidden = false;
             _camouflageRevealStarted = false;

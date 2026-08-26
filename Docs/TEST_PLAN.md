@@ -680,3 +680,21 @@ fairness, or polish.
   EditMode and full post-Builder PlayMode. Campaign and Step 10 simulations are
   omitted because Core rules, Stage data, deterministic generation, timing,
   judgment, balance and Experiment inputs are unchanged.
+
+### Iteration 40 Campaign Spline conversion and continuous city
+
+- Builder validation must create exactly one complete Campaign Spline path,
+  one two-submesh full-route road and one paired 24-slot Theme 1 city pool. It
+  must retain the separate Spline Lab and fixed legacy six-slot Track pool for
+  Experiment compatibility while disabling the legacy road in Campaign.
+- Campaign PlayMode must prove runner, camera, pooled gates and Goal use one
+  scalar path distance; later Stages contain horizontal and vertical path
+  variation without roll; Fog and Ice consume path poses; and Continue restores
+  the same route state without losing gates or Goal completion.
+- City coverage must prove every active building remains outside the minimum
+  lateral clearance, the fixed pool does not grow, deterministic placements
+  recycle behind the runner and visual coverage extends through the Goal.
+- Campaign Builder runs twice. Full EditMode and post-Builder PlayMode, two
+  Campaign simulations and two Step 10 simulations are required. All approved
+  deterministic artifact hashes must remain exact because spatial presentation
+  does not change Core plans, timing, judgment or balance.

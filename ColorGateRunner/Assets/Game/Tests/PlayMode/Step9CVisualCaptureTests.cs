@@ -445,10 +445,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(gate.TryResolveCrossing(), Is.True);
             }
 
-            Vector3 position = _controller.PlayerTransform.position;
-            position.z = _controller.Goal.transform.position.z - 1f;
-            _controller.PlayerTransform.position = position;
-            _controller.TickMovement(2f);
+            float remaining = _controller.GoalPathDistance -
+                _controller.CampaignDistance + 1f;
+            _controller.TickMovement(
+                remaining / _controller.Session.CurrentSpeed);
             Assert.That(
                 _controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));

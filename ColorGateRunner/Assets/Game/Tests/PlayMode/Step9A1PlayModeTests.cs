@@ -413,10 +413,10 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(continueCount, Is.GreaterThan(6));
             Assert.That(_controller.Session.GatesPassed,
                 Is.EqualTo(_controller.Session.Stage.TargetGateCount));
-            Vector3 position = _controller.PlayerTransform.position;
-            position.z = _controller.Goal.transform.position.z + 1f;
-            _controller.PlayerTransform.position = position;
-            _controller.TickMovement(0f);
+            float remaining = _controller.GoalPathDistance -
+                _controller.CampaignDistance + 1f;
+            _controller.TickMovement(
+                remaining / _controller.Session.CurrentSpeed);
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));
         }
@@ -543,7 +543,7 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 0; index < result.Length; index++)
             {
                 result[index] =
-                    _controller.GetGate(index).transform.position.z;
+                    _controller.GetGate(index).PathDistance;
             }
             return result;
         }
@@ -554,8 +554,8 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 1; index < _controller.GatePoolSize; index++)
             {
                 float gap =
-                    _controller.GetGate(index).transform.position.z -
-                    _controller.GetGate(index - 1).transform.position.z;
+                    _controller.GetGate(index).PathDistance -
+                    _controller.GetGate(index - 1).PathDistance;
                 maximum = Mathf.Max(maximum, gap);
             }
             return maximum;

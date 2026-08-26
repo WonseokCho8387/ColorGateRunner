@@ -44,6 +44,44 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CampaignStage_UsesSplineTrackPoseAndContinuousCityPool()
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(20);
+            _controller.StartSelectedStage();
+
+            CampaignSplinePathView path = _controller.CampaignSplinePath;
+            Assert.That(path.VisualsActive, Is.True);
+            Assert.That(path.TrackMesh, Is.Not.Null);
+            Assert.That(path.TrackMesh.subMeshCount, Is.EqualTo(2));
+            Assert.That(path.PathLength,
+                Is.GreaterThan(_controller.GoalPathDistance));
+            Assert.That(path.HorizontalAmplitude, Is.EqualTo(18f));
+            Assert.That(path.VerticalAmplitude, Is.EqualTo(9f));
+            Assert.That(_controller.TrackPool.gameObject.activeSelf, Is.False);
+
+            SplineCityPoolView city = _controller.SplineCityPool;
+            Assert.That(city.CampaignActive, Is.True);
+            Assert.That(city.SlotCount, Is.EqualTo(24));
+            for (int index = 0; index < city.SlotCount; index++)
+            {
+                Assert.That(
+                    city.GetSlotLateralDistance(index),
+                    Is.GreaterThanOrEqualTo(
+                        SplineCityPoolView.MinimumLateralOffset));
+            }
+
+            path.EvaluatePose(
+                180f,
+                0f,
+                out Vector3 curvePosition,
+                out _);
+            Assert.That(Mathf.Abs(curvePosition.x), Is.GreaterThan(1f));
+            Assert.That(curvePosition.y, Is.GreaterThan(0.1f));
+        }
+
+        [Test]
         public void SplineTrackLab_IsIsolatedFromStraightCampaignAtRest()
         {
             SplineTrackLabController lab = _controller.SplineTrackLab;
@@ -808,18 +846,23 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.Session.Stage.BoosterDistance + 1f);
             _controller.Session.Advance(StageSession.BoosterExitDuration, 0f);
             _controller.Tick(0.36f);
+            _controller.CampaignSplinePath.EvaluatePose(
+                _controller.CampaignDistance,
+                0f,
+                out _,
+                out Quaternion pathRotation);
             Assert.That(_controller.GameplayCamera.fieldOfView,
                 Is.EqualTo(60f).Within(0.001f));
             Assert.That(
                 Quaternion.Angle(
-                    _controller.NormalCameraRotation,
+                    pathRotation * _controller.NormalCameraRotation,
                     _controller.GameplayCamera.transform.rotation),
                 Is.LessThan(0.001f));
             Assert.That(
                 Vector3.Distance(
                     _controller.GameplayCamera.transform.position -
                     _controller.PlayerTransform.position,
-                    baselineOffset),
+                    pathRotation * baselineOffset),
                 Is.LessThan(0.001f));
         }
 
@@ -1159,9 +1202,10 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.FogCurtain.IsVisible, Is.True);
             Assert.That(_controller.FogCurtain.Alpha, Is.Zero);
             Assert.That(
-                _controller.FogCurtain.transform.position.z -
-                _controller.PlayerTransform.position.z,
-                Is.EqualTo(expectedDistance).Within(0.001f));
+                Vector3.Distance(
+                    _controller.FogCurtain.transform.position,
+                    GetExpectedFogPosition(expectedDistance)),
+                Is.LessThan(0.001f));
             Assert.That(
                 fog.DisplayMaterial,
                 Is.SameAs(_controller.GetPresentationMaterial(
@@ -2126,8 +2170,8 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(gate, Is.Not.Null);
                 Match(gate.AssignedColor);
                 float distanceToPastGate =
-                    gate.transform.position.z -
-                    _controller.PlayerTransform.position.z + 1f;
+                    gate.PathDistance -
+                    _controller.CampaignDistance + 1f;
                 float deltaTime = distanceToPastGate /
                     _controller.Session.GetSpeedForPlan(gate.ActivePlan);
                 _controller.Tick(deltaTime);
@@ -2139,8 +2183,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Goal.activeSelf, Is.True);
 
             float distanceToPastGoal =
-                _controller.Goal.transform.position.z -
-                _controller.PlayerTransform.position.z + 1f;
+                _controller.GoalPathDistance -
+                _controller.CampaignDistance + 1f;
             _controller.TickMovement(
                 distanceToPastGoal / _controller.Session.CurrentSpeed);
 
@@ -3032,10 +3076,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 gate.TryResolveCrossing();
                 index++;
             }
-            Vector3 position = _controller.PlayerTransform.position;
-            position.z = _controller.Goal.transform.position.z - 1f;
-            _controller.PlayerTransform.position = position;
-            _controller.TickMovement(2f);
+            float remaining = _controller.GoalPathDistance -
+                _controller.CampaignDistance + 1f;
+            _controller.TickMovement(
+                remaining / _controller.Session.CurrentSpeed);
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));
         }
@@ -3054,9 +3098,22 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void PlacePlayerBeforeGoal()
         {
-            Vector3 position = _controller.PlayerTransform.position;
-            position.z = _controller.Goal.transform.position.z - 1f;
-            _controller.PlayerTransform.position = position;
+            float remaining = Mathf.Max(
+                0f,
+                _controller.GoalPathDistance -
+                _controller.CampaignDistance - 1f);
+            _controller.TickMovement(
+                remaining / _controller.Session.CurrentSpeed);
+        }
+
+        private Vector3 GetExpectedFogPosition(float forwardDistance)
+        {
+            _controller.CampaignSplinePath.EvaluatePose(
+                _controller.CampaignDistance + forwardDistance,
+                TimedFogCurtainView.HeightOffset,
+                out Vector3 position,
+                out _);
+            return position;
         }
 
         private void AssertPrimaryFlow(MobileUiFlow expected)
@@ -3174,7 +3231,7 @@ namespace ColorGateRunner.Tests.PlayMode
             float[] result = new float[_controller.GatePoolSize];
             for (int index = 0; index < result.Length; index++)
             {
-                result[index] = _controller.GetGate(index).transform.position.z;
+                result[index] = _controller.GetGate(index).PathDistance;
             }
             return result;
         }

@@ -716,11 +716,27 @@ The three-Continue cap and original prices below are superseded by Iteration
   the upper frame, camera comfort, gate occlusion, Bloom balance and mobile
   frame cost.
 
+## Iteration 40 Campaign Spline and continuous city
+
+- The active Campaign road now uses the same Spline pose for its generated
+  near-black center, Cyan edges, runner, camera, gates, Goal and mechanic
+  presentation. Curvature must read as one continuous roller-coaster-like route
+  without introducing banking or horizon roll.
+- Early Stages use restrained horizontal turns. Later Stages broaden turns and
+  add gentle climbs/descents, while the next gate remains visible within the
+  portrait chase framing. Loops, inversions and abrupt crests remain excluded.
+- Theme 1 city silhouettes and their glow partners form one fixed 24-slot pool.
+  They appear on both sides at deterministic varied distances and offsets,
+  never enter the seven-unit road corridor, recycle behind the runner and remain
+  present through the Goal to sustain parallax and speed perception.
+- The generated road and pooled city must not allocate presentation objects per
+  frame. Human device review owns curve anticipation, building pop, city
+  density, horizon comfort, gate readability and mobile performance.
+
 ## Future curved-track visual guardrails
 
-- The completed Spline Lab is the visual prototype. Later Campaign curves use
-  broad anticipation, restrained elevation and a stable horizon before any
-  banking or roller-coaster roll is considered.
+- The completed Campaign Spline uses broad anticipation, restrained elevation
+  and a stable horizon before any banking or roller-coaster roll is considered.
 - A future three-to-five-lane Race view derives parallel road ribbons from one
   center Spline. Lane separation, opponent silhouette and result readability
   must be proven in portrait before additional effects or collision are added.

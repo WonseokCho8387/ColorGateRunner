@@ -1451,7 +1451,7 @@ Status: Approved and implemented.
   raised and prewarmed World Space Warp boxes preserve the existing Booster
   authority, FOV, timing, pause behavior and total 160-particle cap.
 
-## Future path roadmap — Campaign integration precedes Race Mode
+## Historical path roadmap — superseded by Iteration 40
 
 - Iteration 37 remains the completed distance-path foundation. The next curved
   Campaign slice is numbered as an Iteration 40 candidate because Iterations
@@ -1465,3 +1465,23 @@ Status: Approved and implemented.
   non-colliding Ghost with independent progress and results; collision,
   economy/rank rewards, online play and conversion of current Campaign Stages
   remain excluded.
+
+## Iteration 40 — Spline distance is the sole active Campaign spatial authority
+
+- Iteration 39's deferred partial/later-Stage Campaign adoption is superseded:
+  all 20 active Campaign Stages evaluate one scalar distance on a Spline.
+  Runner, chase camera, pooled gates, Goal, Fog and Ice may not maintain
+  parallel world-Z progress.
+- Stage plans, authored distances, movement speeds, deterministic seeds,
+  judgment, Continue and economy remain Core authority. Spline conversion is a
+  presentation mapping and therefore must retain all Campaign and Step 10
+  simulation artifacts exactly.
+- The Campaign road is generated once for the full attempt route. The legacy
+  six-segment straight pool remains only for existing Experiment compatibility
+  and is inactive during Campaign.
+- Theme 1 city uses the existing 24 imported body/glow pairs as one fixed,
+  deterministic pool. It follows the route outside a 7.5-unit minimum lateral
+  clearance and recycles through the Goal buffer without runtime growth.
+- Campaign curves retain world-up and prohibit banking, roll, loops and
+  inversions. Race Mode remains a later slice derived from one center Spline;
+  it does not create a second Campaign movement authority.

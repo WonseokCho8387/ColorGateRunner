@@ -121,9 +121,12 @@ namespace ColorGateRunner.Editor
             Camera camera = CreateCamera(root.transform);
             CreateDirectionalLight(root.transform);
             CreateTheme01Volume(root.transform, camera);
-            CreateTheme01City(root.transform, darkAlloy, blue, cyan);
+            SplineCityPoolView cityPool =
+                CreateTheme01City(root.transform, darkAlloy, blue, cyan);
             TrackPoolController trackPool =
                 CreateTrackPool(root.transform, darkAlloy, cyan);
+            CampaignSplinePathView campaignSplinePath =
+                CreateCampaignSplinePath(root.transform, darkAlloy, cyan);
             SplineTrackLabView splineTrackLabView =
                 CreateSplineTrackLab(root.transform, darkAlloy, cyan);
             IceRunwayView iceRunway =
@@ -390,6 +393,8 @@ namespace ColorGateRunner.Editor
                 failure,
                 tapSurface,
                 trackPool,
+                campaignSplinePath,
+                cityPool,
                 gates,
                 goal,
                 shieldVisual,
@@ -1328,7 +1333,7 @@ namespace ColorGateRunner.Editor
             volumeType.GetProperty("sharedProfile")?.SetValue(volume, profile);
         }
 
-        private static void CreateTheme01City(
+        private static SplineCityPoolView CreateTheme01City(
             Transform parent,
             Material darkMaterial,
             Material neonBlue,
@@ -1346,6 +1351,33 @@ namespace ColorGateRunner.Editor
                     ? (index % 2 == 0 ? neonBlue : neonCyan)
                     : darkMaterial;
             }
+            Transform[] bodies = new Transform[24];
+            Transform[] glows = new Transform[24];
+            int slot = 0;
+            string[] sides = { "L", "R" };
+            for (int side = 0; side < sides.Length; side++)
+            {
+                for (int index = 0; index < 12; index++)
+                {
+                    bodies[slot] = FindNamedTransform(
+                        city.transform,
+                        $"City_{sides[side]}_{index:00}");
+                    glows[slot] = FindNamedTransform(
+                        city.transform,
+                        $"CityGlow_{sides[side]}_{index:00}");
+                    if (bodies[slot] == null || glows[slot] == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Neon City slot {sides[side]}_{index:00} " +
+                            "is incomplete.");
+                    }
+                    slot++;
+                }
+            }
+            SplineCityPoolView pool =
+                city.AddComponent<SplineCityPoolView>();
+            pool.Configure(bodies, glows);
+            return pool;
         }
 
         private static GateBreakEffectPool CreateGateBreakEffectPool(
@@ -1446,6 +1478,52 @@ namespace ColorGateRunner.Editor
             pool.Configure(segments, TrackSegmentLength, -20f, 20f);
             pool.ResetPool();
             return pool;
+        }
+
+        private static CampaignSplinePathView CreateCampaignSplinePath(
+            Transform parent,
+            Material surfaceMaterial,
+            Material edgeMaterial)
+        {
+            GameObject pathObject = new GameObject(
+                "CampaignSplinePath",
+                typeof(SplineContainer),
+                typeof(CampaignSplinePathView));
+            pathObject.transform.SetParent(parent, false);
+            SplineContainer container =
+                pathObject.GetComponent<SplineContainer>();
+            container.Spline = new Spline(
+                new[]
+                {
+                    new float3(0f, 0f, 0f),
+                    new float3(0f, 0f, 100f)
+                },
+                TangentMode.AutoSmooth,
+                false);
+
+            GameObject visualRoot = new GameObject(
+                "CampaignSplineVisuals");
+            visualRoot.transform.SetParent(pathObject.transform, false);
+            GameObject surface = new GameObject(
+                "CampaignSplineSurface",
+                typeof(MeshFilter),
+                typeof(MeshRenderer));
+            surface.transform.SetParent(visualRoot.transform, false);
+            MeshFilter meshFilter = surface.GetComponent<MeshFilter>();
+            MeshRenderer meshRenderer = surface.GetComponent<MeshRenderer>();
+            meshRenderer.sharedMaterials = new[]
+            {
+                surfaceMaterial,
+                edgeMaterial
+            };
+            meshRenderer.shadowCastingMode =
+                UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+
+            CampaignSplinePathView view =
+                pathObject.GetComponent<CampaignSplinePathView>();
+            view.Configure(container, visualRoot, meshFilter);
+            return view;
         }
 
         private static SplineTrackLabView CreateSplineTrackLab(

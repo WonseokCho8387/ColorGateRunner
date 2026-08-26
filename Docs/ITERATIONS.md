@@ -2444,3 +2444,70 @@ Human feedback required
   from one center Spline with non-colliding Ghost AI, independent progress and
   result UI. Opponent collision, rank economy, online play and wholesale
   Campaign conversion remain excluded.
+
+## Iteration 40 — Campaign Spline Conversion and Continuous City
+
+### Play / Analyze
+
+- Human review clarified that the desired roller-coaster direction requires
+  replacing Campaign track and movement as a whole, not adding optional curves
+  beside the existing straight system.
+- The imported Theme 1 city existed only at fixed early world-Z positions, so
+  its disappearance removed parallax and weakened the sense of speed long
+  before the Goal.
+- Inspection found Campaign player, camera, gate, Goal, Fog, Ice, Continue and
+  track recycling each depended on world Z. The smallest coherent conversion
+  therefore had to move every one of those presentation consumers to the same
+  scalar-distance path contract.
+
+### Design / Implementation
+
+- Added `CampaignSplinePathView`, which builds a full-attempt Unity Spline and
+  a seven-unit two-submesh road. Stages 1–7 introduce restrained horizontal
+  curvature; 8–13 broaden it and begin gentle elevation; 14–20 increase both
+  while preserving a world-up/no-roll camera.
+- `StageSceneController` now owns Campaign scalar distance and maps runner,
+  camera, gates, Goal, Fog, Ice and Continue restoration through that route.
+  Core plans, gate order, speeds, timing, judgment and economy remain intact.
+- Added `SplineCityPoolView` over the 24 existing imported city body/glow pairs.
+  Seeded spacing and lateral offsets are deterministic, the road clearance is
+  at least 7.5 units, slots recycle behind the runner and coverage extends
+  through the Goal without runtime object growth.
+- The Campaign Builder owns both new generated structures and references. The
+  legacy straight Track pool remains only for Experiment compatibility and is
+  disabled during active Campaign play.
+
+### Validation
+
+- Campaign Builder completed two consecutive passes in an isolated project
+  copy while the user's original Editor remained open. Focused Spline/city
+  PlayMode passed `1/1`; the affected Campaign group passed after correcting
+  one obsolete straight-camera expectation.
+- Full EditMode passed `444/444`; full post-Builder PlayMode passed `242/242`.
+  Missing Script, Missing Reference, unique generated roots, EventSystem and
+  Build Settings checks passed.
+- Campaign simulation ran twice and retained the approved 400-row Summary,
+  JSON and CSV hashes exactly. Step 10 ran twice and retained its 80-row,
+  64,016-run CSV, JSON, Summary, Comparison and Shortlist hashes exactly.
+- Package manifest, package lock and `ProjectSettings.asset` hashes remain
+  exact. Validation used an isolated copy and did not mutate the open Editor's
+  Product save.
+
+### Learning
+
+- Curved-track correctness comes from one scalar authority and many pose
+  consumers. Moving only the road mesh would preserve the original coupling and
+  create drift at gates, mechanics, Continue or Goal.
+- A fixed art pool can sustain full-stage speed cues when placement is derived
+  from route distance and recycled deterministically rather than authored only
+  near the origin.
+
+### Deferred / Human Review
+
+- Human portrait/device play must judge curve anticipation, gate visibility on
+  slopes, Fog look-ahead, Ice panel continuity, Continue comfort, city pop and
+  density, horizon stability, Bloom and target-mobile performance.
+- Banking, loops, inversions, fully curved Ice mesh, additional modular city
+  art, Stages 21–36 and Race Mode remain deferred. Race Mode still targets
+  three default and at most five parallel paths with non-colliding Ghost AI,
+  independent progress and result UI.
