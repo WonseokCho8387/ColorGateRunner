@@ -23,8 +23,10 @@ Shader "ColorGateRunner/ProtectionField"
             Cull Back
 
             HLSLPROGRAM
+            #pragma target 3.0
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
@@ -32,6 +34,7 @@ Shader "ColorGateRunner/ProtectionField"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -40,6 +43,7 @@ Shader "ColorGateRunner/ProtectionField"
                 float3 positionWS : TEXCOORD0;
                 half3 normalWS : TEXCOORD1;
                 float2 uv : TEXCOORD2;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -51,7 +55,7 @@ Shader "ColorGateRunner/ProtectionField"
             {
                 point = abs(point);
                 return max(
-                    dot(point, normalize(float2(1.0, 1.7320508))),
+                    dot(point, float2(0.5, 0.8660254)),
                     point.x);
             }
 
@@ -59,11 +63,13 @@ Shader "ColorGateRunner/ProtectionField"
             {
                 float2 cell = float2(1.0, 1.7320508);
                 float2 halfCell = cell * 0.5;
-                float2 first = fmod(point, cell) - halfCell;
-                float2 second = fmod(point - halfCell, cell) - halfCell;
-                float2 local = dot(first, first) < dot(second, second)
-                    ? first
-                    : second;
+                float2 first = frac(point / cell) * cell - halfCell;
+                float2 second =
+                    frac((point - halfCell) / cell) * cell - halfCell;
+                float useFirst = step(
+                    dot(first, first),
+                    dot(second, second));
+                float2 local = lerp(second, first, useFirst);
                 float interior = 0.5 - HexDistance(local);
                 return 1.0 - smoothstep(0.018, 0.065, interior);
             }
@@ -71,16 +77,16 @@ Shader "ColorGateRunner/ProtectionField"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 float wave = sin(
                     (input.uv.x * 37.0) +
                     (input.uv.y * 21.0) +
                     (_Time.y * 2.4));
                 float3 displaced = input.positionOS.xyz +
                     (input.normalOS * wave * 0.008);
-                VertexPositionInputs positions =
-                    GetVertexPositionInputs(displaced);
-                output.positionCS = positions.positionCS;
-                output.positionWS = positions.positionWS;
+                output.positionCS = TransformObjectToHClip(displaced);
+                output.positionWS = TransformObjectToWorld(displaced);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.uv = input.uv;
                 return output;
@@ -108,4 +114,6 @@ Shader "ColorGateRunner/ProtectionField"
             ENDHLSL
         }
     }
+
+    Fallback Off
 }

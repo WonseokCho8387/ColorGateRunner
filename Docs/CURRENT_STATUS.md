@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `ff3cc01`
-- Base commit: `fix: tint runner glass shell`
+- Implementation base HEAD: `047a8fa`
+- Base commit: `feat: add spline track lab`
 - Authoritative completion HEAD: the commit named
-  `feat: add spline track lab`; its exact hash is recorded in the
-  Iteration 37 final report because a commit cannot contain
+  `fix: restore world-space protection effects`; its exact hash is recorded in
+  the Iteration 38 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 37 — Spline Track Lab**.
+- Current completed iteration: **Iteration 38 — World-Space Protection and Warp VFX Correction**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit are
@@ -132,18 +132,24 @@ below where their contracts differ.
   imported-art parent pivot, to the requested world start. Reset and recycling
   therefore keep all six fixed segments end-to-start continuous beyond the
   authored Stage distance without pool growth, overlap or a disappearing road.
-- Shield and Echo now share one original transparent spherical protection-field
+- Shield and Echo share one original transparent spherical protection-field
   presentation with a procedural hex grid, Fresnel rim, restrained motion and
   Bloom-reactive emission. Normal Shield is fixed Cyan/Electric Blue; held Echo
   uses only its exact stored runner hue through a property block. Consumption
   emits one short outward pulse in that same exact field hue before the surface
-  disappears. An attempt
+  disappears. The URP shader uses an explicit shader-model target, stable
+  branch-free hex-cell math and instancing/stereo setup; EditMode and the
+  Campaign Builder reject compiler errors instead of allowing a pink error
+  fallback. An attempt
   that starts with a selected or stage-provided normal Shield generates no Echo
   Provider gates for that entire attempt in Campaign or Experiment, including
   after Shield consumption, Continue or Retry with the retained selection.
-- Booster presentation is a fixed camera-local Warp field with centered Cyan
-  and Gold circle layers, stretched additive particles, two-ended lifetime
-  fade and a hard 160-particle emitted capacity. It reuses the existing
+- Booster presentation is a runner-aligned 3D Warp corridor. Its non-emitting
+  controller follows the Player, while Cyan and Gold stretched particles emit
+  through forward box volumes and remain in World Space so depth and parallax
+  read along the travel direction instead of sticking to screen center. The
+  two-ended lifetime fade and hard 160-particle emitted capacity remain. It
+  reuses the existing
   Booster state, distance, FOV, warning and pause ownership and allocates no
   runtime emitter.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
@@ -216,16 +222,16 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `439/439`
+- EditMode: `440/440`
 - PlayMode: `237/237`
 - Post-Builder PlayMode: `237/237`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 37 passes completed; the
-  horizontal S-curve, generated two-submesh road, Lab references and initial
-  isolation passed alongside runner readability, continuous straight Campaign
-  anchors, fixed pools, references and Build Settings
+- Campaign Builder: two consecutive Iteration 38 passes completed; protection
+  shader compilation, Player-owned World Space Warp volumes and the 160-particle
+  cap passed alongside the Spline Lab, runner readability, continuous straight
+  Campaign anchors, fixed pools, references and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -328,6 +334,31 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 38 validation result
+
+- Starting HEAD `047a8fa` was clean. Completion commit name:
+  `fix: restore world-space protection effects`.
+- The protection-field material reference was intact, but human play exposed a
+  pink shader fallback that name-only validation could not detect. The shader
+  now uses URP-compatible branch-free hex math, explicit shader target and
+  instancing/stereo setup; Builder and EditMode inspect compiler messages.
+- The former camera-local radius-five Warp was the direct cause of the flat
+  screen-center presentation. Its existing controller now follows the Player,
+  while two Cyan/Gold forward box volumes simulate in World Space and stream
+  backward along the runner direction. Booster rules, FOV, warning, pause,
+  timing and the 160-particle cap are unchanged.
+- Focused protection shader EditMode passed `1/1`. Campaign Builder completed
+  two consecutive passes. Full EditMode passed `440/440`; full post-Builder
+  PlayMode passed `237/237`.
+- Package and ProjectSettings hashes remain exact. Validation used an isolated
+  project copy and did not touch the original Editor Product save. Campaign and
+  Step 10 simulations were omitted because no Core rule, Stage data,
+  deterministic generation, timing, judgment, balance or Experiment input
+  changed.
+- Human portrait/device review owns final Shield transparency/hex readability,
+  absence of pink fallback, Warp corridor depth, center readability, Bloom and
+  mobile frame cost.
 
 ## Iteration 37 validation result
 

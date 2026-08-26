@@ -2345,3 +2345,48 @@ Human feedback required
   camera comfort, Cyan edge Bloom and clean return to Campaign.
 - Vertical curves, banking/roll, Campaign stage conversion, mechanic placement
   on curves, 3–5 parallel tracks and AI racing remain excluded.
+
+## Iteration 38 — World-Space Protection and Warp VFX Correction
+
+### Play / Analyze
+
+- Human play showed the Shield as a pink fallback even though the generated
+  Renderer referenced `ProtectionField.mat`. Existing coverage checked only
+  the shader name and therefore could not distinguish a compiling shader from
+  an error presentation.
+- The Booster streaks radiated from a fixed screen-center point. Inspection
+  confirmed its controller was parented to the chase camera and both emitters
+  used camera-local radius-five Circles, so the flat result matched the old
+  implementation rather than the intended 3D travel direction.
+
+### Design / Implementation
+
+- Reworked the protection shader with explicit URP shader target,
+  instancing/stereo setup and stable branch-free hex-cell math. Builder and
+  EditMode now reject compiler errors before the material/Scene is accepted.
+- Reparented the existing non-emitting Booster root to the Player. Cyan and
+  Gold children emit from forward 3D Box volumes, travel backward with velocity-
+  aligned Stretch rendering and simulate in World Space for persistent depth
+  and parallax.
+- Preserved the exact existing Booster state, distance, FOV, warning, pause,
+  lifetime/speed parameters, cleanup behavior and combined capacity of 160.
+
+### Validation / Learning
+
+- Focused protection shader EditMode passed `1/1`. Campaign Builder completed
+  two consecutive passes. Full EditMode passed `440/440`; full post-Builder
+  PlayMode passed `237/237`.
+- Package and ProjectSettings hashes remain exact. Isolated validation did not
+  touch the original Editor Product save. Campaign and Step 10 simulations were
+  omitted because no deterministic gameplay input changed.
+- A VFX that conveys world velocity needs world persistence: following the
+  runner at emission time while retaining emitted particles in World Space
+  creates depth without moving gameplay authority.
+
+### Deferred / Human Review
+
+- Human portrait/device play must confirm no pink Shield fallback, readable hex
+  transparency, clear Echo hue, convincing forward Warp depth, unobstructed
+  gates, Bloom balance and mobile frame cost.
+- VFX quality tiers, new Booster mechanics, Spline-Lab Booster support, camera
+  redesign, audio and additional particle packages remain excluded.

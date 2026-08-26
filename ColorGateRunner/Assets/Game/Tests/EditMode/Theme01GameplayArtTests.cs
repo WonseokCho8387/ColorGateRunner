@@ -132,6 +132,25 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(glass.GetFloat("_Smoothness"), Is.GreaterThanOrEqualTo(0.9f));
         }
 
+        [Test]
+        public void ProtectionFieldShader_HasNoCompilerErrors()
+        {
+            const string path =
+                "Assets/Game/Art/Gameplay/Theme01/ProtectionField.shader";
+            Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            Assert.That(shader, Is.Not.Null, path);
+            Assert.That(shader.name, Is.EqualTo("ColorGateRunner/ProtectionField"));
+
+            foreach (var message in ShaderUtil.GetShaderMessages(shader))
+            {
+                if (message.severity.ToString() == "Error")
+                {
+                    Assert.Fail(
+                        $"{path}: {message.message} ({message.platform})");
+                }
+            }
+        }
+
         private static Transform FindNamedTransform(
             Transform root,
             string name)

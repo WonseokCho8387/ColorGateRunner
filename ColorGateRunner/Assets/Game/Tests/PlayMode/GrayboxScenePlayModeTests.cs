@@ -2435,7 +2435,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void NormalGameplay_HasNoCentralSpeedLineObstruction()
+        public void NormalGameplay_HasNoWorldWarpParticles()
         {
             StartPlaying(false, false);
             ParticleSystem[] systems =
@@ -2445,14 +2445,12 @@ namespace ColorGateRunner.Tests.PlayMode
             {
                 Assert.That(systems[index].isPlaying, Is.False);
             }
-            Assert.That(FindTransform("BoosterWarpCyan").localPosition.x,
-                Is.EqualTo(0f).Within(0.001f));
-            Assert.That(FindTransform("BoosterWarpGold").localPosition.x,
-                Is.EqualTo(0f).Within(0.001f));
+            Assert.That(_controller.SpeedLines.transform.parent,
+                Is.EqualTo(_controller.PlayerTransform));
         }
 
         [Test]
-        public void WarpBooster_UsesCenteredCyanGoldLayersWithinParticleCap()
+        public void WarpBooster_UsesRunnerAlignedWorldSpaceVolumeWithinParticleCap()
         {
             ParticleSystem[] systems =
                 _controller.SpeedLines.GetComponentsInChildren<ParticleSystem>(true);
@@ -2475,15 +2473,23 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(main.startSpeed.constant,
                     Is.EqualTo(35f).Within(0.001f));
                 Assert.That(shape.shapeType,
-                    Is.EqualTo(ParticleSystemShapeType.Circle));
-                Assert.That(shape.radius, Is.EqualTo(5f).Within(0.001f));
+                    Is.EqualTo(ParticleSystemShapeType.Box));
+                Assert.That(main.simulationSpace,
+                    Is.EqualTo(ParticleSystemSimulationSpace.World));
+                Assert.That(shape.scale.x, Is.GreaterThanOrEqualTo(6.4f));
+                Assert.That(shape.scale.y, Is.GreaterThanOrEqualTo(3.2f));
+                Assert.That(shape.scale.z, Is.GreaterThanOrEqualTo(19f));
                 Assert.That(renderer.renderMode,
                     Is.EqualTo(ParticleSystemRenderMode.Stretch));
+                Assert.That(renderer.alignment,
+                    Is.EqualTo(ParticleSystemRenderSpace.Velocity));
                 Assert.That(renderer.lengthScale, Is.GreaterThanOrEqualTo(7f));
                 Assert.That(systems[index].transform.localPosition.x,
                     Is.EqualTo(0f).Within(0.001f));
                 Assert.That(systems[index].transform.localPosition.y,
-                    Is.EqualTo(0f).Within(0.001f));
+                    Is.EqualTo(1.2f).Within(0.001f));
+                Assert.That(systems[index].transform.localPosition.z,
+                    Is.EqualTo(14f).Within(0.001f));
             }
             Assert.That(emittedCapacity, Is.EqualTo(160));
 

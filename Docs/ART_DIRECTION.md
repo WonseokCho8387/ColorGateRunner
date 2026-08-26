@@ -676,3 +676,21 @@ The three-Continue cap and original prices below are superseded by Iteration
   the same tangent with a fixed chase offset and world-up orientation.
 - Human review owns curve anticipation, motion comfort, edge Bloom strength and
   whether upcoming gates remain readable through both bend directions.
+
+## Iteration 38 World-space protection and Warp correction
+
+- This section supersedes Iteration 35's camera-local, centered Circle Warp
+  paragraph. The Booster effect belongs to the runner's 3D travel direction,
+  never to a fixed screen coordinate or Canvas overlay.
+- One non-emitting controller follows the Player. Its Cyan and Gold layers emit
+  from broad forward box volumes around the track and simulate in World Space,
+  so streaks keep depth and move backward past the runner/camera as speed cues.
+- The corridor stays visually open around the next gate. Streaks use velocity
+  alignment and two-ended fades rather than an opaque central starburst. Total
+  emitted capacity remains 160.
+- The shared Shield/Echo sphere retains its procedural hex cells, Fresnel rim,
+  exact semantic hue and collapse pulse. Its custom URP shader must compile
+  without an error fallback on the active render pipeline; a pink surface is a
+  defect, not an accepted style.
+- Human portrait/device review owns apparent 3D depth, forward alignment,
+  Shield transparency, Echo hue, Bloom balance and mobile performance.

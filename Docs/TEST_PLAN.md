@@ -660,3 +660,20 @@ fairness, or polish.
   required. Campaign and Step 10 simulations are omitted because Core rules,
   Stage data, deterministic generation, timing, judgment, balance and existing
   Experiment inputs are unchanged.
+
+### Iteration 38 World-space protection and Warp correction
+
+- EditMode must load `ColorGateRunner/ProtectionField`, inspect its compiler
+  messages and reject every error. Builder must apply the same rejection before
+  regenerating the protection material and two field instances.
+- Campaign Builder must produce one non-emitting Booster controller under the
+  Player, never the camera, plus exactly two Cyan/Gold Box emitters positioned
+  forward of the runner. Both layers must simulate in World Space, use velocity-
+  aligned Stretch rendering and preserve the combined 160-particle cap.
+- PlayMode must prove normal play emits no Warp particles, Booster activation
+  uses the Player-owned hierarchy, and existing pause/end-clear behavior stops
+  and clears every child particle system.
+- Tier 2 requires the focused shader test, Campaign Builder twice, full
+  EditMode and full post-Builder PlayMode. Campaign and Step 10 simulations are
+  omitted because Core rules, Stage data, deterministic generation, timing,
+  judgment, balance and Experiment inputs are unchanged.

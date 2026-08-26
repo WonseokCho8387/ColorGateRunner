@@ -1415,3 +1415,19 @@ Status: Approved and implemented.
 - The Lab is development-only and non-persistent. It reuses the fixed gate pool
   and semantic materials, while its HUD, run state and road are isolated from
   Campaign progression, economy and the existing 20 straight Stages.
+
+## Iteration 38 — Booster VFX follows the runner but simulates in World Space
+
+- Iteration 35's camera-local centered Warp contract is superseded. Human play
+  established that it reads as a 2D screen overlay rather than forward motion.
+- The existing fixed controller is parented to the Player so new emissions use
+  the runner direction. Cyan and Gold children use forward box volumes with
+  World Space simulation, leaving already-emitted streaks in the world to
+  create depth and parallax. No Canvas VFX or runtime emitter is introduced.
+- The existing Booster authority, distance, FOV, warning, pause and cleanup
+  paths remain unchanged, as does the combined 160-particle cap.
+- A valid material reference is insufficient protection-field evidence.
+  Builder/EditMode validation also inspects shader compiler messages so a pink
+  error fallback cannot be accepted as a complete generated field.
+- This remains a Tier 2 presentation correction. Core rules, Stage data,
+  deterministic content and Spline Lab scope do not change.

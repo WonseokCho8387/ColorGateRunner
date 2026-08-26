@@ -625,7 +625,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `BoosterBar_IsHiddenBeforeBooster`
 - `BoosterBar_IsVisibleOnlyDuringBooster`
 - `BlueHorizontalCenterBar_NoLongerExists`
-- `NormalGameplay_HasNoCentralSpeedLineObstruction`
+- `NormalGameplay_HasNoWorldWarpParticles`
 - `BoosterEffects_ClearAfterEnding`
 - `Continue_RestoresCorrectHudState`
 - `Retry_RestoresCorrectHudState`
@@ -963,9 +963,11 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   emitter before recovery.
 - `GrayboxScenePlayModeTests.ProtectionFields_UseTransparentHexShaderWithoutHidingRunner`
   verifies the shared field structure and shader.
-- `GrayboxScenePlayModeTests.WarpBooster_UsesCenteredCyanGoldLayersWithinParticleCap`
-  fixes the two centered Circle layers, motion/lifetime/rendering parameters,
-  semantic colors and hard capacity.
+- `Theme01GameplayArtTests.ProtectionFieldShader_HasNoCompilerErrors` rejects
+  shader compiler errors before a pink fallback can be accepted.
+- `GrayboxScenePlayModeTests.WarpBooster_UsesRunnerAlignedWorldSpaceVolumeWithinParticleCap`
+  fixes the Player-owned hierarchy, two forward Box layers, World Space
+  simulation, velocity alignment, semantic colors and hard capacity.
 - `GrayboxSceneBuilder.ValidateProtectionAndWarpEffects` applies the structural
   and capacity contracts to both consecutive Builder passes.
 

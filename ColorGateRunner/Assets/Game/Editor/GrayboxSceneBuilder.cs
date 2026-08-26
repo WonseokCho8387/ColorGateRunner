@@ -169,7 +169,7 @@ namespace ColorGateRunner.Editor
                     false);
             ParticleSystem speedLines =
                 CreateBoosterSpeedLines(
-                    camera.transform,
+                    playerObject.transform,
                     warpCyanMaterial,
                     warpGoldMaterial);
 
@@ -1165,6 +1165,9 @@ namespace ColorGateRunner.Editor
             Transform warpRoot = FindNamedTransform(
                 generatedRoot.transform,
                 "BoosterSpeedLines");
+            Transform player = FindNamedTransform(
+                generatedRoot.transform,
+                "Player");
             ParticleSystem[] systems = warpRoot == null
                 ? Array.Empty<ParticleSystem>()
                 : warpRoot.GetComponentsInChildren<ParticleSystem>(true);
@@ -1173,6 +1176,11 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException(
                     $"Warp Booster requires one root and two layers, found " +
                     systems.Length + ".");
+            }
+            if (player == null || warpRoot.parent != player)
+            {
+                throw new InvalidOperationException(
+                    "Warp Booster must follow the runner, not the camera.");
             }
             int emittedCapacity = 0;
             for (int index = 0; index < systems.Length; index++)
@@ -1188,9 +1196,16 @@ namespace ColorGateRunner.Editor
                 emittedCapacity += main.maxParticles;
                 if (!Mathf.Approximately(main.startLifetime.constant, 1.5f) ||
                     !Mathf.Approximately(main.startSpeed.constant, 35f) ||
-                    shape.shapeType != ParticleSystemShapeType.Circle ||
-                    shape.radius < 4.9f ||
+                    main.simulationSpace !=
+                        ParticleSystemSimulationSpace.World ||
+                    shape.shapeType != ParticleSystemShapeType.Box ||
+                    shape.scale.x < 6.3f ||
+                    shape.scale.y < 3.1f ||
+                    shape.scale.z < 18.9f ||
+                    systems[index].transform.localPosition.z < 13.9f ||
                     renderer.renderMode != ParticleSystemRenderMode.Stretch ||
+                    renderer.alignment !=
+                        ParticleSystemRenderSpace.Velocity ||
                     renderer.sharedMaterial == null)
                 {
                     throw new InvalidOperationException(
@@ -2011,14 +2026,16 @@ namespace ColorGateRunner.Editor
         }
 
         private static ParticleSystem CreateBoosterSpeedLines(
-            Transform camera,
+            Transform player,
             Material cyanMaterial,
             Material goldMaterial)
         {
             GameObject root = new GameObject(
                 "BoosterSpeedLines",
                 typeof(ParticleSystem));
-            root.transform.SetParent(camera, false);
+            root.transform.SetParent(player, false);
+            root.transform.localPosition = Vector3.zero;
+            root.transform.localRotation = Quaternion.identity;
             ParticleSystem rootParticles = root.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule rootMain = rootParticles.main;
             rootMain.loop = true;
@@ -2034,13 +2051,17 @@ namespace ColorGateRunner.Editor
                 root.transform,
                 cyanMaterial,
                 48f,
-                0f);
+                7.2f,
+                3.8f,
+                22f);
             CreateWarpEmitter(
                 "BoosterWarpGold",
                 root.transform,
                 goldMaterial,
                 34f,
-                11.25f);
+                6.4f,
+                3.2f,
+                19f);
             return rootParticles;
         }
 
@@ -2049,11 +2070,13 @@ namespace ColorGateRunner.Editor
             Transform parent,
             Material material,
             float emissionRate,
-            float arcOffset)
+            float width,
+            float height,
+            float depth)
         {
             GameObject emitter = new GameObject(name, typeof(ParticleSystem));
             emitter.transform.SetParent(parent, false);
-            emitter.transform.localPosition = new Vector3(0f, 0f, 18f);
+            emitter.transform.localPosition = new Vector3(0f, 1.2f, 14f);
             emitter.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             ParticleSystem particles = emitter.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule main = particles.main;
@@ -2063,18 +2086,14 @@ namespace ColorGateRunner.Editor
             main.startLifetime = 1.5f;
             main.startSpeed = 35f;
             main.startSize = new ParticleSystem.MinMaxCurve(0.035f, 0.075f);
-            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.maxParticles = 80;
             ParticleSystem.EmissionModule emission = particles.emission;
             emission.rateOverTime = emissionRate;
             ParticleSystem.ShapeModule shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Circle;
-            shape.radius = 5f;
-            shape.radiusThickness = 0.72f;
-            shape.arc = 360f;
-            shape.arcMode = ParticleSystemShapeMultiModeValue.Random;
-            shape.arcSpread = 0.08f;
-            shape.rotation = new Vector3(0f, 0f, arcOffset);
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(width, height, depth);
+            shape.randomDirectionAmount = 0f;
 
             ParticleSystem.ColorOverLifetimeModule colorOverLifetime =
                 particles.colorOverLifetime;
@@ -2113,6 +2132,7 @@ namespace ColorGateRunner.Editor
             renderer.velocityScale = 0.22f;
             renderer.cameraVelocityScale = 0f;
             renderer.maxParticleSize = 0.12f;
+            renderer.alignment = ParticleSystemRenderSpace.Velocity;
             renderer.sharedMaterial = material;
         }
 
@@ -3487,6 +3507,15 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "ColorGateRunner/ProtectionField shader is missing.");
+            }
+            foreach (var message in ShaderUtil.GetShaderMessages(shader))
+            {
+                if (message.severity.ToString() == "Error")
+                {
+                    throw new InvalidOperationException(
+                        "ColorGateRunner/ProtectionField shader failed to " +
+                        $"compile: {message.message} ({message.platform}).");
+                }
             }
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
