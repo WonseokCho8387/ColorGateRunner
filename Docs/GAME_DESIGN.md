@@ -66,8 +66,10 @@ development stage picker is hidden from the normal flow.
 - It keeps stage, passed-gate progress, current color, and remaining Shield
   state.
 - It never restores Shield or Booster and never opens item selection.
-- It uses `3, 2, 1, GO`, one second of recovery protection, then two safe
-  gates: current color and at most one tap.
+- It shows `READY` for `0.5s` while the restored world remains frozen, resumes
+  gameplay when `GO` appears, and removes the non-blocking GO flash after
+  `0.25s`. One second of recovery protection and the next two safe gates remain
+  unchanged: current color and at most one tap.
 - A continued clear unlocks the next stage and increments clear count, but
   cannot update Best or no-item Best.
 - The clear-result `CONTINUE` action is navigation and is not a paid/ad
@@ -156,7 +158,10 @@ no-item best. Corrupt values fall back to safe empty records.
   seven units wide and has a 20-unit rear extension, so it cannot expose a gap
   before the runner or disappear before the Goal.
 - The route uses broad horizontal turns and gentle elevation only. The camera
-  retains world-up with no banking, roll, loop or inversion. Normal chase uses
+  retains world-up with no banking, roll, loop or inversion. Its path rotation
+  follows with a `0.2s` half-life, capped at `12°` yaw and `8°` pitch lag, then
+  snaps on Stage start, Retry and Continue and freezes during Pause/failure.
+  Normal chase uses
   the existing `(0, 7, -8.2)` / `18°` local path-relative pose and fixed
   60-degree FOV.
 - Booster blends closer/lower to `(0, 5, -6.5)` with `13°` pitch, temporarily
@@ -222,7 +227,8 @@ This section supersedes only the conflicting Step 9A transition and movement
 values above. All unrelated stage, item, input, persistence, and result rules
 remain active.
 
-- Continue overlays `3, 2, 1, GO` on the frozen failure scene. It preserves
+- **Superseded only in timing by Iteration 41:** Continue formerly overlaid
+  `3, 2, 1, GO` on the frozen failure scene. It still preserves
   elapsed time, progress, color, sequence cursor, camera, tracks, and the live
   six-gate pool. The failed gate is resolved exactly once at GO; Shield and
   Booster are not restored.

@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `db7443336a4533aa4bca72f20bea1bd8848af93f`
-- Base commit: `feat: add start-item quick buy and refine vfx`
+- Implementation base HEAD: `f1cc9d1f532a67ab232cdf9afd024a71a96f0c7a`
+- Base commit: `feat: convert campaign to spline routes and city pool`
 - Authoritative completion HEAD: the commit named
-  `feat: convert campaign to spline routes and city pool`; its exact hash is
-  recorded in the Iteration 40 final report because a commit cannot contain
+  `feat: add spline camera inertia and quick continue`; its exact hash is
+  recorded in the Iteration 41 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 40 — Campaign Spline Conversion and Continuous City**.
+- Current completed iteration: **Iteration 41 — Spline Camera Inertia and Quick Continue**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -34,6 +34,9 @@ below where their contracts differ.
   runway. Stages 1–7 introduce restrained horizontal curvature, Stages 8–13
   broaden it and begin gentle elevation, and Stages 14–20 increase both within
   a stable world-up/no-roll portrait camera contract.
+- The Campaign chase camera follows the current Spline rotation with a `0.2s`
+  half-life and bounded `12°` yaw / `8°` pitch lag. It never banks or rolls,
+  snaps at Stage start, Retry and Continue, and freezes with Pause or failure.
 - Campaign track presentation is one generated seven-unit two-submesh road for
   the full attempt. The legacy six-segment straight pool remains available only
   to existing Experiment paths and is inactive during Campaign play.
@@ -207,8 +210,10 @@ below where their contracts differ.
   stored Heart actually consumed for an attempt is refunded atomically when
   that attempt clears, so a successful run has zero net Heart cost while
   failure, quit, or restart retains the spend.
-- Continue Countdown starts with active gate modifiers already rendered and
-  consumed Shield/Booster state already absent. Campaign Clear hides Replay,
+- Initial Stage start retains `3, 2, 1, GO`. Continue instead shows `READY` for
+  `0.5s`, resumes gameplay when `GO` appears and removes the non-blocking `GO`
+  flash after `0.25s`. Active gate modifiers are already rendered and consumed
+  Shield/Booster state is already absent before READY. Campaign Clear hides Replay,
   separates first-clear and Lobby milestone rewards, and opens the unlocked
   next Stage directly in PreRun. Final or still-locked next Stages hide that
   action.
@@ -241,15 +246,16 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `444/444`
-- PlayMode: `242/242`
-- Post-Builder PlayMode: `242/242`
+- PlayMode: `244/244`
+- Post-Builder PlayMode: `244/244`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 40 passes completed; the active
+- Campaign Builder: two consecutive Iteration 41 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool and migrated controller references passed alongside the Spline Lab,
-  quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
+  bounded camera-inertia, quick-Continue, quick-buy/VFX contracts, fixed
+  gate/legacy track pools and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -352,6 +358,26 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 41 validation result
+
+- Starting HEAD `f1cc9d1` was clean. Completion commit name:
+  `feat: add spline camera inertia and quick continue`.
+- Campaign camera rotation follows the Spline with a `0.2s` half-life, bounded
+  yaw/pitch lag and a hard no-roll reconstruction. Stage start, Retry and
+  Continue snap the follow basis; Pause and failure freeze it.
+- Continue now uses a frozen `READY` presentation for `0.5s`, begins gameplay
+  when `GO` appears and removes the non-blocking GO flash after `0.25s`.
+  Initial Stage start remains the existing three-second countdown.
+- Focused quick-Continue PlayMode passed `17/17`; focused curved-camera and
+  Booster-return tests passed `1/1` each. Campaign Builder completed two
+  consecutive passes. Full EditMode passed `444/444`; final post-Builder
+  PlayMode passed `244/244`.
+- Campaign and Step 10 simulations ran twice and retained every authoritative
+  artifact hash exactly. Package and ProjectSettings hashes remained exact;
+  isolated validation did not mutate the original Editor Product save.
+- Human portrait/device play still owns the perceived lag strength, motion
+  comfort, gate visibility on crests and the READY/GO pacing.
 
 ## Iteration 40 validation result
 

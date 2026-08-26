@@ -1485,3 +1485,15 @@ Status: Approved and implemented.
 - Campaign curves retain world-up and prohibit banking, roll, loops and
   inversions. Race Mode remains a later slice derived from one center Spline;
   it does not create a second Campaign movement authority.
+
+## Iteration 41 — Camera inertia is bounded presentation, not path authority
+
+- Campaign scalar distance and the evaluated Spline pose remain authoritative.
+  Camera rotation follows that pose with a `0.2s` half-life and clamps relative
+  lag to `12°` yaw and `8°` pitch; roll is always zero.
+- Stage start, Retry and Continue snap the follow basis. Pause and failure
+  freeze it. Booster changes only its existing local offset, pitch and FOV.
+- Initial entry retains `3, 2, 1, GO`. Failure Continue uses `READY` for `0.5s`,
+  resumes at `GO`, and keeps GO as a non-blocking `0.25s` flash.
+- Camera lag does not change runner distance, gate/Goal poses, judgment,
+  mechanic timing, Continue economy or deterministic Stage content.

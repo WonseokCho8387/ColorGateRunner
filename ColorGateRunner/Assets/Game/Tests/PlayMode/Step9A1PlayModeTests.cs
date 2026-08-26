@@ -101,10 +101,50 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RequestCoinContinue();
             float[] gates = CaptureGatePositions();
 
-            _controller.Tick(1.5f);
+            _controller.Tick(0.25f);
 
             Assert.That(_controller.CountdownPanel.activeSelf, Is.True);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("READY"));
             Assert.That(CaptureGatePositions(), Is.EqualTo(gates));
+        }
+
+        [Test]
+        public void Continue_ReadyThenGoResumesWithoutBlockingGameplay()
+        {
+            StartPlaying();
+            Fail();
+            _controller.RequestCoinContinue();
+            float progress = _controller.Session.Progress;
+            float distance = _controller.CampaignDistance;
+
+            _controller.Tick(0.25f);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.ContinueReadyActive, Is.True);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("READY"));
+            Assert.That(_controller.Session.Progress, Is.EqualTo(progress));
+
+            _controller.Tick(0.26f);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(_controller.ContinueReadyActive, Is.False);
+            Assert.That(_controller.ContinueGoFlashActive, Is.True);
+            Assert.That(_controller.CountdownText.text, Is.EqualTo("GO!"));
+
+            _controller.Tick(0.1f);
+
+            Assert.That(_controller.CampaignDistance,
+                Is.GreaterThan(distance));
+            Assert.That(_controller.ContinueGoFlashActive, Is.True);
+
+            _controller.Tick(0.16f);
+
+            Assert.That(_controller.ContinueGoFlashActive, Is.False);
+            Assert.That(_controller.CountdownPanel.activeSelf, Is.False);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
         }
 
         [Test]

@@ -82,6 +82,33 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void CampaignCamera_CurvesWithBoundedRotationInertia()
+        {
+            SelectAndStartStage(20);
+            ResolveRemainingGates();
+            float maximumLag = 0f;
+            int guard = 0;
+
+            while (_controller.CampaignDistance < 220f && guard++ < 900)
+            {
+                _controller.Tick(1f / 60f);
+                maximumLag = Mathf.Max(
+                    maximumLag,
+                    _controller.CameraPathLagAngle);
+            }
+
+            Assert.That(_controller.CampaignDistance,
+                Is.GreaterThanOrEqualTo(220f));
+            Assert.That(maximumLag, Is.GreaterThan(0.25f));
+            Assert.That(maximumLag, Is.LessThanOrEqualTo(12.1f));
+            Assert.That(
+                Vector3.Dot(
+                    _controller.GameplayCamera.transform.up,
+                    Vector3.up),
+                Is.GreaterThan(0.7f));
+        }
+
+        [Test]
         public void SplineTrackLab_IsIsolatedFromStraightCampaignAtRest()
         {
             SplineTrackLabController lab = _controller.SplineTrackLab;
@@ -855,15 +882,22 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(60f).Within(0.001f));
             Assert.That(
                 Quaternion.Angle(
-                    pathRotation * _controller.NormalCameraRotation,
+                    _controller.CameraFollowRotation *
+                        _controller.NormalCameraRotation,
                     _controller.GameplayCamera.transform.rotation),
                 Is.LessThan(0.001f));
             Assert.That(
                 Vector3.Distance(
                     _controller.GameplayCamera.transform.position -
                     _controller.PlayerTransform.position,
-                    pathRotation * baselineOffset),
+                    _controller.CameraFollowRotation * baselineOffset),
                 Is.LessThan(0.001f));
+            Assert.That(_controller.CameraPathLagAngle,
+                Is.EqualTo(
+                    Quaternion.Angle(
+                        pathRotation,
+                        _controller.CameraFollowRotation))
+                    .Within(0.001f));
         }
 
         [Test]

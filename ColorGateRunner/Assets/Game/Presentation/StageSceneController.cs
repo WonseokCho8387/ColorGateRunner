@@ -11,6 +11,8 @@ namespace ColorGateRunner.Presentation
     public sealed class StageSceneController : MonoBehaviour
     {
         private const float CountdownDuration = 3f;
+        private const float ContinueReadyDuration = 0.5f;
+        private const float ContinueGoFlashDuration = 0.25f;
         private const float CampaignInitialGateLeadDistance = 48f;
         private const float ExperimentInitialGateLeadDistance = 24f;
         private const float CampaignGoalDistance = 40f;
@@ -22,6 +24,9 @@ namespace ColorGateRunner.Presentation
         private const float BoosterCameraBlendIn = 0.22f;
         private const float BoosterCameraBlendOut = 0.35f;
         private const float ColorStackTransitionDuration = 0.12f;
+        private const float CameraFollowHalfLife = 0.2f;
+        private const float CameraMaximumYawLag = 12f;
+        private const float CameraMaximumPitchLag = 8f;
         private static readonly Vector3 BoosterCameraFollowOffset =
             new Vector3(0f, 5f, -6.5f);
         private static readonly Quaternion BoosterCameraRotation =
@@ -174,6 +179,8 @@ namespace ColorGateRunner.Presentation
         private bool _shieldSelected;
         private bool _boosterSelected;
         private float _countdownRemaining;
+        private bool _continueReadyActive;
+        private float _continueGoFlashRemaining;
         private float _nextGateZ;
         private float _campaignDistance;
         private float _goalPathDistance;
@@ -187,6 +194,8 @@ namespace ColorGateRunner.Presentation
         private Vector3 _cameraStartPosition;
         private Quaternion _cameraStartRotation;
         private Vector3 _cameraFollowOffset;
+        private Quaternion _cameraFollowRotation;
+        private bool _cameraFollowInitialized;
         private bool _clearRecorded;
         private bool _boosterExitOverridesApplied;
         private StageGateView _failedGate;
@@ -247,6 +256,29 @@ namespace ColorGateRunner.Presentation
         internal TimedFogCurtainView FogCurtain => fogCurtain;
         internal IceRunwayView IceRunway => iceRunway;
         internal Text CountdownText => countdownText;
+        internal bool ContinueReadyActive => _continueReadyActive;
+        internal bool ContinueGoFlashActive =>
+            _continueGoFlashRemaining > 0f;
+        internal Quaternion CameraFollowRotation => _cameraFollowRotation;
+        internal float CameraPathLagAngle
+        {
+            get
+            {
+                if (!_cameraFollowInitialized || campaignSplinePath == null ||
+                    !campaignSplinePath.VisualsActive)
+                {
+                    return 0f;
+                }
+                campaignSplinePath.EvaluatePose(
+                    _campaignDistance,
+                    0f,
+                    out _,
+                    out Quaternion pathRotation);
+                return Quaternion.Angle(
+                    pathRotation,
+                    _cameraFollowRotation);
+            }
+        }
         internal Text ProgressText => progressText;
         internal Text ClearDetailsText => clearDetailsText;
         internal Text FailDetailsText => failDetailsText;
@@ -449,6 +481,7 @@ namespace ColorGateRunner.Presentation
             TickGateReactions(deltaTime);
             TickOutcomePresentation(deltaTime);
             TickColorStackAnimation(deltaTime);
+            TickContinueGoFlash(deltaTime);
 
             if (splineTrackLab != null && splineTrackLab.Active)
             {
@@ -480,7 +513,7 @@ namespace ColorGateRunner.Presentation
                     (_shieldSelected || _session.ShieldActive));
                 if (_countdownRemaining <= 0f)
                 {
-                    bool continued = _session.ContinueUsed;
+                    bool continued = _continueReadyActive;
                     _session.CompleteCountdown();
                     ApplyUiFlow(MobileUiFlow.Gameplay);
                     if (continued)
@@ -491,7 +524,12 @@ namespace ColorGateRunner.Presentation
                     {
                         ApplyItemPresentation();
                     }
+                    _continueReadyActive = false;
                     SynchronizeViews();
+                    if (continued)
+                    {
+                        BeginContinueGoFlash();
+                    }
                 }
                 TickCamera(deltaTime);
                 return;
@@ -1086,6 +1124,8 @@ namespace ColorGateRunner.Presentation
             PlacePlannedGoal();
             ApplyUiFlow(MobileUiFlow.Countdown);
             shieldVisual.SetActive(_shieldSelected);
+            _continueReadyActive = false;
+            _continueGoFlashRemaining = 0f;
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
             SynchronizeViews();
@@ -1373,7 +1413,9 @@ namespace ColorGateRunner.Presentation
             UpdateCampaignFogCurtain(0f);
             UpdateCampaignGateVisibility();
             ApplyUiFlow(MobileUiFlow.Countdown);
-            _countdownRemaining = CountdownDuration;
+            _continueReadyActive = true;
+            _continueGoFlashRemaining = 0f;
+            _countdownRemaining = ContinueReadyDuration;
             UpdateCountdownText();
             SynchronizeViews();
             return true;
@@ -1643,6 +1685,8 @@ namespace ColorGateRunner.Presentation
             ApplyUiFlow(MobileUiFlow.Countdown);
             BuildInitialExperimentGatePool();
             _colorStackInitialized = false;
+            _continueReadyActive = false;
+            _continueGoFlashRemaining = 0f;
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
             SynchronizeExperimentViews();
@@ -1662,6 +1706,8 @@ namespace ColorGateRunner.Presentation
             ApplyUiFlow(MobileUiFlow.Countdown);
             BuildInitialExperimentGatePool();
             _colorStackInitialized = false;
+            _continueReadyActive = false;
+            _continueGoFlashRemaining = 0f;
             _countdownRemaining = CountdownDuration;
             UpdateCountdownText();
             SynchronizeExperimentViews();
@@ -2161,6 +2207,8 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.Seed,
                 _goalPathDistance);
             ApplyCampaignPlayerPose();
+            SnapCampaignCameraFollow();
+            ApplyCampaignCameraPose(Vector3.zero, 0f);
         }
 
         private void ApplyCampaignPlayerPose()
@@ -2851,6 +2899,9 @@ namespace ColorGateRunner.Presentation
             _continueRequestGeneration++;
             _continueRequestPending = false;
             _continueStatus = string.Empty;
+            _continueReadyActive = false;
+            _continueGoFlashRemaining = 0f;
+            _cameraFollowInitialized = false;
             player.position = _playerStartPosition;
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
@@ -3482,10 +3533,12 @@ namespace ColorGateRunner.Presentation
                     0f,
                     out _,
                     out Quaternion pathRotation);
+                UpdateCampaignCameraFollow(pathRotation, deltaTime);
                 gameplayCamera.transform.SetPositionAndRotation(
                     player.position +
-                        (pathRotation * (followOffset + shakeOffset)),
-                    pathRotation * rotation);
+                        (_cameraFollowRotation *
+                            (followOffset + shakeOffset)),
+                    _cameraFollowRotation * rotation);
             }
             else
             {
@@ -3516,14 +3569,113 @@ namespace ColorGateRunner.Presentation
                 0f,
                 out _,
                 out Quaternion pathRotation);
+            _cameraFollowRotation = pathRotation;
+            _cameraFollowInitialized = true;
             gameplayCamera.transform.SetPositionAndRotation(
                 player.position +
-                    (pathRotation * (followOffset + localShakeOffset)),
-                pathRotation * localRotation);
+                    (_cameraFollowRotation *
+                        (followOffset + localShakeOffset)),
+                _cameraFollowRotation * localRotation);
+        }
+
+        private void SnapCampaignCameraFollow()
+        {
+            if (campaignSplinePath == null ||
+                !campaignSplinePath.VisualsActive)
+            {
+                _cameraFollowInitialized = false;
+                return;
+            }
+            campaignSplinePath.EvaluatePose(
+                _campaignDistance,
+                0f,
+                out _,
+                out _cameraFollowRotation);
+            _cameraFollowInitialized = true;
+        }
+
+        private void UpdateCampaignCameraFollow(
+            Quaternion pathRotation,
+            float deltaTime)
+        {
+            if (!_cameraFollowInitialized)
+            {
+                _cameraFollowRotation = pathRotation;
+                _cameraFollowInitialized = true;
+                return;
+            }
+            if (_session != null &&
+                _session.FlowState == StageFlowState.Failed)
+            {
+                return;
+            }
+
+            float blend = 1f - Mathf.Exp(
+                -Mathf.Log(2f) * Mathf.Max(0f, deltaTime) /
+                CameraFollowHalfLife);
+            _cameraFollowRotation = Quaternion.Slerp(
+                _cameraFollowRotation,
+                pathRotation,
+                blend);
+
+            Quaternion relative =
+                Quaternion.Inverse(pathRotation) * _cameraFollowRotation;
+            Vector3 lag = relative.eulerAngles;
+            lag.x = Mathf.Clamp(
+                NormalizeSignedAngle(lag.x),
+                -CameraMaximumPitchLag,
+                CameraMaximumPitchLag);
+            lag.y = Mathf.Clamp(
+                NormalizeSignedAngle(lag.y),
+                -CameraMaximumYawLag,
+                CameraMaximumYawLag);
+            lag.z = 0f;
+            _cameraFollowRotation = pathRotation * Quaternion.Euler(lag);
+        }
+
+        private static float NormalizeSignedAngle(float angle)
+        {
+            return angle > 180f ? angle - 360f : angle;
+        }
+
+        private void BeginContinueGoFlash()
+        {
+            _continueGoFlashRemaining = ContinueGoFlashDuration;
+            countdownText.text = "GO!";
+            uiFlowRoots[3].SetActive(true);
+            countdownPanel.SetActive(true);
+        }
+
+        private void TickContinueGoFlash(float deltaTime)
+        {
+            if (_continueGoFlashRemaining <= 0f)
+            {
+                return;
+            }
+            if (_session == null ||
+                (_session.FlowState != StageFlowState.Playing &&
+                _session.FlowState != StageFlowState.ShieldRecovery))
+            {
+                _continueGoFlashRemaining = 0f;
+                return;
+            }
+
+            _continueGoFlashRemaining = Mathf.Max(
+                0f,
+                _continueGoFlashRemaining - Mathf.Max(0f, deltaTime));
+            countdownText.text = "GO!";
+            bool visible = _continueGoFlashRemaining > 0f;
+            uiFlowRoots[3].SetActive(visible);
+            countdownPanel.SetActive(visible);
         }
 
         private void UpdateCountdownText()
         {
+            if (_continueReadyActive)
+            {
+                countdownText.text = "READY";
+                return;
+            }
             if (_countdownRemaining > 2.083f)
             {
                 countdownText.text = "3";

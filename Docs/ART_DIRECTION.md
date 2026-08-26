@@ -94,8 +94,9 @@ The five-entry picker remains hidden for development.
 
 - Booster effects ease out while the world and existing gates continue
   moving. There is no world freeze, gate jump, pool rebuild, or spawn gap.
-- Continue keeps the exact failure scene visible and frozen behind the
-  `3, 2, 1, GO` overlay. Camera position/rotation, tracks, and unaffected gate
+- **Superseded only in timing by Iteration 41:** Continue keeps the exact
+  failure scene visible and frozen behind its transition overlay. Camera
+  position/rotation, tracks, and unaffected gate
   transforms remain at the failure location.
 - Retained modifier visuals and safe colors must already match the resumed
   state on the first countdown frame. Consumed Shield, Booster, Echo, local
@@ -740,3 +741,18 @@ The three-Continue cap and original prices below are superseded by Iteration
 - A future three-to-five-lane Race view derives parallel road ribbons from one
   center Spline. Lane separation, opponent silhouette and result readability
   must be proven in portrait before additional effects or collision are added.
+
+## Iteration 41 Spline camera inertia and quick Continue
+
+- The Campaign chase camera follows route rotation with a restrained `0.2s`
+  half-life. Lag is capped at `12°` yaw and `8°` pitch, while roll is rebuilt
+  as zero so the runner side/top becomes briefly visible without tilting the
+  portrait horizon.
+- Stage start, Retry and Continue snap the camera basis to the current route.
+  Pause and failure freeze camera feedback; Booster continues to blend only
+  its existing local chase offset, pitch and FOV on top of the same basis.
+- Initial entry keeps `3, 2, 1, GO`. Continue shows centered `READY` for
+  `0.5s`; gameplay resumes as `GO` appears, and GO remains a non-blocking
+  `0.25s` flash over the live HUD.
+- Human device review owns motion comfort, curve strength, crest visibility,
+  GO legibility and whether the shorter recovery preserves continuity.

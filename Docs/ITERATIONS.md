@@ -2511,3 +2511,45 @@ Human feedback required
   art, Stages 21–36 and Race Mode remain deferred. Race Mode still targets
   three default and at most five parallel paths with non-colliding Ghost AI,
   independent progress and result UI.
+
+## Iteration 41 — Spline Camera Inertia and Quick Continue
+
+### Play / Analyze
+
+- Human play accepted the full Campaign Spline conversion but found exact
+  camera locking weakened the sensation of turning and elevation. The old
+  three-second Continue countdown also interrupted an otherwise continuous
+  recovery.
+- Inspection confirmed the camera copied each route rotation immediately and
+  Continue shared the initial-entry countdown timer.
+
+### Design / Implementation
+
+- Added a presentation-only camera follow basis with `0.2s` half-life, bounded
+  `12°` yaw / `8°` pitch lag and no roll. Start, Retry and Continue snap it;
+  Pause and failure freeze it.
+- Kept initial `3, 2, 1, GO`. Continue now holds the restored run on `READY`
+  for `0.5s`, resumes when `GO` appears and removes GO after a non-blocking
+  `0.25s` flash.
+- Existing Spline distance, Stage content, gate/Goal/mechanic poses, safe-gate
+  recovery, economy, Booster local framing and deterministic rules remain
+  unchanged.
+
+### Validation / Learning
+
+- Focused quick-Continue PlayMode passed `17/17`; curved-camera and Booster
+  return regressions passed `1/1` each. Campaign Builder completed two passes.
+  Full EditMode passed `444/444`; post-Builder PlayMode passed `244/244`.
+- Campaign and Step 10 simulations reproduced every approved artifact hash
+  exactly. Package and ProjectSettings baselines remained exact, and isolated
+  validation did not touch the open Editor Product save.
+- Camera inertia conveys route change most safely when it follows the same
+  path pose and is bounded relative to it, rather than becoming a second
+  spatial authority.
+
+### Deferred / Human Review
+
+- Human portrait/device play must judge lag strength, motion comfort, runner
+  side/top exposure, crest gate visibility and READY/GO pacing.
+- Banking, loops, inversions, Race Mode, mechanic-surface art and additional
+  camera systems remain outside this iteration.

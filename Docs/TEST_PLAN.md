@@ -698,3 +698,16 @@ fairness, or polish.
   Campaign simulations and two Step 10 simulations are required. All approved
   deterministic artifact hashes must remain exact because spatial presentation
   does not change Core plans, timing, judgment or balance.
+
+### Iteration 41 Spline camera inertia and quick Continue
+
+- PlayMode must prove later Campaign curves create measurable camera rotation
+  lag, cap it at `12°`, keep a stable upright view and return Booster framing to
+  the normal local chase pose on the inertial path basis.
+- Continue must keep the restored world frozen during `READY` for `0.5s`, begin
+  gameplay at `GO`, keep GO non-blocking for `0.25s`, preserve the same gate
+  layout and leave initial Stage entry on the existing three-second countdown.
+- Campaign Builder runs twice. Full EditMode and post-Builder PlayMode, two
+  Campaign simulations and two Step 10 simulations are required. All existing
+  artifact hashes must remain exact; package and ProjectSettings baselines
+  must remain unchanged.

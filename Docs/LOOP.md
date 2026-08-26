@@ -740,3 +740,20 @@ mask mechanic readability changes.
   Heart formatting, full regression and save preservation.
 - **Learn:** a stable information hierarchy should precede final illustration;
   otherwise art production locks in avoidable UX clutter.
+
+## Iteration 41 — curve sensation and recovery continuity
+
+- **Play:** the unified Spline route worked, but an exactly locked camera hid
+  much of the turning/elevation sensation and the old Continue countdown broke
+  momentum.
+- **Analyze:** camera rotation copied the path pose every frame, while Continue
+  reused the initial-entry three-second timer.
+- **Design:** retain one path authority, add only bounded rotational follow
+  inertia, and separate failure recovery into READY `0.5s` plus a non-blocking
+  GO `0.25s` flash.
+- **Validate:** measure lag on a later curved Stage, enforce the yaw limit and
+  upright view, verify Booster returns on the inertial basis, and prove READY
+  freezes while GO resumes the same gate stream.
+- **Learn:** a small, bounded presentation delay can communicate curvature
+  without creating a second movement system; recovery pacing should preserve
+  context instead of repeating onboarding.
