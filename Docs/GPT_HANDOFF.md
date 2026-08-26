@@ -1,466 +1,369 @@
-# Color Gate Runner — GPT Handoff
+# Color Gate Runner — Codex Handoff
 
-## Iteration 30 completed update
+이 문서는 새 Codex 작업 창에서 Color Gate Runner를 바로 이어가기 위한
+최신 인수인계 문서다. 구현 상태가 충돌하면 `CURRENT_STATUS.md`, 공통 작업
+절차는 `AGENTS.md`, 회귀 검증은 `TEST_PLAN.md`를 우선한다.
 
-- Starting HEAD was `7284cb2`; completion commit name is
-  `feat: add color courtyard visual slice`.
-- Theme 1 now presents an original futuristic Color Courtyard in three layers:
-  portrait background, central color-energy reactor and transparent ambient
-  frame. Six automatic Lobby milestones illuminate six reactor energy nodes.
-- A three-theme visual catalog and Frontend Builder own the artwork references.
-  Theme 2 and 3 remain palette fallbacks; no Scene, Product or navigation
-  duplicate was introduced. Decorative layers do not receive raycasts and use
-  only a subtle idle pulse.
-- Frontend Builder completed two passes, focused EditMode `9/9`, focused
-  Frontend PlayMode `19/19`, full EditMode `431/431` and full PlayMode
-  `228/228` passed. Product save/backup, packages and meaningful
-  ProjectSettings remained exact. Campaign and Step 10 hashes remain unchanged.
-- Human portrait play should review crop, text contrast, reactor scale, pulse
-  restraint and milestone-node clarity. Theme 2/3 art, Shop/IAP runtime,
-  bottom navigation and gameplay visual polish remain separate candidates.
+## 1. 인계 기준
 
-## Iteration 29 completed update
+- 기준일: 2026-08-27
+- 브랜치: `main`
+- 최신 구현 HEAD: `b6b712a feat: polish campaign mechanic surfaces`
+- 완료 Iteration: **Iteration 42 — Mechanic Surface Readability**
+- Push: 하지 않음
+- Unity: `6000.5.1f1`
+- Campaign Catalog: revision 10, stable Stage 1–20
+- 표준 검증 기준: EditMode `444/444`, PlayMode `244/244`
 
-- Starting HEAD was `3e9b389`; completion commit name is
-  `feat: simplify lobby hierarchy`.
-- Frontend Lobby now has a compact Profile / Coin / Heart / Settings top bar,
-  a dominant current-theme and upgrade center, and one bottom Stage card with
-  one primary `PLAY` action. Duplicate Lobby/account labels were removed.
-- The Stage card includes authored difficulty. Shield/Booster stock is
-  secondary and milestone reward copy is visible only while pending.
-- Product Heart state now exposes next recharge time as a read projection.
-  Lobby shows full, recharge-countdown and timed-unlimited states and refreshes
-  while visible without changing save schema or economy ownership.
-- Frontend Builder passed twice, focused Lobby EditMode `8/8`, Product
-  EditMode `58/58`, focused Frontend PlayMode `18/18`, full EditMode `430/430`
-  and PlayMode `227/227` passed.
-  Product save/backup and package/ProjectSettings baselines remained exact.
-- Campaign and Step 10 hashes remain unchanged because gameplay, Campaign
-  content and Experiment inputs were untouched. Human portrait review owns
-  spacing/readability and final visual quality. Shop/IAP runtime and final
-  illustrated Lobby art remain separate next candidates.
+### 현재 작업 트리 주의
 
-## Iteration 28 completed update
+Unity Editor가 최신 구현 커밋 이후 다음 파일을 다시 쓴 상태다.
 
-- Starting HEAD was `eddf720`; completion commit name is
-  `feat: rebalance ice tap rhythm`.
-- Campaign Ice now requires one forward tap by default. Stages 15 / 16 use
-  one tap on all 12 / 14 Ice gates; Stage 17 uses one tap on 14 gates and a
-  seed-selected two-tap on one gate (`6.67%`). Zero and larger Ice bursts are
-  excluded, and Retry reproduces the same sequence.
-- Ice speed, spacing, fixed runway, Continue, non-Ice Campaign and Experiment
-  Lab are unchanged. Human play accepted the current Fog/Ice visual direction.
-- Focused EditMode `13/13`, focused PlayMode `1/1`, full EditMode `429/429`
-  and full PlayMode `227/227` passed. Two 400-row Campaign runs were byte-
-  identical with Summary / JSON / CSV hashes
-  `D3287E93FE0F022ABDF504EC3304076724BFBB3357A890DEFB0545E072CD9DB1`,
-  `43C61E0CCB28B10211C6E201631EE2938D0160F72DA3A334AE0A459331276500`, and
-  `4E1E87C9C1D5B27D63122744889DE066A3D22F2A93DF86CB6062DAC2165F5B99`.
-- Lobby visual hierarchy is the next approved iteration: persistent compact
-  Coin/Heart/Settings chrome, dominant theme/progression, one Stage action and
-  removal of duplicated text. Shop/IAP and final art remain separate.
+- `Assets/Game/Generated/Materials/ProtectionPulse.mat`
+- `Assets/Game/Generated/Materials/WarpCyan.mat`
+- `Assets/Game/Generated/Materials/WarpGold.mat`
+- `ProjectSettings/ProjectSettings.asset`
 
-## Iteration 27 completed update
+앞의 세 재질은 렌더 큐 `3010 -> 3000`과 공백 직렬화 차이다. 이번 인계
+문서 작업과 무관하며 승인된 변경이 아니다. `ProjectSettings.asset`은
+허용된 package-managed WebGL define인 `SENTIS_ANALYTICS_ENABLED`가 다시
+붙은 차이다. 새 작업은 이 파일들을 자동 복구하거나 스테이징하지 말고,
+Phase A에서 현재 Editor 상태와 Builder 결과를 다시 확인해야 한다.
 
-- Starting HEAD was `4c3ce13`; completion commit name is
-  `feat: add preplaced ice runway`.
-- Campaign Stages 15–17 now preplace their deterministic Ice approach through
-  one fixed 50-panel Cyan runway before Countdown. The recycled normal track
-  never changes material and the runway never grows at runtime.
-- Stage Catalog revision 10 authors Campaign Ice at `2.0` non-Booster speed.
-  Continue preserves the runway; Retry rebuilds it. Experiment Lab retains its
-  historical whole-track `1.45` comparison.
-- A clean Builder reload exposed the former Fog View file/class-name reference
-  instability; the View now has its own matching Unity script asset without a
-  Fog behavior change.
-- Builder passed twice, focused EditMode `8/8`, focused PlayMode `4/4`, full
-  EditMode `425/425`, and PlayMode `226/226`. Two 400-row Campaign runs were
-  byte-identical with Summary / JSON / CSV hashes
-  `86D55FB085FE51135BFA5E0F5D17D0242166C1F9DBD3EE03F58485A33BFC27B8`,
-  `3CE081477E7A431939D4C8AB6D0140FFBB6C22D6A6850E7551499E4C28BC28C2`, and
-  `9D6E7903B31D59C3307DBE49A1E1FCF705A299FE37571299F17FAD63DF464B95`.
-  Step 10 remains unchanged.
-- Product save SHA-256 remained
-  `49217BC97CF2C38CE11DA6052EEED5788F7DA002BF2A08F51CDB43F2002ADB6F`.
-- Human play should judge advance readability and the `2.0` speed. Lobby
-  visual hierarchy remains the next approved product area.
+## 2. 반드시 먼저 읽을 문서
 
-## Iteration 26 completed update
+1. `AGENTS.md`
+2. `Docs/PROJECT_CHARTER.md`
+3. `Docs/CURRENT_STATUS.md`
+4. `Docs/GAME_DESIGN.md`
+5. `Docs/ART_DIRECTION.md`
+6. `Docs/TEST_PLAN.md`
+7. `Docs/DECISIONS.md`
+8. `Docs/FRONTEND_FLOW.md`
+9. `Docs/PRODUCT_SYSTEMS.md`
+10. `Docs/LOOP.md`
+11. `Docs/ITERATIONS.md`
 
-- Starting HEAD was `74a9953`; completion commit name is
-  `feat: add fog visibility curve`.
-- Campaign Fog now fades alpha `0 -> 1` over `0.5 seconds`, remains fully
-  opaque for Stage 12 / 13 / 14 authored durations of `5 / 6 / 7 seconds`,
-  then fades `1 -> 0` over `0.5 seconds`.
-- Stage Catalog revision 9 owns the phase values. Runtime no longer hard-codes
-  the duration, while one-shot triggering, adaptive distance, Pause, Continue,
-  Retry and Experiment Lab contracts remain unchanged.
-- Campaign Builder passed twice, EditMode `423/423`, PlayMode `225/225`.
-  Two Campaign 400-row runs were byte-identical and retained the Iteration 23
-  Summary / JSON / CSV hashes. Step 10 remained unchanged.
-- The real Product save and backup remained byte- and timestamp-identical.
-- Human review should compare the longer Stage 12–14 obstruction curve. The
-  next product candidate is the preplaced and rebalanced Ice runway.
+`CURRENT_STATUS.md` 앞부분의 Authoritative Baseline이 역사 섹션보다
+우선한다. 과거 Iteration의 Continue 가격, Continue 횟수 제한, 저장
+스키마, Fog/Ice 표현은 현재 계약으로 사용하면 안 된다.
 
-## Iteration 25 completed update
-
-- Starting HEAD was `a8f7892`; completion commit name is
-  `feat: add timed fog curtain`.
-- Campaign Stages 12–14 now trigger one world-space Fog curtain when their
-  first Fog gate becomes the next judgment. It follows at 1.5 seconds of
-  effective travel distance, holds Alpha 1 for 1.5 seconds and fades for 0.5.
-- Campaign gates keep their authored color and ordinary judgment behind the
-  curtain. The same attempt cannot retrigger it; Pause and Continue countdown
-  freeze it, Continue repositions it after respawn, and Retry resets it.
-- Experiment Lab keeps the historical nearest-two Fog comparison.
-- Campaign Builder passed twice, EditMode `421/421`, PlayMode `225/225`.
-  Campaign and Step 10 hashes remain the Iteration 23 baseline because no
-  deterministic mechanical input changed. Product save and backup remained
-  byte- and timestamp-identical.
-- Human visual review remains required. Ice approach/speed and Lobby layout
-  are the next separate product candidates.
-
-## Iteration 24 completed update
-
-- Starting HEAD was `61147cd`; the completion commit is named
-  `fix: recycle failed gates after continue`.
-- The Stage 11 late-run stall was a fixed gate-pool exhaustion bug, not a Fog
-  side effect. Continue deactivated each failed slot permanently; unlimited
-  Continue could therefore exhaust all six visible slots and leave Goal
-  completion unreachable.
-- Continue now recycles the failed slot with the next authored gate. A focused
-  regression Continues more than six times after the late Stage 11 sequence,
-  resolves all 46 gates and clears after crossing Goal.
-- Focused PlayMode passed `1/1`, full EditMode `418/418`, and full PlayMode
-  `223/223`. Scene/Builder, Campaign data, Core rules, Product persistence and
-  Step 10 inputs were unchanged, so their Iteration 23 baselines remain valid.
-
-## Iteration 23 completed update
-
-- Implementation base was `7858803`; the completion commit is named
-  `feat: refine continue and clear economy flow`.
-- Continue is unlimited per attempt. Coin prices are `900 -> 1,900 -> 2,900
-  -> 4,900`, and every later Coin Continue repeats `4,900`. Retry resets the
-  price ordinal. Ticket and rewarded-ad Continues do not advance it.
-- The one successful rewarded-ad right per attempt remains, but no release
-  provider is connected. The unavailable action stays hidden and never fakes
-  success.
-- Stage difficulty is now authored data: Stages 11, 14, and 17 are Hard;
-  Stage 20 is VeryHard; all other current Stages are Normal. First-clear base
-  rewards are `100 / 200 / 500` Coins, while existing Lobby milestone rewards
-  remain separate and idempotent. Clear Result displays the two sources
-  separately.
-- Normal Start still spends one stored Heart atomically. A clear atomically
-  records progression and reward and refunds exactly the Heart actually spent
-  by that attempt. Unlimited-Heart and provided/free starts cannot request a
-  refund.
-- Clear Result removes Campaign Replay. `NEXT STAGE` opens the next Stage's
-  PreRun selection directly; the final authored Stage exposes Lobby only.
-- Continue countdown now synchronizes gate modifiers immediately and removes
-  expired item/buff presentation before the countdown is visible.
-- EditMode passed `418/418`, PlayMode passed `222/222`, and Campaign Builder
-  passed twice. Campaign CSV/JSON/Summary SHA-256 are
-  `2C19D4779B75BBCF86D59482E17D5A9C37FED58AD8F523F41F63053A89BA8C2E`,
-  `68400C449988669B9530F224D81C8FC66CC3FDC2B4E355D717C5192816A85903`,
-  and `698565A5AA723173094082C1E6F2895F9809EBC16B3D2DAE9FF42EC1DB47D532`.
-  Step 10 remains unchanged.
-- Lobby visual redesign, timed Fog veil, preplaced/rebalanced Ice, Shop/IAP
-  runtime, and real rewarded-ad integration remain deferred.
-
-## Iteration 22 completed update
-
-- Unity now has `Tools > Color Gate Runner > Developer Console` for authored
-  Stage 1-20 cheat launch, unlock-through, Campaign reset and exact Coins,
-  Shield, Booster, Continue Ticket, Heart and unlimited-Heart configuration.
-- Edit Mode changes persist before Play. Play Mode uses the active Product
-  session and refreshes visible Frontend/PreRun/Failure values. Cheat Stage
-  launch does not alter progression.
-- Full EditMode passed `414/414`; full PlayMode passed `218/218`. No Scene,
-  gameplay, Catalog or deterministic input changed, so Builder/Campaign/Step10
-  baselines remain unchanged.
-- Store initialization, receipt/server validation, Shop UI, Firebase runtime,
-  real rewarded-ad provider and Stages 21-36 remain pending.
-
-## Iteration 21 completed update
-
-- Local implementation now contains schema-3 Hearts, timed unlimited Hearts,
-  Continue Tickets, exact approved commerce products and idempotent reward
-  grants. Stage start authorizes Heart plus selected items atomically.
-- Failure hierarchy is Ticket -> available rewarded ad -> Coin. Actual Unity
-  IAP store initialization, receipt validation, Shop/Lobby redesign and
-  Firebase Functions/App Check are still not implemented.
-- Campaign Builder passed twice, full EditMode passed `408/408`, and full
-  post-Builder PlayMode passed `218/218`. The actual Editor Product save stayed
-  byte-, timestamp- and hash-exact at schema 2 revision 29; schema-3 migration
-  was validated only with isolated saves.
-- Campaign and Step 10 hashes remain the previously approved values because
-  gameplay Core, Stage data and deterministic simulation inputs did not
-  change. Iteration 21 is the current authoritative implementation baseline.
-
-## Iteration 20 prior update (historical snapshot)
-
-- Current completion base is `13afabb`; the new completion commit is named
-  `chore: establish monetization platform baseline`.
-- Unity IAP `5.4.2` is installed for standard Google Play billing. Android
-  application ID is `com.wscho.colorgaterunner`.
-- Runtime purchasing is not implemented. There is no Store connection,
-  product catalog, receipt grant, Firebase Unity SDK/config or Shop page yet.
-- Approved Coin amounts: 1,000 / 5,000 / 10,000 / 25,000 / 50,000 / 100,000.
-- Approved bundle intent:
-  - Starter: Shield 1, Booster 1, Continue 1, unlimited Hearts 30 minutes.
-  - Small: Shield 2, Booster 2, Coins 500, unlimited Hearts 1 hour.
-  - Medium: Shield 4, Booster 4, Coins 1,000, unlimited Hearts 3 hours.
-  - Large: Shield 10, Booster 10, Coins 5,000, unlimited Hearts 6 hours.
-  - Extra Large: Shield 13, Booster 13, Continue 3, Coins 10,000, unlimited
-    Hearts 12 hours.
-- Hearts, timed unlimited Heart state and owned Continue inventory do not yet
-  exist. Product IDs, prices and bundle repeatability also remain undecided.
-- Firebase phase one is Functions + App Check; Analytics and Crashlytics are
-  deferred.
-- Lobby reference direction: persistent top wallet/Heart/Settings, dominant
-  themed Home scene, persistent bottom navigation, scrollable Shop cards,
-  future Journey path and Collection grid. Use original neon sci-fi art, not
-  copied third-party characters or branding.
-- Final validation: EditMode `400/400`, PlayMode `215/215`; Campaign and Step
-  10 hashes remain unchanged because gameplay and simulation inputs did not
-  change.
-- This section records the prior Iteration 20 state; Iteration 21 above
-  supersedes its missing-model statements.
-
-이 문서에 적힌 커밋, 완료 기능, 남은 작업은 인수인계 시점의 요약이다.
-저장소의 CURRENT_STATUS.md와 충돌하면 CURRENT_STATUS.md를 우선한다.
-
-## 1. GPT의 역할
-
-GPT는 Game Director 및 Product/UX 설계자로 행동한다.
-
-- 직접 구현하지 않는다.
-- 사용자 플레이 피드백을 분석한다.
-- 다음 Iteration의 범위와 설계 계약을 정한다.
-- Codex가 실행할 짧은 프롬프트를 작성한다.
-- 기존 문서와 구현 계약을 존중한다.
-- 확인되지 않은 구현 상태를 추측하지 않는다.
-
-## 2. 프로젝트
-
-- Unity 기반 모바일 Portrait 게임
-- 핵심 플레이: 플레이어 색상을 바꾸며 다가오는 Gate를 통과
-- 현재 Campaign Stage 1–20 구현, Stage Catalog revision 7
-- 현재 Campaign 기믹:
-  Shield, Booster, Camouflage, Fog, Ice, Echo
-- Hidden과 Flicker는 Experiment Lab에 구현되어 있지만 Campaign 배치는
-  각각 Stage 21–23과 24–26으로 연기
-- 목표 플랫폼:
-  Android와 WebGL
-- 기본 화면비:
-  9:16 Portrait
-
-## 3. 현재 Git 상태
-
-- 브랜치: main
-- Iteration 19 구현 기반 커밋: 5e0eb3c
-- 실제 최신 HEAD는 Docs/CURRENT_STATUS.md를 따른다.
-  feat: add continue economy policy
-
-최신 HEAD와 테스트 수는 항상 저장소의
-Docs/CURRENT_STATUS.md를 권위자로 사용한다.
-
-## 4. 현재 제품 흐름
+## 3. 현재 실제 제품 흐름
 
 첫 실행:
 
+```text
 Boot
-→ Account Choice
-→ Guest로 시작
-→ Frontend Lobby
-→ START STAGE
-→ PreRun / Item Selection
-→ Gameplay
-→ Clear / Failure Result
-→ Frontend Lobby
+-> Account Choice
+-> Guest
+-> Frontend Lobby
+-> PLAY
+-> PreRun / Item Selection
+-> Gameplay
+-> Clear 또는 Failure Result
+-> Next Stage / Retry / Continue / Lobby
+```
 
-이후 실행:
+재실행은 Boot 이후 Frontend Lobby로 직접 진입한다. Frontend에서 시작하면
+Campaign 내부 Lobby를 우회하고 PreRun으로 간다. 직접 SampleScene 실행,
+개발 치트 진입과 Experiment Lab은 기존 Campaign Lobby를 fallback으로
+사용한다.
 
-Boot
-→ Frontend Lobby
-→ START STAGE
-→ PreRun / Item Selection
-→ Gameplay
+Clear의 `NEXT STAGE`는 다음 Stage PreRun으로 직접 이동한다. Failure
+Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 Attempt로
+돌아가 Heart와 선택 아이템을 다시 승인한다.
 
-Frontend에서 진입하면 기존 Campaign Lobby는 우회한다.
+## 4. 현재 구현 완료 범위
 
-직접 SampleScene 실행이나 개발 진입에서는 기존 Campaign Lobby를
-fallback으로 유지한다.
+### Campaign과 플레이
 
-## 5. 현재 구현된 제품 기능
+- Stage 1–20, 결정론적 Gate 생성과 Retry
+- 전체 Campaign Spline 이동, 좌우 곡선과 완만한 고저차
+- Spline 기반 러너, 카메라, Gate, Goal, Fog, Ice와 도시 배치
+- 카메라 회전 관성: half-life `0.2s`, yaw `12°`, pitch `8°`, roll 없음
+- Continue: `READY 0.5s -> GO`, GO부터 즉시 플레이
+- 24개 고정 도시 풀, Goal까지 재활용
+- 6개 Gate 풀과 파괴 연출 풀
+- Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
+- 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
 
-- Boot Scene
-- Persistent AppRoot
-- Local Guest Profile
-- Account Choice 완료 상태
-- 이후 실행 시 Lobby 자동 진입
-- Frontend 통합 Lobby
-- 추천 Stage 읽기 전용 표시
-- Stable Stage ID 기반 one-shot Campaign Launch Context
-- Product Save 및 Settings
-- Product Save schema 2 기반 Campaign Progress
-- 기존 Campaign PlayerPrefs 1회 자동 이관
-- Coin, Shield/Booster Inventory 기반 Economy 기초
-- Stage 최초 클리어 보상과 2 Stage마다 자동 Lobby 발전
-- 36 Stage를 위한 18개 Lobby milestone, 3개 Theme 구조
-- Lobby Coin, Inventory, Theme, 다음 발전 목표 표시
-- Gameplay Pause
-- Pause Dim
-- Resume / Restart / Lobby 복귀
-- Frontend와 Pause 공용 Settings UI
-- 알림, 음악, 효과음, 진동 설정 저장
-- 이용약관, 개인정보, 지원 링크 Configuration 경계
-- PlayMode 테스트의 Campaign PlayerPrefs 격리
-- Campaign Stage 1–20 학습 곡선 재배치
-  - Stage 1–5: 색상과 리듬 기초
-  - Stage 6: 제공 Shield, 선택 잠금
-  - Stage 7: 제공 Booster, 선택 잠금
-  - Stage 8: 첫 3색 적용 및 첫 아이템 선택
-  - Stage 9–11: Camouflage 입문/연습/숙련
-  - Stage 12–14: Fog 입문/연습/숙련
-  - Stage 15–17: Ice 입문/연습/숙련
-  - Stage 18–20: Echo 입문/연습/숙련
-- Stage 8+ PreRun의 Product Shield/Booster 보유량 표시와 실제 소비
-  - 보유량 0인 아이템은 선택 불가
-  - START 성공 시 선택 아이템을 각각 1개씩 하나의 저장으로 소비
-  - 저장 실패 시 PreRun 유지, 아이템 효과와 Countdown 시작 금지
-  - Retry는 새 Attempt이므로 다시 소비하고 Back은 소비하지 않음
-  - Stage 6/7 제공 아이템은 무료이며 Inventory를 소비하지 않음
-  - ProductSession 부재 시 선택 아이템을 무료 제공하지 않음
-- Failure Result Continue Economy
-  - 성공한 Coin Continue 순서대로 `300 / 600 / 900` Coin
-  - 한 Attempt의 Coin/광고 합산 Continue는 최대 3회
-  - 성공한 보상형 광고 Continue는 Attempt당 1회이며 Coin을 먼저 써도 유지
-  - Retry는 새 Attempt이므로 가격 순서와 광고 권리를 초기화
-  - 결제/광고 요청 중에는 Failure Result를 고정하고 중복 요청을 차단
-  - 부족한 잔액, 저장 실패, 광고 실패/취소/미지원은 소비 없이 Failure 유지
-  - 실제 광고 provider가 없는 release에서는 광고 버튼을 숨기며 무료 성공을
-    흉내 내지 않음
+### 아이템과 경제
 
-## 6. 최근 해결한 문제
+- Shield와 Booster 제공 학습 Stage 6/7
+- Stage 8+ 소유 아이템 선택과 Start 시 원자 소비
+- 재고 0일 때 Shield/Booster 1개를 `900 Coins`로 즉시 구매
+- Heart 5개, 30분 recharge, offline 회복, timed unlimited Hearts
+- Continue Ticket
+- Coin Continue: `900 -> 1900 -> 2900 -> 4900`, 이후 `4900` 반복
+- Continue 총 횟수 제한 없음
+- 실제 rewarded-ad provider가 있을 때 Attempt당 성공 1회 계약
+- 현재 provider가 없으므로 광고 버튼은 의도적으로 숨김
+- Normal/Hard/Very Hard 최초 보상 `100/200/500 Coins`
+- 성공한 유한 Heart Attempt는 소비 Heart 1개를 원자 환급
+- 2 Stage마다 자동 Lobby milestone과 별도 보상
 
-- Frontend Lobby와 Campaign Lobby가 연속으로 나타나던 문제
-- Gameplay Pause 버튼이 거의 보이지 않던 좌표계 문제
-- PreRun Back이 항상 기존 Campaign Lobby로 가던 문제
-- Settings ON/OFF 라벨이 겹치던 문제
-- PlayMode 테스트가 실제 Editor Campaign 진행을 삭제하던 문제
-- Unity Package가 관리하는 WebGL define 때문에 작업이 반복 중단되던 문제
+### Frontend와 Lobby
 
-## 7. 현재 저장 정책
+- Boot, persistent AppRoot, Guest Profile와 Account Choice
+- schema-3 Product Save, backup/recovery/migration
+- Profile/Coin/Heart/Settings 상단 영역
+- Theme/발전 진행 중심 영역
+- 현재 Stage 카드와 단일 `PLAY` 하단 영역
+- Shield/Booster 재고 chip
+- Theme 1 `COLOR COURTYARD` 배경, reactor, ambient frame
+- Theme당 6개, 총 18개 자동 milestone 데이터 구조
+- Theme 1의 6개 energy node 활성화
+- 공용 네온 UI skin, 9-slice surface와 의미 아이콘
+- Editor Developer Console에서 Stage, Coin, 아이템, Heart 조정
 
-### Iteration 19 검증 기준
+### 플랫폼 기반
 
-- EditMode `400/400`
-- PlayMode 및 Post-Builder PlayMode `215/215`
-- Frontend/Campaign Builder 2회 및 검증 성공
-- Campaign simulation `400` rows, 연속 2회 byte-identical
-- Campaign artifact는 Iteration 19의 승인 해시로 갱신됐고 Step 10
-  결정론적 artifact는 변경되지 않음
-- Campaign Summary SHA-256:
-  `BF450495BCE1EF312C591EC5BA1B5EA3750F45E60E9966B7236C676DAD12B390`
-- Campaign JSON SHA-256:
-  `EB355F9FCE121B9157815D2940EC4AA1A277D600310F41049BE312232052CEED`
-- Campaign CSV SHA-256:
-  `2693BD576A27422FA7A2C0E7226005D11C6624BEA16B99750C24332E55E229A5`
+- Unity IAP `5.4.2` 설치
+- Unity Services Core `1.18.0`
+- Google Play billing mode
+- Android application ID `com.wscho.colorgaterunner`
+- Firebase Console 프로젝트는 생성됐지만 Unity SDK와 설정 파일은 없음
 
-최신 수치와 해시는 항상 `CURRENT_STATUS.md`를 우선한다.
+## 5. 기믹 구현 상태
 
-- Product Profile, Settings, Campaign Progress, Economy, Lobby Progress:
-  versioned product-save.json
-- Product Save schema version은 2다.
-- 첫 production Boot에서 기존 PlayerPrefs Campaign 기록을 stable Stage ID로
-  1회 이관한다.
-- 이관 후 Product Save가 Campaign 런타임 저장 권위자다.
-- 기존 PlayerPrefs key는 rollback 안전을 위해 삭제하지 않지만 더 이상
-  runtime dual-write 권위자가 아니다.
-- Stage clear, unlock, 최초 보상, Lobby milestone은 하나의 저장 transaction으로
-  적용한다.
-- 선택한 Shield/Booster는 START에서 각각 1개씩 원자 소비하며 저장 성공
-  후에만 Attempt를 시작한다. 이 변경은 schema 2 migration을 추가하지 않는다.
+| 기믹 | Core/테스트 | Experiment | Campaign | 현재 상태 |
+|---|---|---|---|---|
+| 색상 순환/일치 | 완료 | 완료 | Stage 1–20 | 핵심 규칙 완료 |
+| Shield | 완료 | 완료 | Stage 6+, 선택 가능 | 비주얼·경제 연결 완료 |
+| Booster | 완료 | 완료 | Stage 7+, 선택 가능 | 3D Warp와 카메라 연결 완료 |
+| Camouflage | 완료 | 완료 | Stage 9–11 | 입문/연습/숙련 완료 |
+| Fog | 완료 | 완료 | Stage 12–14 | 6-bank Spline Fog 적용, 인간 비주얼 검증 필요 |
+| Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
+| Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
+| Hidden | 완료 | 완료 | 미배치 | Stage 21–23 제작 필요 |
+| Flicker | 완료 | 완료 | 미배치 | Stage 24–26 제작 필요 |
 
-## 8. 현재 Settings 상태
+### 구현되지 않은 기믹과 모드
 
-표시 항목:
+- **Hidden Campaign block**: 기능은 존재하지만 Stage 21–23 콘텐츠, 곡선
+  가시성 튜닝, 학습 UI와 인간 플레이 검증이 없다.
+- **Flicker Campaign block**: 기능은 존재하지만 Stage 24–26 콘텐츠,
+  frequency/duty/reveal 곡선, 접근성 검증이 없다.
+- **Stage 27–36의 새 기믹**: 승인된 새 Gate Modifier가 없다. 먼저 기존
+  여섯 Modifier의 재등장과 교대 조합으로 충분한지 인간 플레이로 판단해야
+  한다. 같은 Gate에 여러 Modifier를 중첩하는 규칙도 아직 승인되지 않았다.
+- **4–6색 영구 Campaign 진행**: 구현/배치되지 않았다. 현재 학습 곡선은
+  2/3색 중심이다.
+- **Banking, loop, inversion**: Campaign Spline에 없다. 현재는 world-up,
+  no-roll 계약이다.
+- **Race Mode**: 하나의 center Spline에서 3–5개 평행 경로와 non-collision
+  Ghost AI를 만드는 방향만 승인 후보로 남아 있고 구현되지 않았다.
+- **Endless Mode**: 재사용 가능한 과거 코드가 있지만 메인 제품 흐름에
+  노출되지 않는다.
+- **BPM 기반 Gate 배치**: 오디오와 함께 미구현이다.
 
-- 알림 ON/OFF
-- 배경음악 ON/OFF
-- 효과음 ON/OFF
-- 진동 ON/OFF
-- 이용약관
-- 개인정보 보호정책
-- 지원
+현재 enum에 존재하는 Gate Modifier는 `Camouflage`, `Fog`, `Ice`,
+`EchoProvider`, `Hidden`, `Flicker`뿐이다. 새 창에서 문서 근거 없이
+새 기믹을 이미 계획된 기능처럼 취급하면 안 된다.
 
-현재 한계:
+## 6. 비주얼 퀄업 잔여 작업
 
-- 실제 모바일 알림 미구현
-- 실제 Music/SFX AudioSource와 음원 미구현
-- 법률 및 지원 URL 미확정
-- Master Volume 데이터는 유지하지만 사용자 UI에서는 숨김
+### 바로 인간 플레이로 확인할 항목
 
-## 9. 지켜야 할 핵심 계약
+- Stage 12–14: Fog 밀도, 6개 bank 이음새, 커브 뒤가 과하게 보이는지,
+  Gate 색상 판독 난이도
+- Stage 15–17: 아스팔트/빙판 재질 대비, ribbon 이음새, 커브·경사 밀착,
+  `2x` 속도에서 shimmer와 모바일 aliasing
+- Stage 18–20: Echo Gate membrane 인지, Gate 색과 획득 Shield 색의 정확한
+  전달, Bloom 과다 여부
+- Stage 14–20: 카메라 관성, crest에서 다음 Gate 가시성, 멀미 가능성
+- Shield/Booster: 기기별 투명 shader와 Warp 상·하단 밀도
+- 도시: Goal까지 pop-in, 반복감, 트랙 침범 여부
+
+### 아직 제작이 필요한 비주얼
+
+- Theme 2와 Theme 3의 최종 Lobby 환경 그림 및 6개 발전 상태
+- Theme 전환/해금 보상 연출과 최초 진입 연출
+- PreRun, Clear, Failure 화면의 최종 icon hierarchy와 보상 애니메이션
+- 최종 폰트/다국어/접근성 대응과 Safe Area 기기별 조정
+- 실제 BGM, UI SFX, Gate/Shield/Booster/Goal SFX
+- 추가 도시 modular art와 후반 Theme 변주
+- Android 실기기 Bloom, 투명 overdraw와 성능 quality tier
+
+Theme 1과 공용 UI skin은 더 이상 primitive-only graybox는 아니지만,
+자동 테스트가 최종 시각 품질을 증명하지는 않는다.
+
+## 7. Lobby와 제품 기능 잔여 작업
+
+### Lobby/Home
+
+- Theme 2/3 최종 아트와 milestone 연동
+- Theme 해금 시 보상 표시, 새 Theme 소개와 전환 피드백
+- 상단 Coin/Heart `+` 진입과 실제 Shop 연결
+- Home/Shop용 persistent bottom navigation
+- 작은 화면, notch, 긴 localized price/text 대응
+- Profile/Guest 표시의 최종 UX와 Google action 정책
+
+### Shop과 IAP
+
+로컬 모델은 완료됐지만 실제 구매는 전혀 연결되지 않았다.
+
+- 6개 Coin product ID:
+  `coins_1000`, `coins_5000`, `coins_10000`, `coins_25000`,
+  `coins_50000`, `coins_100000`
+- 5개 bundle product ID:
+  `bundle_starter`, `bundle_small`, `bundle_medium`, `bundle_large`,
+  `bundle_xlarge`
+- Starter는 로컬 account-limited이며 나머지는 반복 가능 모델
+- 모든 현재 catalog entry는 Google Play consumable 모델
+
+남은 구현:
+
+1. Google Play Console 상품과 localized price metadata 구성
+2. Unity IAP 초기화, 연결/복구/metadata 상태 모델
+3. pending order 수신과 중복 delivery 방지
+4. 검증된 order를 Product transaction ledger에 먼저 저장
+5. 저장 성공 후에만 store order confirm
+6. Firebase Functions + App Check 기반 영수증 검증 경계
+7. Shop scroll page, special offer/bundle/coin card와 오류/재시도 UX
+8. 네트워크 없음, 취소, pending, 중복 callback, save 실패 회귀 테스트
+
+화면 가격은 reference image나 코드 상수로 하드코딩하지 않고 Store
+metadata를 사용해야 한다.
+
+### 광고
+
+- 실제 rewarded-ad SDK/provider 선정 및 adapter 구현
+- availability, load, show, success/cancel/fail/stale callback 처리
+- Attempt당 성공 1회, Coin-first 시 광고 권리 유지 계약 보존
+- provider가 unavailable이면 버튼을 계속 숨김
+- 광고/개인정보 동의와 release configuration 확정
+
+### 아직 없는 Lobby 목적지
+
+- Leaderboard/competitive page
+- Journey/progression page
+- Collection page
+
+초기 출시에서 필수로 만들 필요는 없다. Home과 Shop만 먼저 활성화하고,
+나머지는 빈 기능처럼 보이지 않게 숨기거나 명확히 비활성화한다.
+
+## 8. 기타 출시 전 잔여 작업
+
+- 실제 Music/SFX AudioSource와 음원 연결
+- 모바일 notification permission, scheduling과 delivery
+- Terms, Privacy, Support 실제 HTTPS URL 확정
+- Google/platform account와 cloud save는 아직 없음
+- Firebase Analytics/Crashlytics와 Remote Config는 아직 없음
+- Local/remote analytics와 개인정보 정책 결정
+- Android signing, AAB, target device 성능/발열/메모리 검증
+- WebGL portrait template과 실제 배포 환경 회귀
+- 저장 migration, offline clock, 결제 pending/재전달과 복구 QA
+- 36 Stage 전 구간의 실제 플레이 난이도/피로도/반복감 검증
+- Store/광고/개인정보 관련 release checklist와 운영 문서
+
+## 9. 권장 제작 순서
+
+### P0 — 현재 비주얼 안정화
+
+Iteration 42의 Fog/Ice/Echo와 카메라를 Stage 12–20에서 인간 플레이하고,
+명확한 결함만 한 번 수정한다. 새 기믹이나 Shop을 이 단계에 섞지 않는다.
+
+### P1 — Campaign을 26 Stage까지 완성
+
+1. Hidden Stage 21–23: intro / practice / mastery
+2. Flicker Stage 24–26: intro / practice / mastery
+
+각 block은 현재 Spline, Continue, Shield/Booster, Fog/Ice/Echo와 충돌하지
+않는지 검증한다. 특히 Flicker는 접근성/피로도 검증이 필수다.
+
+### P2 — Stage 27–36 Act 3 설계와 제작
+
+먼저 21–26 인간 플레이 결과를 본다. 권장 초안은 새 Modifier를 바로
+추가하는 것이 아니라 기존 기믹을 Gate 단위로 교대 재사용하는 것이다.
+
+- 27–29: Camouflage/Fog/Ice 재숙련
+- 30–32: Echo/Hidden/Flicker 재숙련
+- 33–35: 서로 다른 Gate 구간의 기믹 교대와 압축
+- 36: Campaign finale
+
+이 배치는 아직 승인된 Catalog 계약이 아니다. 같은 Gate의 Modifier 중첩,
+4색 이상, 새 기믹은 별도 인간 승인 후 진행한다.
+
+### P3 — Lobby 완성
+
+- Theme 2/3 아트와 18 milestone 완성
+- 해금/보상/Theme 전환 연출
+- Home/Shop navigation shell
+- PreRun/Result 최종 비주얼과 오디오
+
+### P4 — 실제 수익화 연결
+
+- IAP provider foundation과 Firebase 검증
+- Shop UI
+- rewarded-ad provider
+- pending/recovery/offline/save-failure QA
+
+실제 결제와 광고는 병렬로 한 번에 붙이지 말고 각각 독립 Iteration으로
+완료한다.
+
+### P5 — Launch hardening
+
+- 전체 36 Stage 플레이/밸런스
+- Android/WebGL 실기기와 성능
+- 법률/지원 URL, 개인정보와 플랫폼 설정
+- 오디오, notification, crash/analytics 정책
+- release build, save migration과 commerce recovery 검증
+
+Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
+기준선을 통과한 뒤의 확장 기능으로 둔다.
+
+## 10. 유지해야 할 핵심 계약
 
 - Gameplay Core는 Unity 비의존 구조를 유지한다.
-- 현재 Stage 1–20 Catalog 데이터와 결정론적 결과를 임의로 변경하지 않는다.
-- Campaign 진행과 Economy의 저장 권위자를 중복 생성하지 않는다.
-- PlayerPrefs를 Scene 이동 Payload로 사용하지 않는다.
-- Scene 이름이나 Build Index를 런타임에서 하드코딩하지 않는다.
-- AppRoot와 EventSystem을 중복 생성하지 않는다.
-- 새로운 Package와 ProjectSettings 변경은 명시적 승인 없이는 금지한다.
-- 공통 절차와 검증은 저장소의 AGENTS.md와 TEST_PLAN.md가 소유한다.
-- 현재 구현 상태와 테스트 기준은 CURRENT_STATUS.md가 소유한다.
+- 모든 gameplay random은 명시적 seed를 사용한다.
+- Campaign scalar distance와 Spline pose가 유일한 공간 권위자다.
+- 현재 Stage 1–20 stable ID와 저장 기록을 재설계 과정에서 지우지 않는다.
+- Product Save schema 3와 transaction ledger가 경제 권위자다.
+- AppRoot, EventSystem, Scene destination과 저장 권위자를 중복 생성하지 않는다.
+- unavailable provider는 성공을 흉내 내지 않고 action을 숨긴다.
+- 새 Package/ProjectSettings 변경은 별도 승인 없이 추가하지 않는다.
+- Builder 소유 구조는 Builder를 수정하고 두 번 재생성한다.
+- 자동화는 fun, readability, visual quality를 증명하지 않는다.
+- 작업 완료 시 explicit file staging만 사용하고 Push하지 않는다.
 
-## 10. 주요 저장소 문서
+## 11. 현재 결정론적 기준
 
-- AGENTS.md
-- Docs/CURRENT_STATUS.md
-- Docs/GAME_DESIGN.md
-- Docs/FRONTEND_FLOW.md
-- Docs/PRODUCT_SYSTEMS.md
-- Docs/ART_DIRECTION.md
-- Docs/DECISIONS.md
-- Docs/TEST_PLAN.md
-- Docs/ITERATIONS.md
+Campaign 400 rows:
 
-GPT가 정확한 구현 세부 사항이 필요하면 사용자에게 해당 최신 문서를
-요청한다.
+- Summary: `32FA88ABFE9D818A5021FF910E14AA194A65997FBEF740D8E0D7CA7DD4177194`
+- JSON: `26CEADE2C12301EA6A238C528C6D435A8CEAAAC0D0D774B4792A56882B43A188`
+- CSV: `99DDA8E9CED187E54EEE90BD3CC62950EF938CF6D7894A5826EC2F22A927DD57`
 
-## 11. 아직 남은 주요 작업
+Step 10, 80 rows / 64,016 runs:
 
-- Stage 1–20 학습 곡선 인간 플레이 검증
-- Hidden Stage 21–23, Flicker Stage 24–26 제작
-- Stage 27–36 후반 Campaign 설계와 제작
-- Lobby 3개 Theme의 최종 아트, 애니메이션, 보상 연출
-- Continue Economy 인간 플레이 검증과 실제 광고 SDK/provider 선정
-- Shield/Booster Coin 구매와 Shop 진입 흐름
-- Heart, 시간제 무제한 Booster/Heart, Shop 및 IAP
-- 실제 BGM과 SFX 연결
-- 실제 모바일 알림과 권한 처리
-- 이용약관, 개인정보, 지원 URL 확정
-- Stage 선택 또는 Campaign Page 필요성 검토
-- PreRun, Gameplay, Result의 최종 비주얼
-- 실제 Android/WebGL 기기 검증
+- CSV: `04FB1F0395EED309A78B78DCF89882A33DE75220022DCE235FE143FDC0D75C04`
+- JSON: `5FD03691B938388B8AE772D9D3F935303539A871111B548188FDB7CDF52D0C00`
+- Summary: `611CCFF9AD680BBBD9FEF903AA149E1075E87C34FE8CB91DC33BB47286943A27`
+- Comparison: `00B5B102FE9FD9684E46E10B73C006F493C6FB80A2114C30DC5691AC0BBDA37B`
+- Shortlist: `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
 
-## 12. GPT 응답 방식
+## 12. 새 Codex 창의 첫 작업
 
-사용자의 플레이 피드백을 우선 분석한다.
+새 창에서는 다음 순서로 시작한다.
 
-새 기능을 바로 Codex 프롬프트로 만들기 전에:
+1. 이 문서와 `AGENTS.md`, `CURRENT_STATUS.md`를 읽는다.
+2. `git status --short`로 위의 Editor 생성 차이를 재확인한다.
+3. 사용자의 최신 인간 플레이 피드백을 받는다.
+4. 우선 **Iteration 43 — Mechanic Visual Acceptance & Corrections**의
+   Phase A를 수행한다.
+5. Stage 12–20의 Fog/Ice/Echo/카메라를 확인하고 결함과 취향 조정을
+   분리한다.
+6. Phase A 보고 후 승인 전에는 구현하지 않는다.
 
-1. 문제가 버그인지 UX 문제인지 구분
-2. 기존 기능과 중복되는지 확인
-3. 가장 작은 다음 Iteration을 제안
-4. 사용자 승인 후 Codex 프롬프트 작성
+첫 요청 예시:
 
-Codex 프롬프트에는 반복적인 Git, 테스트, Builder 규칙을 길게 복사하지
-않는다.
+```text
+Color Gate Runner 프로젝트를 Docs/GPT_HANDOFF.md 기준으로 이어간다.
+AGENTS.md의 절차와 CURRENT_STATUS.md의 기준선을 사용한다.
 
-대신 다음을 참조한다.
-
-- AGENTS.md의 Standard Iteration Protocol
-- CURRENT_STATUS.md의 Authoritative Baseline
-- TEST_PLAN.md의 Standard Regression Suite
+먼저 현재 작업 트리와 Iteration 42 구현 상태를 확인하고,
+Iteration 43 — Mechanic Visual Acceptance & Corrections의 Phase A만 진행한다.
+Fog, Ice, Echo, Spline 카메라의 인간 플레이 확인 항목과 가장 작은 수정
+후보를 보고한 뒤 중단한다. 아직 코드를 수정하지 않는다.
+```
