@@ -756,3 +756,20 @@ The three-Continue cap and original prices below are superseded by Iteration
   `0.25s` flash over the live HUD.
 - Human device review owns motion comfort, curve strength, crest visibility,
   GO legibility and whether the shorter recovery preserves continuity.
+
+## Iteration 42 Mechanic surface readability
+
+- The Campaign road center is rough, near-black asphalt with original tiling
+  Base Color, Normal and Metallic/Smoothness maps. It is non-emissive; only the
+  narrow Cyan route edges own Bloom.
+- Ice is a smooth, non-emissive blue surface laid directly over the same
+  sampled Spline ribbon. It reads by gloss, frost and crack detail rather than
+  Bloom and may not cut corners on horizontal or vertical curves.
+- Fog uses six overlapping low-poly bank sections authored in Blender and
+  distributed along a speed-adaptive Spline band. It should read as spatial
+  cloud volume rather than one flat curtain; volumetric rendering is excluded.
+- An Echo Provider fills the gate opening with the shared animated hex pattern
+  in the gate's exact hue. The membrane has no collider and disappears on
+  crossing as the same hue appears on the runner shell.
+- Human portrait/device review owns asphalt/ice contrast, Fog density and edge
+  artifacts, Echo legibility, overdraw, Bloom balance and frame cost.

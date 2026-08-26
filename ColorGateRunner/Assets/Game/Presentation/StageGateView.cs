@@ -11,6 +11,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private StageSceneController controller;
         [SerializeField] private Renderer[] gateRenderers;
         [SerializeField] private TextMesh colorSymbol;
+        [SerializeField] private EchoGateFieldView echoGateField;
 
         private bool _resolved;
         private float _reactionRemaining;
@@ -45,6 +46,11 @@ namespace ColorGateRunner.Presentation
         internal bool SymbolVisible => colorSymbol.gameObject.activeSelf;
         internal string SymbolText => colorSymbol.text;
         internal bool EchoProviderVisualActive => _echoProviderVisualActive;
+        internal bool EchoFieldVisible =>
+            echoGateField != null && echoGateField.IsVisible;
+        internal Color EchoFieldColor => echoGateField == null
+            ? Color.clear
+            : echoGateField.FieldColor;
         internal float SymbolAlpha => colorSymbol.color.a;
         internal float CamouflageRevealProgress =>
             _camouflageRevealProgress;
@@ -154,6 +160,11 @@ namespace ColorGateRunner.Presentation
             _assignedMaterial = material;
             ApplyMaterial(material);
             ApplyColorSymbol();
+            ResetEchoProviderPresentation();
+            if (plan.Modifier.IsEchoProvider)
+            {
+                ApplyEchoProviderPresentation();
+            }
         }
 
         internal void ActivateExperiment(
@@ -298,6 +309,7 @@ namespace ColorGateRunner.Presentation
         {
             if (isHidden)
             {
+                SetEchoFieldPresentation(false, 0f);
                 UpdateHiddenVisibility(
                     estimatedArrivalSeconds,
                     neutralMaterial,
@@ -307,6 +319,7 @@ namespace ColorGateRunner.Presentation
             }
             if (isFlicker)
             {
+                SetEchoFieldPresentation(false, 0f);
                 UpdateFlickerCycle(gameplayTimeSeconds);
                 return;
             }
@@ -360,6 +373,7 @@ namespace ColorGateRunner.Presentation
                     colorSymbol.text = "ECHO";
                     colorSymbol.color = Color.white;
                 }
+                SetEchoFieldPresentation(false, 0f);
             }
             else
             {
@@ -375,6 +389,9 @@ namespace ColorGateRunner.Presentation
                     symbolColor.a = _camouflageRevealProgress;
                     colorSymbol.color = symbolColor;
                 }
+                SetEchoFieldPresentation(
+                    isEchoProvider,
+                    isCamouflage ? _camouflageRevealProgress : 1f);
             }
             if (_experimentWasHidden && !hidden)
             {
@@ -515,12 +532,14 @@ namespace ColorGateRunner.Presentation
         internal void ShowSuccess()
         {
             _reactionRemaining = ReactionDuration;
+            SetEchoFieldPresentation(false, 0f);
         }
 
         internal void ShowFailure(Material failureMaterial)
         {
             _reactionRemaining = ReactionDuration;
             ApplyMaterial(failureMaterial);
+            SetEchoFieldPresentation(false, 0f);
         }
 
         internal void ShowBoosterImpact(Material flashMaterial)
@@ -528,6 +547,7 @@ namespace ColorGateRunner.Presentation
             _boosterDestroyed = true;
             _reactionRemaining = ReactionDuration;
             ApplyMaterial(flashMaterial);
+            SetEchoFieldPresentation(false, 0f);
             if (gateRenderers.Length >= 3)
             {
                 gateRenderers[0].transform.localPosition +=
@@ -586,6 +606,8 @@ namespace ColorGateRunner.Presentation
         internal bool HasRequiredReferences()
         {
             if (controller == null || colorSymbol == null ||
+                echoGateField == null ||
+                !echoGateField.HasRequiredReferences ||
                 gateRenderers == null || gateRenderers.Length == 0)
             {
                 return false;
@@ -606,11 +628,13 @@ namespace ColorGateRunner.Presentation
         internal void Configure(
             StageSceneController sceneController,
             Renderer[] renderers,
-            TextMesh symbol)
+            TextMesh symbol,
+            EchoGateFieldView field)
         {
             controller = sceneController;
             gateRenderers = renderers;
             colorSymbol = symbol;
+            echoGateField = field;
             CaptureParts();
         }
 
@@ -692,6 +716,7 @@ namespace ColorGateRunner.Presentation
             _echoProviderVisualActive = true;
             colorSymbol.text = "ECHO\n" + colorSymbol.text;
             colorSymbol.color = Color.white;
+            SetEchoFieldPresentation(true, 1f);
         }
 
         private void ResetEchoProviderPresentation()
@@ -701,6 +726,27 @@ namespace ColorGateRunner.Presentation
             {
                 colorSymbol.color = Color.white;
             }
+            if (echoGateField != null)
+            {
+                echoGateField.SetPresentation(
+                    false,
+                    Color.white,
+                    0f);
+            }
+        }
+
+        private void SetEchoFieldPresentation(
+            bool visible,
+            float alpha)
+        {
+            if (echoGateField == null)
+            {
+                return;
+            }
+            echoGateField.SetPresentation(
+                visible && _echoProviderVisualActive && !_resolved,
+                GetMaterialColor(_assignedMaterial),
+                alpha);
         }
 
         private static string GetSymbolText(RunnerColorSymbol symbol)

@@ -11,8 +11,8 @@ iterations but do not override this section.
 - Implementation base HEAD: `f1cc9d1f532a67ab232cdf9afd024a71a96f0c7a`
 - Base commit: `feat: convert campaign to spline routes and city pool`
 - Authoritative completion HEAD: the commit named
-  `feat: add spline camera inertia and quick continue`; its exact hash is
-  recorded in the Iteration 41 final report because a commit cannot contain
+  `feat: polish campaign mechanic surfaces`; its exact hash is
+  recorded in the Iteration 42 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 41 — Spline Camera Inertia and Quick Continue**.
+- Current completed iteration: **Iteration 42 — Mechanic Surface Readability**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -37,6 +37,18 @@ below where their contracts differ.
 - The Campaign chase camera follows the current Spline rotation with a `0.2s`
   half-life and bounded `12°` yaw / `8°` pitch lag. It never banks or rolls,
   snaps at Stage start, Retry and Continue, and freezes with Pause or failure.
+- Campaign road presentation uses original rough, non-emissive asphalt maps
+  while retaining the Cyan emissive edge. Ice uses a fixed 50-slot pool of
+  runtime Spline-sampled ribbon meshes with original smooth, non-emissive ice
+  maps, so active intervals follow the same horizontal and vertical route pose.
+- Campaign Fog presents six fixed Blender-authored low-poly banks across a
+  speed-adaptive 24–42 unit Spline band. It preserves the authored `0.5s`
+  fade-in, Stage-owned `5 / 6 / 7s` hold and `0.5s` fade-out lifecycle without
+  volumetric rendering.
+- Every pooled gate owns one inactive, collider-free Echo membrane using the
+  shared protection-field hex shader. Only a visible unresolved Echo Provider
+  exposes it in its assigned color; crossing hides it and transfers that exact
+  hue to the player Echo shell.
 - Campaign track presentation is one generated seven-unit two-submesh road for
   the full attempt. The legacy six-segment straight pool remains available only
   to existing Experiment paths and is inactive during Campaign play.
@@ -251,11 +263,11 @@ below where their contracts differ.
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 41 passes completed; the active
+- Campaign Builder: two consecutive Iteration 42 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
-  pool and migrated controller references passed alongside the Spline Lab,
-  bounded camera-inertia, quick-Continue, quick-buy/VFX contracts, fixed
-  gate/legacy track pools and Build Settings
+  pool, six-bank Fog band, 50-slot Spline Ice mesh pool and six Echo membranes
+  passed alongside the Spline Lab, bounded camera inertia, quick Continue,
+  quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -358,6 +370,24 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 42 validation result
+
+- Starting HEAD `ec50719` was clean. Completion commit name:
+  `feat: polish campaign mechanic surfaces`.
+- Campaign road and Ice now use separate original mapped non-emissive
+  materials; each active fixed Ice slot samples its deterministic interval from
+  the Campaign Spline. Fog uses six fixed Blender banks across an adaptive path
+  band, and each gate owns one shared-shader Echo membrane that transfers its
+  exact assigned color before hiding.
+- The affected Graybox PlayMode group passed `154/154`. Campaign Builder
+  completed two consecutive passes. Full EditMode passed `444/444`; final
+  post-Builder PlayMode passed `244/244`.
+- Campaign and Step 10 simulations ran twice and retained every authoritative
+  artifact hash exactly. Package and ProjectSettings hashes remained exact;
+  isolated validation did not mutate the original Editor Product save.
+- Human portrait/device play still owns Fog density/seams, surface contrast,
+  Echo transfer readability, overdraw, Bloom balance and mobile performance.
 
 ## Iteration 41 validation result
 

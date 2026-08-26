@@ -2553,3 +2553,50 @@ Human feedback required
   side/top exposure, crest gate visibility and READY/GO pacing.
 - Banking, loops, inversions, Race Mode, mechanic-surface art and additional
   camera systems remain outside this iteration.
+
+## Iteration 42 — Mechanic Surface Readability
+
+### Play / Analyze
+
+- Human play accepted the Spline conversion and camera response, but Fog still
+  read as one flat wall, straight Ice surfaces broke away from curved terrain,
+  and Echo Provider gates did not clearly communicate acquisition.
+- Inspection found correct deterministic timing and rules underneath three
+  presentation owners that either ignored path pose or lacked a world-space
+  transfer cue.
+
+### Design / Implementation
+
+- Replaced the Fog primitive with six fixed Blender-authored low-poly banks
+  spread across a speed-adaptive 24–42 unit Spline band. Existing Stage-owned
+  fade-in, hold and fade-out values remain authoritative.
+- Replaced Ice cuboids with 50 fixed mesh slots. Active slots build sampled
+  ribbons between their existing deterministic plan boundaries and use an
+  original smooth, non-emissive ice map family.
+- Added original rough asphalt maps to the full Campaign road while preserving
+  its Cyan emissive edge. Added one collider-free protection-field membrane to
+  every pooled gate; visible unresolved Echo Providers color it from the exact
+  assigned material and hide it on transfer.
+- Retained Blender editable source, FBX fog-bank output and procedural source
+  generator. No package, ProjectSettings, Core rule, Stage data, balance,
+  economy or runtime pool count changed.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. The affected Graybox
+  PlayMode group passed `154/154`; full EditMode passed `444/444`; full
+  post-Builder PlayMode passed `244/244`.
+- Campaign simulation ran twice and retained the approved Summary, JSON and CSV
+  hashes. Step 10 ran twice and retained all five approved hashes. Package and
+  ProjectSettings diffs remain empty; validation used an isolated project copy.
+- Mechanic readability improves when presentation consumes the same path and
+  semantic material contracts as the gameplay world, without becoming a
+  second rule authority.
+
+### Deferred / Human Review
+
+- Human portrait/device play must judge Fog density and seams on curves,
+  asphalt/ice material contrast, Echo membrane visibility and color transfer,
+  overdraw, Bloom balance and target-mobile performance.
+- Volumetric Fog, new Ice mechanics, gate collision changes, Race Mode,
+  banking, loops and additional render packages remain excluded.

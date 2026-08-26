@@ -1236,6 +1236,18 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.FogCurtain.IsVisible, Is.True);
             Assert.That(_controller.FogCurtain.Alpha, Is.Zero);
             Assert.That(
+                _controller.FogCurtain.SectionCount,
+                Is.EqualTo(TimedFogCurtainView.RequiredSectionCount));
+            Assert.That(_controller.FogCurtain.RendererCount,
+                Is.GreaterThanOrEqualTo(
+                    TimedFogCurtainView.RequiredSectionCount));
+            Assert.That(
+                Vector3.Distance(
+                    _controller.FogCurtain.GetSection(0).position,
+                    _controller.FogCurtain.GetSection(
+                        TimedFogCurtainView.RequiredSectionCount - 1).position),
+                Is.GreaterThan(20f));
+            Assert.That(
                 Vector3.Distance(
                     _controller.FogCurtain.transform.position,
                     GetExpectedFogPosition(expectedDistance)),
@@ -1329,6 +1341,14 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.TrackPool.GetSegment(0).SurfaceMaterial;
             _controller.StartSelectedStage();
 
+            Renderer campaignSurface = FindTransform(
+                "CampaignSplineSurface").GetComponent<Renderer>();
+            Material roadMaterial = campaignSurface.sharedMaterials[0];
+            Assert.That(roadMaterial.name, Is.EqualTo("CampaignRoad"));
+            Assert.That(roadMaterial.IsKeywordEnabled("_EMISSION"), Is.False);
+            Assert.That(roadMaterial.GetFloat("_Smoothness"),
+                Is.LessThan(0.4f));
+
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Countdown));
             Assert.That(_controller.IceRunway.PanelCount,
@@ -1347,10 +1367,20 @@ namespace ColorGateRunner.Tests.PlayMode
                 if (plan.Modifier.IsIce)
                 {
                     expectedIceCount++;
-                    Assert.That(panel.transform.localScale.x,
-                        Is.EqualTo(IceRunwayView.PanelWidth));
-                    Assert.That(panel.transform.localScale.z,
-                        Is.GreaterThan(plan.Spacing));
+                    Assert.That(panel.transform.localScale,
+                        Is.EqualTo(Vector3.one));
+                    Mesh mesh = _controller.IceRunway.GetPanelMesh(index);
+                    Assert.That(mesh, Is.Not.Null);
+                    Assert.That(mesh.vertexCount, Is.GreaterThan(4));
+                    Assert.That(mesh.bounds.size.x,
+                        Is.GreaterThanOrEqualTo(
+                            IceRunwayView.PanelWidth - 0.1f));
+                    Assert.That(mesh.bounds.size.z,
+                        Is.GreaterThan(0f));
+                    Assert.That(panel.sharedMaterial.name,
+                        Is.EqualTo("CampaignIce"));
+                    Assert.That(panel.sharedMaterial.IsKeywordEnabled(
+                        "_EMISSION"), Is.False);
                 }
             }
             Assert.That(_controller.IceRunway.ActivePanelCount,
@@ -2316,9 +2346,24 @@ namespace ColorGateRunner.Tests.PlayMode
             }
 
             Match(provider.AssignedColor);
+            Assert.That(provider.EchoFieldVisible, Is.True);
+            Color providerColor = provider.EchoFieldColor;
+            Color assignedColor =
+                _controller.GetPresentationMaterial(provider.AssignedColor)
+                    .GetColor("_BaseColor");
+            Assert.That(providerColor.r, Is.EqualTo(assignedColor.r).Within(0.001f));
+            Assert.That(providerColor.g, Is.EqualTo(assignedColor.g).Within(0.001f));
+            Assert.That(providerColor.b, Is.EqualTo(assignedColor.b).Within(0.001f));
             Assert.That(provider.TryResolveCrossing(), Is.True);
             Assert.That(_controller.Session.EchoActive, Is.True);
             Assert.That(_controller.EchoShellVisual.activeSelf, Is.True);
+            Assert.That(provider.EchoFieldVisible, Is.False);
+            Assert.That(_controller.EchoField.FieldColor.r,
+                Is.EqualTo(providerColor.r).Within(0.001f));
+            Assert.That(_controller.EchoField.FieldColor.g,
+                Is.EqualTo(providerColor.g).Within(0.001f));
+            Assert.That(_controller.EchoField.FieldColor.b,
+                Is.EqualTo(providerColor.b).Within(0.001f));
         }
 
         [TestCase(12, GateModifierType.Fog)]

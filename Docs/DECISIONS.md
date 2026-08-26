@@ -1497,3 +1497,17 @@ Status: Approved and implemented.
   resumes at `GO`, and keeps GO as a non-blocking `0.25s` flash.
 - Camera lag does not change runner distance, gate/Goal poses, judgment,
   mechanic timing, Continue economy or deterministic Stage content.
+
+## Iteration 42 — Mechanic surfaces share the Campaign Spline authority
+
+- Fog is six fixed Blender-authored banks spread across a speed-adaptive Spline
+  band. No volumetric package, runtime fog volume or alternate visibility rule
+  is introduced.
+- Ice retains its fixed 50-slot preplacement contract, but each active slot
+  owns a runtime ribbon sampled from the same route pose as the road. Runtime
+  object count, plan boundaries, speed and input rules remain fixed.
+- Road and Ice use separate original mapped, non-emissive materials: rough
+  asphalt versus smooth ice. Cyan road edges remain the only surface Bloom.
+- One collider-free Echo membrane is Builder-owned by every pooled gate and
+  reuses `ColorGateRunner/ProtectionField`. Visibility owns whether it may be
+  shown; resolution transfers the exact assigned hue and hides the gate field.

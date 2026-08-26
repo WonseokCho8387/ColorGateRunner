@@ -757,3 +757,17 @@ mask mechanic readability changes.
 - **Learn:** a small, bounded presentation delay can communicate curvature
   without creating a second movement system; recovery pacing should preserve
   context instead of repeating onboarding.
+
+## Iteration 42 — make mechanic surfaces belong to the route
+
+- **Play:** Fog read as a flat wall, straight Ice cut across curved roads and
+  Echo acquisition lacked a clear visual transfer.
+- **Analyze:** all three effects had correct Core timing but presentation that
+  did not consume the Campaign Spline or shared protection-field language.
+- **Design:** keep plans untouched; distribute fixed fog banks along path
+  distance, sample Ice ribbons from interval distance and place one exact-color
+  hex membrane inside eligible Echo gates.
+- **Validate:** rebuild twice, verify fixed counts/references, curved meshes and
+  hue transfer, then retain every Campaign and Step 10 hash.
+- **Learn:** a mechanic can remain mechanically correct yet feel detached when
+  its surface ignores the road and runner's world-space authority.

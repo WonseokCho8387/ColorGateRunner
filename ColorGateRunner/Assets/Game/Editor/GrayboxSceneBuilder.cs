@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
 using UnityEditor;
@@ -23,6 +24,8 @@ namespace ColorGateRunner.Editor
             "Assets/Game/Generated/Spline";
         internal const string Theme01ModelsFolder =
             "Assets/Game/Art/Gameplay/Theme01/Models";
+        internal const string Theme01TexturesFolder =
+            "Assets/Game/Art/Gameplay/Theme01/Textures";
         internal const int GatePoolSize = 6;
         internal const int TrackPoolSize = 6;
         internal const int IceRunwayPanelCount = 50;
@@ -95,9 +98,26 @@ namespace ColorGateRunner.Editor
             Material runnerGlass = CreateOrUpdateRunnerGlassMaterial(
                 GeneratedMaterialsFolder + "/RunnerGlass.mat",
                 BlueColor);
+            Material roadMaterial = CreateOrUpdateMappedLitMaterial(
+                GeneratedMaterialsFolder + "/CampaignRoad.mat",
+                Theme01TexturesFolder + "/Road_BaseColor.png",
+                Theme01TexturesFolder + "/Road_Normal.png",
+                Theme01TexturesFolder + "/Road_MetallicSmoothness.png",
+                Color.white,
+                0.08f,
+                0.22f);
+            Material iceMaterial = CreateOrUpdateMappedLitMaterial(
+                GeneratedMaterialsFolder + "/CampaignIce.mat",
+                Theme01TexturesFolder + "/Ice_BaseColor.png",
+                Theme01TexturesFolder + "/Ice_Normal.png",
+                Theme01TexturesFolder + "/Ice_MetallicSmoothness.png",
+                Color.white,
+                0.04f,
+                0.92f);
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
-                new Color(0.12f, 0.18f, 0.26f, 1f));
+                new Color(0.4f, 0.54f, 0.7f, 0.68f),
+                Theme01TexturesFolder + "/Fog_Noise.png");
             Material protectionFieldMaterial =
                 CreateOrUpdateProtectionFieldMaterial(
                     GeneratedMaterialsFolder + "/ProtectionField.mat");
@@ -126,11 +146,11 @@ namespace ColorGateRunner.Editor
             TrackPoolController trackPool =
                 CreateTrackPool(root.transform, darkAlloy, cyan);
             CampaignSplinePathView campaignSplinePath =
-                CreateCampaignSplinePath(root.transform, darkAlloy, cyan);
+                CreateCampaignSplinePath(root.transform, roadMaterial, cyan);
             SplineTrackLabView splineTrackLabView =
                 CreateSplineTrackLab(root.transform, darkAlloy, cyan);
             IceRunwayView iceRunway =
-                CreateIceRunway(root.transform, cyan);
+                CreateIceRunway(root.transform, iceMaterial);
             Renderer playerRenderer;
             GameObject playerObject =
                 CreatePlayer(
@@ -161,7 +181,12 @@ namespace ColorGateRunner.Editor
                     out echoCollapse);
             GameObject goal = CreateGoal(root.transform, darkAlloy, cyan);
             StageGateView[] gates =
-                CreateGatePool(root.transform, controller, darkAlloy, neutral);
+                CreateGatePool(
+                    root.transform,
+                    controller,
+                    darkAlloy,
+                    neutral,
+                    protectionFieldMaterial);
             GateBreakEffectPool gateBreakEffects =
                 CreateGateBreakEffectPool(root.transform, cyan);
             ParticleSystem successParticles =
@@ -678,6 +703,14 @@ namespace ColorGateRunner.Editor
                 throw new InvalidOperationException(
                     "Fixed stage gate pool is invalid or runtime pickup remains.");
             }
+            for (int index = 0; index < gates.Length; index++)
+            {
+                if (!gates[index].HasRequiredReferences())
+                {
+                    throw new InvalidOperationException(
+                        $"Stage gate {index} is missing its Echo field or core references.");
+                }
+            }
             if (trackPools.Length != 1 ||
                 !trackPools[0].HasRequiredReferences() ||
                 trackPools[0].SegmentCount != TrackPoolSize)
@@ -694,7 +727,9 @@ namespace ColorGateRunner.Editor
                 }
             }
             if (fogCurtains.Length != 1 ||
-                !fogCurtains[0].HasRequiredReferences())
+                !fogCurtains[0].HasRequiredReferences() ||
+                fogCurtains[0].SectionCount !=
+                    TimedFogCurtainView.RequiredSectionCount)
             {
                 throw new InvalidOperationException(
                     "Timed Fog curtain is missing or incomplete.");
@@ -1706,21 +1741,26 @@ namespace ColorGateRunner.Editor
                 typeof(IceRunwayView));
             runwayObject.transform.SetParent(parent, false);
             Renderer[] panels = new Renderer[IceRunwayPanelCount];
+            MeshFilter[] meshFilters = new MeshFilter[IceRunwayPanelCount];
             for (int index = 0; index < panels.Length; index++)
             {
-                GameObject panel =
-                    GameObject.CreatePrimitive(PrimitiveType.Cube);
-                panel.name = $"IceRunwayPanel_{index:00}";
+                GameObject panel = new GameObject(
+                    $"IceRunwayPanel_{index:00}",
+                    typeof(MeshFilter),
+                    typeof(MeshRenderer));
                 panel.transform.SetParent(runwayObject.transform, false);
-                panel.GetComponent<Renderer>().sharedMaterial = material;
-                UnityEngine.Object.DestroyImmediate(
-                    panel.GetComponent<Collider>());
-                panels[index] = panel.GetComponent<Renderer>();
+                MeshRenderer renderer = panel.GetComponent<MeshRenderer>();
+                renderer.sharedMaterial = material;
+                renderer.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+                panels[index] = renderer;
+                meshFilters[index] = panel.GetComponent<MeshFilter>();
             }
 
             IceRunwayView runway =
                 runwayObject.GetComponent<IceRunwayView>();
-            runway.Configure(panels);
+            runway.Configure(panels, meshFilters);
             return runway;
         }
 
@@ -1821,17 +1861,37 @@ namespace ColorGateRunner.Editor
             Transform parent,
             Material material)
         {
-            GameObject curtain = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            curtain.name = "FogCurtain";
+            GameObject curtain = new GameObject(
+                "FogCurtain",
+                typeof(TimedFogCurtainView));
             curtain.transform.SetParent(parent, false);
-            curtain.transform.localScale = new Vector3(12f, 8f, 0.35f);
-            Renderer renderer = curtain.GetComponent<Renderer>();
-            renderer.sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(
-                curtain.GetComponent<Collider>());
+            Transform[] sections =
+                new Transform[TimedFogCurtainView.RequiredSectionCount];
+            List<Renderer> renderers = new List<Renderer>();
+            for (int index = 0; index < sections.Length; index++)
+            {
+                GameObject section = InstantiateTheme01Model(
+                    "FogBankSection.fbx",
+                    curtain.transform,
+                    $"FogBank_{index:00}");
+                sections[index] = section.transform;
+                Renderer[] sectionRenderers =
+                    section.GetComponentsInChildren<Renderer>(true);
+                for (int rendererIndex = 0;
+                    rendererIndex < sectionRenderers.Length;
+                    rendererIndex++)
+                {
+                    Renderer renderer = sectionRenderers[rendererIndex];
+                    renderer.sharedMaterial = material;
+                    renderer.shadowCastingMode =
+                        UnityEngine.Rendering.ShadowCastingMode.Off;
+                    renderer.receiveShadows = false;
+                    renderers.Add(renderer);
+                }
+            }
             TimedFogCurtainView view =
-                curtain.AddComponent<TimedFogCurtainView>();
-            view.Configure(renderer);
+                curtain.GetComponent<TimedFogCurtainView>();
+            view.Configure(sections, renderers.ToArray());
             return view;
         }
 
@@ -2037,7 +2097,8 @@ namespace ColorGateRunner.Editor
             Transform parent,
             StageSceneController controller,
             Material darkMaterial,
-            Material colorMaterial)
+            Material colorMaterial,
+            Material protectionFieldMaterial)
         {
             GameObject pool = new GameObject("StageGatePool");
             pool.transform.SetParent(parent, false);
@@ -2087,9 +2148,30 @@ namespace ColorGateRunner.Editor
                 symbol.fontSize = 96;
                 symbol.characterSize = 0.035f;
                 symbol.color = Color.white;
+
+                GameObject fieldObject = GameObject.CreatePrimitive(
+                    PrimitiveType.Quad);
+                fieldObject.name = "EchoGateField";
+                fieldObject.transform.SetParent(gateObject.transform, false);
+                fieldObject.transform.localPosition =
+                    new Vector3(0f, 1.55f, -0.3f);
+                fieldObject.transform.localRotation = Quaternion.identity;
+                fieldObject.transform.localScale =
+                    new Vector3(4.5f, 2.65f, 1f);
+                Renderer fieldRenderer = fieldObject.GetComponent<Renderer>();
+                fieldRenderer.sharedMaterial = protectionFieldMaterial;
+                fieldRenderer.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
+                fieldRenderer.receiveShadows = false;
+                UnityEngine.Object.DestroyImmediate(
+                    fieldObject.GetComponent<Collider>());
+                EchoGateFieldView echoField =
+                    fieldObject.AddComponent<EchoGateFieldView>();
+                echoField.Configure(fieldRenderer);
+
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
-                view.Configure(controller, renderers, symbol);
+                view.Configure(controller, renderers, symbol, echoField);
                 gates[index] = view;
             }
 
@@ -3614,10 +3696,123 @@ namespace ColorGateRunner.Editor
             return null;
         }
 
+        private static Material CreateOrUpdateMappedLitMaterial(
+            string path,
+            string baseTexturePath,
+            string normalTexturePath,
+            string surfaceTexturePath,
+            Color tint,
+            float metallic,
+            float smoothness)
+        {
+            ConfigureTextureImporter(baseTexturePath, false, true);
+            ConfigureTextureImporter(normalTexturePath, true, false);
+            ConfigureTextureImporter(surfaceTexturePath, false, false);
+            Texture2D baseTexture =
+                AssetDatabase.LoadAssetAtPath<Texture2D>(baseTexturePath);
+            Texture2D normalTexture =
+                AssetDatabase.LoadAssetAtPath<Texture2D>(normalTexturePath);
+            Texture2D surfaceTexture =
+                AssetDatabase.LoadAssetAtPath<Texture2D>(surfaceTexturePath);
+            if (baseTexture == null || normalTexture == null ||
+                surfaceTexture == null)
+            {
+                throw new InvalidOperationException(
+                    $"Mapped surface textures are missing for {path}.");
+            }
+
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ??
+                Shader.Find("Standard");
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.color = tint;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", tint);
+            }
+            material.SetTexture("_BaseMap", baseTexture);
+            material.SetTexture("_MainTex", baseTexture);
+            material.SetTexture("_BumpMap", normalTexture);
+            material.SetTexture("_MetallicGlossMap", surfaceTexture);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.EnableKeyword("_NORMALMAP");
+            material.EnableKeyword("_METALLICSPECGLOSSMAP");
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", Color.black);
+            }
+            material.DisableKeyword("_EMISSION");
+            material.globalIlluminationFlags =
+                MaterialGlobalIlluminationFlags.None;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static void ConfigureTextureImporter(
+            string path,
+            bool isNormalMap,
+            bool isSrgb)
+        {
+            TextureImporter importer =
+                AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException(
+                    $"Texture importer is missing: {path}");
+            }
+            bool changed = false;
+            TextureImporterType expectedType = isNormalMap
+                ? TextureImporterType.NormalMap
+                : TextureImporterType.Default;
+            if (importer.textureType != expectedType)
+            {
+                importer.textureType = expectedType;
+                changed = true;
+            }
+            if (importer.sRGBTexture != isSrgb)
+            {
+                importer.sRGBTexture = isSrgb;
+                changed = true;
+            }
+            if (importer.wrapMode != TextureWrapMode.Repeat)
+            {
+                importer.wrapMode = TextureWrapMode.Repeat;
+                changed = true;
+            }
+            if (!importer.mipmapEnabled)
+            {
+                importer.mipmapEnabled = true;
+                changed = true;
+            }
+            if (changed)
+            {
+                importer.SaveAndReimport();
+            }
+        }
+
         private static Material CreateOrUpdateTransparentMaterial(
             string path,
-            Color color)
+            Color color,
+            string texturePath)
         {
+            ConfigureTextureImporter(texturePath, false, true);
+            Texture2D texture =
+                AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+            if (texture == null)
+            {
+                throw new InvalidOperationException(
+                    $"Transparent texture is missing: {texturePath}");
+            }
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             Shader shader =
                 Shader.Find("Universal Render Pipeline/Unlit") ??
@@ -3633,6 +3828,12 @@ namespace ColorGateRunner.Editor
             }
 
             material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+            material.SetTexture("_BaseMap", texture);
+            material.SetTexture("_MainTex", texture);
             material.SetFloat("_Surface", 1f);
             material.SetFloat("_Blend", 0f);
             material.SetFloat(

@@ -711,3 +711,16 @@ fairness, or polish.
   Campaign simulations and two Step 10 simulations are required. All existing
   artifact hashes must remain exact; package and ProjectSettings baselines
   must remain unchanged.
+
+### Iteration 42 Mechanic surface readability
+
+- Builder validation requires exactly six Fog sections, one valid fixed
+  50-slot Ice mesh pool and a complete shared-shader Echo field on each of the
+  six pooled gates.
+- PlayMode proves Fog sections span the adaptive band, active Ice slots own
+  multi-row Spline ribbons using a non-emissive smooth material, the Campaign
+  road uses rough non-emissive mapping, and Echo transfers the provider's exact
+  color before hiding its gate field.
+- Campaign Builder runs twice. Full EditMode and post-Builder PlayMode plus two
+  Campaign and two Step 10 simulations are required. Existing artifact hashes,
+  packages and ProjectSettings must remain exact.

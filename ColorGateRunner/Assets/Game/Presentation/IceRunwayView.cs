@@ -11,8 +11,12 @@ namespace ColorGateRunner.Presentation
         internal const float PanelThickness = 0.05f;
         internal const float PanelCenterY = 0.125f;
         private const float SeamOverlap = 0.08f;
+        private const float MeshSampleSpacing = 1.25f;
+        private const float TextureRepeatDistance = 5f;
 
         [SerializeField] private Renderer[] panels;
+        [SerializeField] private MeshFilter[] panelMeshFilters;
+        private Mesh[] _runtimeMeshes;
 
         internal int PanelCount => panels == null ? 0 : panels.Length;
 
@@ -37,21 +41,26 @@ namespace ColorGateRunner.Presentation
             }
         }
 
-        internal void Configure(Renderer[] runwayPanels)
+        internal void Configure(
+            Renderer[] runwayPanels,
+            MeshFilter[] meshFilters)
         {
             panels = runwayPanels;
+            panelMeshFilters = meshFilters;
             ResetRunway();
         }
 
         internal bool HasRequiredReferences()
         {
-            if (panels == null || panels.Length != RequiredPanelCount)
+            if (panels == null || panels.Length != RequiredPanelCount ||
+                panelMeshFilters == null ||
+                panelMeshFilters.Length != RequiredPanelCount)
             {
                 return false;
             }
             for (int index = 0; index < panels.Length; index++)
             {
-                if (panels[index] == null)
+                if (panels[index] == null || panelMeshFilters[index] == null)
                 {
                     return false;
                 }
@@ -64,48 +73,27 @@ namespace ColorGateRunner.Presentation
             float playerZ,
             float initialGateLeadDistance)
         {
-            if (session == null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
-            if (!HasRequiredReferences())
-            {
-                throw new InvalidOperationException(
-                    "Ice runway requires exactly 50 configured panels.");
-            }
-            if (session.Stage.TargetGateCount > panels.Length)
-            {
-                throw new InvalidOperationException(
-                    "The authored stage exceeds the fixed Ice runway pool.");
-            }
+            ValidateBuild(session);
+            EnsureRuntimeMeshes();
 
             float previousGateZ = playerZ + initialGateLeadDistance;
             for (int index = 0; index < panels.Length; index++)
             {
-                Renderer panel = panels[index];
                 if (index >= session.Stage.TargetGateCount)
                 {
-                    panel.gameObject.SetActive(false);
+                    panels[index].gameObject.SetActive(false);
                     continue;
                 }
 
                 GatePlan plan = session.GetGatePlan(index);
                 float gateZ = previousGateZ + plan.Spacing;
-                bool isIce = plan.Modifier.IsIce;
-                panel.gameObject.SetActive(isIce);
-                if (isIce)
+                panels[index].gameObject.SetActive(plan.Modifier.IsIce);
+                if (plan.Modifier.IsIce)
                 {
-                    float length = Mathf.Max(
-                        0.01f,
-                        gateZ - previousGateZ + SeamOverlap);
-                    panel.transform.position = new Vector3(
-                        0f,
-                        PanelCenterY,
-                        previousGateZ + length * 0.5f);
-                    panel.transform.localScale = new Vector3(
-                        PanelWidth,
-                        PanelThickness,
-                        length);
+                    BuildStraightRibbon(
+                        index,
+                        previousGateZ,
+                        gateZ + SeamOverlap);
                 }
                 previousGateZ = gateZ;
             }
@@ -116,58 +104,34 @@ namespace ColorGateRunner.Presentation
             CampaignSplinePathView path,
             float initialGateLeadDistance)
         {
-            if (session == null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
+            ValidateBuild(session);
             if (path == null || path.PathLength <= 0f)
             {
                 throw new ArgumentException(
                     "Ice runway requires a built Campaign Spline.",
                     nameof(path));
             }
-            if (!HasRequiredReferences())
-            {
-                throw new InvalidOperationException(
-                    "Ice runway requires exactly 50 configured panels.");
-            }
-            if (session.Stage.TargetGateCount > panels.Length)
-            {
-                throw new InvalidOperationException(
-                    "The authored stage exceeds the fixed Ice runway pool.");
-            }
+            EnsureRuntimeMeshes();
 
             float previousGateDistance = initialGateLeadDistance;
             for (int index = 0; index < panels.Length; index++)
             {
-                Renderer panel = panels[index];
                 if (index >= session.Stage.TargetGateCount)
                 {
-                    panel.gameObject.SetActive(false);
+                    panels[index].gameObject.SetActive(false);
                     continue;
                 }
 
                 GatePlan plan = session.GetGatePlan(index);
                 float gateDistance = previousGateDistance + plan.Spacing;
-                bool isIce = plan.Modifier.IsIce;
-                panel.gameObject.SetActive(isIce);
-                if (isIce)
+                panels[index].gameObject.SetActive(plan.Modifier.IsIce);
+                if (plan.Modifier.IsIce)
                 {
-                    float length = Mathf.Max(
-                        0.01f,
-                        gateDistance - previousGateDistance + SeamOverlap);
-                    float centerDistance = previousGateDistance +
-                        (length * 0.5f);
-                    path.EvaluatePose(
-                        centerDistance,
-                        PanelCenterY,
-                        out Vector3 position,
-                        out Quaternion rotation);
-                    panel.transform.SetPositionAndRotation(position, rotation);
-                    panel.transform.localScale = new Vector3(
-                        PanelWidth,
-                        PanelThickness,
-                        length);
+                    BuildSplineRibbon(
+                        index,
+                        path,
+                        previousGateDistance,
+                        gateDistance + SeamOverlap);
                 }
                 previousGateDistance = gateDistance;
             }
@@ -191,6 +155,184 @@ namespace ColorGateRunner.Presentation
         internal Renderer GetPanel(int index)
         {
             return panels[index];
+        }
+
+        internal Mesh GetPanelMesh(int index)
+        {
+            return panelMeshFilters[index].sharedMesh;
+        }
+
+        private void OnDestroy()
+        {
+            if (_runtimeMeshes == null)
+            {
+                return;
+            }
+            for (int index = 0; index < _runtimeMeshes.Length; index++)
+            {
+                if (_runtimeMeshes[index] == null)
+                {
+                    continue;
+                }
+                if (Application.isPlaying)
+                {
+                    Destroy(_runtimeMeshes[index]);
+                }
+                else
+                {
+                    DestroyImmediate(_runtimeMeshes[index]);
+                }
+            }
+            _runtimeMeshes = null;
+        }
+
+        private void ValidateBuild(StageSession session)
+        {
+            if (session == null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+            if (!HasRequiredReferences())
+            {
+                throw new InvalidOperationException(
+                    "Ice runway requires exactly 50 configured mesh panels.");
+            }
+            if (session.Stage.TargetGateCount > panels.Length)
+            {
+                throw new InvalidOperationException(
+                    "The authored stage exceeds the fixed Ice runway pool.");
+            }
+        }
+
+        private void EnsureRuntimeMeshes()
+        {
+            if (_runtimeMeshes != null &&
+                _runtimeMeshes.Length == RequiredPanelCount)
+            {
+                return;
+            }
+            _runtimeMeshes = new Mesh[RequiredPanelCount];
+            for (int index = 0; index < _runtimeMeshes.Length; index++)
+            {
+                Mesh mesh = new Mesh
+                {
+                    name = $"IceRunwayRibbon_{index:00}"
+                };
+                mesh.MarkDynamic();
+                _runtimeMeshes[index] = mesh;
+                panelMeshFilters[index].sharedMesh = mesh;
+            }
+        }
+
+        private void BuildStraightRibbon(
+            int panelIndex,
+            float startZ,
+            float endZ)
+        {
+            float length = Mathf.Max(0.01f, endZ - startZ);
+            int rowCount = ResolveRowCount(length);
+            Vector3[] vertices = new Vector3[rowCount * 2];
+            Vector2[] uvs = new Vector2[vertices.Length];
+            int[] triangles = new int[(rowCount - 1) * 6];
+            float halfWidth = PanelWidth * 0.5f;
+            for (int row = 0; row < rowCount; row++)
+            {
+                float normalized = row / (float)(rowCount - 1);
+                float z = Mathf.Lerp(startZ, endZ, normalized);
+                int vertex = row * 2;
+                vertices[vertex] = transform.InverseTransformPoint(
+                    new Vector3(-halfWidth, PanelCenterY, z));
+                vertices[vertex + 1] = transform.InverseTransformPoint(
+                    new Vector3(halfWidth, PanelCenterY, z));
+                float v = length * normalized / TextureRepeatDistance;
+                uvs[vertex] = new Vector2(0f, v);
+                uvs[vertex + 1] = new Vector2(1f, v);
+            }
+            PopulateTriangles(triangles, rowCount);
+            ApplyMesh(panelIndex, vertices, uvs, triangles);
+        }
+
+        private void BuildSplineRibbon(
+            int panelIndex,
+            CampaignSplinePathView path,
+            float startDistance,
+            float endDistance)
+        {
+            float length = Mathf.Max(0.01f, endDistance - startDistance);
+            int rowCount = ResolveRowCount(length);
+            Vector3[] vertices = new Vector3[rowCount * 2];
+            Vector2[] uvs = new Vector2[vertices.Length];
+            int[] triangles = new int[(rowCount - 1) * 6];
+            float halfWidth = PanelWidth * 0.5f;
+            for (int row = 0; row < rowCount; row++)
+            {
+                float normalized = row / (float)(rowCount - 1);
+                float distance = Mathf.Lerp(
+                    startDistance,
+                    endDistance,
+                    normalized);
+                path.EvaluatePose(
+                    distance,
+                    PanelCenterY,
+                    out Vector3 position,
+                    out Quaternion rotation);
+                Vector3 right = rotation * Vector3.right;
+                int vertex = row * 2;
+                vertices[vertex] = transform.InverseTransformPoint(
+                    position - (right * halfWidth));
+                vertices[vertex + 1] = transform.InverseTransformPoint(
+                    position + (right * halfWidth));
+                float v = length * normalized / TextureRepeatDistance;
+                uvs[vertex] = new Vector2(0f, v);
+                uvs[vertex + 1] = new Vector2(1f, v);
+            }
+            PopulateTriangles(triangles, rowCount);
+            ApplyMesh(panelIndex, vertices, uvs, triangles);
+        }
+
+        private static int ResolveRowCount(float length)
+        {
+            return Mathf.Max(
+                2,
+                Mathf.CeilToInt(length / MeshSampleSpacing) + 1);
+        }
+
+        private static void PopulateTriangles(
+            int[] triangles,
+            int rowCount)
+        {
+            for (int row = 0; row < rowCount - 1; row++)
+            {
+                int current = row * 2;
+                int next = current + 2;
+                int triangle = row * 6;
+                triangles[triangle] = current;
+                triangles[triangle + 1] = next;
+                triangles[triangle + 2] = current + 1;
+                triangles[triangle + 3] = current + 1;
+                triangles[triangle + 4] = next;
+                triangles[triangle + 5] = next + 1;
+            }
+        }
+
+        private void ApplyMesh(
+            int panelIndex,
+            Vector3[] vertices,
+            Vector2[] uvs,
+            int[] triangles)
+        {
+            Transform panel = panels[panelIndex].transform;
+            panel.localPosition = Vector3.zero;
+            panel.localRotation = Quaternion.identity;
+            panel.localScale = Vector3.one;
+            Mesh mesh = _runtimeMeshes[panelIndex];
+            mesh.Clear();
+            mesh.vertices = vertices;
+            mesh.uv = uvs;
+            mesh.triangles = triangles;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            panelMeshFilters[panelIndex].sharedMesh = mesh;
         }
     }
 }

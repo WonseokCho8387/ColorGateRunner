@@ -756,3 +756,15 @@ gates. Iteration 27 speed and runway presentation remain authoritative.
   reproduces the same sequence.
 - Continue safe-color recovery remains separate from this authored no-miss
   rhythm. Non-Ice stages and Experiment Lab retain their existing generators.
+
+## Iteration 42 mechanic presentation mapping
+
+- Fog timing, trigger count and Stage-owned `5 / 6 / 7` second hold values are
+  unchanged. Six presentation banks occupy one speed-adaptive Spline band and
+  never alter gate truth, spacing, judgment or target visibility state.
+- Each Ice approach remains a prebuilt member of the fixed 50-slot pool and
+  keeps the existing `2.0` speed multiplier and tap rhythm. Its mesh samples
+  the Campaign Spline between the same deterministic interval boundaries.
+- Echo eligibility and acquisition rules are unchanged. The gate membrane is
+  presentation-only and appears only while that Echo Provider is legally
+  visible and unresolved.
