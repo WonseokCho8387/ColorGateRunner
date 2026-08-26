@@ -1431,3 +1431,37 @@ Status: Approved and implemented.
   error fallback cannot be accepted as a complete generated field.
 - This remains a Tier 2 presentation correction. Core rules, Stage data,
   deterministic content and Spline Lab scope do not change.
+
+## Iteration 39 — Zero-stock quick buy is an atomic PreRun transaction
+
+- An allowed Stage 8+ Shield or Booster with zero inventory remains actionable
+  but opens one blocking confirmation; locked and Stage-provided items do not.
+- One Shield and one Booster each cost a fixed `900` Coins. Product owns the
+  Coin/item mutation under a caller-provided idempotency ID. A successful
+  purchase grants exactly one item and Presentation auto-selects it; the later
+  `START` remains the sole attempt-consumption boundary.
+- Insufficient funds and save failure cannot publish a partial spend or grant.
+  The former reports exact shortage and the latter permits retry. Store
+  navigation, bundles, dynamic pricing and IAP are not inferred from quick buy.
+- The D3D11 shader parameter name `point` is prohibited for the protection
+  field because it compiles as a reserved token on the active Windows graphics
+  path. Graphical D3D11 compiler evidence complements headless shader checks.
+- Shield/Echo field roots center at local Y `0.85`. Normal chase framing is
+  `(0, 7, -8.2)` / `18°`; Booster framing is `(0, 5, -6.5)` / `13°`. Enlarged,
+  raised and prewarmed World Space Warp boxes preserve the existing Booster
+  authority, FOV, timing, pause behavior and total 160-particle cap.
+
+## Future path roadmap — Campaign integration precedes Race Mode
+
+- Iteration 37 remains the completed distance-path foundation. The next curved
+  Campaign slice is numbered as an Iteration 40 candidate because Iterations
+  38 and 39 are already assigned.
+- Iteration 40 first extracts a reusable Straight/Spline path contract and
+  validates broad horizontal curves plus gentle elevation. Fog, Ice, Continue,
+  gate/Goal visibility, recycling and camera comfort must all use scalar path
+  distance before any approved curve enters a later Campaign Stage.
+- Race Mode follows rather than expands that slice. It derives three default
+  and at most five parallel routes from one center Spline. Initial AI is a
+  non-colliding Ghost with independent progress and results; collision,
+  economy/rank rewards, online play and conversion of current Campaign Stages
+  remain excluded.

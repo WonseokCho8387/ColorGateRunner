@@ -23,9 +23,9 @@ namespace ColorGateRunner.Presentation
         private const float BoosterCameraBlendOut = 0.35f;
         private const float ColorStackTransitionDuration = 0.12f;
         private static readonly Vector3 BoosterCameraFollowOffset =
-            new Vector3(0f, 5.4f, -7.4f);
+            new Vector3(0f, 5f, -6.5f);
         private static readonly Quaternion BoosterCameraRotation =
-            Quaternion.Euler(14f, 0f, 0f);
+            Quaternion.Euler(13f, 0f, 0f);
         private static readonly Color ShieldFieldColor =
             new Color(0f, 0.7215686f, 0.8509804f, 1f);
         private static readonly float[] ColorStackPositions =
@@ -88,6 +88,12 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text preRunStatusText;
         [SerializeField] private Button startButton;
         [SerializeField] private Button backButton;
+        [SerializeField] private GameObject startItemPurchaseModal;
+        [SerializeField] private Text startItemPurchaseTitleText;
+        [SerializeField] private Text startItemPurchaseMessageText;
+        [SerializeField] private Button startItemPurchaseConfirmButton;
+        [SerializeField] private Text startItemPurchaseConfirmText;
+        [SerializeField] private Button startItemPurchaseCancelButton;
 
         [SerializeField] private GameObject countdownPanel;
         [SerializeField] private Text countdownText;
@@ -204,6 +210,8 @@ namespace ColorGateRunner.Presentation
         private bool _enteredFromFrontendLaunch;
         private bool _preRunReturnTransitioning;
         private string _preRunReturnError = string.Empty;
+        private StartItemKind? _pendingStartItemPurchase;
+        private bool _startItemPurchasePending;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -243,6 +251,10 @@ namespace ColorGateRunner.Presentation
         internal Button BoosterToggleButton => boosterToggleButton;
         internal Text BoosterToggleText => boosterToggleText;
         internal Text PreRunStatusText => preRunStatusText;
+        internal GameObject StartItemPurchaseModal => startItemPurchaseModal;
+        internal Text StartItemPurchaseMessageText => startItemPurchaseMessageText;
+        internal Button StartItemPurchaseConfirmButton =>
+            startItemPurchaseConfirmButton;
         internal Button TicketContinueButton => ticketContinueButton;
         internal Button CoinContinueButton => coinContinueButton;
         internal Button RewardedContinueButton => rewardedContinueButton;
@@ -819,6 +831,7 @@ namespace ColorGateRunner.Presentation
             _shieldSelected = false;
             _boosterSelected = false;
             _startItemStartError = string.Empty;
+            CloseStartItemPurchase();
             RefreshStartItemInventory();
             ApplyUiFlow(MobileUiFlow.PreRun);
             selectedStageText.text =
@@ -847,6 +860,12 @@ namespace ColorGateRunner.Presentation
             if (_uiFlow != MobileUiFlow.PreRun ||
                 _preRunReturnTransitioning)
             {
+                return;
+            }
+            if (startItemPurchaseModal != null &&
+                startItemPurchaseModal.activeSelf)
+            {
+                CloseStartItemPurchase();
                 return;
             }
 
@@ -884,12 +903,21 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleShieldSelection()
         {
+            if (startItemPurchaseModal != null &&
+                startItemPurchaseModal.activeSelf)
+            {
+                return;
+            }
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
                 _session.StageProvidesShield ||
-                !_session.Stage.ShieldAllowed ||
-                _startItemInventorySnapshot.ShieldCount <= 0)
+                !_session.Stage.ShieldAllowed)
             {
+                return;
+            }
+            if (_startItemInventorySnapshot.ShieldCount <= 0)
+            {
+                OpenStartItemPurchase(StartItemKind.Shield);
                 return;
             }
             _shieldSelected = !_shieldSelected;
@@ -898,22 +926,113 @@ namespace ColorGateRunner.Presentation
 
         internal void ToggleBoosterSelection()
         {
+            if (startItemPurchaseModal != null &&
+                startItemPurchaseModal.activeSelf)
+            {
+                return;
+            }
             if (_session == null ||
                 _session.FlowState != StageFlowState.PreRunSelection ||
                 _session.StageProvidesBooster ||
-                !_session.Stage.BoosterAllowed ||
-                _startItemInventorySnapshot.BoosterCount <= 0)
+                !_session.Stage.BoosterAllowed)
             {
+                return;
+            }
+            if (_startItemInventorySnapshot.BoosterCount <= 0)
+            {
+                OpenStartItemPurchase(StartItemKind.Booster);
                 return;
             }
             _boosterSelected = !_boosterSelected;
             SynchronizeItemSelection();
         }
 
+        private void OpenStartItemPurchase(StartItemKind kind)
+        {
+            if (!_startItemInventorySnapshot.PurchaseAvailable ||
+                startItemPurchaseModal == null)
+            {
+                return;
+            }
+            _pendingStartItemPurchase = kind;
+            _startItemPurchasePending = false;
+            int price = StartItemCoinPricePolicy.GetPrice(kind);
+            string itemName = kind.ToString().ToUpperInvariant();
+            startItemPurchaseTitleText.text = $"BUY {itemName}";
+            startItemPurchaseMessageText.text =
+                $"BUY 1 {itemName} FOR {price} COINS?\n" +
+                $"COINS {_startItemInventorySnapshot.CoinBalance}";
+            startItemPurchaseConfirmText.text = $"BUY {price}";
+            startItemPurchaseConfirmButton.interactable = true;
+            startItemPurchaseModal.SetActive(true);
+        }
+
+        internal void ConfirmStartItemPurchase()
+        {
+            if (!_pendingStartItemPurchase.HasValue ||
+                _startItemPurchasePending)
+            {
+                return;
+            }
+            StartItemKind kind = _pendingStartItemPurchase.Value;
+            _startItemPurchasePending = true;
+            startItemPurchaseConfirmButton.interactable = false;
+            ProductMutationResult result = _startItemInventory.Purchase(
+                kind,
+                Guid.NewGuid().ToString("N"));
+            _startItemPurchasePending = false;
+            RefreshStartItemInventory();
+            if (!result.Succeeded)
+            {
+                int price = StartItemCoinPricePolicy.GetPrice(kind);
+                if (result.Error.Code == ProductErrorCode.InsufficientFunds)
+                {
+                    int shortage = Math.Max(
+                        0,
+                        price - _startItemInventorySnapshot.CoinBalance);
+                    startItemPurchaseMessageText.text =
+                        $"NOT ENOUGH COINS\n" +
+                        $"COINS {_startItemInventorySnapshot.CoinBalance} · " +
+                        $"NEED {shortage} MORE";
+                    startItemPurchaseConfirmButton.interactable = false;
+                }
+                else
+                {
+                    startItemPurchaseMessageText.text =
+                        "PURCHASE SAVE FAILED\nNO COINS WERE SPENT";
+                    startItemPurchaseConfirmButton.interactable = true;
+                }
+                return;
+            }
+
+            if (kind == StartItemKind.Shield)
+            {
+                _shieldSelected = true;
+            }
+            else
+            {
+                _boosterSelected = true;
+            }
+            CloseStartItemPurchase();
+            SynchronizeItemSelection();
+        }
+
+        internal void CloseStartItemPurchase()
+        {
+            _pendingStartItemPurchase = null;
+            _startItemPurchasePending = false;
+            if (startItemPurchaseModal != null)
+            {
+                startItemPurchaseModal.SetActive(false);
+            }
+        }
+
         internal void StartSelectedStage()
         {
             if (_session == null ||
-                _session.FlowState != StageFlowState.PreRunSelection)
+                _session.FlowState != StageFlowState.PreRunSelection ||
+                (startItemPurchaseModal != null &&
+                startItemPurchaseModal.activeSelf))
             {
                 return;
             }
@@ -941,6 +1060,7 @@ namespace ColorGateRunner.Presentation
             }
             _heartRefundToken = authorization.HeartRefundToken;
             _startItemStartError = string.Empty;
+            CloseStartItemPurchase();
             RefreshStartItemInventory();
             _session.SelectItems(
                 new StartItemSelection(_shieldSelected, _boosterSelected));
@@ -1288,6 +1408,7 @@ namespace ColorGateRunner.Presentation
                 trackPool.SetSurfaceMaterial(_normalTrackMaterial);
             }
             _session = null;
+            CloseStartItemPurchase();
             ResetRunPresentation();
             bool[] cleared = LoadClearedStages();
             _highestUnlocked = _progressStore.LoadHighestUnlocked();
@@ -1590,7 +1711,12 @@ namespace ColorGateRunner.Presentation
                 selectedStageText == null || shieldToggleButton == null ||
                 shieldToggleText == null || boosterToggleButton == null ||
                 boosterToggleText == null || preRunStatusText == null ||
-                startButton == null ||
+                startButton == null || startItemPurchaseModal == null ||
+                startItemPurchaseTitleText == null ||
+                startItemPurchaseMessageText == null ||
+                startItemPurchaseConfirmButton == null ||
+                startItemPurchaseConfirmText == null ||
+                startItemPurchaseCancelButton == null ||
                 backButton == null || countdownPanel == null ||
                 countdownText == null || stageHud == null ||
                 stageHudText == null || progressText == null ||
@@ -1698,6 +1824,12 @@ namespace ColorGateRunner.Presentation
             Text itemStatus,
             Button start,
             Button back,
+            GameObject purchaseModal,
+            Text purchaseTitle,
+            Text purchaseMessage,
+            Button purchaseConfirm,
+            Text purchaseConfirmText,
+            Button purchaseCancel,
             GameObject countdown,
             Text countdownValue,
             GameObject hud,
@@ -1785,6 +1917,12 @@ namespace ColorGateRunner.Presentation
             preRunStatusText = itemStatus;
             startButton = start;
             backButton = back;
+            startItemPurchaseModal = purchaseModal;
+            startItemPurchaseTitleText = purchaseTitle;
+            startItemPurchaseMessageText = purchaseMessage;
+            startItemPurchaseConfirmButton = purchaseConfirm;
+            startItemPurchaseConfirmText = purchaseConfirmText;
+            startItemPurchaseCancelButton = purchaseCancel;
             countdownPanel = countdown;
             countdownText = countdownValue;
             stageHud = hud;
@@ -1838,6 +1976,10 @@ namespace ColorGateRunner.Presentation
             developerUnlockAllButton.onClick.AddListener(UnlockAllForDevelopment);
             shieldToggleButton.onClick.AddListener(ToggleShieldSelection);
             boosterToggleButton.onClick.AddListener(ToggleBoosterSelection);
+            startItemPurchaseConfirmButton.onClick.AddListener(
+                ConfirmStartItemPurchase);
+            startItemPurchaseCancelButton.onClick.AddListener(
+                CloseStartItemPurchase);
             startButton.onClick.AddListener(StartSelectedStage);
             backButton.onClick.AddListener(HandlePreRunBack);
             ticketContinueButton.onClick.AddListener(RequestTicketContinue);
@@ -1886,6 +2028,10 @@ namespace ColorGateRunner.Presentation
             developerUnlockAllButton.onClick.RemoveListener(UnlockAllForDevelopment);
             shieldToggleButton.onClick.RemoveListener(ToggleShieldSelection);
             boosterToggleButton.onClick.RemoveListener(ToggleBoosterSelection);
+            startItemPurchaseConfirmButton.onClick.RemoveListener(
+                ConfirmStartItemPurchase);
+            startItemPurchaseCancelButton.onClick.RemoveListener(
+                CloseStartItemPurchase);
             startButton.onClick.RemoveListener(StartSelectedStage);
             backButton.onClick.RemoveListener(HandlePreRunBack);
             ticketContinueButton.onClick.RemoveListener(RequestTicketContinue);
@@ -2908,23 +3054,33 @@ namespace ColorGateRunner.Presentation
             shieldToggleButton.interactable =
                 _session.Stage.ShieldAllowed &&
                 !_session.StageProvidesShield &&
-                _startItemInventorySnapshot.ShieldCount > 0;
+                (_startItemInventorySnapshot.ShieldCount > 0 ||
+                _startItemInventorySnapshot.PurchaseAvailable);
             boosterToggleButton.interactable =
                 _session.Stage.BoosterAllowed &&
                 !_session.StageProvidesBooster &&
-                _startItemInventorySnapshot.BoosterCount > 0;
+                (_startItemInventorySnapshot.BoosterCount > 0 ||
+                _startItemInventorySnapshot.PurchaseAvailable);
             shieldToggleText.text = _session.StageProvidesShield
                 ? "SHIELD: PROVIDED"
                 : !_session.Stage.ShieldAllowed
                     ? "SHIELD: LOCKED"
-                    : _shieldSelected
+                    : _startItemInventorySnapshot.ShieldCount <= 0
+                        ? _startItemInventorySnapshot.PurchaseAvailable
+                            ? $"SHIELD · BUY {StartItemCoinPricePolicy.ShieldPrice}"
+                            : "SHIELD: UNAVAILABLE"
+                        : _shieldSelected
                         ? $"SHIELD x{_startItemInventorySnapshot.ShieldCount}: ON"
                         : $"SHIELD x{_startItemInventorySnapshot.ShieldCount}: OFF";
             boosterToggleText.text = _session.StageProvidesBooster
                 ? "BOOSTER: PROVIDED"
                 : !_session.Stage.BoosterAllowed
                     ? "BOOSTER: LOCKED"
-                    : _boosterSelected
+                    : _startItemInventorySnapshot.BoosterCount <= 0
+                        ? _startItemInventorySnapshot.PurchaseAvailable
+                            ? $"BOOSTER · BUY {StartItemCoinPricePolicy.BoosterPrice}"
+                            : "BOOSTER: UNAVAILABLE"
+                        : _boosterSelected
                         ? $"BOOSTER x{_startItemInventorySnapshot.BoosterCount}: ON"
                         : $"BOOSTER x{_startItemInventorySnapshot.BoosterCount}: OFF";
             preRunStatusText.text = _startItemStartError;

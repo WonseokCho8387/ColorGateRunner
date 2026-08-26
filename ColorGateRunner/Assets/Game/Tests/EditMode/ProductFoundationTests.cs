@@ -870,6 +870,83 @@ namespace ColorGateRunner.Tests.EditMode
                 Does.Contain("continue:attempt-1:coin:0"));
         }
 
+        [TestCase(StartItemKind.Shield)]
+        [TestCase(StartItemKind.Booster)]
+        public void PurchaseStartItemWithCoins_IsAtomicAndIdempotent(
+            StartItemKind kind)
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 1800;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult first =
+                pipeline.Session.PurchaseStartItemWithCoins(kind, "purchase-1");
+            ProductMutationResult replay =
+                pipeline.Session.PurchaseStartItemWithCoins(kind, "purchase-1");
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(first.Changed, Is.True);
+            Assert.That(replay.Succeeded, Is.True);
+            Assert.That(replay.Changed, Is.False);
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore + 1));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(900));
+            Assert.That(
+                kind == StartItemKind.Shield
+                    ? pipeline.Progression.Economy.ShieldCount
+                    : pipeline.Progression.Economy.BoosterCount,
+                Is.EqualTo(1));
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Does.Contain("start-item-purchase:purchase-1"));
+        }
+
+        [Test]
+        public void PurchaseStartItemWithCoins_InsufficientFundsDoesNotSave()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 899;
+            int savesBefore = save.SaveCount;
+
+            ProductMutationResult result =
+                pipeline.Session.PurchaseStartItemWithCoins(
+                    StartItemKind.Shield,
+                    "purchase-low");
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code,
+                Is.EqualTo(ProductErrorCode.InsufficientFunds));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(899));
+            Assert.That(pipeline.Progression.Economy.ShieldCount, Is.Zero);
+        }
+
+        [Test]
+        public void PurchaseStartItemWithCoins_SaveFailureDoesNotPublish()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Progression.Economy.Coins = 900;
+            save.FailWrites = true;
+
+            ProductMutationResult result =
+                pipeline.Session.PurchaseStartItemWithCoins(
+                    StartItemKind.Booster,
+                    "purchase-fail");
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo(ProductErrorCode.SaveWrite));
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(900));
+            Assert.That(pipeline.Progression.Economy.BoosterCount, Is.Zero);
+            Assert.That(
+                pipeline.Progression.Economy.AppliedTransactionIds,
+                Is.Empty);
+        }
+
         [TestCase(null, 300)]
         [TestCase("", 300)]
         [TestCase("   ", 300)]

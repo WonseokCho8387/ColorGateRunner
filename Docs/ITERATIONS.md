@@ -2390,3 +2390,57 @@ Human feedback required
   gates, Bloom balance and mobile frame cost.
 - VFX quality tiers, new Booster mechanics, Spline-Lab Booster support, camera
   redesign, audio and additional particle packages remain excluded.
+
+## Iteration 39 — PreRun Quick Buy and VFX Framing
+
+### Play / Analyze
+
+- Human play found that zero-stock Shield/Booster selection had no immediate
+  purchase path, the Shield remained pink and sat too low, Warp occupied mostly
+  the bottom of the portrait frame, and the camera felt too distant.
+- Inspection separated three causes: the PreRun gateway was read/consume only;
+  D3D11 rejected the protection shader's `point` identifier despite earlier
+  headless checks; and the runner-owned Warp boxes plus chase offsets retained
+  conservative Iteration 38 values.
+
+### Design / Implementation
+
+- Added one Product transaction that exchanges `900` Coins for exactly one
+  Shield or Booster. The cloned-save mutation is atomic and ledger-ID
+  idempotent. The zero-stock button opens a blocking confirmation with balance,
+  shortage and no-spend save-error states; success refreshes inventory and
+  auto-selects the item before the existing `START` authorization consumes it.
+- Renamed the D3D11-reserved shader identifier and raised both Shield/Echo field
+  roots and collapse emitters to local Y `0.85`.
+- Enlarged and raised both forward World Space Warp boxes, enabled prewarm and
+  moved normal/Booster chase framing closer. Existing mechanics, FOV, warning,
+  pause/cleanup and the 160-particle cap remain unchanged.
+
+### Validation / Learning
+
+- Product-focused EditMode passed `62/62`; Campaign-focused PlayMode passed
+  `152/152`. Campaign Builder completed two consecutive passes. Full EditMode
+  passed `444/444`; full post-Builder PlayMode passed `241/241`.
+- The focused protection shader test passed `1/1` on an actual D3D11 AMD Radeon
+  Vega 8 graphics device with no shader error. Package and ProjectSettings
+  hashes remained exact; isolated validation did not mutate the original
+  Editor Product save.
+- Campaign and Step 10 simulations were omitted under Tier 2 because no Core
+  rule, Stage data, timing, judgment, deterministic generation, balance or
+  Experiment input changed.
+- Quick buy and attempt consumption must remain separate transactions: purchase
+  success may select an item, but only accepted `START` may spend it for play.
+
+### Deferred / Human Review
+
+- Human portrait/device play must judge purchase-modal clarity, Shield fit and
+  transparency, Warp coverage in the upper frame, closer-camera comfort, gate
+  visibility, Bloom and mobile performance.
+- Existing Iteration 37 is the completed Spline foundation. A future Iteration
+  40 candidate will validate reusable Straight/Spline paths, gentle horizontal
+  and vertical Campaign curves, Fog/Ice/Continue/pooling visibility, then place
+  only human-approved profiles into later Stages.
+- Later Race Mode may derive three default and at most five parallel routes
+  from one center Spline with non-colliding Ghost AI, independent progress and
+  result UI. Opponent collision, rank economy, online play and wholesale
+  Campaign conversion remain excluded.

@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `047a8fa`
-- Base commit: `feat: add spline track lab`
+- Implementation base HEAD: `56c2c11`
+- Base commit: `fix: restore world-space protection effects`
 - Authoritative completion HEAD: the commit named
-  `fix: restore world-space protection effects`; its exact hash is recorded in
-  the Iteration 38 final report because a commit cannot contain
+  `feat: add start-item quick buy and refine vfx`; its exact hash is recorded in
+  the Iteration 39 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 38 — World-Space Protection and Warp VFX Correction**.
+- Current completed iteration: **Iteration 39 — PreRun Quick Buy and VFX Framing**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit are
@@ -146,10 +146,13 @@ below where their contracts differ.
   after Shield consumption, Continue or Retry with the retained selection.
 - Booster presentation is a runner-aligned 3D Warp corridor. Its non-emitting
   controller follows the Player, while Cyan and Gold stretched particles emit
-  through forward box volumes and remain in World Space so depth and parallax
-  read along the travel direction instead of sticking to screen center. The
-  two-ended lifetime fade and hard 160-particle emitted capacity remain. It
-  reuses the existing
+  through enlarged forward box volumes, including the upper portrait frame,
+  and remain in World Space so depth and parallax read along the travel
+  direction instead of sticking to screen center. Both layers prewarm. The
+  two-ended lifetime fade and hard 160-particle emitted capacity remain. The
+  normal chase camera is closer at `(0, 7, -8.2)` / `18°`; Booster blends to
+  `(0, 5, -6.5)` / `13°` while preserving its existing FOV contract. It reuses
+  the existing
   Booster state, distance, FOV, warning and pause ownership and allocates no
   runtime emitter.
 - Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
@@ -161,13 +164,17 @@ below where their contracts differ.
   until the planned Stages 21–23 and 24–26.
 - From Stage 8 onward, selecting Shield or Booster consumes one owned unit of
   each selected item in one atomic Product save when `START` succeeds, before
-  Countdown. Zero stock disables that selection. Insufficient current stock
-  or save failure keeps PreRun open with truthful status and publishes no
-  partial spend. Retry is a new attempt and consumes again; Back before Start
-  and duplicate Start do not consume. Stage 6/7 provided training items remain
-  free and do not consume inventory. Without a ready Product session,
-  selectable items are unavailable while no-item and provided-item starts
-  remain valid.
+  Countdown. At zero stock the item button offers one Shield or Booster for
+  `900` Coins through a blocking confirmation modal. A successful purchase is
+  atomic, transaction-ID idempotent, grants exactly one item and selects it;
+  `START` then consumes it through the existing attempt authorization. Low
+  balance shows the exact shortage, while save failure spends and grants
+  nothing. Insufficient current stock or start-save failure keeps PreRun open
+  with truthful status and publishes no partial spend. Retry is a new attempt
+  and consumes again; Back before Start and duplicate Start do not consume.
+  Stage 6/7 provided training items remain free and do not consume inventory.
+  Without a ready Product session, selectable items and quick buy are
+  unavailable while no-item and provided-item starts remain valid.
 - Coin Continues cost `900`, `1,900`, `2,900`, then `4,900` Coins for every
   later successful Coin use in the same attempt. There is no attempt-wide
   Continue-count cap; a finite Stage and available authorization sources
@@ -222,16 +229,17 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `440/440`
-- PlayMode: `237/237`
-- Post-Builder PlayMode: `237/237`
+- EditMode: `444/444`
+- PlayMode: `241/241`
+- Post-Builder PlayMode: `241/241`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 38 passes completed; protection
-  shader compilation, Player-owned World Space Warp volumes and the 160-particle
-  cap passed alongside the Spline Lab, runner readability, continuous straight
-  Campaign anchors, fixed pools, references and Build Settings
+- Campaign Builder: two consecutive Iteration 39 passes completed; the PreRun
+  purchase modal and references, protection shader compilation, centered
+  Shield/Echo fields, enlarged Player-owned World Space Warp volumes and the
+  160-particle cap passed alongside the Spline Lab, runner readability,
+  continuous straight Campaign anchors, fixed pools and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -334,6 +342,39 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 39 validation result
+
+- Starting HEAD `56c2c11` was clean. Completion commit name:
+  `feat: add start-item quick buy and refine vfx`.
+- A zero-stock selectable Shield or Booster now opens one blocking PreRun
+  confirmation for a fixed `900` Coins. Product grants one item and charges
+  once through an atomic, idempotent ledger transaction; success auto-selects
+  the item, insufficient balance reports the shortage, and save failure
+  publishes no spend or grant.
+- The D3D11-reserved protection-shader identifier was replaced and the field
+  roots were centered `0.85` units above the Player origin. Booster Cyan/Gold
+  world-space boxes were enlarged and raised, both prewarm, and normal/Booster
+  chase framing moved closer while keeping Booster rules, timing, FOV, pause
+  behavior and the 160-particle cap unchanged.
+- Focused Product EditMode passed `62/62`; focused Campaign PlayMode passed
+  `152/152`. Campaign Builder completed two consecutive passes. Full EditMode
+  passed `444/444`; full post-Builder PlayMode passed `241/241`. The protection
+  shader also passed its focused compiler test `1/1` on an actual D3D11 AMD
+  Radeon Vega 8 device with no shader error.
+- Package and ProjectSettings hashes remain exact. Validation used an isolated
+  project copy and did not mutate the original Editor Product save. Campaign
+  and Step 10 simulations were omitted under Tier 2 because Core rules, Stage
+  data, deterministic generation, timing, judgment, balance and Experiment
+  inputs are unchanged.
+- Human portrait/device review owns the modal hierarchy and wording, Shield
+  centering/transparency, Warp coverage above and beside the runner, closer
+  camera comfort, gate visibility, Bloom and mobile frame cost.
+- Existing Iteration 37 remains the completed Spline foundation. A future
+  Iteration 40 candidate may integrate approved horizontal and gentle vertical
+  curves into later Campaign Stages after Fog, Ice, Continue and visibility
+  validation. Multi-lane Ghost AI Race Mode remains a later roadmap item and
+  is not implemented.
 
 ## Iteration 38 validation result
 

@@ -424,6 +424,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/ProductFoundationTests.cs`
 - `ConsumeStartItems_Insufficient_IsAtomicAndDoesNotSave`
 - `ConsumeStartItems_SaveFailure_DoesNotPublishDecrement`
 - `ConsumeStartItems_RepeatedAttemptsConsumeAgain`
+- `PurchaseStartItemWithCoins_IsAtomicAndIdempotent`
+- `PurchaseStartItemWithCoins_InsufficientFundsDoesNotSave`
+- `PurchaseStartItemWithCoins_SaveFailureDoesNotPublish`
 - `SpendContinueCoins_IsAtomicAndIdempotent`
 - `SpendContinueCoins_InvalidRequestDoesNotSave`
 - `SpendContinueCoins_InsufficientFundsDoesNotSave`
@@ -532,7 +535,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `DirectCampaignPreRunBack_ReturnsToCampaignLobby`
 - `StagesOneThroughFive_ShowLockedItemsAndRejectToggles`
 - `StageEight_StartConsumesSelectedInventoryBeforeCountdown`
-- `StageEight_ZeroStockDisablesSelectionAndStartsItemless`
+- `StageEight_ZeroStockOffersQuickBuyAndCanStartItemless`
+- `StageEight_QuickBuyPurchasesOneAndAutoSelects`
+- `StageEight_QuickBuyInsufficientCoinsKeepsModalAndInventory`
+- `StageEight_QuickBuySaveFailureSpendsNothingAndCanRetry`
 - `StartItemSaveFailure_BlocksCountdownAndShowsError`
 - `InventoryChangedAfterSelection_BlocksStartAndNormalizes`
 - `BackBeforeStart_DoesNotConsumeSelectedItem`
@@ -990,3 +996,22 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `GrayboxScenePlayModeTests.ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
   verifies `RunnerColorView` maps Blue into the glass property block without
   emission while the rear accent remains HDR emissive.
+
+## Iteration 39 current coverage
+
+- `ProductFoundationTests.PurchaseStartItemWithCoins_IsAtomicAndIdempotent`
+  covers both item kinds, the fixed Coin exchange, exactly-one grant and ledger
+  replay. Its insufficient-funds and save-failure companions prove no partial
+  save or published state.
+- `GrayboxScenePlayModeTests.StageEight_ZeroStockOffersQuickBuyAndCanStartItemless`
+  verifies the zero-stock labels, modal and cancel/itemless path.
+- `StageEight_QuickBuyPurchasesOneAndAutoSelects` covers Shield and Booster,
+  including the following `START` consumption. The shortage and save-failure
+  tests retain the modal, inventory and Coin truthfully.
+- `ProtectionFields_UseTransparentHexShaderWithoutHidingRunner` now fixes the
+  centered field/collapse-root pose, while
+  `WarpBooster_UsesRunnerAlignedWorldSpaceVolumeWithinParticleCap` fixes
+  prewarm, expanded upper-frame volumes and the unchanged 160-particle cap.
+- `BoosterCamera_LowersAndMovesCloserBehindPlayer` covers the closer normal and
+  Booster chase offsets. `Theme01GameplayArtTests.ProtectionFieldShader_HasNoCompilerErrors`
+  remains the shader compiler guard and was additionally executed on D3D11.

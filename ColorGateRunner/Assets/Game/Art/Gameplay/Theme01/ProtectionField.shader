@@ -51,21 +51,21 @@ Shader "ColorGateRunner/ProtectionField"
                 half _FieldPulse;
             CBUFFER_END
 
-            float HexDistance(float2 point)
+            float HexDistance(float2 cellPoint)
             {
-                point = abs(point);
+                cellPoint = abs(cellPoint);
                 return max(
-                    dot(point, float2(0.5, 0.8660254)),
-                    point.x);
+                    dot(cellPoint, float2(0.5, 0.8660254)),
+                    cellPoint.x);
             }
 
-            float HexEdge(float2 point)
+            float HexEdge(float2 cellPoint)
             {
                 float2 cell = float2(1.0, 1.7320508);
                 float2 halfCell = cell * 0.5;
-                float2 first = frac(point / cell) * cell - halfCell;
+                float2 first = frac(cellPoint / cell) * cell - halfCell;
                 float2 second =
-                    frac((point - halfCell) / cell) * cell - halfCell;
+                    frac((cellPoint - halfCell) / cell) * cell - halfCell;
                 float useFirst = step(
                     dot(first, first),
                     dot(second, second));

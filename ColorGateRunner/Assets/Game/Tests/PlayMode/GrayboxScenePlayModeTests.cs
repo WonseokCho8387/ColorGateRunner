@@ -373,7 +373,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void StageEight_ZeroStockDisablesSelectionAndStartsItemless()
+        public void StageEight_ZeroStockOffersQuickBuyAndCanStartItemless()
         {
             _store.HighestUnlocked = 8;
             _controller.SetProgressStoreForTests(_store);
@@ -381,20 +381,114 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetStartItemInventoryForTests(_inventory);
             _controller.SelectStage(8);
 
-            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
-            Assert.That(_controller.BoosterToggleButton.interactable, Is.False);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
+            Assert.That(_controller.BoosterToggleButton.interactable, Is.True);
             Assert.That(_controller.ShieldToggleText.text,
-                Is.EqualTo("SHIELD x0: OFF"));
+                Is.EqualTo("SHIELD · BUY 900"));
             Assert.That(_controller.BoosterToggleText.text,
-                Is.EqualTo("BOOSTER x0: OFF"));
+                Is.EqualTo("BOOSTER · BUY 900"));
             _controller.ToggleShieldSelection();
-            _controller.ToggleBoosterSelection();
+            Assert.That(_controller.StartItemPurchaseModal.activeSelf, Is.True);
+            _controller.CloseStartItemPurchase();
             _controller.StartSelectedStage();
 
             Assert.That(_controller.Session.Items.Shield, Is.False);
             Assert.That(_controller.Session.Items.Booster, Is.False);
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Countdown));
+        }
+
+        [TestCase(StartItemKind.Shield)]
+        [TestCase(StartItemKind.Booster)]
+        public void StageEight_QuickBuyPurchasesOneAndAutoSelects(
+            StartItemKind kind)
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(0, 0, 5, false, 900);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            if (kind == StartItemKind.Shield)
+            {
+                _controller.ToggleShieldSelection();
+            }
+            else
+            {
+                _controller.ToggleBoosterSelection();
+            }
+            Assert.That(_controller.StartItemPurchaseModal.activeSelf, Is.True);
+            Assert.That(_controller.StartItemPurchaseMessageText.text,
+                Does.Contain("COINS 900"));
+
+            _controller.ConfirmStartItemPurchase();
+
+            Assert.That(_controller.StartItemPurchaseModal.activeSelf, Is.False);
+            Assert.That(_inventory.CoinBalance, Is.Zero);
+            Assert.That(_inventory.PurchaseCount, Is.EqualTo(1));
+            Assert.That(
+                kind == StartItemKind.Shield
+                    ? _controller.ShieldSelected
+                    : _controller.BoosterSelected,
+                Is.True);
+
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_inventory.SelectedConsumptionCount, Is.EqualTo(1));
+            Assert.That(
+                kind == StartItemKind.Shield
+                    ? _inventory.ShieldCount
+                    : _inventory.BoosterCount,
+                Is.Zero);
+        }
+
+        [Test]
+        public void StageEight_QuickBuyInsufficientCoinsKeepsModalAndInventory()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(0, 0, 5, false, 800);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            _controller.ToggleShieldSelection();
+            _controller.ConfirmStartItemPurchase();
+
+            Assert.That(_controller.StartItemPurchaseModal.activeSelf, Is.True);
+            Assert.That(_controller.StartItemPurchaseMessageText.text,
+                Does.Contain("NEED 100 MORE"));
+            Assert.That(_controller.StartItemPurchaseConfirmButton.interactable,
+                Is.False);
+            Assert.That(_inventory.CoinBalance, Is.EqualTo(800));
+            Assert.That(_inventory.ShieldCount, Is.Zero);
+            Assert.That(_controller.ShieldSelected, Is.False);
+        }
+
+        [Test]
+        public void StageEight_QuickBuySaveFailureSpendsNothingAndCanRetry()
+        {
+            _store.HighestUnlocked = 8;
+            _controller.SetProgressStoreForTests(_store);
+            _inventory = new StartItemInventoryTestGateway(0, 0, 5, false, 900)
+            {
+                FailPurchases = true
+            };
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _controller.SelectStage(8);
+
+            _controller.ToggleBoosterSelection();
+            _controller.ConfirmStartItemPurchase();
+
+            Assert.That(_controller.StartItemPurchaseModal.activeSelf, Is.True);
+            Assert.That(_controller.StartItemPurchaseMessageText.text,
+                Does.Contain("NO COINS WERE SPENT"));
+            Assert.That(_inventory.CoinBalance, Is.EqualTo(900));
+            Assert.That(_inventory.BoosterCount, Is.Zero);
+            Assert.That(_controller.BoosterSelected, Is.False);
+            Assert.That(_controller.StartItemPurchaseConfirmButton.interactable,
+                Is.True);
         }
 
         [Test]
@@ -460,7 +554,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ShieldSelected, Is.False);
             Assert.That(_controller.PreRunStatusText.text,
                 Is.EqualTo("NOT ENOUGH START ITEMS"));
-            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
         }
 
         [Test]
@@ -515,9 +609,9 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RetryToItemSelection();
 
             Assert.That(_controller.ShieldSelected, Is.False);
-            Assert.That(_controller.ShieldToggleButton.interactable, Is.False);
+            Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
             Assert.That(_controller.ShieldToggleText.text,
-                Is.EqualTo("SHIELD x0: OFF"));
+                Is.EqualTo("SHIELD · BUY 900"));
         }
 
         [TestCase(6)]
@@ -601,6 +695,14 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(1));
             Assert.That(_controller.ShieldField.HasRequiredReferences(), Is.True);
             Assert.That(_controller.EchoField.HasRequiredReferences(), Is.True);
+            Assert.That(_controller.ShieldVisual.transform.localPosition.y,
+                Is.EqualTo(0.85f).Within(0.001f));
+            Assert.That(_controller.EchoShellVisual.transform.localPosition.y,
+                Is.EqualTo(0.85f).Within(0.001f));
+            Assert.That(FindTransform("ShieldFieldCollapse").localPosition.y,
+                Is.EqualTo(0.85f).Within(0.001f));
+            Assert.That(FindTransform("EchoFieldCollapse").localPosition.y,
+                Is.EqualTo(0.85f).Within(0.001f));
             Assert.That(
                 _controller.ShieldVisual
                     .GetComponentInChildren<Renderer>(true)
@@ -2472,13 +2574,14 @@ namespace ColorGateRunner.Tests.PlayMode
                     Is.EqualTo(1.5f).Within(0.001f));
                 Assert.That(main.startSpeed.constant,
                     Is.EqualTo(35f).Within(0.001f));
+                Assert.That(main.prewarm, Is.True);
                 Assert.That(shape.shapeType,
                     Is.EqualTo(ParticleSystemShapeType.Box));
                 Assert.That(main.simulationSpace,
                     Is.EqualTo(ParticleSystemSimulationSpace.World));
-                Assert.That(shape.scale.x, Is.GreaterThanOrEqualTo(6.4f));
-                Assert.That(shape.scale.y, Is.GreaterThanOrEqualTo(3.2f));
-                Assert.That(shape.scale.z, Is.GreaterThanOrEqualTo(19f));
+                Assert.That(shape.scale.x, Is.GreaterThanOrEqualTo(7.2f));
+                Assert.That(shape.scale.y, Is.GreaterThanOrEqualTo(5.5f));
+                Assert.That(shape.scale.z, Is.GreaterThanOrEqualTo(28f));
                 Assert.That(renderer.renderMode,
                     Is.EqualTo(ParticleSystemRenderMode.Stretch));
                 Assert.That(renderer.alignment,
@@ -2487,9 +2590,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(systems[index].transform.localPosition.x,
                     Is.EqualTo(0f).Within(0.001f));
                 Assert.That(systems[index].transform.localPosition.y,
-                    Is.EqualTo(1.2f).Within(0.001f));
+                    Is.EqualTo(2.2f).Within(0.001f));
                 Assert.That(systems[index].transform.localPosition.z,
-                    Is.EqualTo(14f).Within(0.001f));
+                    Is.EqualTo(18f).Within(0.001f));
             }
             Assert.That(emittedCapacity, Is.EqualTo(160));
 

@@ -100,12 +100,15 @@ Campaign selection is locked through Stage 7. Provided training items at
 Stages 6 and 7 activate after `GO` without inventory consumption or a
 duplicate selection. Stage 8 is the first clean application Stage where both
 selection toggles are available. A successful `START` atomically consumes one
-owned unit of each selected item before Countdown. Zero stock disables its
-toggle. Insufficient current inventory or save failure leaves the player in
-PreRun with truthful status and no partial spend. Retry is a new attempt and
-consumes selected items again; Back before Start and duplicate Start do not.
-Without a ready Product session, selectable items remain unavailable, while a
-no-item start and the Stage 6/7 provided-item starts remain valid.
+owned unit of each selected item before Countdown. At zero stock, an allowed
+item offers one Shield or Booster for `900` Coins. Purchase success grants and
+auto-selects exactly one item; insufficient Coins or save failure leaves the
+player in PreRun with no partial spend or grant. Insufficient current inventory
+at `START` or its save failure follows the same atomic failure rule. Retry is a
+new attempt and consumes selected items again; Back before Start and duplicate
+Start do not. Without a ready Product session, selectable items and quick buy
+remain unavailable, while a no-item start and the Stage 6/7 provided-item
+starts remain valid.
 
 ### Shield
 
@@ -151,8 +154,10 @@ no-item best. Corrupt values fall back to safe empty records.
   the segment's start anchor exactly to the requested world start or the
   farthest live segment's end anchor. The fixed pool must remain continuous
   at arbitrary forward distance without gaps, overlap or growth.
-- Normal camera rotation and 60-degree FOV remain fixed.
-- Booster alone temporarily uses 74-degree FOV, pooled speed lines, and trail.
+- The straight Campaign normal chase pose is `(0, 7, -8.2)` with `18°` pitch
+  and fixed 60-degree FOV.
+- Booster blends closer/lower to `(0, 5, -6.5)` with `13°` pitch, temporarily
+  uses 74-degree FOV, world-space Warp particles and the existing trail.
 - Step 9A Booster presentation adds a distance meter, final-20%
   warning, launch pulse/shake/haptic request, and two safe exit gates.
 - No post-processing or normal-speed camera escalation is used.
@@ -161,8 +166,25 @@ no-item best. Corrupt values fall back to safe empty records.
 
 The previous deterministic Endless implementation remains reusable code but is
 not exposed by the main scene. Optional Endless mode, direct color buttons,
-item purchasing, extra mechanics/colors, audio or BPM placement, ads,
-analytics, networking, and online ranking are deferred.
+Shop/bundle purchasing beyond the one-item Coin quick buy, extra mechanics or
+colors, audio or BPM placement, ads, analytics, networking, and online ranking
+are deferred.
+
+## Curved Campaign and Race roadmap
+
+- Iteration 37 already completed the isolated horizontal `SPLINE TRACK LAB` and
+  proved scalar-distance path evaluation for runner, camera, pooled gates,
+  Goal and generated road. It remains development-only.
+- A future Iteration 40 candidate may introduce a reusable Straight/Spline
+  distance-path contract, broad horizontal turns and gentle climb/descent.
+  Campaign adoption is limited to human-approved later Stages after Fog
+  look-ahead, Ice runway sampling, Continue restoration, pooling, gate/Goal
+  visibility and portrait camera comfort pass on the same path.
+- Future Race Mode may derive three default and at most five parallel routes
+  from one center Spline. Initial opponents are non-colliding Ghost AI with
+  independent scalar progress and result UI. Physics interference, economy or
+  rank rewards, online play and conversion of all existing Stages are not part
+  of that first race slice.
 
 ## Step 9C player-facing presentation
 

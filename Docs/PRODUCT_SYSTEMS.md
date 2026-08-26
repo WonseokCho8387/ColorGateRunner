@@ -365,8 +365,9 @@ Rules:
 Schema-3 Product Save owns Coins, Shield and Booster inventory, Hearts, timed
 unlimited Hearts, Continue Tickets, and the idempotent transaction ledger.
 Approved Stage and Lobby rewards grant inventory, Stage 8+ may consume owned
-start items, and authorized failure Continue can spend Tickets or Coins.
-Runtime Store purchasing and a real rewarded-ad provider remain unavailable.
+start items, PreRun may exchange `900` Coins for one Shield or Booster at zero
+stock, and authorized failure Continue can spend Tickets or Coins. Runtime
+Store purchasing and a real rewarded-ad provider remain unavailable.
 
 ## 7.2 Economy service contract
 
@@ -400,6 +401,13 @@ selected item. Both optional decrements are validated on a cloned Product
 snapshot and saved once; insufficient inventory or save failure publishes
 nothing. An itemless Start is a successful no-op and performs no save.
 
+A PreRun quick buy is a separate idempotent transaction. Its caller supplies a
+unique transaction ID, Product prefixes it with `start-item-purchase:`, clones
+the current save, subtracts exactly `900` Coins, increments exactly one Shield
+or Booster, appends the ledger ID and commits once. Replaying the same ID is a
+successful no-op. Invalid type/ID, insufficient Coins, inventory overflow or
+save failure publishes neither the Coin spend nor the item grant.
+
 ## 7.4 Wallet rules
 
 - Balances cannot silently become negative.
@@ -407,8 +415,9 @@ nothing. An itemless Start is a successful no-op and performs no save.
 - UI does not directly edit balances.
 - Stage Result proposes rewards; Economy applies validated transactions.
 - Development cheats remain development-only.
-- Stage 8+ presentation reads Product inventory and never owns a shadow
-  balance. Zero-count items cannot be selected.
+- Stage 8+ presentation reads Product inventory and Coin balance and never owns
+  a shadow balance. A zero-count allowed item can be purchased once per
+  confirmed quick-buy transaction and is selected only after Product success.
 - Stage 6/7 provided items are attempt-local and never spend inventory.
 - A missing Product session cannot grant selectable items for free. Itemless
   and Stage-provided Attempts remain available.

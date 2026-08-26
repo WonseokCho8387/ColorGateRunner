@@ -2160,3 +2160,25 @@ Any mismatch blocks implementation.
 - Package and meaningful ProjectSettings hashes remained exact. Campaign and
   Step 10 simulations were omitted because no gameplay, Stage, timing,
   generation, judgment or Experiment input changed.
+
+## Iteration 39 — PreRun Quick Buy and VFX Framing
+
+- Starting HEAD `56c2c11`; completion message
+  `feat: add start-item quick buy and refine vfx`.
+- Focused Product EditMode: `62/62`; focused Campaign PlayMode: `152/152`.
+- Campaign Builder completed its command's two consecutive passes with the new
+  PreRun modal references, field alignment, expanded prewarmed Warp volumes,
+  unique roots, existing fixed pools and Build Settings validation.
+- Full EditMode: `444/444`; final post-Builder PlayMode: `241/241`.
+- The protection shader compiler test passed `1/1` on graphical D3D11 using an
+  AMD Radeon Vega 8; the earlier pink-fallback token error did not recur.
+- Package manifest SHA-256 remained
+  `5E44864DB10C6A0A47806035C801D2271F6F48B0BF8BF6F699B88C71D6758C96`,
+  lock SHA-256 remained
+  `FF4B3AC486B926719707FF2447580CEB1CE33D7C0851BABA229A3CD73C48CBBE`,
+  and `ProjectSettings.asset` remained
+  `BFF9843B9363FF1C20B113108D623026E777311CAEF6372B07C92690049717BC`.
+- Validation used an isolated project copy and did not mutate the original
+  Editor Product save. Campaign and Step 10 simulations were omitted under
+  Tier 2 because no Core, Stage, deterministic generation, timing, judgment,
+  balance or Experiment input changed.

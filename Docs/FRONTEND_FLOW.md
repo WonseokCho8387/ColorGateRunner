@@ -357,8 +357,14 @@ Changing theme must not require a new Lobby Scene.
   remains locked. Provided items are visually distinct from selected items.
 - Stage 8 is the first Stage that enables ordinary Shield and Booster
   selection. Later Stages preserve their catalog-authored selection rules.
-- Stage 8+ displays the Product-owned Shield and Booster counts. A zero-count
-  item is off and cannot be selected.
+- Stage 8+ displays the Product-owned Shield and Booster counts. When an
+  allowed item has zero stock, its button shows `BUY 900` and opens a blocking
+  confirmation modal rather than selecting a nonexistent item.
+- Confirming quick buy atomically spends `900` Coins, grants exactly one of
+  the selected item and automatically selects it. The modal shows current
+  Coins; insufficient balance shows the exact shortage and disables repeat
+  confirmation, while save failure reports that no Coins were spent and
+  permits retry. Cancel or device Back closes only the modal.
 - Pressing `START` consumes one of every selected item in one Product Save
   mutation before item effects or Countdown begin. Save failure remains in
   PreRun and shows a truthful error without consuming or activating an item.
@@ -368,8 +374,8 @@ Changing theme must not require a new Lobby Scene.
 - Stage 6/7 provided items remain free and attempt-local. They do not consume
   Product inventory. Missing Product services expose zero selectable stock;
   itemless runs and Stage-provided items remain playable.
-- Stage Detail does not invent Coin prices or purchase actions. Those require
-  a separately approved economy contract.
+- Stage Detail exposes only the approved one-item quick buy. Shop navigation,
+  bundles, dynamic prices and real-money purchasing remain separate flows.
 
 Example:
 
@@ -780,9 +786,20 @@ Implementation status: Completed in Iteration 10.
 - Product inventory validation and the two optional decrements are atomic.
   Only a successful durable save permits `StageSession.SelectItems` and
   Countdown. No schema migration or Core item-effect change is introduced.
-- Retry, Back, duplicate Start, provided Stage 6/7 items, zero stock, stale
-  stock, save failure, and missing-Product behavior follow the item rules
-  above. Coin purchase, Continue economy, Shop, ads, and IAP remain deferred.
+- Retry, Back, duplicate Start, provided Stage 6/7 items, stale stock, save
+  failure, and missing-Product behavior follow the item rules above. Iteration
+  39 supersedes the former zero-stock-disabled behavior with the approved Coin
+  quick buy. Shop, ads and real-money IAP remain separate.
+
+## Implemented UX slice — Iteration 39 zero-stock quick buy
+
+- Only an allowed, inventory-backed Stage 8+ Shield or Booster at zero stock
+  exposes quick buy. Locked and Stage-provided training items never sell.
+- The modal blocks `START`, item toggles and background interaction until it
+  resolves. A successful purchase closes it and leaves the purchased item
+  selected; the following `START` uses the existing atomic attempt spend.
+- The price is fixed at `900` Coins for one Shield or one Booster. No quantity
+  picker, bundle, discount, Store redirect or simulated purchase succeeds.
 
 ## Implemented UX slice — Iteration 19 Continue economy (historical)
 

@@ -708,6 +708,73 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult PurchaseStartItemWithCoins(
+            StartItemKind kind,
+            string transactionId)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            int price = StartItemCoinPricePolicy.GetPrice(kind);
+            if (string.IsNullOrWhiteSpace(transactionId) || price <= 0)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "The start-item Coin purchase is invalid.",
+                        true));
+            }
+
+            string ledgerId = $"start-item-purchase:{transactionId}";
+            LocalEconomyData economy = _current.Economy;
+            if (economy.AppliedTransactionIds.Contains(ledgerId))
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (economy.Coins < price)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.InsufficientFunds,
+                        "The Coin balance is insufficient for the start item.",
+                        true));
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.Economy.Coins -= price;
+            try
+            {
+                switch (kind)
+                {
+                    case StartItemKind.Shield:
+                        candidate.Economy.ShieldCount = checked(
+                            candidate.Economy.ShieldCount + 1);
+                        break;
+                    case StartItemKind.Booster:
+                        candidate.Economy.BoosterCount = checked(
+                            candidate.Economy.BoosterCount + 1);
+                        break;
+                    default:
+                        return ProductMutationResult.Failure(
+                            new ProductError(
+                                ProductErrorCode.SaveValidation,
+                                "The start-item kind is invalid.",
+                                true));
+                }
+            }
+            catch (OverflowException)
+            {
+                return ProductMutationResult.Failure(
+                    new ProductError(
+                        ProductErrorCode.SaveValidation,
+                        "The start-item inventory exceeds its limit.",
+                        true));
+            }
+            candidate.Economy.AppliedTransactionIds.Add(ledgerId);
+            return Commit(candidate);
+        }
+
         public ProductMutationResult ResetProgressForDevelopment()
         {
             if (!TryGetReady(out ProductMutationResult failure))

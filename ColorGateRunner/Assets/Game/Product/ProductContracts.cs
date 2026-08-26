@@ -3,6 +3,25 @@ using System.Collections.Generic;
 
 namespace ColorGateRunner.Product
 {
+    public enum StartItemKind
+    {
+        Shield = 0,
+        Booster = 1
+    }
+
+    public static class StartItemCoinPricePolicy
+    {
+        public const int ShieldPrice = 900;
+        public const int BoosterPrice = 900;
+
+        public static int GetPrice(StartItemKind kind) => kind switch
+        {
+            StartItemKind.Shield => ShieldPrice,
+            StartItemKind.Booster => BoosterPrice,
+            _ => 0
+        };
+    }
+
     public enum ProductErrorCode
     {
         None = 0,

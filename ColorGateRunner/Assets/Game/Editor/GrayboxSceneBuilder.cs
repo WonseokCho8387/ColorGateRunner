@@ -41,9 +41,9 @@ namespace ColorGateRunner.Editor
         private static readonly Vector3 PlayerStartPosition =
             new Vector3(0f, 1f, 0f);
         private static readonly Vector3 CameraPosition =
-            new Vector3(0f, 8f, -10f);
+            new Vector3(0f, 7f, -8.2f);
         private static readonly Vector3 CameraRotation =
-            new Vector3(20f, 0f, 0f);
+            new Vector3(18f, 0f, 0f);
 
         [MenuItem("Tools/Color Gate Runner/Build Graybox Scene")]
         public static void BuildGrayboxScene()
@@ -247,6 +247,12 @@ namespace ColorGateRunner.Editor
             Text preRunStatusText;
             Button startButton;
             Button backButton;
+            GameObject startItemPurchaseModal;
+            Text startItemPurchaseTitle;
+            Text startItemPurchaseMessage;
+            Button startItemPurchaseConfirm;
+            Text startItemPurchaseConfirmText;
+            Button startItemPurchaseCancel;
             CreateItemUi(
                 flowRoots[1].transform,
                 out itemPanel,
@@ -257,7 +263,13 @@ namespace ColorGateRunner.Editor
                 out boosterButtonText,
                 out preRunStatusText,
                 out startButton,
-                out backButton);
+                out backButton,
+                out startItemPurchaseModal,
+                out startItemPurchaseTitle,
+                out startItemPurchaseMessage,
+                out startItemPurchaseConfirm,
+                out startItemPurchaseConfirmText,
+                out startItemPurchaseCancel);
 
             GameObject countdownPanel;
             Text countdownText;
@@ -414,6 +426,12 @@ namespace ColorGateRunner.Editor
                 preRunStatusText,
                 startButton,
                 backButton,
+                startItemPurchaseModal,
+                startItemPurchaseTitle,
+                startItemPurchaseMessage,
+                startItemPurchaseConfirm,
+                startItemPurchaseConfirmText,
+                startItemPurchaseCancel,
                 countdownPanel,
                 countdownText,
                 hud,
@@ -501,6 +519,7 @@ namespace ColorGateRunner.Editor
             lobbyPanel.SetActive(true);
             stageSelectPanel.SetActive(true);
             itemPanel.SetActive(true);
+            startItemPurchaseModal.SetActive(false);
             countdownPanel.SetActive(true);
             hud.SetActive(true);
             clearPanel.SetActive(true);
@@ -763,6 +782,9 @@ namespace ColorGateRunner.Editor
                 "BoosterItemButton",
                 "StartStageButton",
                 "BackButton",
+                "StartItemPurchaseModal",
+                "StartItemPurchaseConfirmButton",
+                "StartItemPurchaseCancelButton",
                 "CountdownPanel",
                 "CountdownText",
                 "StageHud",
@@ -1788,7 +1810,7 @@ namespace ColorGateRunner.Editor
                 rootName,
                 typeof(ProtectionFieldView));
             root.transform.SetParent(player, false);
-            root.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            root.transform.localPosition = new Vector3(0f, 0.85f, 0f);
 
             GameObject surface =
                 GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -1821,7 +1843,7 @@ namespace ColorGateRunner.Editor
         {
             GameObject effect = new GameObject(name, typeof(ParticleSystem));
             effect.transform.SetParent(player, false);
-            effect.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            effect.transform.localPosition = new Vector3(0f, 0.85f, 0f);
             ParticleSystem particles = effect.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule main = particles.main;
             main.loop = false;
@@ -2050,18 +2072,18 @@ namespace ColorGateRunner.Editor
                 "BoosterWarpCyan",
                 root.transform,
                 cyanMaterial,
-                48f,
-                7.2f,
-                3.8f,
-                22f);
+                55f,
+                8.2f,
+                6.5f,
+                32f);
             CreateWarpEmitter(
                 "BoosterWarpGold",
                 root.transform,
                 goldMaterial,
-                34f,
-                6.4f,
-                3.2f,
-                19f);
+                40f,
+                7.2f,
+                5.5f,
+                28f);
             return rootParticles;
         }
 
@@ -2076,11 +2098,12 @@ namespace ColorGateRunner.Editor
         {
             GameObject emitter = new GameObject(name, typeof(ParticleSystem));
             emitter.transform.SetParent(parent, false);
-            emitter.transform.localPosition = new Vector3(0f, 1.2f, 14f);
+            emitter.transform.localPosition = new Vector3(0f, 2.2f, 18f);
             emitter.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             ParticleSystem particles = emitter.GetComponent<ParticleSystem>();
             ParticleSystem.MainModule main = particles.main;
             main.loop = true;
+            main.prewarm = true;
             main.playOnAwake = false;
             main.duration = 2f;
             main.startLifetime = 1.5f;
@@ -2389,7 +2412,13 @@ namespace ColorGateRunner.Editor
             out Text boosterText,
             out Text statusText,
             out Button startButton,
-            out Button backButton)
+            out Button backButton,
+            out GameObject purchaseModal,
+            out Text purchaseTitle,
+            out Text purchaseMessage,
+            out Button purchaseConfirm,
+            out Text purchaseConfirmText,
+            out Button purchaseCancel)
         {
             panel = CreatePanel(
                 "PreRunItemPanel",
@@ -2448,6 +2477,48 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.35f, 0.06f),
                 new Vector2(0.65f, 0.12f),
                 out backLabel);
+
+            purchaseModal = CreateAnchoredPanel(
+                "StartItemPurchaseModal",
+                panel.transform,
+                Vector2.zero,
+                Vector2.one,
+                new Color(0.01f, 0.02f, 0.05f, 0.94f));
+            GameObject purchaseCard = CreateAnchoredPanel(
+                "StartItemPurchaseCard",
+                purchaseModal.transform,
+                new Vector2(0.08f, 0.27f),
+                new Vector2(0.92f, 0.73f),
+                new Color(0.04f, 0.09f, 0.16f, 1f));
+            purchaseTitle = CreateText(
+                "StartItemPurchaseTitle",
+                purchaseCard.transform,
+                "BUY START ITEM",
+                36,
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.92f));
+            purchaseMessage = CreateText(
+                "StartItemPurchaseMessage",
+                purchaseCard.transform,
+                string.Empty,
+                25,
+                new Vector2(0.08f, 0.40f),
+                new Vector2(0.92f, 0.70f));
+            purchaseConfirm = CreateButton(
+                "StartItemPurchaseConfirmButton",
+                purchaseCard.transform,
+                "BUY 900",
+                new Vector2(0.08f, 0.10f),
+                new Vector2(0.48f, 0.34f),
+                out purchaseConfirmText);
+            purchaseCancel = CreateButton(
+                "StartItemPurchaseCancelButton",
+                purchaseCard.transform,
+                "CANCEL",
+                new Vector2(0.52f, 0.10f),
+                new Vector2(0.92f, 0.34f),
+                out Text _);
+            purchaseModal.SetActive(false);
         }
 
         private static void CreateExperimentLauncherUi(

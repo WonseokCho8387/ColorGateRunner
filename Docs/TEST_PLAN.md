@@ -283,11 +283,14 @@ fairness, or polish.
   selected owned item before Countdown. No selection and Back before Start do
   not consume; duplicate Start consumes once; Retry starts a new attempt and
   consumes retained selections again.
-- Zero stock disables only the affected toggle. Stale insufficient inventory
-  and save failure remain in PreRun with truthful status and no partial
-  published decrement. Stage 6/7 provided items remain free and non-consuming.
-  Missing Product context disables selectable items without blocking no-item
-  or provided-item starts.
+- Zero stock on an allowed Stage 8+ item exposes a fixed `900`-Coin one-item
+  quick buy. Confirmed Product success grants exactly one item, spends once
+  under an idempotent transaction ID and auto-selects it; shortage and save
+  failure keep PreRun/modal state truthful with no partial spend or grant.
+  Stale insufficient inventory at `START` follows the existing no-partial-
+  decrement rule. Stage 6/7 provided items remain free and non-consuming.
+  Missing Product context disables selectable items and quick buy without
+  blocking no-item or provided-item starts.
 - The Campaign selection UI contains exactly one generated entry per Catalog
   Stage, and Lobby current-stage/title bounds remain separated at every
   approved portrait reference resolution.

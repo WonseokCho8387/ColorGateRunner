@@ -9,18 +9,24 @@ namespace ColorGateRunner.Presentation
             int shieldCount,
             int boosterCount,
             int heartCount = HeartStatePolicy.MaximumHearts,
-            bool unlimitedHearts = false)
+            bool unlimitedHearts = false,
+            int coinBalance = 0,
+            bool purchaseAvailable = false)
         {
             ShieldCount = Math.Max(0, shieldCount);
             BoosterCount = Math.Max(0, boosterCount);
             HeartCount = Math.Max(0, heartCount);
             UnlimitedHearts = unlimitedHearts;
+            CoinBalance = Math.Max(0, coinBalance);
+            PurchaseAvailable = purchaseAvailable;
         }
 
         internal int ShieldCount { get; }
         internal int BoosterCount { get; }
         internal int HeartCount { get; }
         internal bool UnlimitedHearts { get; }
+        internal int CoinBalance { get; }
+        internal bool PurchaseAvailable { get; }
         internal bool CanStart => UnlimitedHearts || HeartCount > 0;
     }
 
@@ -31,6 +37,9 @@ namespace ColorGateRunner.Presentation
             bool shield,
             bool booster,
             string attemptTransactionId);
+        ProductMutationResult Purchase(
+            StartItemKind kind,
+            string transactionId);
     }
 
     internal sealed class ProductStartItemInventoryGateway :
@@ -59,7 +68,9 @@ namespace ColorGateRunner.Presentation
                     economy.ShieldCount,
                     economy.BoosterCount,
                     hearts.Count,
-                    hearts.Unlimited);
+                    hearts.Unlimited,
+                    economy.Coins,
+                    true);
         }
 
         public StageStartAuthorizationResult Authorize(
@@ -71,6 +82,13 @@ namespace ColorGateRunner.Presentation
                 shield,
                 booster,
                 attemptTransactionId);
+        }
+
+        public ProductMutationResult Purchase(
+            StartItemKind kind,
+            string transactionId)
+        {
+            return _session.PurchaseStartItemWithCoins(kind, transactionId);
         }
     }
 
@@ -98,6 +116,17 @@ namespace ColorGateRunner.Presentation
                 result,
                 false,
                 string.Empty);
+        }
+
+        public ProductMutationResult Purchase(
+            StartItemKind kind,
+            string transactionId)
+        {
+            return ProductMutationResult.Failure(
+                new ProductError(
+                    ProductErrorCode.Initialization,
+                    "Start-item purchasing is unavailable.",
+                    true));
         }
     }
 }

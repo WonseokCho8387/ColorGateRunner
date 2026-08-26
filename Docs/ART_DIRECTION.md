@@ -392,9 +392,10 @@ legibility.
 ## Iteration 18 owned start-item presentation
 
 - Stage 8+ Shield and Booster cards show their current owned count with the
-  existing `ON`/`OFF` selection state. A zero-count card is visibly disabled;
-  Stage 6/7 `PROVIDED` and Stage 1–5 `LOCKED` labels retain precedence over
-  inventory copy.
+  existing `ON`/`OFF` selection state. This historical zero-count-disabled
+  behavior is superseded by Iteration 39's `BUY 900` modal; Stage 6/7
+  `PROVIDED` and Stage 1–5 `LOCKED` labels retain precedence over inventory
+  copy.
 - PreRun explains that one owned unit is used when starting. Insufficient
   current inventory reports `NOT ENOUGH START ITEMS`; persistence failure
   reports `ITEM SAVE FAILED`. Both statuses remain inside PreRun and must not
@@ -694,3 +695,32 @@ The three-Continue cap and original prices below are superseded by Iteration
   defect, not an accepted style.
 - Human portrait/device review owns apparent 3D depth, forward alignment,
   Shield transparency, Echo hue, Bloom balance and mobile performance.
+
+## Iteration 39 Shield centering, Warp coverage and chase framing
+
+- Shield and Echo field surfaces keep the same transparent procedural-hex
+  material and semantic color contract, but their shared root and collapse
+  pulse center `0.85` units above the Player origin so the sphere wraps the
+  authored vehicle rather than the track floor.
+- Cyan and Gold Warp boxes extend farther forward and higher into the portrait
+  frame. Both prewarm so activation reads as an immediate 3D corridor, not a
+  sparse lower-screen tail; World Space simulation, stretch alignment and the
+  total 160-particle cap remain mandatory.
+- Normal chase framing moves closer to `(0, 7, -8.2)` / `18°`; Booster blends
+  to `(0, 5, -6.5)` / `13°`. The next gate and semantic runner color must stay
+  readable, and the effect must leave an open central travel lane.
+- The PreRun purchase modal reuses the shared Theme 1 panel, primary and
+  secondary surfaces. Text hierarchy is item/price first, current balance or
+  shortage second; it does not introduce Store art or imply a real-money sale.
+- Human portrait/device review owns field fit and transparency, Warp density in
+  the upper frame, camera comfort, gate occlusion, Bloom balance and mobile
+  frame cost.
+
+## Future curved-track visual guardrails
+
+- The completed Spline Lab is the visual prototype. Later Campaign curves use
+  broad anticipation, restrained elevation and a stable horizon before any
+  banking or roller-coaster roll is considered.
+- A future three-to-five-lane Race view derives parallel road ribbons from one
+  center Spline. Lane separation, opponent silhouette and result readability
+  must be proven in portrait before additional effects or collision are added.
