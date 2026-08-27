@@ -6,29 +6,21 @@
 
 ## 1. 인계 기준
 
-- 기준일: 2026-08-27
+- 기준일: 2026-08-28
 - 브랜치: `main`
-- 최신 구현 HEAD: `b6b712a feat: polish campaign mechanic surfaces`
-- 완료 Iteration: **Iteration 42 — Mechanic Surface Readability**
+- 최신 구현: `feat: add hidden stages and refresh test builds` 완료 커밋
+- 완료 Iteration: **Iteration 44 — Hidden Campaign Block and Current Test Builds**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
-- Campaign Catalog: revision 10, stable Stage 1–20
-- 표준 검증 기준: EditMode `444/444`, PlayMode `244/244`
+- Campaign Catalog: revision 11, stable Stage 1–23
+- 표준 검증 기준: EditMode `449/449`, PlayMode `248/248`
 
 ### 현재 작업 트리 주의
 
-Unity Editor가 최신 구현 커밋 이후 다음 파일을 다시 쓴 상태다.
-
-- `Assets/Game/Generated/Materials/ProtectionPulse.mat`
-- `Assets/Game/Generated/Materials/WarpCyan.mat`
-- `Assets/Game/Generated/Materials/WarpGold.mat`
-- `ProjectSettings/ProjectSettings.asset`
-
-앞의 세 재질은 렌더 큐 `3010 -> 3000`과 공백 직렬화 차이다. 이번 인계
-문서 작업과 무관하며 승인된 변경이 아니다. `ProjectSettings.asset`은
-허용된 package-managed WebGL define인 `SENTIS_ANALYTICS_ENABLED`가 다시
-붙은 차이다. 새 작업은 이 파일들을 자동 복구하거나 스테이징하지 말고,
-Phase A에서 현재 Editor 상태와 Builder 결과를 다시 확인해야 한다.
+Iteration 44 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
+쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
+ProjectSettings 차이는 기준선으로 받아들이지 않는다.
 
 ## 2. 반드시 먼저 읽을 문서
 
@@ -77,15 +69,17 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 
 ### Campaign과 플레이
 
-- Stage 1–20, 결정론적 Gate 생성과 Retry
+- Stage 1–23, 결정론적 Gate 생성과 Retry
 - 전체 Campaign Spline 이동, 좌우 곡선과 완만한 고저차
 - Spline 기반 러너, 카메라, Gate, Goal, Fog, Ice와 도시 배치
-- 카메라 회전 관성: half-life `0.2s`, yaw `12°`, pitch `8°`, roll 없음
+- 카메라 회전 관성: half-life `0.3s`, yaw `24°`, pitch `16°`, roll 없음
+- 러너 visual-only Spline 선행 조향과 하단 중앙 가로 색상 순서 UI
 - Continue: `READY 0.5s -> GO`, GO부터 즉시 플레이
 - 24개 고정 도시 풀, Goal까지 재활용
 - 6개 Gate 풀과 파괴 연출 풀
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
 - 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
+- 10-bank Fog, 고정-capacity wisp/rain과 Fog 구간 어두운 tone
 
 ### 아이템과 경제
 
@@ -123,25 +117,28 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - Google Play billing mode
 - Android application ID `com.wscho.colorgaterunner`
 - Firebase Console 프로젝트는 생성됐지만 Unity SDK와 설정 파일은 없음
+- Test Build 메뉴는 빌드 전 Catalog/Campaign/Frontend/Boot를 재생성하고
+  이전 출력을 제거한다. Android Kotlin stdlib 충돌도 생성 Gradle 단계에서
+  정렬한다.
+- 최신 실빌드: Android APK 64,957,676 bytes, WebGL 폴더 156,006,568
+  bytes. 설치와 브라우저 인간 플레이는 아직 필요하다.
 
 ## 5. 기믹 구현 상태
 
 | 기믹 | Core/테스트 | Experiment | Campaign | 현재 상태 |
 |---|---|---|---|---|
-| 색상 순환/일치 | 완료 | 완료 | Stage 1–20 | 핵심 규칙 완료 |
+| 색상 순환/일치 | 완료 | 완료 | Stage 1–23 | 핵심 규칙 완료 |
 | Shield | 완료 | 완료 | Stage 6+, 선택 가능 | 비주얼·경제 연결 완료 |
 | Booster | 완료 | 완료 | Stage 7+, 선택 가능 | 3D Warp와 카메라 연결 완료 |
 | Camouflage | 완료 | 완료 | Stage 9–11 | 입문/연습/숙련 완료 |
-| Fog | 완료 | 완료 | Stage 12–14 | 6-bank Spline Fog 적용, 인간 비주얼 검증 필요 |
+| Fog | 완료 | 완료 | Stage 12–14 | Storm Fog 적용, 인간 비주얼 검증 필요 |
 | Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
 | Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
-| Hidden | 완료 | 완료 | 미배치 | Stage 21–23 제작 필요 |
+| Hidden | 완료 | 완료 | Stage 21–23 | 입문/연습/숙련 완료, 인간 밸런스 검증 필요 |
 | Flicker | 완료 | 완료 | 미배치 | Stage 24–26 제작 필요 |
 
 ### 구현되지 않은 기믹과 모드
 
-- **Hidden Campaign block**: 기능은 존재하지만 Stage 21–23 콘텐츠, 곡선
-  가시성 튜닝, 학습 UI와 인간 플레이 검증이 없다.
 - **Flicker Campaign block**: 기능은 존재하지만 Stage 24–26 콘텐츠,
   frequency/duty/reveal 곡선, 접근성 검증이 없다.
 - **Stage 27–36의 새 기믹**: 승인된 새 Gate Modifier가 없다. 먼저 기존
@@ -171,6 +168,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
   `2x` 속도에서 shimmer와 모바일 aliasing
 - Stage 18–20: Echo Gate membrane 인지, Gate 색과 획득 Shield 색의 정확한
   전달, Bloom 과다 여부
+- Stage 21–23: Hidden 기억 시간, Stage 20→21 학습 전환, 3색 숙련 피로도
 - Stage 14–20: 카메라 관성, crest에서 다음 Gate 가시성, 멀미 가능성
 - Shield/Booster: 기기별 투명 shader와 Warp 상·하단 밀도
 - 도시: Goal까지 pop-in, 반복감, 트랙 침범 여부
@@ -252,22 +250,22 @@ metadata를 사용해야 한다.
 - Firebase Analytics/Crashlytics와 Remote Config는 아직 없음
 - Local/remote analytics와 개인정보 정책 결정
 - Android signing, AAB, target device 성능/발열/메모리 검증
-- WebGL portrait template과 실제 배포 환경 회귀
+- 새 APK 설치와 WebGL HTTP browser 실행, touch/focus/audio/resize 회귀
 - 저장 migration, offline clock, 결제 pending/재전달과 복구 QA
 - 36 Stage 전 구간의 실제 플레이 난이도/피로도/반복감 검증
 - Store/광고/개인정보 관련 release checklist와 운영 문서
 
 ## 9. 권장 제작 순서
 
-### P0 — 현재 비주얼 안정화
+### P0 — 현재 플레이 빌드 검증
 
-Iteration 42의 Fog/Ice/Echo와 카메라를 Stage 12–20에서 인간 플레이하고,
-명확한 결함만 한 번 수정한다. 새 기믹이나 Shop을 이 단계에 섞지 않는다.
+생성된 Android APK와 WebGL 폴더로 Stage 12–23을 인간 플레이한다. Fog,
+Ice, Echo, 카메라, 색상 UI와 Hidden 기억 난이도를 확인하고 결함과 취향
+조정을 분리한다.
 
 ### P1 — Campaign을 26 Stage까지 완성
 
-1. Hidden Stage 21–23: intro / practice / mastery
-2. Flicker Stage 24–26: intro / practice / mastery
+1. Flicker Stage 24–26: intro / practice / mastery
 
 각 block은 현재 Spline, Continue, Shield/Booster, Fog/Ice/Echo와 충돌하지
 않는지 검증한다. 특히 Flicker는 접근성/피로도 검증이 필수다.
@@ -318,7 +316,7 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 - Gameplay Core는 Unity 비의존 구조를 유지한다.
 - 모든 gameplay random은 명시적 seed를 사용한다.
 - Campaign scalar distance와 Spline pose가 유일한 공간 권위자다.
-- 현재 Stage 1–20 stable ID와 저장 기록을 재설계 과정에서 지우지 않는다.
+- 현재 Stage 1–23 stable ID와 저장 기록을 재설계 과정에서 지우지 않는다.
 - Product Save schema 3와 transaction ledger가 경제 권위자다.
 - AppRoot, EventSystem, Scene destination과 저장 권위자를 중복 생성하지 않는다.
 - unavailable provider는 성공을 흉내 내지 않고 action을 숨긴다.
@@ -329,11 +327,11 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 
 ## 11. 현재 결정론적 기준
 
-Campaign 400 rows:
+Campaign 460 rows:
 
-- Summary: `32FA88ABFE9D818A5021FF910E14AA194A65997FBEF740D8E0D7CA7DD4177194`
-- JSON: `26CEADE2C12301EA6A238C528C6D435A8CEAAAC0D0D774B4792A56882B43A188`
-- CSV: `99DDA8E9CED187E54EEE90BD3CC62950EF938CF6D7894A5826EC2F22A927DD57`
+- Summary: `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`
+- JSON: `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
+- CSV: `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`
 
 Step 10, 80 rows / 64,016 runs:
 
@@ -350,10 +348,10 @@ Step 10, 80 rows / 64,016 runs:
 1. 이 문서와 `AGENTS.md`, `CURRENT_STATUS.md`를 읽는다.
 2. `git status --short`로 위의 Editor 생성 차이를 재확인한다.
 3. 사용자의 최신 인간 플레이 피드백을 받는다.
-4. 우선 **Iteration 43 — Mechanic Visual Acceptance & Corrections**의
+4. 우선 **Iteration 45 — Flicker Campaign Block**의
    Phase A를 수행한다.
-5. Stage 12–20의 Fog/Ice/Echo/카메라를 확인하고 결함과 취향 조정을
-   분리한다.
+5. Stage 21–23 Hidden 인간 플레이 결과와 Flicker 24–26의 가장 작은
+   2/2/3색 학습 블록 후보를 분리해 보고한다.
 6. Phase A 보고 후 승인 전에는 구현하지 않는다.
 
 첫 요청 예시:
@@ -362,8 +360,8 @@ Step 10, 80 rows / 64,016 runs:
 Color Gate Runner 프로젝트를 Docs/GPT_HANDOFF.md 기준으로 이어간다.
 AGENTS.md의 절차와 CURRENT_STATUS.md의 기준선을 사용한다.
 
-먼저 현재 작업 트리와 Iteration 42 구현 상태를 확인하고,
-Iteration 43 — Mechanic Visual Acceptance & Corrections의 Phase A만 진행한다.
-Fog, Ice, Echo, Spline 카메라의 인간 플레이 확인 항목과 가장 작은 수정
-후보를 보고한 뒤 중단한다. 아직 코드를 수정하지 않는다.
+먼저 현재 작업 트리와 Iteration 44 구현 상태를 확인하고,
+Iteration 45 — Flicker Campaign Block의 Phase A만 진행한다.
+Stage 21–23 Hidden 인간 플레이 확인 항목과 Stage 24–26 Flicker의 가장 작은
+구현 후보를 보고한 뒤 중단한다. 아직 코드를 수정하지 않는다.
 ```

@@ -28,6 +28,23 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void CampaignStagesTwentyOneThroughTwentyThree_EnableOnlyHidden()
+        {
+            for (int stageNumber = 21; stageNumber <= 23; stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+
+                Assert.That(stage.PrimaryMechanic,
+                    Is.EqualTo(StagePrimaryMechanic.Hidden));
+                Assert.That(stage.GateModifiers,
+                    Is.EqualTo(GateModifierType.Hidden));
+                Assert.That(stage.HiddenSettings.Enabled, Is.True);
+                Assert.That(stage.FlickerSettings.Enabled, Is.False);
+            }
+        }
+
+        [Test]
         public void ExperimentCatalog_RetainsHiddenAndFlickerImplementations()
         {
             ExperimentDefinition hidden = ExperimentCatalog.Get(

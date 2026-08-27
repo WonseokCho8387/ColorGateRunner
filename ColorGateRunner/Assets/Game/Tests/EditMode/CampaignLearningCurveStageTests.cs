@@ -6,22 +6,22 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class CampaignLearningCurveStageTests
     {
         private static readonly int[] GateCounts =
-            { 40, 38, 42, 46, 40, 44, 48, 42, 46, 50, 42, 46, 50 };
+            { 40, 38, 42, 46, 40, 44, 48, 42, 46, 50, 42, 46, 50, 42, 46, 50 };
 
         private static readonly float[] StartingSpeeds =
-            { 38f, 38f, 40f, 42f, 40f, 42f, 44f, 40f, 42f, 44f, 42f, 44f, 46f };
+            { 38f, 38f, 40f, 42f, 40f, 42f, 44f, 40f, 42f, 44f, 42f, 44f, 46f, 42f, 44f, 46f };
 
         private static readonly float[] MaximumSpeeds =
-            { 56f, 54f, 58f, 62f, 56f, 60f, 64f, 56f, 60f, 64f, 58f, 62f, 66f };
+            { 56f, 54f, 58f, 62f, 56f, 60f, 64f, 56f, 60f, 64f, 58f, 62f, 66f, 58f, 62f, 66f };
 
         private static readonly float[] CadenceStarts =
-            { 1.22f, 1.24f, 1.18f, 1.12f, 1.22f, 1.16f, 1.10f, 1.20f, 1.14f, 1.08f, 1.20f, 1.14f, 1.08f };
+            { 1.22f, 1.24f, 1.18f, 1.12f, 1.22f, 1.16f, 1.10f, 1.20f, 1.14f, 1.08f, 1.20f, 1.14f, 1.08f, 1.20f, 1.14f, 1.08f };
 
         private static readonly float[] CadenceEnds =
-            { 0.84f, 0.90f, 0.84f, 0.80f, 0.88f, 0.82f, 0.80f, 0.88f, 0.82f, 0.78f, 0.86f, 0.80f, 0.78f };
+            { 0.84f, 0.90f, 0.84f, 0.80f, 0.88f, 0.82f, 0.80f, 0.88f, 0.82f, 0.78f, 0.86f, 0.80f, 0.78f, 0.86f, 0.80f, 0.78f };
 
         private static readonly int[] ColorCounts =
-            { 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3 };
+            { 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3 };
 
         private static readonly StagePrimaryMechanic[] Mechanics =
         {
@@ -37,7 +37,10 @@ namespace ColorGateRunner.Tests.EditMode
             StagePrimaryMechanic.Ice,
             StagePrimaryMechanic.Echo,
             StagePrimaryMechanic.Echo,
-            StagePrimaryMechanic.Echo
+            StagePrimaryMechanic.Echo,
+            StagePrimaryMechanic.Hidden,
+            StagePrimaryMechanic.Hidden,
+            StagePrimaryMechanic.Hidden
         };
 
         private static readonly GateModifierType[] Modifiers =
@@ -54,7 +57,10 @@ namespace ColorGateRunner.Tests.EditMode
             GateModifierType.Ice,
             GateModifierType.EchoProvider,
             GateModifierType.EchoProvider,
-            GateModifierType.EchoProvider
+            GateModifierType.EchoProvider,
+            GateModifierType.Hidden,
+            GateModifierType.Hidden,
+            GateModifierType.Hidden
         };
 
         [Test]
@@ -96,6 +102,7 @@ namespace ColorGateRunner.Tests.EditMode
         [TestCase(12, 14, StagePrimaryMechanic.Fog, GateModifierType.Fog)]
         [TestCase(15, 17, StagePrimaryMechanic.Ice, GateModifierType.Ice)]
         [TestCase(18, 20, StagePrimaryMechanic.Echo, GateModifierType.EchoProvider)]
+        [TestCase(21, 23, StagePrimaryMechanic.Hidden, GateModifierType.Hidden)]
         public void MechanicBlocks_ProgressFromTwoColorIntroToThreeColorMastery(
             int firstStage,
             int lastStage,

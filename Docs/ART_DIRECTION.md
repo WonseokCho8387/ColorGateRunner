@@ -791,3 +791,14 @@ The three-Continue cap and original prices below are superseded by Iteration
 - Human portrait/device review owns storm density, screen darkness, rain motion,
   curve anticipation, steering feel, color-cycle intuition, overdraw and frame
   time on the target device.
+
+## Iteration 44 Campaign Hidden readability
+
+- Stages 21–23 reuse the existing pooled Hidden presentation: the target begins
+  readable, its color and symbol disappear at the approved timing, and the
+  neutral `HIDDEN` marker plus ordinary gate silhouette remain visible through
+  judgment. No new art, shader, particle layer or screen overlay is added.
+- The bottom color-order strip remains visible as a sequence aid but must not
+  reveal a hidden gate's target. Human portrait review owns memory-window
+  clarity, Stage 20-to-21 onboarding, three-color mastery load and whether the
+  persistent marker is legible against Storm Fog and curved-road backgrounds.

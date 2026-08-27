@@ -16,7 +16,7 @@ namespace ColorGateRunner.Tests.EditMode
 
             Assert.That(asset, Is.Not.Null);
             IStageCatalog catalog = asset.BuildCatalog();
-            Assert.That(catalog.Count, Is.EqualTo(20));
+            Assert.That(catalog.Count, Is.EqualTo(23));
             Assert.That(
                 catalog.GetByDisplayNumber(1).StartingSpeed,
                 Is.EqualTo(28f));
@@ -63,11 +63,15 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 catalog.GetByDisplayNumber(18).EchoSettings.Enabled,
                 Is.True);
-            for (int number = 1; number <= 20; number++)
+            Assert.That(
+                catalog.GetByDisplayNumber(21).HiddenSettings.Enabled,
+                Is.True);
+            for (int number = 1; number <= 23; number++)
             {
                 StageDifficulty expected = number == 20
                     ? StageDifficulty.VeryHard
-                    : number == 11 || number == 14 || number == 17
+                    : number == 11 || number == 14 || number == 17 ||
+                        number == 23
                         ? StageDifficulty.Hard
                         : StageDifficulty.Normal;
                 Assert.That(

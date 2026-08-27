@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 10;
+        private const int CurrentCatalogRevision = 11;
 
         [Serializable]
         private sealed class StageEntry
@@ -956,7 +956,87 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.38f, 0.24f),
                         new Keyframe(0.72f, 0.64f),
                         new Keyframe(1f, 1f))
-                    .WithDifficulty(StageDifficulty.VeryHard)
+                    .WithDifficulty(StageDifficulty.VeryHard),
+                StageEntry.Create(
+                    "stage-21", 21, "HIDDEN INTRO",
+                    "Learn to remember a gate before its color disappears.",
+                    42, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    42f, 58f, 1.20f, 0.86f,
+                    new[]
+                    {
+                        GatePatternType.Steady,
+                        GatePatternType.Release
+                    },
+                    8, 6, 780f, 138f, 210021u,
+                    true, null,
+                    StagePrimaryMechanic.Hidden,
+                    GateModifierType.Hidden)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.45f, 0.28f),
+                        new Keyframe(0.78f, 0.70f),
+                        new Keyframe(1f, 1f))
+                    .WithActiveColorCount(2)
+                    .WithHidden(),
+                StageEntry.Create(
+                    "stage-22", 22, "HIDDEN PRACTICE",
+                    "Practice recalling hidden gates through a longer run.",
+                    46, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    44f, 62f, 1.14f, 0.80f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Compression,
+                        GatePatternType.Release
+                    },
+                    7, 8, 800f, 140f, 220022u,
+                    true, null,
+                    StagePrimaryMechanic.Hidden,
+                    GateModifierType.Hidden)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.42f, 0.27f),
+                        new Keyframe(0.75f, 0.66f),
+                        new Keyframe(1f, 1f))
+                    .WithActiveColorCount(2)
+                    .WithHidden(),
+                StageEntry.Create(
+                    "stage-23", 23, "HIDDEN MASTERY",
+                    "Master three-color recall while gates hide their targets.",
+                    50, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    46f, 66f, 1.08f, 0.78f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Syncopation,
+                        GatePatternType.Release
+                    },
+                    6, 10, 820f, 142f, 230023u,
+                    true, null,
+                    StagePrimaryMechanic.Hidden,
+                    GateModifierType.Hidden)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.38f, 0.24f),
+                        new Keyframe(0.72f, 0.64f),
+                        new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.Hard)
+                    .WithHidden()
             };
         }
     }

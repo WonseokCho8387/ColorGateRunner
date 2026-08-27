@@ -2646,3 +2646,57 @@ Human feedback required
   overdraw and target-mobile performance.
 - Volumetric weather, lightning, wet-road shaders, new mechanics, camera banking,
   collision steering, Race Mode and additional render packages remain excluded.
+
+## Iteration 44 — Hidden Campaign Block and Current Test Builds
+
+### Play / Analyze
+
+- After Iteration 43, mobile and browser play needed fresh packages, but the
+  Test Build menu could package stale generated Scenes and leave an old APK in
+  place after failure. The next planned content block was Hidden 21–23.
+- Android packaging additionally exposed Kotlin stdlib duplication between
+  current Google dependencies and legacy split jdk7/jdk8 artifacts. The first
+  alignment attempt also revealed Unity 6's root `plugins` ordering rule and a
+  cached generated-project upgrade requirement.
+
+### Design / Implementation
+
+- Added Catalog revision 11 Stages 21–23 as Hidden intro/practice/mastery using
+  2 / 2 / 3 colors, isolated Hidden gates and existing deterministic runtime
+  and judgment paths. Stage 23 is Hard.
+- Added a pure catalog-expansion repair shared by Product and PlayerPrefs
+  progression adapters. A cleared old endpoint exposes one appended Stage
+  without mutating persistence during load.
+- Test Build commands now rebuild Stage Catalog, Campaign, Frontend and Boot
+  before packaging and remove the prior platform output first. Android Gradle
+  postprocessing aligns Kotlin stdlib `1.8.22`, excludes split artifacts and
+  upgrades the cached legacy prefix insertion without clearing all caches.
+- Added focused Catalog, learning-block, persistence, Campaign Hidden runtime,
+  build-option and Gradle idempotency/upgrade coverage. No package,
+  ProjectSettings, save schema, new mechanic or new art was introduced.
+
+### Validation / Learning
+
+- Stage Catalog and Campaign Builder completed two consecutive passes. Focused
+  Test Build EditMode passed `7/7`; full EditMode passed `449/449`; full final
+  PlayMode passed `248/248`.
+- Two Campaign simulations produced 460 byte-identical rows with Summary
+  `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`,
+  JSON `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
+  and CSV `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`.
+  Two Step 10 runs retained all five authoritative hashes.
+- The real menu-driven Android build produced a fresh 64,957,676-byte APK.
+  The real WebGL build produced a 156,006,568-byte folder with index, data,
+  framework, loader and WASM and a `540 x 960` exact-`9:16` canvas.
+- Content builds should own their source-generation preflight and remove stale
+  success artifacts before work begins. Generated-project patches need both
+  syntax-placement tests and an explicit upgrade path for prior cached output.
+
+### Deferred / Human Review
+
+- Install the APK and serve the WebGL folder through HTTP. Verify touch input,
+  Stage 21 unlock from a Stage-20-clear profile, Stage 21–23 Hidden memory feel,
+  Stage 23 difficulty, portrait UI, browser resizing, audio/focus, frame rate,
+  memory, heat and device-specific graphics.
+- Flicker Stages 24–26, additional campaign content, release signing/AAB,
+  store initialization, deployment hosting and balance changes remain deferred.

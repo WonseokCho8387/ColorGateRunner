@@ -355,7 +355,7 @@ Rules:
 - Catalog order determines normal next-Stage progression.
 - A clear is recorded exactly once per result.
 - Continue clears preserve existing Best restrictions.
-- Stage 1–20 definitions and deterministic plans are not duplicated in save.
+- Stage 1–23 definitions and deterministic plans are not duplicated in save.
 - Unknown saved Stage IDs are not remapped by array index.
 
 # 7. Economy
@@ -992,7 +992,7 @@ The local product foundation is complete when:
 - Fresh install creates a Guest profile.
 - Boot initializes one AppRoot.
 - Save data is versioned and recoverable.
-- Stage 1–20 progress persists by stable ID.
+- Stage 1–23 progress persists by stable ID.
 - Existing Continue and Best rules persist correctly.
 - Offline play reaches Gameplay.
 - Frontend pages consume services instead of `PlayerPrefs` transport.
@@ -1063,3 +1063,15 @@ The local product foundation is complete when:
   full, recharge and unlimited states. Product remains the only owner of
   recharge persistence and backwards-clock protection.
 - No Shop, purchase action, store initialization or Firebase boundary is added.
+
+### Iteration 44 Catalog-expansion progression compatibility
+
+- Catalog revision 11 adds stable IDs `stage-21` through `stage-23` without a
+  Product schema or persistence-key migration.
+- When the highest stored Stage is the former catalog endpoint and that Stage
+  has a clear record, the progression adapter advances the effective unlock by
+  one entry, capped at the current Catalog count. Both Product-save and legacy
+  PlayerPrefs adapters use the same pure repair rule.
+- Loading never rewrites the save, creates a Stage record, grants a reward or
+  mutates the commerce ledger. The next normal clear/progression transaction
+  persists through the existing clone-save-publish authority.

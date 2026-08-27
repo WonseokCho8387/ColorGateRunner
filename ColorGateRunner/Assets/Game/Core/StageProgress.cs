@@ -87,6 +87,18 @@ namespace ColorGateRunner.Core
             return Math.Max(Math.Max(1, highestUnlocked), next);
         }
 
+        public static int RepairHighestUnlockedAfterCatalogExpansion(
+            int highestUnlocked,
+            bool highestStageIsCleared)
+        {
+            int stored = Math.Max(
+                1,
+                Math.Min(StageCatalog.Count, highestUnlocked));
+            return highestStageIsCleared
+                ? Math.Min(StageCatalog.Count, stored + 1)
+                : stored;
+        }
+
         public static string Serialize(StageRecord record)
         {
             return string.Join(

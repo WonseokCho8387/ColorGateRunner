@@ -8,9 +8,9 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class StageSessionTests
     {
         [Test]
-        public void StageCatalog_ContainsTwentyValidStages()
+        public void StageCatalog_ContainsTwentyThreeValidStages()
         {
-            Assert.That(StageCatalog.Count, Is.EqualTo(20));
+            Assert.That(StageCatalog.Count, Is.EqualTo(23));
             for (int index = 0; index < StageCatalog.Count; index++)
             {
                 Assert.That(StageCatalog.GetByIndex(index).IsValid(), Is.True);
@@ -195,8 +195,28 @@ namespace ColorGateRunner.Tests.EditMode
                 StageProgress.HighestUnlockedAfterClear(11, 11),
                 Is.EqualTo(12));
             Assert.That(
-                StageProgress.HighestUnlockedAfterClear(20, 20),
+                StageProgress.HighestUnlockedAfterClear(23, 23),
+                Is.EqualTo(23));
+        }
+
+        [Test]
+        public void CatalogExpansion_UnlocksOneNewStageWithoutChangingSave()
+        {
+            Assert.That(
+                StageProgress.RepairHighestUnlockedAfterCatalogExpansion(
+                    20,
+                    true),
+                Is.EqualTo(21));
+            Assert.That(
+                StageProgress.RepairHighestUnlockedAfterCatalogExpansion(
+                    20,
+                    false),
                 Is.EqualTo(20));
+            Assert.That(
+                StageProgress.RepairHighestUnlockedAfterCatalogExpansion(
+                    23,
+                    true),
+                Is.EqualTo(23));
         }
 
         [Test]

@@ -50,6 +50,9 @@ namespace ColorGateRunner.Tests.EditMode
                 options.options & BuildOptions.Development,
                 Is.EqualTo(BuildOptions.Development));
             Assert.That(
+                options.options & BuildOptions.CleanBuildCache,
+                Is.EqualTo(BuildOptions.None));
+            Assert.That(
                 options.locationPathName,
                 Is.EqualTo(Path.GetFullPath(
                     Path.Combine(projectRoot, relativeOutput))));
@@ -143,6 +146,82 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(
                 PlayerSettings.WebGL.template,
                 Is.EqualTo(originalTemplate));
+        }
+
+        [Test]
+        public void AndroidGradle_AlignsKotlinLibrariesIdempotently()
+        {
+            Type type = Type.GetType(
+                "ColorGateRunner.Editor.AndroidGradleDependencyPostprocessor, " +
+                "ColorGateRunner.Editor");
+            Assert.That(type, Is.Not.Null);
+            MethodInfo inject = type.GetMethod(
+                "InjectKotlinResolution",
+                StaticNonPublic);
+            Assert.That(inject, Is.Not.Null);
+
+            const string source =
+                "plugins {\n}\n\ntasks.register('clean', Delete) {\n}\n";
+            string first = (string)inject.Invoke(null, new object[] { source });
+            string second = (string)inject.Invoke(null, new object[] { first });
+
+            Assert.That(first, Does.Contain(
+                "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"));
+            Assert.That(first, Does.Contain(
+                "exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'"));
+            Assert.That(first, Does.Contain(
+                "exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'"));
+            Assert.That(
+                first.IndexOf("plugins {", StringComparison.Ordinal),
+                Is.LessThan(first.IndexOf(
+                    "// Color Gate Runner Kotlin dependency alignment",
+                    StringComparison.Ordinal)));
+            Assert.That(
+                first.IndexOf(
+                    "// Color Gate Runner Kotlin dependency alignment",
+                    StringComparison.Ordinal),
+                Is.LessThan(first.IndexOf(
+                    "tasks.register('clean'",
+                    StringComparison.Ordinal)));
+            Assert.That(second, Is.EqualTo(first));
+        }
+
+        [Test]
+        public void AndroidGradle_ReplacesLegacyPrefixAlignment()
+        {
+            Type type = Type.GetType(
+                "ColorGateRunner.Editor.AndroidGradleDependencyPostprocessor, " +
+                "ColorGateRunner.Editor");
+            MethodInfo inject = type.GetMethod(
+                "InjectKotlinResolution",
+                StaticNonPublic);
+            Assert.That(inject, Is.Not.Null);
+
+            const string legacy =
+                "// Color Gate Runner Kotlin dependency alignment\n" +
+                "allprojects {\n" +
+                "    configurations.configureEach {\n" +
+                "        resolutionStrategy {\n" +
+                "            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n\n" +
+                "plugins {\n}\n\n" +
+                "tasks.register('clean', Delete) {\n}\n";
+            string updated = (string)inject.Invoke(
+                null,
+                new object[] { legacy });
+
+            Assert.That(updated, Does.StartWith("plugins {"));
+            Assert.That(updated, Does.Not.Contain(
+                "kotlin-stdlib-jdk7:1.8.22"));
+            Assert.That(updated, Does.Contain(
+                "exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'"));
+            Assert.That(
+                updated.IndexOf("plugins {", StringComparison.Ordinal),
+                Is.LessThan(updated.IndexOf(
+                    "// Color Gate Runner Kotlin dependency alignment",
+                    StringComparison.Ordinal)));
         }
 
         private static T RequireConstant<T>(Type type, string name)

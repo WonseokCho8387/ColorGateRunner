@@ -6,6 +6,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ColorGateRunner.Editor
 {
@@ -121,6 +122,8 @@ namespace ColorGateRunner.Editor
                 return;
             }
 
+            RefreshGeneratedContent();
+
             BuildTargetGroup targetGroup =
                 BuildPipeline.GetBuildTargetGroup(target);
             if (!BuildPipeline.IsBuildTargetSupported(targetGroup, target))
@@ -191,6 +194,32 @@ namespace ColorGateRunner.Editor
             }
         }
 
+        internal static void RefreshGeneratedContent()
+        {
+            Scene originalScene = SceneManager.GetActiveScene();
+            string originalScenePath = originalScene.path;
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            GrayboxSceneBuilder.BuildGrayboxScene();
+            GrayboxSceneBuilder.ValidateGeneratedScene();
+            FrontendSceneBuilder.BuildFrontendScene();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+
+            if (!string.IsNullOrWhiteSpace(originalScenePath) &&
+                AssetDatabase.LoadAssetAtPath<SceneAsset>(originalScenePath) !=
+                    null)
+            {
+                EditorSceneManager.OpenScene(
+                    originalScenePath,
+                    OpenSceneMode.Single);
+            }
+
+            Debug.Log(
+                "Test build content refreshed: " +
+                "StageCatalog, Campaign, Frontend, Boot.");
+        }
+
         private static WebGlSettingsSnapshot CaptureWebGlSettings()
         {
             return new WebGlSettingsSnapshot(
@@ -220,6 +249,11 @@ namespace ColorGateRunner.Editor
         {
             if (target == UnityEditor.BuildTarget.WebGL &&
                 Directory.Exists(absoluteOutputPath))
+            {
+                FileUtil.DeleteFileOrDirectory(absoluteOutputPath);
+            }
+            else if (target == UnityEditor.BuildTarget.Android &&
+                File.Exists(absoluteOutputPath))
             {
                 FileUtil.DeleteFileOrDirectory(absoluteOutputPath);
             }

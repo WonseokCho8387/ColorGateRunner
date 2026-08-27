@@ -2182,3 +2182,24 @@ Any mismatch blocks implementation.
   Editor Product save. Campaign and Step 10 simulations were omitted under
   Tier 2 because no Core, Stage, deterministic generation, timing, judgment,
   balance or Experiment input changed.
+
+## Iteration 44 — Hidden Campaign Block and Current Test Builds
+
+- Starting HEAD `0318ba1`; completion message
+  `feat: add hidden stages and refresh test builds`.
+- Stage Catalog and Campaign Builder completed two consecutive passes. Focused
+  Test Build EditMode passed `7/7`; full EditMode passed `449/449`; final full
+  PlayMode passed `248/248`.
+- Two Campaign simulations produced 460 byte-identical rows:
+  - Summary: `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`
+  - JSON: `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
+  - CSV: `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`
+- Two Step 10 simulations retained the authoritative 80-row / 64,016-run CSV,
+  JSON, Summary, Comparison and Shortlist hashes.
+- The menu-driven Android Development build produced a fresh 64,957,676-byte
+  APK after generated Gradle dependency alignment. The menu-driven WebGL build
+  produced a 156,006,568-byte folder with index/data/framework/loader/WASM and
+  a `540 x 960`, exact-`9:16` canvas.
+- Packages and tracked ProjectSettings had no diff after volatile build output
+  was restored. APK installation, WebGL browser play, touch/focus/audio,
+  Stage 21–23 balance and device performance remain human acceptance work.

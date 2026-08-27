@@ -1525,3 +1525,22 @@ Status: Approved and implemented.
 - The left vertical color stack is superseded by an adaptive bottom-center
   horizontal cycle. Current/next/previous hierarchy is explicit, all active
   palettes reuse fixed slots, and no navigation or input contract changes.
+
+## Iteration 44 — Hidden expansion reuses existing authorities
+
+- Stable Stages 21–23 are one isolated Hidden intro/practice/mastery block.
+  They reuse the existing Hidden modifier, deterministic planning, pooled View,
+  ordinary judgment, Spline route, item rules and Product progression. Stage 23
+  is Hard; Flicker remains deferred to Stages 24–26.
+- Catalog expansion compatibility is a pure read repair: when the previous
+  endpoint is cleared and still stored as highest unlocked, expose exactly the
+  next Catalog entry. Do not migrate or write saves merely because content was
+  appended.
+- Test Build packaging owns a deterministic content preflight. It rebuilds the
+  Stage Catalog and all three runtime Scenes and removes the previous target
+  output before invoking Unity's build pipeline, preventing an old artifact
+  from masquerading as the current build.
+- Android Kotlin alignment is generated-project policy, not a Package or
+  ProjectSettings change. It is injected after the root `plugins` block,
+  excludes legacy split jdk7/jdk8 stdlibs, forces stdlib `1.8.22`, and repairs
+  the earlier cached prefix form idempotently.

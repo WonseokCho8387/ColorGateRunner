@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 10
+  catalogRevision: 11
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -2039,6 +2039,327 @@ MonoBehaviour:
     fogFadeOutSeconds: 0.5
     iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-21
+    displayNumber: 21
+    title: HIDDEN INTRO
+    description: Learn to remember a gate before its color disappears.
+    difficulty: 0
+    targetGateCount: 42
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 42
+    maximumSpeed: 58
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.45
+        value: 0.28
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.78
+        value: 0.7
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.2
+    cadenceEnd: 0.86
+    allowedPatterns: 0000000004000000
+    introGateCount: 8
+    finalPressureGateCount: 6
+    boosterDistance: 780
+    boosterSpeed: 138
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 210021
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 7
+    gateModifiers: 16
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 1
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-22
+    displayNumber: 22
+    title: HIDDEN PRACTICE
+    description: Practice recalling hidden gates through a longer run.
+    difficulty: 0
+    targetGateCount: 46
+    allowedColors: 000000000100000002000000
+    activeColorCount: 2
+    startingSpeed: 44
+    maximumSpeed: 62
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.42
+        value: 0.27
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.75
+        value: 0.66
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.14
+    cadenceEnd: 0.8
+    allowedPatterns: 090000000300000004000000
+    introGateCount: 7
+    finalPressureGateCount: 8
+    boosterDistance: 800
+    boosterSpeed: 140
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 220022
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 7
+    gateModifiers: 16
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 1
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-23
+    displayNumber: 23
+    title: HIDDEN MASTERY
+    description: Master three-color recall while gates hide their targets.
+    difficulty: 1
+    targetGateCount: 50
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 46
+    maximumSpeed: 66
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.38
+        value: 0.24
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.72
+        value: 0.64
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.08
+    cadenceEnd: 0.78
+    allowedPatterns: 090000000700000004000000
+    introGateCount: 6
+    finalPressureGateCount: 10
+    boosterDistance: 820
+    boosterSpeed: 142
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 230023
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 7
+    gateModifiers: 16
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 1
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85
     hiddenOccurrenceChance: 0.35

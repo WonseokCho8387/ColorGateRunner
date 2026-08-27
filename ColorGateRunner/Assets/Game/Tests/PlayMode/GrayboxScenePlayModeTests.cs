@@ -2450,8 +2450,43 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(providerColor.b).Within(0.001f));
         }
 
+        [Test]
+        public void CampaignHiddenGate_HidesTargetAndKeepsMarkerAndJudgment()
+        {
+            SelectAndStartStage(21);
+            StageGateView hidden = AdvanceToCampaignModifier(
+                GateModifierType.Hidden);
+            RunnerColor targetColor = hidden.AssignedColor;
+            Material neutral =
+                _controller.TrackPool.GetSegment(0).SurfaceMaterial;
+
+            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(hidden.HiddenTargetAlpha, Is.EqualTo(1f));
+
+            hidden.UpdateCampaignVisibility(
+                _controller.Session.GatesPassed,
+                0f,
+                neutral,
+                _controller.Session.Stage.CamouflageSettings,
+                _controller.Session.Stage.HiddenSettings,
+                _controller.Session.Stage.FlickerSettings,
+                _controller.Session.ElapsedPlayingSeconds + 2f,
+                1f);
+
+            Assert.That(hidden.HiddenHideStarted, Is.True);
+            Assert.That(hidden.HiddenTargetAlpha, Is.Zero);
+            Assert.That(hidden.SymbolVisible, Is.True);
+            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(hidden.AssignedColor, Is.EqualTo(targetColor));
+            Match(targetColor);
+            Assert.That(hidden.TryResolveCrossing(), Is.True);
+            Assert.That(_controller.Session.FlowState,
+                Is.Not.EqualTo(StageFlowState.Failed));
+        }
+
         [TestCase(12, GateModifierType.Fog)]
         [TestCase(15, GateModifierType.Ice)]
+        [TestCase(21, GateModifierType.Hidden)]
         public void CampaignMechanicIntro_BindsModifierToRuntimeGateView(
             int stageNumber,
             GateModifierType modifier)

@@ -782,3 +782,28 @@ gates. Iteration 27 speed and runway presentation remain authoritative.
   the center authority, next reads to the right and previous to the left. Two-
   color stages show current/next as a balanced pair; larger palettes retain
   fixed presentation slots and the same deterministic color order.
+
+## Iteration 44 Hidden Campaign block
+
+This section supersedes only the Iteration 17 deferral of Hidden Stages 21–23.
+Flicker remains deferred to Stages 24–26.
+
+| Stage | Learning role | Colors | Gates | Speed | Cadence | Difficulty |
+|---:|---|---:|---:|---|---|---|
+| 21 | Hidden Intro | 2 | 42 | `42 -> 58` | `1.20 -> 0.86s` | Normal |
+| 22 | Hidden Practice | 2 | 46 | `44 -> 62` | `1.14 -> 0.80s` | Normal |
+| 23 | Hidden Mastery | 3 | 50 | `46 -> 66` | `1.08 -> 0.78s` | Hard |
+
+- Every ordinary eligible gate uses only the existing Hidden modifier and its
+  approved `0.85s` hide-lead contract. Hidden does not combine with another
+  modifier, apply to Goal, add gates, or change ordinary color judgment.
+- Intro and practice retain two active colors; mastery restores three. The
+  authored seeds are `210021`, `220022`, and `230023`, and Retry reproduces
+  the same sequence and Hidden selections.
+- Stage 21 uses Steady/Release, Stage 22 uses ThreeColorFlow/Compression/
+  Release, and Stage 23 uses ThreeColorFlow/Syncopation/Release. Existing
+  start-item selection, Hearts, rewards, Continue and even-Stage milestone
+  rules apply without a Hidden exception.
+- Clearing Stage 20 on an older 20-Stage catalog makes Stage 21 effectively
+  available when revision 11 loads. This compatibility repair does not write
+  or synthesize a save record during load.

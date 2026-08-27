@@ -272,12 +272,13 @@ fairness, or polish.
 - A first Clear grants `100 / 200 / 500` base Coins for Normal/Hard/Very Hard
   and presents any even-Stage milestone reward separately. Replays do not
   duplicate either reward.
-- Catalog revision 7 contains 20 contiguous stable IDs. Stages 1–5 remain
+- Catalog revision 11 contains 23 contiguous stable IDs. Stages 1–5 remain
   unchanged; Stages 6/7 provide their named item with selection locked;
   Stage 8 is clean three-color item application. Stages 9–20 contain isolated
   Camouflage, Fog, Ice and Echo intro/practice/mastery blocks with 2/2/3
-  colors. Hidden and Flicker remain Experiment-only until Stages 21+.
-- Every Stage 1–20 initializes under all four requested item inputs. Runtime
+  colors. Stages 21–23 contain the isolated Hidden 2/2/3-color block; Flicker
+  remains Experiment-only until Stage 24+.
+- Every Stage 1–23 initializes under all four requested item inputs. Runtime
   selection is rejected through Stage 7 and allowed from Stage 8 onward.
 - A successful Stage 8+ Start atomically persists one decrement for each
   selected owned item before Countdown. No selection and Back before Start do
@@ -742,3 +743,33 @@ fairness, or polish.
 - Campaign Builder runs twice. Full EditMode and post-Builder PlayMode plus two
   Campaign and two Step 10 simulations are required. All existing artifact
   hashes must remain exact; packages and ProjectSettings may not be changed.
+
+### Iteration 44 Hidden Campaign block and current test builds
+
+- Catalog revision 11 must contain exactly 23 contiguous stable IDs. Stages
+  21 / 22 / 23 must be Hidden-only intro / practice / mastery with 2 / 2 / 3
+  active colors, 42 / 46 / 50 gates and Normal / Normal / Hard difficulty.
+- Hidden selection must remain deterministic, never apply to Goal or combine
+  with another modifier, and reuse ordinary target-color judgment. Runtime
+  Campaign coverage must prove the target hides while the `HIDDEN` marker and
+  judgment path remain active.
+- Loading a save whose highest Stage is 20 and whose Stage 20 record is cleared
+  must expose Stage 21 without writing either Product save or legacy
+  PlayerPrefs. The repair is capped and does not synthesize records or rewards.
+- Each Android or WebGL Test Build command must refresh Stage Catalog,
+  Campaign, Frontend and Boot before packaging and remove the previous target
+  output first. A failed build may not leave a stale output that appears new.
+- Generated Android Gradle must place dependency alignment after `plugins`,
+  force Kotlin stdlib `1.8.22`, exclude split jdk7/jdk8 artifacts and upgrade
+  the former pre-`plugins` cached block idempotently.
+- Final evidence: focused build-tool EditMode `7/7`; full EditMode `449/449`;
+  full PlayMode `248/248`; Campaign Builder twice. Two Campaign simulations
+  produced 460 byte-identical rows: Summary
+  `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`,
+  JSON `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`,
+  CSV `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`.
+  Two Step 10 runs retain all five authoritative hashes.
+- Actual menu-driven Development builds must produce a fresh Android APK and
+  a WebGL folder containing `index.html`, data, framework, loader and WASM with
+  a `540 x 960` exact-`9:16` canvas. Installation, touch/browser interaction,
+  performance and visual feel remain human review rather than automated pass.

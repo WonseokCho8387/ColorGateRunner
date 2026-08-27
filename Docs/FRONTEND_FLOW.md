@@ -56,7 +56,7 @@ This document does not own:
 The commercial shell must preserve these contracts:
 
 - The campaign uses stable Stage IDs and one Inspector-authored Stage Catalog.
-- Campaign currently contains Stages 1–20.
+- Campaign currently contains Stages 1–23.
 - Runtime, simulation, and tests share the same Core rules.
 - Core remains free of UnityEngine references.
 - Experiment Lab remains isolated from campaign progress and release
@@ -834,7 +834,7 @@ Implementation status: Partially completed through Iteration 15.
 - Campaign page from Stage Catalog.
 - Stage Detail.
 - Existing item selection.
-- Stage 1–20 launch.
+- Stage 1–23 launch.
 
 ## Frontend Iteration 4 — Gameplay shell
 
@@ -888,7 +888,7 @@ Additional acceptance:
 - Offline play works.
 - Login failure cannot block local play.
 - Stage progress uses stable IDs.
-- The current Stage 1–20 Catalog remains deterministic.
+- The current Stage 1–23 Catalog remains deterministic.
 - Retry resets the attempt-local Continue economy, while Goal rules remain
   unchanged.
 - Event modules and Lobby themes are data-driven.
@@ -1016,3 +1016,15 @@ not reusable art assets or an exact visual copy.
   visibility pressure without changing navigation or hard-coding Stage IDs in
   the controller.
 - Final Lobby composition and authored Ice approach remain deferred.
+
+## Implemented progression slice — Iteration 44 Hidden Stages 21–23
+
+- Lobby, Stage picker, PreRun, Clear and Next Stage enumerate Catalog revision
+  11's 23 stable IDs through the existing generated entries and serialized
+  destinations. No Scene, Page or Overlay is added.
+- A profile whose Stage 20 record is cleared while its stored highest Stage is
+  still Stage 20 resolves Stage 21 as the effective current unlock. The read
+  path does not save; later ordinary progression writes remain authoritative.
+- Stage 23 is the current final Stage, so its Clear follows the existing final-
+  Stage Lobby fallback. Flicker Stage 24 remains unavailable and is never
+  exposed as a placeholder action.

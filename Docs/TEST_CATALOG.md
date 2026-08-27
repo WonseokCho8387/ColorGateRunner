@@ -118,7 +118,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageCatalogArchitectureTest
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageSessionTests.cs`
 
-- `StageCatalog_ContainsTwentyValidStages`
+- `StageCatalog_ContainsTwentyThreeValidStages`
 - `StageIds_AreUnique`
 - `StageNumbers_AreSequential`
 - `StagesOneToThree_DoNotAllowGreen`
@@ -134,6 +134,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageSessionTests.cs`
 - `Goal_ClearsOnlyOnce`
 - `StageFinishing_IgnoresFailureJudgment`
 - `Clear_UnlocksOnlyNextStage`
+- `CatalogExpansion_UnlocksOneNewStageWithoutChangingSave`
 - `BetterLowerTime_ReplacesBestTime`
 - `BoosterClear_DoesNotOverwriteNoItemBest`
 - `CorruptPersistence_FallsBackSafely`
@@ -148,7 +149,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/StageSessionTests.cs`
 
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignMechanicStageTests.cs`
 
-- `StagesSixThroughTwenty_UseApprovedLearningSequence`
+- `StagesSixThroughTwentyThree_UseApprovedLearningSequence`
 - `ShieldStage_ProvidesLocalChargeWhileSelectionIsLocked`
 - `BoosterStage_ProvidesLocalChargeAtStageStart`
 - `StartItems_AreLockedThroughGrantTrainingAndUnlockAtStageEight`
@@ -162,6 +163,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignMechanicStageTests.c
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignDeferredMechanicStageTests.cs`
 
 - `CampaignStagesOneThroughTwenty_DeferHiddenAndFlicker`
+- `CampaignStagesTwentyOneThroughTwentyThree_EnableOnlyHidden`
 - `ExperimentCatalog_RetainsHiddenAndFlickerImplementations`
 
 #### `CampaignLearningCurveStageTests.cs`
@@ -520,6 +522,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/TestBuildMenuTests.cs`
 - `BuildOptions_UseDevelopmentModeAndExpectedOutput`
 - `WebGlPortraitTemplate_UsesExactNineBySixteenFrame`
 - `WebGlPortraitSettings_ApplyAndRestoreEditorValues`
+- `AndroidGradle_AlignsKotlinLibrariesIdempotently`
+- `AndroidGradle_ReplacesLegacyPrefixAlignment`
 
 ## PlayMode automated
 
@@ -550,6 +554,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `MissingProductSession_CannotGrantFreeSelectableItem`
 - `DebugStagePicker_RemainsHidden`
 - `ColorHud_UpdatesCurrentAndNextAfterTap`
+- `CampaignHiddenGate_HidesTargetAndKeepsMarkerAndJudgment`
 - `ThreeColorHud_ShowsFullOrder`
 - `Shield_DoesNotHidePlayerMaterialStructurally`
 - `Shield_AppearsDuringCountdown`
@@ -1018,3 +1023,18 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `BoosterCamera_LowersAndMovesCloserBehindPlayer` covers the closer normal and
   Booster chase offsets. `Theme01GameplayArtTests.ProtectionFieldShader_HasNoCompilerErrors`
   remains the shader compiler guard and was additionally executed on D3D11.
+
+## Iteration 44 current coverage
+
+- `StageCatalogArchitectureTests` and `StageSessionTests` require revision 11's
+  23 stable entries, Stage 23 Hard difficulty and capped old-endpoint unlock
+  repair. `CampaignMechanicStageTests`, `CampaignLearningCurveStageTests` and
+  `CampaignDeferredMechanicStageTests` cover Hidden's 2/2/3-color block,
+  approved values, isolation and deterministic plans.
+- `GrayboxScenePlayModeTests.CampaignHiddenGate_HidesTargetAndKeepsMarkerAndJudgment`
+  proves the live Campaign View hides target information while retaining the
+  marker and ordinary judgment. The generic Stage/runtime binding case now
+  includes Stage 21.
+- `TestBuildMenuTests` fixes enabled Scene order, Development outputs, exact
+  WebGL portrait settings, Kotlin dependency placement/exclusions,
+  idempotency and cached-prefix upgrade behavior.

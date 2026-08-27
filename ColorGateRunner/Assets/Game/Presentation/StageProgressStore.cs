@@ -34,7 +34,13 @@ namespace ColorGateRunner.Presentation
 
         public int LoadHighestUnlocked()
         {
-            return Mathf.Clamp(PlayerPrefs.GetInt(UnlockKey, 1), 1, StageCatalog.Count);
+            int stored = Mathf.Clamp(
+                PlayerPrefs.GetInt(UnlockKey, 1),
+                1,
+                StageCatalog.Count);
+            return StageProgress.RepairHighestUnlockedAfterCatalogExpansion(
+                stored,
+                LoadRecord(stored).Cleared);
         }
 
         public StageRecord LoadRecord(int stageNumber)
@@ -100,7 +106,12 @@ namespace ColorGateRunner.Presentation
                 StageDefinition stage = _catalog.GetByIndex(index);
                 if (stage.StageId == stageId)
                 {
-                    return stage.DisplayNumber;
+                    LocalStageProgressData data =
+                        _progression.GetStageRecord(stage.StageId);
+                    return StageProgress
+                        .RepairHighestUnlockedAfterCatalogExpansion(
+                            stage.DisplayNumber,
+                            data?.Cleared == true);
                 }
             }
             return 1;

@@ -771,3 +771,21 @@ mask mechanic readability changes.
   hue transfer, then retain every Campaign and Step 10 hash.
 - **Learn:** a mechanic can remain mechanically correct yet feel detached when
   its surface ignores the road and runner's world-space authority.
+
+## Iteration 44 — append Hidden safely and package current content
+
+- **Play:** the next Campaign block was ready to use the existing Hidden
+  mechanic, while mobile/browser test packages could still contain an older
+  generated Campaign or survive a failed rebuild as stale output.
+- **Analyze:** Hidden required content and progression compatibility rather
+  than a new mechanic. Test packaging lacked a generation preflight, and
+  Android's generated Gradle graph contained conflicting Kotlin stdlibs.
+- **Design:** author one 2/2/3-color Hidden learning block, repair only the
+  effective old-endpoint unlock on read, rebuild all runtime content before
+  packaging, remove prior output and patch generated Gradle idempotently.
+- **Validate:** Builder twice, catalog/progression/runtime/build-tool coverage,
+  full regression, two Campaign and Step 10 simulations, then real Android and
+  WebGL menu builds.
+- **Learn:** catalog append compatibility should avoid eager save migration;
+  test-build trust depends on coupling source generation, stale-output removal
+  and platform dependency repair to the packaging command itself.

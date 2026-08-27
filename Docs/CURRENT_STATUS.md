@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `f5076924700a16e71d9c6f47970342ac852afce2`
-- Base commit: `docs: refresh production handoff roadmap`
+- Implementation base HEAD: `0318ba1b22b1719b47512088b2bcf04280e4e5a2`
+- Base commit: `feat: refine fog weather and curve readability`
 - Authoritative completion HEAD: the commit named
-  `feat: refine fog weather and curve readability`; its exact hash is
-  recorded in the Iteration 43 final report because a commit cannot contain
+  `feat: add hidden stages and refresh test builds`; its exact hash is
+  recorded in the Iteration 44 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,16 +23,17 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 43 — Storm Fog and Curve Readability**.
+- Current completed iteration: **Iteration 44 — Hidden Campaign Block and
+  Current Test Builds**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
   Lab-local and non-persistent.
-- All 20 active Campaign Stages now use one scalar-distance Spline route rather
+- All 23 active Campaign Stages use one scalar-distance Spline route rather
   than the legacy recycled straight-track placement. The same evaluated pose
   owns runner, chase camera, pooled gates, Goal, Fog curtain and preplaced Ice
   runway. Stages 1–7 introduce restrained horizontal curvature, Stages 8–13
-  broaden it and begin gentle elevation, and Stages 14–20 increase both within
+  broaden it and begin gentle elevation, and Stages 14–23 increase both within
   a stable world-up/no-roll portrait camera contract.
 - The Campaign chase camera follows the current Spline rotation with a `0.3s`
   half-life and bounded `24°` yaw / `16°` pitch lag. It never banks or rolls,
@@ -106,7 +107,7 @@ below where their contracts differ.
   PlayerPrefs are imported once. Legacy keys remain for rollback safety, but
   Product save becomes the runtime write authority.
 - First clear grants `100 / 200 / 500` Coins for Normal / Hard / Very Hard
-  difficulty. Stages 11, 14 and 17 are Hard; Stage 20 is Very Hard; the other
+  difficulty. Stages 11, 14, 17 and 23 are Hard; Stage 20 is Very Hard; the other
   authored Stages are Normal. Every even first-cleared Stage up
   to Stage 36 applies one automatic Lobby milestone and an idempotent reward.
   The starter reward policy grants 200 Coins, or 300 at every third milestone,
@@ -190,13 +191,18 @@ below where their contracts differ.
   the existing
   Booster state, distance, FOV, warning and pause ownership and allocates no
   runtime emitter.
-- Campaign contains 20 stable-ID Stages. Stages 1–5 remain the color/rhythm
+- Campaign contains 23 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
   selectable items. Stages 9–20 teach Camouflage, Fog, Ice and Echo in
-  three-Stage intro/practice/mastery blocks using 2/2/3 colors. Hidden and
-  Flicker remain available in Experiment Lab but are deferred from Campaign
-  until the planned Stages 21–23 and 24–26.
+  three-Stage intro/practice/mastery blocks using 2/2/3 colors. Stages 21–23
+  now teach Hidden recall with the same 2/2/3-color block shape and isolated
+  Hidden modifier. Flicker remains available in Experiment Lab and is deferred
+  from Campaign until planned Stages 24–26.
+- Existing saves that cleared Stage 20 and still store Stage 20 as their
+  highest unlocked Stage resolve Stage 21 as effectively unlocked after the
+  catalog expansion. Loading does not rewrite the Product save or legacy
+  PlayerPrefs; a later ordinary progression write persists the new stable ID.
 - From Stage 8 onward, selecting Shield or Booster consumes one owned unit of
   each selected item in one atomic Product save when `START` succeeds, before
   Countdown. At zero stock the item button offers one Shield or Booster for
@@ -266,19 +272,19 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `444/444`
-- PlayMode: `246/246`
-- Post-Builder PlayMode: `246/246`
+- EditMode: `449/449`
+- PlayMode: `248/248`
+- Post-Builder PlayMode: `248/248`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 43 passes completed; the active
+- Campaign Builder: two consecutive Iteration 44 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: revision 10 Resource contains 20 valid stages
+- Stage Catalog Builder: revision 11 Resource contains 23 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -303,19 +309,18 @@ All three entries are expected to be enabled and unique.
 
 ### Campaign simulation baseline
 
-- Rows: `400`
+- Rows: `460`
 - Summary SHA-256:
-  `32FA88ABFE9D818A5021FF910E14AA194A65997FBEF740D8E0D7CA7DD4177194`
+  `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`
 - JSON SHA-256:
-  `26CEADE2C12301EA6A238C528C6D435A8CEAAAC0D0D774B4792A56882B43A188`
+  `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
 - CSV SHA-256:
-  `99DDA8E9CED187E54EEE90BD3CC62950EF938CF6D7894A5826EC2F22A927DD57`
+  `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
-- Exactly 24 of 400 rows changed: Shield and Shield+Booster profiles for Echo
-  Stages 18–20, excluding perfect-play rows whose metrics remain identical.
-  Every no-Shield row is exact to the prior baseline.
+- The 60 new rows cover Stages 21–23 across every standard profile and start-
+  item combination. Existing Stage 1–20 rows retain their prior behavior.
 - Step 10 was rerun twice. Its 80-row, 64,016-run artifacts remain byte-exact
   to the baseline below.
 
@@ -337,7 +342,7 @@ All three entries are expected to be enabled and unique.
 ### Persistence safety baseline
 
 - Campaign PlayerPrefs rollback snapshot contains Highest Unlocked plus Stage
-  Record keys 1–20 when present and must be restored exactly after tests.
+  Record keys 1–23 when present and must be restored exactly after tests.
 - Actual Editor snapshot at Iteration 12 completion:
   - existing Campaign entries: `12`
   - canonical SHA-256:
@@ -379,6 +384,34 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 44 validation result
+
+- Starting HEAD `0318ba1` was clean. Completion commit name:
+  `feat: add hidden stages and refresh test builds`.
+- Catalog revision 11 adds stable Stages 21–23 as Hidden intro, practice and
+  mastery with 2 / 2 / 3 active colors. Stage 23 is Hard. Hidden uses the
+  existing deterministic modifier, pooled presentation and ordinary judgment;
+  no new runtime authority or save schema was introduced.
+- Catalog-expansion repair makes Stage 21 effectively available to saves that
+  cleared Stage 20 without mutating them on load. Focused runtime coverage
+  verifies Campaign Hidden hides only its target while retaining the `HIDDEN`
+  marker and ordinary judgment.
+- Test Build commands now refresh Stage Catalog, Campaign, Frontend and Boot
+  immediately before packaging and delete the previous platform output first.
+  Android additionally aligns Kotlin stdlib dependencies in generated Gradle
+  projects, including upgrading a cached legacy insertion safely.
+- Campaign Builder completed two consecutive passes. Full EditMode passed
+  `449/449`; final PlayMode passed `248/248`. Two Campaign simulations produced
+  460 byte-identical rows with the authoritative hashes above; two Step 10
+  simulations retained all five 80-row / 64,016-run hashes.
+- A real menu-driven Android Development build produced a 64,957,676-byte APK.
+  A real menu-driven WebGL Development build produced a 156,006,568-byte folder
+  with `index.html`, data, framework, loader and WASM; its canvas is `540 x 960`
+  with an exact `9:16` frame. Installation, browser interaction and device
+  performance remain human acceptance work.
+- Package files and tracked ProjectSettings have no diff. Build output and
+  Unity-generated temporary changes remain untracked/ignored and unstaged.
 
 ## Iteration 43 validation result
 
@@ -1359,6 +1392,10 @@ Test Build Tooling
 - Both platforms use the enabled `EditorBuildSettings` scenes and Development
   mode. Outputs stay under ignored `Builds/Test`; Android always produces an
   APK and restores the previous App Bundle setting afterward.
+- Every platform command refreshes AssetDatabase, Stage Catalog, Campaign,
+  Frontend and Boot before packaging, then removes that platform's previous
+  output. A failed invocation therefore cannot leave an older APK or WebGL
+  folder looking current.
 - WebGL test builds temporarily use a `540 x 960` logical canvas and the
   project-owned `ColorGateRunnerPortrait` template. Its browser container
   preserves an exact `9:16` aspect ratio with neutral letterboxing instead of
@@ -1369,17 +1406,18 @@ Test Build Tooling
 - Missing scenes, missing platform support, platform-switch failure, and
   unsuccessful `BuildReport` results fail explicitly instead of reporting a
   false success.
-- Build-menu and portrait-template EditMode coverage passes 5/5 in the focused
-  suite. The full EditMode suite passes 283/283.
-- An isolated Android invocation reached the real Player build after script
-  and shader compilation, but its copied-Library backend stopped making
-  progress before producing an APK. Actual APK installation remains a manual
-  acceptance check from the original editor.
-- A separate isolated WebGL build completed successfully and produced a
-  124,340,289-byte player. Its generated page contains the expected `540 x 960`
-  canvas macros and exact `9:16` frame rules, and the validation project's
-  prior `960 x 600` default-template settings were restored afterward.
-  Browser play, input, and host-page resizing remain human acceptance checks.
+- Generated Android Gradle projects force Kotlin stdlib `1.8.22` and exclude
+  the legacy split jdk7/jdk8 artifacts that otherwise duplicate classes with
+  current Google dependencies. The postprocessor is idempotent and repairs a
+  cached pre-`plugins` insertion without deleting the whole build cache.
+- Build-menu, portrait-template and Gradle-upgrade EditMode coverage passes
+  `7/7`; the full current EditMode suite passes `449/449`.
+- The current menu-driven Android build completed and produced a
+  64,957,676-byte APK. Installation and target-device behavior remain manual.
+- The current menu-driven WebGL build completed and produced a 156,006,568-byte
+  output folder. Its generated page contains a `540 x 960` canvas and exact
+  `9:16` frame rules. Browser play, input, resizing and host-server behavior
+  remain human acceptance checks.
 
 Authoritative Iteration 6 Result (now Hidden)
 
