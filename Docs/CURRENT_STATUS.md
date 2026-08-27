@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `f1cc9d1f532a67ab232cdf9afd024a71a96f0c7a`
-- Base commit: `feat: convert campaign to spline routes and city pool`
+- Implementation base HEAD: `f5076924700a16e71d9c6f47970342ac852afce2`
+- Base commit: `docs: refresh production handoff roadmap`
 - Authoritative completion HEAD: the commit named
-  `feat: polish campaign mechanic surfaces`; its exact hash is
-  recorded in the Iteration 42 final report because a commit cannot contain
+  `feat: refine fog weather and curve readability`; its exact hash is
+  recorded in the Iteration 43 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 42 — Mechanic Surface Readability**.
+- Current completed iteration: **Iteration 43 — Storm Fog and Curve Readability**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -34,17 +34,22 @@ below where their contracts differ.
   runway. Stages 1–7 introduce restrained horizontal curvature, Stages 8–13
   broaden it and begin gentle elevation, and Stages 14–20 increase both within
   a stable world-up/no-roll portrait camera contract.
-- The Campaign chase camera follows the current Spline rotation with a `0.2s`
-  half-life and bounded `12°` yaw / `8°` pitch lag. It never banks or rolls,
+- The Campaign chase camera follows the current Spline rotation with a `0.3s`
+  half-life and bounded `24°` yaw / `16°` pitch lag. It never banks or rolls,
   snaps at Stage start, Retry and Continue, and freezes with Pause or failure.
+- The runner root, Rigidbody and judgment pose remain exact Spline consumers.
+  A presentation-only visual child anticipates the upcoming tangent with a
+  bounded `10°` yaw and `6°` lean so the vehicle visibly steers through turns
+  without creating a second movement authority.
 - Campaign road presentation uses original rough, non-emissive asphalt maps
   while retaining the Cyan emissive edge. Ice uses a fixed 50-slot pool of
   runtime Spline-sampled ribbon meshes with original smooth, non-emissive ice
   maps, so active intervals follow the same horizontal and vertical route pose.
-- Campaign Fog presents six fixed Blender-authored low-poly banks across a
-  speed-adaptive 24–42 unit Spline band. It preserves the authored `0.5s`
-  fade-in, Stage-owned `5 / 6 / 7s` hold and `0.5s` fade-out lifecycle without
-  volumetric rendering.
+- Campaign Fog presents ten fixed Blender-authored low-poly banks across a
+  closer speed-adaptive 18–32 unit Spline band. A fixed 24-wisp / 96-rain
+  camera-following particle budget and a Fog-scoped darker color-adjustment
+  volume share the authored `0.5s` fade-in, Stage-owned `5 / 6 / 7s` hold and
+  `0.5s` fade-out lifecycle. No volumetric rendering is introduced.
 - Every pooled gate owns one inactive, collider-free Echo membrane using the
   shared protection-field hex shader. Only a visible unresolved Echo Provider
   exposes it in its assigned color; crossing hides it and transfers that exact
@@ -138,6 +143,10 @@ below where their contracts differ.
   non-emissive. The
   existing four-iteration Bloom profile uses threshold `0.8`, intensity
   `0.85` and scatter `0.58`; no render package or ProjectSettings changed.
+- The gameplay color-order HUD is a bottom-center horizontal strip. Current
+  color is centered, next is emphasized to the right and previous is reduced
+  to the left; two-color stages use a balanced current/next pair and additional
+  colors reuse the same fixed slots without covering left-hand curves.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
   alpha 9-slice panel/button/chip sprites and ten semantic resource/action
   icons. Builder-created panels retain their existing hierarchy and text;
@@ -230,8 +239,8 @@ below where their contracts differ.
   next Stage directly in PreRun. Final or still-locked next Stages hide that
   action.
 - Campaign Stages 12–14 no longer neutralize all but two Fog gates. When the
-  first Fog gate becomes the next judgment, one world-space curtain appears
-  at 1.5 seconds of current travel distance ahead of the player. It fades from
+  first Fog gate becomes the next judgment, one world-space storm bank appears
+  at 0.9 seconds of current travel distance ahead of the player. It fades from
   alpha 0 to 1 over 0.5 seconds, stays fully opaque for an authored 5 / 6 / 7
   seconds across the intro / practice / mastery curve, then fades to 0 over
   0.5 seconds. It cannot retrigger in that attempt. Pause and Continue
@@ -258,16 +267,17 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `444/444`
-- PlayMode: `244/244`
-- Post-Builder PlayMode: `244/244`
+- PlayMode: `246/246`
+- Post-Builder PlayMode: `246/246`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 42 passes completed; the active
+- Campaign Builder: two consecutive Iteration 43 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
-  pool, six-bank Fog band, 50-slot Spline Ice mesh pool and six Echo membranes
-  passed alongside the Spline Lab, bounded camera inertia, quick Continue,
-  quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
+  pool, ten-bank Fog band, capped weather particles and scoped tone volume,
+  50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
+  Spline Lab, bounded camera/runner steering, adaptive color strip, quick
+  Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
 - Stage Catalog Builder: revision 10 Resource contains 20 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -282,14 +292,13 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 237, highest unlocked Stage ID `stage-17` with 16 records,
-  800 Coins, 0 Shields, 0 Boosters and 1 Heart.
+- Schema 3, revision 501, highest unlocked Stage ID `stage-01` with no records,
+  0 Coins, 0 Shields, 0 Boosters and 4 Hearts.
 - SHA-256:
-  `2B0C672FD2DB24AEC8308640534FD89641670031A80150F36FB4403387D50068`.
-- The already-open original Editor advanced the live Heart clock from the
-  prior revision and recorded the user's later play/item state before this
-  iteration's validation. Validation ran in an isolated project copy and did
-  not restore or mutate this file. Developer Console
+  `29FBE57FD5BE028EAEEEF75EC6DD5B2DD3208DBCB533AD33C9905EC373CC9D20`.
+- This user-authored reset/attempt state predates Iteration 43 validation.
+  Its `LastWriteUtc` remained `2026-08-27T01:45:18.7882931Z`; automated
+  validation did not restore or mutate this file. Developer Console
   mutations still occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
@@ -370,6 +379,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 43 validation result
+
+- Starting HEAD `f507692` was clean after the allowed package-managed define
+  churn and unrelated Editor material refreshes were restored. Completion
+  commit name: `feat: refine fog weather and curve readability`.
+- Fog now combines ten closer fixed banks, bounded world-space wisps and rain,
+  and a scoped darker tone under the existing one-shot lifecycle. Camera lag
+  expands to `24° / 16°` with a `0.3s` half-life; runner visual steering remains
+  independent of the exact Spline root. The color sequence is bottom-centered
+  and horizontal with current / next / previous emphasis.
+- The affected Graybox PlayMode group passed `156/156`. Campaign Builder
+  completed two consecutive passes. Full EditMode passed `444/444`; final
+  post-Builder PlayMode passed `246/246`.
+- Campaign and Step 10 simulations ran twice and retained every authoritative
+  artifact hash exactly. Package files are byte-exact and ProjectSettings is
+  at the tracked semantic baseline with no staged change. The developer save
+  remained byte- and timestamp-exact during validation.
+- Human portrait/device play still owns Fog/rain density, dark-tone comfort,
+  camera lag strength, runner steering feel, bottom-strip intuition, overdraw
+  and target-mobile performance.
 
 ## Iteration 42 validation result
 

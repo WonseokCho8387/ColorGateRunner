@@ -773,3 +773,21 @@ The three-Continue cap and original prices below are superseded by Iteration
   crossing as the same hue appears on the runner shell.
 - Human portrait/device review owns asphalt/ice contrast, Fog density and edge
   artifacts, Echo legibility, overdraw, Bloom balance and frame cost.
+
+## Iteration 43 Storm Fog, steering and color strip
+
+- Fog should arrive closer and read as weather, not a translucent prop: ten
+  offset low-poly banks sit low over the road while soft capped wisps fill the
+  near view, slanted rain crosses the full portrait frame and a scoped color
+  adjustment darkens only the active Fog interval. The road, gate and runner
+  silhouettes must remain readable; volumetric fog and lightning are excluded.
+- Stronger camera inertia may expose more of the runner side/top, but the
+  horizon remains upright. The runner visual leans and yaws into the upcoming
+  curve while its gameplay root stays aligned to the road.
+- The color-order UI belongs at the bottom center, outside the curve-recognition
+  corridor. Current is largest, next remains strong on the right, previous is
+  quieter on the left, and intermediate colors reduce in scale/alpha without
+  becoming a second dominant HUD row.
+- Human portrait/device review owns storm density, screen darkness, rain motion,
+  curve anticipation, steering feel, color-cycle intuition, overdraw and frame
+  time on the target device.

@@ -530,6 +530,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/TestBuildMenuTests.cs`
 Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs`
 
 - `NormalFlow_OpensLobbyRatherThanStageSelect`
+- `CampaignCamera_CurvesWithBoundedRotationInertia`
+- `CampaignRunner_SteersVisualWithoutChangingPathAuthority`
 - `ThemeOneGameplayVisuals_UseImportedArtBloomAndFixedBreakPool`
 - `Play_OpensItemSelection`
 - `DirectCampaignPreRunBack_ReturnsToCampaignLobby`
@@ -558,12 +560,13 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `Booster_WarningActivatesNearEnd`
 - `Booster_CameraReturnsToExactBaseline`
 - `Lobby_VerticalDecorationsAreAbsent`
-- `VerticalStack_CurrentColorStaysAtTop`
-- `VerticalStack_RapidTapsRetargetToAuthoritativeColor`
+- `HorizontalColorStrip_CurrentAndNextSwapSides`
+- `HorizontalColorStrip_RapidTapsRetargetToAuthoritativeColor`
 - `BoosterCamera_LowersAndMovesCloserBehindPlayer`
 - `ResetProgress_CancellationChangesNothing`
 - `ResetProgress_ConfirmationReturnsLobbyToStageOne`
-- `VerticalStack_HasSixReusableSlots`
+- `HorizontalColorStrip_HasSixReusableSlots`
+- `ThreeColorStrip_ShowsPreviousCurrentAndNextAroundCenter`
 - `ExperimentLauncher_IsHiddenFromNormalFlow`
 - `ExperimentPlay_DoesNotChangeNormalProgression`
 - `ExperimentLauncher_StartsCountdownWithFixedPoolSession`

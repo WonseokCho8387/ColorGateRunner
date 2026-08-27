@@ -768,3 +768,17 @@ gates. Iteration 27 speed and runway presentation remain authoritative.
 - Echo eligibility and acquisition rules are unchanged. The gate membrane is
   presentation-only and appears only while that Echo Provider is legally
   visible and unresolved.
+
+## Iteration 43 storm Fog and curve feedback
+
+- Campaign Fog retains its one-trigger and Stage-authored timing authority, but
+  follows at `current effective speed * 0.9 seconds` and occupies a closer
+  18–32 unit band. Ten fixed banks, capped wisps, rain and darker tone are one
+  presentation lifecycle; none may change gate truth, judgment or speed.
+- Camera follow uses a `0.3s` half-life with `24°` yaw and `16°` pitch caps.
+  The player root stays on the exact scalar-distance Spline pose while only its
+  visual child anticipates the next tangent with bounded steering and lean.
+- The gameplay color sequence is a bottom-center horizontal cycle. Current is
+  the center authority, next reads to the right and previous to the left. Two-
+  color stages show current/next as a balanced pair; larger palettes retain
+  fixed presentation slots and the same deterministic color order.

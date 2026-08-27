@@ -2600,3 +2600,49 @@ Human feedback required
   overdraw, Bloom balance and target-mobile performance.
 - Volumetric Fog, new Ice mechanics, gate collision changes, Race Mode,
   banking, loops and additional render packages remain excluded.
+
+## Iteration 43 — Storm Fog and Curve Readability
+
+### Play / Analyze
+
+- Human play accepted Ice and Echo, but the Fog remained too distant and sparse.
+  Curves still felt mechanically locked because both camera and runner followed
+  the route too exactly, while the left color stack frequently covered upcoming
+  colors on left turns.
+
+### Design / Implementation
+
+- Expanded Fog from six to ten offset banks and moved its adaptive band from
+  24–42 to 18–32 units with a `0.9s` travel look-ahead. Added fixed-capacity
+  World-Space wisps and rain plus a scoped darker color-adjustment Volume; all
+  layers use the existing fade, hold, pause, Continue and Retry lifecycle.
+- Increased camera smoothing to a `0.3s` half-life and doubled yaw/pitch bounds
+  to `24° / 16°`. Added a visual-only steering owner that anticipates the Spline
+  tangent within `10°` yaw and `6°` lean while leaving the Player root exact.
+- Moved the color cycle to a safe-area bottom-center horizontal strip. Current,
+  next and previous receive explicit center/right/left position, scale and alpha
+  hierarchy, with balanced two-color and fixed-slot larger-palette layouts.
+- No Core rule, Stage data, timing, balance, collision, economy, package or
+  ProjectSettings contract changed.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. The affected Graybox
+  PlayMode group passed `156/156`; full EditMode passed `444/444`; full
+  post-Builder PlayMode passed `246/246`.
+- Two Campaign simulations retained all three approved 400-row hashes. Two
+  Step 10 simulations retained all five approved 80-row / 64,016-run hashes.
+  Package files and tracked ProjectSettings stayed unchanged; the developer save
+  remained byte- and timestamp-exact during validation.
+- Stronger curve feedback is safest when camera and vehicle body add bounded
+  presentation lag around one exact path authority. Weather can feel denser
+  without unbounded overdraw when every layer has an explicit capacity and one
+  shared lifecycle.
+
+### Deferred / Human Review
+
+- Human portrait/device play must judge Fog and rain density, darkness, cloud
+  height, camera comfort, runner steering, bottom-strip intuition, Bloom,
+  overdraw and target-mobile performance.
+- Volumetric weather, lightning, wet-road shaders, new mechanics, camera banking,
+  collision steering, Race Mode and additional render packages remain excluded.

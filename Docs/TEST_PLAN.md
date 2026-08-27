@@ -724,3 +724,21 @@ fairness, or polish.
 - Campaign Builder runs twice. Full EditMode and post-Builder PlayMode plus two
   Campaign and two Step 10 simulations are required. Existing artifact hashes,
   packages and ProjectSettings must remain exact.
+
+### Iteration 43 Storm Fog and curve readability
+
+- Builder validation requires ten fixed Fog banks, one 24-particle wisp system,
+  one 96-particle rain system and one shared-profile scoped tone Volume. Both
+  particle systems simulate in World Space and the inactive/reset state must
+  have zero tone weight.
+- PlayMode must prove Fog alpha drives banks, particles and tone together;
+  Pause and Continue READY freeze the particle systems, GO resumes them, and
+  Retry clears the weather. Camera lag remains upright and bounded by `24°`
+  yaw / `16°` pitch. Runner visual steering must be measurable while its root
+  remains the exact Spline pose.
+- The bottom color strip must keep current centered, next on the right and
+  previous on the left for three colors, retain a balanced two-color layout,
+  reuse fixed slots for six colors and remain inside the portrait safe area.
+- Campaign Builder runs twice. Full EditMode and post-Builder PlayMode plus two
+  Campaign and two Step 10 simulations are required. All existing artifact
+  hashes must remain exact; packages and ProjectSettings may not be changed.

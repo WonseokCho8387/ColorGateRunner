@@ -6,6 +6,7 @@
     "ColorGateRunner.Product",
     "Unity.Mathematics",
     "Unity.Splines",
+    "Unity.RenderPipelines.Core.Runtime",
     "UnityEngine.UI",
     "Unity.InputSystem"
   ],

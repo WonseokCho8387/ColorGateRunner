@@ -100,12 +100,48 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.CampaignDistance,
                 Is.GreaterThanOrEqualTo(220f));
             Assert.That(maximumLag, Is.GreaterThan(0.25f));
-            Assert.That(maximumLag, Is.LessThanOrEqualTo(12.1f));
+            Assert.That(maximumLag, Is.LessThanOrEqualTo(24.1f));
             Assert.That(
                 Vector3.Dot(
                     _controller.GameplayCamera.transform.up,
                     Vector3.up),
                 Is.GreaterThan(0.7f));
+        }
+
+        [Test]
+        public void CampaignRunner_SteersVisualWithoutChangingPathAuthority()
+        {
+            SelectAndStartStage(20);
+            ResolveRemainingGates();
+            float maximumYaw = 0f;
+            float maximumLean = 0f;
+            int guard = 0;
+
+            while (_controller.CampaignDistance < 220f && guard++ < 900)
+            {
+                _controller.Tick(1f / 60f);
+                maximumYaw = Mathf.Max(
+                    maximumYaw,
+                    Mathf.Abs(_controller.RunnerSteeringView.CurrentYawDegrees));
+                maximumLean = Mathf.Max(
+                    maximumLean,
+                    Mathf.Abs(_controller.RunnerSteeringView.CurrentLeanDegrees));
+            }
+
+            _controller.CampaignSplinePath.EvaluatePose(
+                _controller.CampaignDistance,
+                0f,
+                out _,
+                out Quaternion pathRotation);
+            Assert.That(Quaternion.Angle(
+                _controller.PlayerTransform.rotation,
+                pathRotation), Is.LessThan(0.001f));
+            Assert.That(maximumYaw, Is.GreaterThan(0.1f));
+            Assert.That(maximumYaw,
+                Is.LessThanOrEqualTo(RunnerSteeringView.MaximumYawDegrees + 0.1f));
+            Assert.That(maximumLean, Is.GreaterThan(0.05f));
+            Assert.That(maximumLean,
+                Is.LessThanOrEqualTo(RunnerSteeringView.MaximumLeanDegrees + 0.1f));
         }
 
         [Test]
@@ -907,26 +943,26 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void VerticalStack_CurrentColorStaysAtTop()
+        public void HorizontalColorStrip_CurrentAndNextSwapSides()
         {
             StartPlaying(false, false);
-            float redY = ((RectTransform)_controller.GetColorTile(0).transform)
-                .anchoredPosition.y;
-            float blueY = ((RectTransform)_controller.GetColorTile(1).transform)
-                .anchoredPosition.y;
-            Assert.That(redY, Is.GreaterThan(blueY));
+            float redX = ((RectTransform)_controller.GetColorTile(0).transform)
+                .anchoredPosition.x;
+            float blueX = ((RectTransform)_controller.GetColorTile(1).transform)
+                .anchoredPosition.x;
+            Assert.That(redX, Is.LessThan(blueX));
 
             _controller.HandleGameplayTap();
             _controller.Tick(0.13f);
-            redY = ((RectTransform)_controller.GetColorTile(0).transform)
-                .anchoredPosition.y;
-            blueY = ((RectTransform)_controller.GetColorTile(1).transform)
-                .anchoredPosition.y;
-            Assert.That(blueY, Is.GreaterThan(redY));
+            redX = ((RectTransform)_controller.GetColorTile(0).transform)
+                .anchoredPosition.x;
+            blueX = ((RectTransform)_controller.GetColorTile(1).transform)
+                .anchoredPosition.x;
+            Assert.That(blueX, Is.LessThan(redX));
         }
 
         [Test]
-        public void VerticalStack_RapidTapsRetargetToAuthoritativeColor()
+        public void HorizontalColorStrip_RapidTapsRetargetToAuthoritativeColor()
         {
             StartPlaying(false, false);
             _controller.HandleGameplayTap();
@@ -940,10 +976,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(RunnerColor.Blue));
             Assert.That(
                 ((RectTransform)_controller.GetColorTile(1).transform)
-                    .anchoredPosition.y,
-                Is.GreaterThan(
+                    .anchoredPosition.x,
+                Is.LessThan(
                     ((RectTransform)_controller.GetColorTile(0).transform)
-                        .anchoredPosition.y));
+                        .anchoredPosition.x));
         }
 
         [Test]
@@ -995,7 +1031,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void VerticalStack_HasSixReusableSlots()
+        public void HorizontalColorStrip_HasSixReusableSlots()
         {
             for (int index = 0; index < 6; index++)
             {
@@ -1067,6 +1103,27 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void ThreeColorStrip_ShowsPreviousCurrentAndNextAroundCenter()
+        {
+            ExperimentLauncher launcher = FindExperimentLauncher();
+            launcher.StartExperiment();
+
+            float currentX =
+                ((RectTransform)_controller.GetColorTile(0).transform)
+                    .anchoredPosition.x;
+            float nextX =
+                ((RectTransform)_controller.GetColorTile(1).transform)
+                    .anchoredPosition.x;
+            float previousX =
+                ((RectTransform)_controller.GetColorTile(2).transform)
+                    .anchoredPosition.x;
+            Assert.That(currentX, Is.EqualTo(0f).Within(0.001f));
+            Assert.That(previousX, Is.LessThan(currentX));
+            Assert.That(nextX, Is.GreaterThan(currentX));
+            Assert.That(_controller.GetNextColorMarker(1).activeSelf, Is.True);
+        }
+
+        [Test]
         public void ExperimentRapidTaps_EndAtCorrectCurrentTile()
         {
             ExperimentLauncher launcher = FindExperimentLauncher();
@@ -1083,11 +1140,11 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ExperimentSession.CurrentColor,
                 Is.EqualTo(RunnerColor.Cyan));
             Assert.That(
-                ((RectTransform)_controller.GetColorTile(5).transform)
-                    .anchoredPosition.y,
-                Is.GreaterThan(
-                    ((RectTransform)_controller.GetColorTile(0).transform)
-                        .anchoredPosition.y));
+                Mathf.Abs(((RectTransform)_controller.GetColorTile(5).transform)
+                    .anchoredPosition.x),
+                Is.LessThan(
+                    Mathf.Abs(((RectTransform)_controller.GetColorTile(0).transform)
+                        .anchoredPosition.x)));
         }
 
         [Test]
@@ -1242,6 +1299,13 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThanOrEqualTo(
                     TimedFogCurtainView.RequiredSectionCount));
             Assert.That(
+                _controller.FogCurtain.FogWispParticles.main.maxParticles,
+                Is.EqualTo(TimedFogCurtainView.FogWispParticleCapacity));
+            Assert.That(
+                _controller.FogCurtain.RainParticles.main.maxParticles,
+                Is.EqualTo(TimedFogCurtainView.RainParticleCapacity));
+            Assert.That(_controller.FogCurtain.WeatherToneWeight, Is.Zero);
+            Assert.That(
                 Vector3.Distance(
                     _controller.FogCurtain.GetSection(0).position,
                     _controller.FogCurtain.GetSection(
@@ -1263,11 +1327,17 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.Session.GetSpeedForPlan(fog.ActivePlan));
             Assert.That(_controller.FogCurtain.Alpha,
                 Is.EqualTo(0.5f).Within(0.0001f));
+            Assert.That(_controller.FogCurtain.WeatherToneWeight,
+                Is.EqualTo(0.5f).Within(0.0001f));
             _controller.FogCurtain.Tick(
                 0.25f,
                 _controller.PlayerTransform.position,
                 _controller.Session.GetSpeedForPlan(fog.ActivePlan));
             Assert.That(_controller.FogCurtain.Alpha, Is.EqualTo(1f));
+            Assert.That(_controller.FogCurtain.FogWispParticles.isPlaying,
+                Is.True);
+            Assert.That(_controller.FogCurtain.RainParticles.isPlaying,
+                Is.True);
             _controller.FogCurtain.Tick(
                 _controller.Session.Stage.FogCurtainSettings.FullOpacitySeconds,
                 _controller.PlayerTransform.position,
@@ -1284,6 +1354,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.PlayerTransform.position,
                 _controller.Session.GetSpeedForPlan(fog.ActivePlan));
             Assert.That(_controller.FogCurtain.IsVisible, Is.False);
+            Assert.That(_controller.FogCurtain.WeatherToneWeight, Is.Zero);
 
             _controller.TickMovement(0f);
             Assert.That(_controller.FogCurtain.IsVisible, Is.False,
@@ -1305,10 +1376,18 @@ namespace ColorGateRunner.Tests.PlayMode
             float elapsedBeforePause = _controller.FogCurtain.ElapsedSeconds;
 
             _controller.RequestPause();
+            Assert.That(_controller.FogCurtain.FogWispParticles.isPaused,
+                Is.True);
+            Assert.That(_controller.FogCurtain.RainParticles.isPaused,
+                Is.True);
             _controller.Tick(1f);
             Assert.That(_controller.FogCurtain.ElapsedSeconds,
                 Is.EqualTo(elapsedBeforePause));
             _controller.RequestResume();
+            Assert.That(_controller.FogCurtain.FogWispParticles.isPlaying,
+                Is.True);
+            Assert.That(_controller.FogCurtain.RainParticles.isPlaying,
+                Is.True);
 
             Mismatch(fog.AssignedColor);
             Assert.That(fog.TryResolveCrossing(), Is.True);
@@ -1321,6 +1400,10 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.FogCurtain.IsVisible, Is.True);
             Assert.That(_controller.FogCurtain.Alpha,
                 Is.EqualTo(alphaBeforePause).Within(0.0001f));
+            Assert.That(_controller.FogCurtain.FogWispParticles.isPaused,
+                Is.True);
+            Assert.That(_controller.FogCurtain.RainParticles.isPaused,
+                Is.True);
             _controller.Tick(1f);
             Assert.That(_controller.FogCurtain.Alpha,
                 Is.EqualTo(alphaBeforePause).Within(0.0001f));
@@ -1328,6 +1411,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RetryToItemSelection();
             Assert.That(_controller.FogCurtain.HasTriggered, Is.False);
             Assert.That(_controller.FogCurtain.IsVisible, Is.False);
+            Assert.That(_controller.FogCurtain.WeatherToneWeight, Is.Zero);
         }
 
         [Test]
@@ -2587,6 +2671,11 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(CountNamed("ColorHudPanel"), Is.EqualTo(1));
             Assert.That(FindTransform("ColorHudPanel").gameObject.activeInHierarchy,
                 Is.True);
+            RectTransform colorHud =
+                (RectTransform)FindTransform("ColorHudPanel");
+            Assert.That(colorHud.anchorMin.x, Is.GreaterThanOrEqualTo(0.1f));
+            Assert.That(colorHud.anchorMax.x, Is.LessThanOrEqualTo(0.9f));
+            Assert.That(colorHud.anchorMax.y, Is.LessThan(0.2f));
         }
 
         [Test]

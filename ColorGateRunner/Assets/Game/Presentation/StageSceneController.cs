@@ -24,22 +24,20 @@ namespace ColorGateRunner.Presentation
         private const float BoosterCameraBlendIn = 0.22f;
         private const float BoosterCameraBlendOut = 0.35f;
         private const float ColorStackTransitionDuration = 0.12f;
-        private const float CameraFollowHalfLife = 0.2f;
-        private const float CameraMaximumYawLag = 12f;
-        private const float CameraMaximumPitchLag = 8f;
+        private const float CameraFollowHalfLife = 0.3f;
+        private const float CameraMaximumYawLag = 24f;
+        private const float CameraMaximumPitchLag = 16f;
         private static readonly Vector3 BoosterCameraFollowOffset =
             new Vector3(0f, 5f, -6.5f);
         private static readonly Quaternion BoosterCameraRotation =
             Quaternion.Euler(13f, 0f, 0f);
         private static readonly Color ShieldFieldColor =
             new Color(0f, 0.7215686f, 0.8509804f, 1f);
-        private static readonly float[] ColorStackPositions =
-            { -34f, -91f, -137f, -176f, -211f, -243f };
-
         [SerializeField] private StageCatalogAsset stageCatalogAsset;
         [SerializeField] private Transform player;
         [SerializeField] private Renderer playerRenderer;
         [SerializeField] private RunnerColorView runnerColorView;
+        [SerializeField] private RunnerSteeringView runnerSteeringView;
         [SerializeField] private Rigidbody playerBody;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private Material redMaterial;
@@ -304,6 +302,7 @@ namespace ColorGateRunner.Presentation
         internal Transform PlayerTransform => player;
         internal Renderer PlayerRenderer => playerRenderer;
         internal RunnerColorView RunnerColorView => runnerColorView;
+        internal RunnerSteeringView RunnerSteeringView => runnerSteeringView;
         internal Camera GameplayCamera => gameplayCamera;
         internal int GatePoolSize => gates == null ? 0 : gates.Length;
         internal float FailurePanelDelaySeconds => FailurePanelDelay;
@@ -519,6 +518,7 @@ namespace ColorGateRunner.Presentation
                     if (continued)
                     {
                         ApplySafeOverridesToActiveGates();
+                        fogCurtain.ResumeWeather();
                     }
                     else
                     {
@@ -574,6 +574,11 @@ namespace ColorGateRunner.Presentation
 
             _campaignDistance += distance;
             ApplyCampaignPlayerPose();
+            runnerSteeringView.Tick(
+                campaignSplinePath,
+                _campaignDistance,
+                effectiveSpeed,
+                deltaTime);
             ResolveCrossedGatePlanes();
             if (_session.FlowState == StageFlowState.Failed)
             {
@@ -1414,6 +1419,7 @@ namespace ColorGateRunner.Presentation
             UpdateCampaignGateVisibility();
             ApplyUiFlow(MobileUiFlow.Countdown);
             _continueReadyActive = true;
+            fogCurtain.PauseWeather();
             _continueGoFlashRemaining = 0f;
             _countdownRemaining = ContinueReadyDuration;
             UpdateCountdownText();
@@ -1734,6 +1740,8 @@ namespace ColorGateRunner.Presentation
                 player == null || playerRenderer == null ||
                 runnerColorView == null ||
                 !runnerColorView.HasRequiredReferences ||
+                runnerSteeringView == null ||
+                !runnerSteeringView.HasRequiredReference ||
                 gameplayCamera == null || playerBody == null ||
                 redMaterial == null ||
                 blueMaterial == null || greenMaterial == null ||
@@ -1811,9 +1819,10 @@ namespace ColorGateRunner.Presentation
                 pauseSettingsPanel == null ||
                 !pauseSettingsPanel.HasRequiredReferences() ||
                 pauseTransitionBlocker == null || attemptEffects == null ||
-                attemptEffects.Length != 4 || attemptEffects[0] == null ||
+                attemptEffects.Length != 6 || attemptEffects[0] == null ||
                 attemptEffects[1] == null || attemptEffects[2] == null ||
-                attemptEffects[3] == null ||
+                attemptEffects[3] == null || attemptEffects[4] == null ||
+                attemptEffects[5] == null ||
                 gateBreakEffects == null ||
                 !gateBreakEffects.HasRequiredReferences() ||
                 splineTrackLab == null ||
@@ -1838,6 +1847,7 @@ namespace ColorGateRunner.Presentation
             Transform playerTransform,
             Renderer runnerRenderer,
             RunnerColorView colorView,
+            RunnerSteeringView steeringView,
             Rigidbody runnerBody,
             Camera camera,
             Material red,
@@ -1931,6 +1941,7 @@ namespace ColorGateRunner.Presentation
             player = playerTransform;
             playerRenderer = runnerRenderer;
             runnerColorView = colorView;
+            runnerSteeringView = steeringView;
             playerBody = runnerBody;
             gameplayCamera = camera;
             redMaterial = red;
@@ -2207,6 +2218,7 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.Seed,
                 _goalPathDistance);
             ApplyCampaignPlayerPose();
+            runnerSteeringView.ResetSteering();
             SnapCampaignCameraFollow();
             ApplyCampaignCameraPose(Vector3.zero, 0f);
         }
@@ -2905,6 +2917,7 @@ namespace ColorGateRunner.Presentation
             player.position = _playerStartPosition;
             player.localRotation = Quaternion.identity;
             player.localScale = Vector3.one;
+            runnerSteeringView.ResetSteering();
             gameplayCamera.transform.SetPositionAndRotation(
                 _cameraStartPosition,
                 _cameraStartRotation);
@@ -3434,6 +3447,7 @@ namespace ColorGateRunner.Presentation
                 _campaignDistance = Mathf.Max(0f, _campaignDistance);
                 ApplyCampaignPlayerPose();
             }
+            runnerSteeringView.ResetSteering();
 
             player.localScale = Vector3.one;
             ApplyPlayerMaterial(GetMaterial(_session.CurrentColor));
@@ -3789,12 +3803,11 @@ namespace ColorGateRunner.Presentation
 
                 RunnerColor color = GetHudColorAt(index);
                 int slot = GetHudStackSlot(color);
-                bool current = slot == 0;
                 bool isNext = slot == 1;
                 colorTileImages[index].color =
                     GetMaterial(color).color;
                 colorTileImages[index].canvasRenderer.SetAlpha(
-                    current ? 1f : 0.72f);
+                    GetColorStackAlpha(slot, activeCount));
                 colorTileSymbols[index].text = GetColorSymbol(color);
                 nextColorMarkers[index].SetActive(isNext);
             }
@@ -3868,8 +3881,12 @@ namespace ColorGateRunner.Presentation
                 RunnerColor color = GetHudColorAt(index);
                 int slot = GetHudStackSlot(color);
                 RectTransform tile = (RectTransform)colorTiles[index].transform;
-                tile.anchoredPosition = GetColorStackPosition(slot);
-                tile.localScale = Vector3.one * GetColorStackScale(slot);
+                tile.anchoredPosition = GetColorStackPosition(
+                    slot,
+                    activeCount);
+                tile.localScale = Vector3.one * GetColorStackScale(
+                    slot,
+                    activeCount);
             }
             _colorStackTransitionRemaining = 0f;
         }
@@ -3906,27 +3923,74 @@ namespace ColorGateRunner.Presentation
                 RectTransform tile = (RectTransform)colorTiles[index].transform;
                 tile.anchoredPosition = Vector2.Lerp(
                     _colorStackStartPositions[index],
-                    GetColorStackPosition(slot),
+                    GetColorStackPosition(slot, activeCount),
                     progress);
                 tile.localScale = Vector3.Lerp(
                     _colorStackStartScales[index],
-                    Vector3.one * GetColorStackScale(slot),
+                    Vector3.one * GetColorStackScale(slot, activeCount),
                     progress);
             }
         }
 
-        private static Vector2 GetColorStackPosition(int slot)
+        private static Vector2 GetColorStackPosition(
+            int slot,
+            int activeCount)
         {
-            return new Vector2(0f, ColorStackPositions[slot]);
+            if (activeCount <= 1)
+            {
+                return Vector2.zero;
+            }
+            if (activeCount == 2)
+            {
+                return new Vector2(slot == 0 ? -38f : 38f, 0f);
+            }
+            if (slot == 0)
+            {
+                return Vector2.zero;
+            }
+            int forwardSlots = activeCount / 2;
+            float x = slot <= forwardSlots
+                ? slot * 76f
+                : -(activeCount - slot) * 76f;
+            return new Vector2(x, 0f);
         }
 
-        private static float GetColorStackScale(int slot)
+        private static float GetColorStackScale(
+            int slot,
+            int activeCount)
         {
             if (slot == 0)
             {
                 return 1f;
             }
-            return slot == 1 ? 0.82f : Mathf.Max(0.56f, 0.72f - slot * 0.035f);
+            if (slot == 1)
+            {
+                return 0.88f;
+            }
+            if (slot == activeCount - 1)
+            {
+                return 0.78f;
+            }
+            return 0.68f;
+        }
+
+        private static float GetColorStackAlpha(
+            int slot,
+            int activeCount)
+        {
+            if (slot == 0)
+            {
+                return 1f;
+            }
+            if (slot == 1)
+            {
+                return 0.84f;
+            }
+            if (slot == activeCount - 1)
+            {
+                return 0.58f;
+            }
+            return 0.64f;
         }
 
         private int GetHudActiveColorCount()

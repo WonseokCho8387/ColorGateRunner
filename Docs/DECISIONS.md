@@ -1511,3 +1511,17 @@ Status: Approved and implemented.
 - One collider-free Echo membrane is Builder-owned by every pooled gate and
   reuses `ColorGateRunner/ProtectionField`. Visibility owns whether it may be
   shown; resolution transfers the exact assigned hue and hides the gate field.
+
+## Iteration 43 — Weather and steering remain presentation-only
+
+- Campaign Fog uses a hybrid of ten fixed Spline-aligned banks, capped
+  World-Space wisp/rain particles and one Fog-scoped color-adjustment Volume.
+  These share the existing timed lifecycle and fixed attempt-effect ownership;
+  no volumetric package, global weather service or gameplay modifier is added.
+- The camera's larger `24° / 16°` lag bounds and `0.3s` half-life remain relative
+  to the authoritative path pose. Runner steering changes only the imported
+  visual child (`10°` yaw / `6°` lean); root transform, Rigidbody, collision,
+  judgment and deterministic simulation stay exact.
+- The left vertical color stack is superseded by an adaptive bottom-center
+  horizontal cycle. Current/next/previous hierarchy is explicit, all active
+  palettes reuse fixed slots, and no navigation or input contract changes.

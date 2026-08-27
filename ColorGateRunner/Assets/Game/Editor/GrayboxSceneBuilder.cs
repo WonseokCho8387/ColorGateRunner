@@ -8,6 +8,8 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.Splines;
 using UnityEngine.UI;
@@ -22,6 +24,8 @@ namespace ColorGateRunner.Editor
             "Assets/Game/Generated/Materials";
         internal const string GeneratedSplineFolder =
             "Assets/Game/Generated/Spline";
+        internal const string GeneratedProfilesFolder =
+            "Assets/Game/Generated/Profiles";
         internal const string Theme01ModelsFolder =
             "Assets/Game/Art/Gameplay/Theme01/Models";
         internal const string Theme01TexturesFolder =
@@ -59,6 +63,7 @@ namespace ColorGateRunner.Editor
                 StageCatalogAssetBuilder.EnsureAndConfigure();
             EnsureAssetFolder(GeneratedMaterialsFolder);
             EnsureAssetFolder(GeneratedSplineFolder);
+            EnsureAssetFolder(GeneratedProfilesFolder);
             Material red = CreateOrUpdateMaterial(
                 GeneratedMaterialsFolder + "/Red.mat",
                 RedColor,
@@ -116,8 +121,19 @@ namespace ColorGateRunner.Editor
                 0.92f);
             Material fogCurtainMaterial = CreateOrUpdateTransparentMaterial(
                 GeneratedMaterialsFolder + "/FogCurtain.mat",
-                new Color(0.4f, 0.54f, 0.7f, 0.68f),
+                new Color(0.25f, 0.34f, 0.46f, 0.54f),
                 Theme01TexturesFolder + "/Fog_Noise.png");
+            Material fogWispMaterial = CreateOrUpdateAlphaParticleMaterial(
+                GeneratedMaterialsFolder + "/FogWisps.mat",
+                new Color(0.3f, 0.39f, 0.5f, 0.32f),
+                Theme01TexturesFolder + "/Fog_Noise.png");
+            Material rainMaterial = CreateOrUpdateAlphaParticleMaterial(
+                GeneratedMaterialsFolder + "/FogRain.mat",
+                new Color(0.46f, 0.62f, 0.78f, 0.42f),
+                null);
+            VolumeProfile fogWeatherProfile =
+                CreateOrUpdateFogWeatherProfile(
+                    GeneratedProfilesFolder + "/FogWeatherProfile.asset");
             Material protectionFieldMaterial =
                 CreateOrUpdateProtectionFieldMaterial(
                     GeneratedMaterialsFolder + "/ProtectionField.mat");
@@ -160,11 +176,18 @@ namespace ColorGateRunner.Editor
                     cyan,
                     runnerGlass,
                     out playerRenderer,
-                    out RunnerColorView runnerColorView);
+                    out RunnerColorView runnerColorView,
+                    out RunnerSteeringView runnerSteeringView);
             Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
             TimedFogCurtainView fogCurtain =
-                CreateFogCurtain(root.transform, fogCurtainMaterial);
+                CreateFogCurtain(
+                    root.transform,
+                    camera.transform,
+                    fogCurtainMaterial,
+                    fogWispMaterial,
+                    rainMaterial,
+                    fogWeatherProfile);
             ParticleSystem shieldCollapse;
             GameObject shieldVisual =
                 CreateShieldVisual(
@@ -407,6 +430,7 @@ namespace ColorGateRunner.Editor
                 playerObject.transform,
                 playerRenderer,
                 runnerColorView,
+                runnerSteeringView,
                 playerBody,
                 camera,
                 red,
@@ -517,7 +541,9 @@ namespace ColorGateRunner.Editor
                     successParticles,
                     speedLines,
                     shieldCollapse,
-                    echoCollapse
+                    echoCollapse,
+                    fogCurtain.FogWispParticles,
+                    fogCurtain.RainParticles
                 },
                 frontendPath);
             controller.ConfigureThemeVisuals(gateBreakEffects);
@@ -646,6 +672,8 @@ namespace ColorGateRunner.Editor
                 generatedRoot.GetComponentsInChildren<TrackPoolController>(true);
             TimedFogCurtainView[] fogCurtains =
                 generatedRoot.GetComponentsInChildren<TimedFogCurtainView>(true);
+            RunnerSteeringView[] runnerSteeringViews =
+                generatedRoot.GetComponentsInChildren<RunnerSteeringView>(true);
             IceRunwayView[] iceRunways =
                 generatedRoot.GetComponentsInChildren<IceRunwayView>(true);
             ExperimentLauncher[] experimentLaunchers =
@@ -733,6 +761,34 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Timed Fog curtain is missing or incomplete.");
+            }
+            ParticleSystem.MainModule fogWispMain =
+                fogCurtains[0].FogWispParticles.main;
+            ParticleSystem.MainModule rainMain =
+                fogCurtains[0].RainParticles.main;
+            ParticleSystemRenderer rainRenderer =
+                fogCurtains[0].RainParticles.GetComponent<
+                    ParticleSystemRenderer>();
+            if (fogWispMain.maxParticles !=
+                    TimedFogCurtainView.FogWispParticleCapacity ||
+                rainMain.maxParticles !=
+                    TimedFogCurtainView.RainParticleCapacity ||
+                fogWispMain.simulationSpace !=
+                    ParticleSystemSimulationSpace.World ||
+                rainMain.simulationSpace !=
+                    ParticleSystemSimulationSpace.World ||
+                rainRenderer.renderMode !=
+                    ParticleSystemRenderMode.Stretch ||
+                fogCurtains[0].WeatherToneWeight > 0f)
+            {
+                throw new InvalidOperationException(
+                    "Fog weather particles or tone volume are invalid.");
+            }
+            if (runnerSteeringViews.Length != 1 ||
+                !runnerSteeringViews[0].HasRequiredReference)
+            {
+                throw new InvalidOperationException(
+                    "Runner steering presentation is missing or incomplete.");
             }
             if (iceRunways.Length != 1 ||
                 !iceRunways[0].HasRequiredReferences() ||
@@ -1805,7 +1861,8 @@ namespace ColorGateRunner.Editor
             Material neonMaterial,
             Material glassMaterial,
             out Renderer colorRenderer,
-            out RunnerColorView colorView)
+            out RunnerColorView colorView,
+            out RunnerSteeringView steeringView)
         {
             GameObject player = new GameObject(
                 "Player",
@@ -1838,6 +1895,8 @@ namespace ColorGateRunner.Editor
             colorView = player.AddComponent<RunnerColorView>();
             colorView.Configure(colorRenderer, hullRenderer);
             colorView.ApplyMaterial(colorMaterial);
+            steeringView = player.AddComponent<RunnerSteeringView>();
+            steeringView.Configure(artwork.transform);
             Rigidbody body = player.GetComponent<Rigidbody>();
             body.isKinematic = true;
             body.useGravity = false;
@@ -1859,7 +1918,11 @@ namespace ColorGateRunner.Editor
 
         private static TimedFogCurtainView CreateFogCurtain(
             Transform parent,
-            Material material)
+            Transform camera,
+            Material material,
+            Material fogWispMaterial,
+            Material rainMaterial,
+            VolumeProfile weatherProfile)
         {
             GameObject curtain = new GameObject(
                 "FogCurtain",
@@ -1888,11 +1951,141 @@ namespace ColorGateRunner.Editor
                     renderer.receiveShadows = false;
                     renderers.Add(renderer);
                 }
+                section.transform.localScale = Vector3.one *
+                    (1f + ((index % 4) * 0.08f));
             }
+            ParticleSystem fogWisps = CreateFogWispParticles(
+                camera,
+                fogWispMaterial);
+            ParticleSystem rain = CreateFogRainParticles(
+                camera,
+                rainMaterial);
+            GameObject volumeObject = new GameObject(
+                "FogWeatherVolume",
+                typeof(Volume));
+            volumeObject.transform.SetParent(curtain.transform, false);
+            Volume volume = volumeObject.GetComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 20f;
+            volume.weight = 0f;
+            volume.sharedProfile = weatherProfile;
             TimedFogCurtainView view =
                 curtain.GetComponent<TimedFogCurtainView>();
-            view.Configure(sections, renderers.ToArray());
+            view.Configure(
+                sections,
+                renderers.ToArray(),
+                fogWisps,
+                rain,
+                volume);
             return view;
+        }
+
+        private static ParticleSystem CreateFogWispParticles(
+            Transform camera,
+            Material material)
+        {
+            GameObject emitter = new GameObject(
+                "FogWeatherWisps",
+                typeof(ParticleSystem));
+            emitter.transform.SetParent(camera, false);
+            emitter.transform.localPosition = new Vector3(0f, 1.5f, 14f);
+            ParticleSystem particles = emitter.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule main = particles.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.duration = 4f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(2.4f, 3.6f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(3f, 6.5f);
+            main.startColor = new Color(1f, 1f, 1f, 0.45f);
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.maxParticles = TimedFogCurtainView.FogWispParticleCapacity;
+            main.useUnscaledTime = false;
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.rateOverTime = 0f;
+            ParticleSystem.ShapeModule shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(12f, 7f, 20f);
+            shape.randomDirectionAmount = 1f;
+            ParticleSystem.ColorOverLifetimeModule colorOverLifetime =
+                particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            colorOverLifetime.color = CreateTwoEndedFade(0.32f);
+            ParticleSystemRenderer renderer =
+                emitter.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.alignment = ParticleSystemRenderSpace.View;
+            renderer.maxParticleSize = 0.32f;
+            renderer.sharedMaterial = material;
+            return particles;
+        }
+
+        private static ParticleSystem CreateFogRainParticles(
+            Transform camera,
+            Material material)
+        {
+            GameObject emitter = new GameObject(
+                "FogWeatherRain",
+                typeof(ParticleSystem));
+            emitter.transform.SetParent(camera, false);
+            emitter.transform.localPosition = new Vector3(0f, 7f, 14f);
+            ParticleSystem particles = emitter.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule main = particles.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.duration = 2f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.75f, 1.2f);
+            main.startSpeed = 0f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.05f);
+            main.startColor = new Color(1f, 1f, 1f, 0.72f);
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.maxParticles = TimedFogCurtainView.RainParticleCapacity;
+            main.useUnscaledTime = false;
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.rateOverTime = 0f;
+            ParticleSystem.ShapeModule shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(18f, 8f, 28f);
+            shape.randomDirectionAmount = 0f;
+            ParticleSystem.VelocityOverLifetimeModule velocity =
+                particles.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.World;
+            velocity.y = -28f;
+            velocity.z = -4f;
+            ParticleSystem.ColorOverLifetimeModule colorOverLifetime =
+                particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            colorOverLifetime.color = CreateTwoEndedFade(0.72f);
+            ParticleSystemRenderer renderer =
+                emitter.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.alignment = ParticleSystemRenderSpace.Velocity;
+            renderer.lengthScale = 4.5f;
+            renderer.velocityScale = 0.1f;
+            renderer.maxParticleSize = 0.08f;
+            renderer.sharedMaterial = material;
+            return particles;
+        }
+
+        private static ParticleSystem.MinMaxGradient CreateTwoEndedFade(
+            float maximumAlpha)
+        {
+            Gradient fade = new Gradient();
+            fade.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(Color.white, 0f),
+                    new GradientColorKey(Color.white, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(0f, 0f),
+                    new GradientAlphaKey(maximumAlpha, 0.18f),
+                    new GradientAlphaKey(maximumAlpha * 0.8f, 0.75f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            return new ParticleSystem.MinMaxGradient(fade);
         }
 
         private static GameObject CreateShieldVisual(
@@ -2982,8 +3175,8 @@ namespace ColorGateRunner.Editor
             colorHudPanel.GetComponent<Image>().raycastTarget = false;
             SetAnchors(
                 colorHudPanel.GetComponent<RectTransform>(),
-                new Vector2(0.035f, 0.55f),
-                new Vector2(0.30f, 0.83f));
+                new Vector2(0.12f, 0.055f),
+                new Vector2(0.88f, 0.145f));
             colorTiles = new GameObject[6];
             colorTileImages = new Image[6];
             colorTileSymbols = new Text[6];
@@ -3001,12 +3194,12 @@ namespace ColorGateRunner.Editor
                     colorHudPanel.transform,
                     tileColors[index]);
                 RectTransform tileRect = tile.GetComponent<RectTransform>();
-                tileRect.anchorMin = new Vector2(0.33f, 1f);
-                tileRect.anchorMax = new Vector2(0.33f, 1f);
+                tileRect.anchorMin = new Vector2(0.5f, 0.5f);
+                tileRect.anchorMax = new Vector2(0.5f, 0.5f);
                 tileRect.pivot = new Vector2(0.5f, 0.5f);
                 tileRect.sizeDelta = new Vector2(92f, 52f);
                 tileRect.anchoredPosition =
-                    new Vector2(0f, -34f - (index * 42f));
+                    new Vector2(index == 0 ? 0f : index == 1 ? 76f : -76f, 0f);
                 colorTiles[index] = tile;
                 colorTileImages[index] = tile.GetComponent<Image>();
                 colorTileImages[index].raycastTarget = false;
@@ -3021,9 +3214,9 @@ namespace ColorGateRunner.Editor
                     $"ColorTileNextMarker_{index}",
                     tile.transform,
                     "NEXT",
-                    17,
-                    new Vector2(1.02f, 0f),
-                    new Vector2(1.75f, 1f));
+                    14,
+                    new Vector2(0f, 1.02f),
+                    new Vector2(1f, 1.45f));
                 nextLabel.alignment = TextAnchor.MiddleCenter;
                 nextColorMarkers[index] = nextLabel.gameObject;
             }
@@ -3921,6 +4114,89 @@ namespace ColorGateRunner.Editor
                 (int)UnityEngine.Rendering.RenderQueue.Transparent + 10;
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static Material CreateOrUpdateAlphaParticleMaterial(
+            string path,
+            Color color,
+            string texturePath)
+        {
+            Shader shader =
+                Shader.Find("Universal Render Pipeline/Particles/Unlit") ??
+                Shader.Find("Universal Render Pipeline/Unlit") ??
+                Shader.Find("Standard");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            Texture2D texture = null;
+            if (!string.IsNullOrWhiteSpace(texturePath))
+            {
+                ConfigureTextureImporter(texturePath, false, true);
+                texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+                if (texture == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Particle texture is missing: {texturePath}");
+                }
+            }
+            material.color = color;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+            if (texture != null)
+            {
+                material.SetTexture("_BaseMap", texture);
+                material.SetTexture("_MainTex", texture);
+            }
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat(
+                "_SrcBlend",
+                (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat(
+                "_DstBlend",
+                (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue =
+                (int)UnityEngine.Rendering.RenderQueue.Transparent + 5;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static VolumeProfile CreateOrUpdateFogWeatherProfile(
+            string path)
+        {
+            VolumeProfile profile =
+                AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, path);
+            }
+            if (!profile.TryGet(out ColorAdjustments adjustments))
+            {
+                adjustments = profile.Add<ColorAdjustments>(true);
+                AssetDatabase.AddObjectToAsset(adjustments, profile);
+            }
+            adjustments.active = true;
+            adjustments.postExposure.Override(-0.45f);
+            adjustments.contrast.Override(10f);
+            adjustments.hueShift.Override(0f);
+            adjustments.saturation.Override(-4f);
+            adjustments.colorFilter.Override(Color.white);
+            EditorUtility.SetDirty(adjustments);
+            EditorUtility.SetDirty(profile);
+            return profile;
         }
 
         private static void EnsureAssetFolder(string path)
