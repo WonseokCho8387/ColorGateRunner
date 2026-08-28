@@ -2793,3 +2793,38 @@ Human feedback required
 - Confirm on the target display that Stages 21–23 retain a readable neutral
   silhouette but no residual target-color glow. Elemental gate theming and
   Flicker Stages 24–26 remain deferred.
+
+## Iteration 45B — Hidden Power-Down Flicker
+
+### Play / Analyze
+
+- A hard cut from readable target to neutral was functionally correct but did
+  not convey the requested neon-sign power failure. The improvement had to fit
+  inside the existing memory window without changing when Hidden begins or
+  finishes.
+
+### Design / Implementation
+
+- Added a deterministic piecewise envelope with three progressively weaker
+  off/recovery beats. `StageGateView` applies the same value to frame base
+  color, HDR emission and emblem alpha while keeping the emblem's scale
+  contraction monotonic.
+- The final state still switches to the exact Camouflage-neutral material.
+  No random source, Scene object, Stage data, judgment rule, particle, audio,
+  package or ProjectSettings contract changed.
+
+### Validation / Learning
+
+- Focused Hidden EditMode passed `15/15`; focused Hidden PlayMode passed `8/8`.
+  Full EditMode passed `451/451`; full PlayMode passed `250/250`. No Builder,
+  simulation or test build ran because deterministic gameplay inputs and Scene
+  structure were unchanged.
+- A short perceptual flourish can remain reproducible when it is expressed as
+  a pure envelope consumed by the existing pooled View rather than a random
+  animation or a second mechanic state.
+
+### Deferred / Human Review
+
+- Judge the three outage beats, residual Bloom and memorization clarity on
+  portrait mobile and WebGL. Audio sparks, particles, elemental gate themes
+  and any timing/balance change remain deferred.

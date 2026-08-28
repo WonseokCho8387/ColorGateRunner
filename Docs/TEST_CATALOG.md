@@ -206,6 +206,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/HiddenModifierTests.cs`
 - `HiddenSelection_DoesNotIncreaseGateCountOrMixModifiers`
 - `HiddenVisibility_RequiresObservationAndEtaThenNeverReappears`
 - `HiddenVisibility_ResetClearsRuntimeState`
+- `HiddenPowerDownEnvelope_BlinksThenEndsFullyOff`
 - `HiddenPlan_UsesOrdinaryPlayerShieldAndFailurePriority`
 - `HeldEcho_ResolvesHiddenWithoutConsumingShield`
 
@@ -719,6 +720,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/HiddenPlayModeTests.cs`
 - `Countdown_DoesNotAdvanceHiddenObservation`
 - `Pause_FreezesHiddenObservationAndHideTransition`
 - `Hidden_HidesTargetOnlyAfterObservationAndEtaConditions`
+- `Hidden_PowerDownBlinksFrameAndEmblemBeforeFinalNeutral`
 - `Hidden_UsesOrdinaryShieldAndFailureFlows`
 - `Hidden_UsesHeldEchoWithoutConsumingShield`
 - `Retry_ReproducesHiddenSelectionAndResetsVisibility`
@@ -1063,3 +1065,11 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `TestBuildMenuTests.AndroidGradle_AlignsKotlinLibrariesIdempotently` also
   requires the post-generation interface when tests compile for WebGL. The
   real combined build is the cross-target integration check.
+
+## Iteration 45B current coverage
+
+- `HiddenPowerDownEnvelope_BlinksThenEndsFullyOff` fixes the envelope endpoints,
+  three recovery segments, bounded output and repeatability.
+- `Hidden_PowerDownBlinksFrameAndEmblemBeforeFinalNeutral` verifies synchronized
+  frame/emblem dips and recoveries followed by the exact neutral material.
+- Full current suites pass EditMode `451/451` and PlayMode `250/250`.

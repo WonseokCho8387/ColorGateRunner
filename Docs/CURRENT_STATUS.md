@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `7e28d98764a29086cf3d60b05ee1e174d240874b`
-- Base commit: `feat: improve hidden readability and color emblems`
+- Implementation base HEAD: `97358cda2156e3ca770656b684c4cb5a479fb282`
+- Base commit: `fix: fully hide hidden gate color`
 - Authoritative completion HEAD: the commit named
-  `fix: fully hide hidden gate color`; its exact hash is recorded in the
-  Iteration 45A final report because a commit cannot contain
+  `feat: add hidden power-down flicker`; its exact hash is recorded in the
+  Iteration 45B final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 45A — Hidden Neutral Frame Fix**.
+- Current completed iteration: **Iteration 45B — Hidden Power-Down Flicker**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -280,9 +280,9 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `450/450`
-- PlayMode: `249/249`
-- Post-Builder PlayMode: `249/249`
+- EditMode: `451/451`
+- PlayMode: `250/250`
+- Post-Builder PlayMode: `249/249` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
@@ -392,6 +392,26 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 45B validation result
+
+- Starting HEAD `97358cd` matched Iteration 45A apart from one allowed
+  package-managed WebGL define. Completion commit name:
+  `feat: add hidden power-down flicker`.
+- Hidden retains its authored observation and `0.18s` erase duration, but the
+  monotonic fade is replaced by a deterministic three-dip power-loss envelope.
+  Frame base color, HDR emission and emblem blink together while emblem scale
+  continues to contract monotonically to `0.72`.
+- Completion still applies the exact neutral shared material. Selection,
+  memorized target, geometry, collider, judgment and Retry behavior are
+  unchanged.
+- Focused Hidden EditMode passed `15/15`; focused Hidden PlayMode passed `8/8`.
+  Full EditMode passed `451/451` and full PlayMode passed `250/250`. No Builder,
+  simulation or test build ran because Scene structure, deterministic content,
+  timing, balance, generation and judgment did not change.
+- Package files, tracked ProjectSettings and build outputs have no approved
+  change. Device review must still judge whether the brief outage reads as a
+  failing neon sign without making the target harder to memorize.
 
 ## Iteration 45A validation result
 

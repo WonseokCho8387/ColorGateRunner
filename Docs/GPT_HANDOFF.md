@@ -8,16 +8,16 @@
 
 - 기준일: 2026-08-29
 - 브랜치: `main`
-- 최신 구현: `fix: fully hide hidden gate color` 완료 커밋
-- 완료 Iteration: **Iteration 45A — Hidden Neutral Frame Fix**
+- 최신 구현: `feat: add hidden power-down flicker` 완료 커밋
+- 완료 Iteration: **Iteration 45B — Hidden Power-Down Flicker**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
 - Campaign Catalog: revision 12, stable Stage 1–23
-- 표준 검증 기준: EditMode `450/450`, PlayMode `249/249`
+- 표준 검증 기준: EditMode `451/451`, PlayMode `250/250`
 
 ### 현재 작업 트리 주의
 
-Iteration 45A 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 45B 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.
@@ -78,7 +78,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - 24개 고정 도시 풀, Goal까지 재활용
 - 6개 Gate 풀과 파괴 연출 풀
 - Gate와 하단 색상 UI가 공유하는 6개 투명 이미지 emblem
-- 설명 텍스트 없이 emblem과 색상이 사라지는 Hidden 표현
+- 설명 텍스트 없이 emblem과 색상이 전기 차단처럼 점멸 후 사라지는 Hidden 표현
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
 - 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
 - 10-bank Fog, 고정-capacity wisp/rain과 Fog 구간 어두운 tone
@@ -136,7 +136,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 | Fog | 완료 | 완료 | Stage 12–14 | Storm Fog 적용, 인간 비주얼 검증 필요 |
 | Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
 | Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
-| Hidden | 완료 | 완료 | Stage 21–23 | 전 구간 7/9/11회·텍스트 없는 소거 표현, 인간 검증 필요 |
+| Hidden | 완료 | 완료 | Stage 21–23 | 전 구간 7/9/11회·네온 차단 소거 표현, 인간 검증 필요 |
 | Flicker | 완료 | 완료 | 미배치 | Stage 24–26 제작 필요 |
 
 ### 구현되지 않은 기믹과 모드

@@ -832,3 +832,15 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   emblems are a recognition aid and do not change input or judgment.
 - Fire, ice, vine or other elemental gate identities remain deferred so a
   future stage theme can own environmental meaning without conflict.
+
+## Iteration 45B Hidden power-down contract
+
+- The authored `0.18s` Hidden transition keeps the same start condition and
+  completion time. Presentation replaces its linear fade with one deterministic
+  sequence of three progressively weaker electrical dips and recoveries.
+- Frame base color, frame HDR emission and target emblem use the same visibility
+  envelope. Emblem scale still contracts monotonically from `1.0` to `0.72`;
+  it does not regrow when the light briefly recovers.
+- The final sample is fully off and uses the exact neutral shared material.
+  No randomness, extra judgment state, particles, audio or white flash is part
+  of the mechanic.

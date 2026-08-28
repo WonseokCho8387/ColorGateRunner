@@ -30,6 +30,7 @@ namespace ColorGateRunner.Presentation
         private bool _camouflageRevealStarted;
         private float _camouflageRevealProgress;
         private HiddenVisibilityState _hiddenVisibility;
+        private float _hiddenPowerVisibility = 1f;
         private long _flickerPhaseIndex;
         private float _flickerTransitionPulse;
         private MaterialPropertyBlock _visibilityPropertyBlock;
@@ -63,6 +64,7 @@ namespace ColorGateRunner.Presentation
         internal float HiddenTransitionProgress =>
             _hiddenVisibility.TransitionProgress;
         internal float HiddenTargetAlpha => _hiddenVisibility.TargetAlpha;
+        internal float HiddenPowerVisibility => _hiddenPowerVisibility;
         internal int HiddenHideStartCount =>
             _hiddenVisibility.HideStartCount;
         internal long FlickerPhaseIndex => _flickerPhaseIndex;
@@ -211,7 +213,7 @@ namespace ColorGateRunner.Presentation
             if (plan.IsHidden)
             {
                 ApplyMaterial(_assignedMaterial);
-                ApplyHiddenEmblem(0f);
+                ApplyHiddenEmblem(0f, 1f);
                 return;
             }
             UpdateExperimentVisibility(
@@ -419,29 +421,28 @@ namespace ColorGateRunner.Presentation
                 settings);
             if (_hiddenVisibility.HideStarted)
             {
-                if (_hiddenVisibility.TargetAlpha <= 0f)
-                {
-                    ApplyMaterial(neutralMaterial);
-                }
-                else
-                {
-                    ApplyRevealBlend(
-                        neutralMaterial,
-                        _hiddenVisibility.TargetAlpha);
-                }
+                _hiddenPowerVisibility = HiddenPowerDownEnvelope.Evaluate(
+                    _hiddenVisibility.TransitionProgress);
+                ApplyHiddenPowerDown(
+                    neutralMaterial,
+                    _hiddenPowerVisibility);
             }
             else
             {
+                _hiddenPowerVisibility = 1f;
                 ApplyMaterial(_assignedMaterial);
             }
             ApplyHiddenEmblem(
-                _hiddenVisibility.TransitionProgress);
+                _hiddenVisibility.TransitionProgress,
+                _hiddenPowerVisibility);
         }
 
-        private void ApplyHiddenEmblem(float hideProgress)
+        private void ApplyHiddenEmblem(
+            float hideProgress,
+            float visibility)
         {
             float progress = Mathf.Clamp01(hideProgress);
-            ApplyColorEmblem(1f - progress);
+            ApplyColorEmblem(Mathf.Clamp01(visibility));
             colorEmblem.transform.localScale =
                 Vector3.one * Mathf.Lerp(1f, 0.72f, progress);
             HideMechanicMarker();
@@ -515,6 +516,7 @@ namespace ColorGateRunner.Presentation
                 _hiddenVisibility = new HiddenVisibilityState();
             }
             _hiddenVisibility.Reset();
+            _hiddenPowerVisibility = 1f;
         }
 
         private void ResetFlickerState()
@@ -691,6 +693,53 @@ namespace ColorGateRunner.Presentation
             }
         }
 
+        private void ApplyHiddenPowerDown(
+            Material neutralMaterial,
+            float visibility)
+        {
+            float clampedVisibility = Mathf.Clamp01(visibility);
+            if (clampedVisibility <= 0f)
+            {
+                ApplyMaterial(neutralMaterial);
+                return;
+            }
+            if (_visibilityPropertyBlock == null)
+            {
+                _visibilityPropertyBlock = new MaterialPropertyBlock();
+            }
+
+            Color neutral = GetMaterialColor(neutralMaterial);
+            Color target = GetMaterialColor(_assignedMaterial);
+            Color neutralEmission = GetMaterialPropertyColor(
+                neutralMaterial,
+                "_EmissionColor",
+                Color.black);
+            Color targetEmission = GetMaterialPropertyColor(
+                _assignedMaterial,
+                "_EmissionColor",
+                Color.black);
+            Color blended = Color.Lerp(
+                neutral,
+                target,
+                clampedVisibility);
+            Color blendedEmission = Color.Lerp(
+                neutralEmission,
+                targetEmission,
+                clampedVisibility);
+            _visibilityPropertyBlock.Clear();
+            _visibilityPropertyBlock.SetColor("_BaseColor", blended);
+            _visibilityPropertyBlock.SetColor("_Color", blended);
+            _visibilityPropertyBlock.SetColor(
+                "_EmissionColor",
+                blendedEmission);
+            for (int index = 0; index < gateRenderers.Length; index++)
+            {
+                gateRenderers[index].sharedMaterial = _assignedMaterial;
+                gateRenderers[index].SetPropertyBlock(
+                    _visibilityPropertyBlock);
+            }
+        }
+
         private static Color GetMaterialColor(Material material)
         {
             if (material == null)
@@ -706,6 +755,18 @@ namespace ColorGateRunner.Presentation
                 return material.GetColor("_Color");
             }
             return Color.white;
+        }
+
+        private static Color GetMaterialPropertyColor(
+            Material material,
+            string propertyName,
+            Color fallback)
+        {
+            if (material != null && material.HasProperty(propertyName))
+            {
+                return material.GetColor(propertyName);
+            }
+            return fallback;
         }
 
         private void ApplyColorEmblem(float alpha = 1f)

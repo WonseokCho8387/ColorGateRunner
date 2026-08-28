@@ -818,3 +818,16 @@ fairness, or polish.
   full PlayMode `249/249`. No Builder, simulation or test build is required
   because Scene structure, deterministic content, timing, balance, generation
   and judgment do not change.
+
+### Iteration 45B Hidden power-down flicker
+
+- The power-down envelope must be deterministic, remain inside `0..1`, contain
+  three visible recovery segments and finish exactly at zero.
+- Experiment runtime coverage must prove frame/emblem recovery remains
+  synchronized and the completed gate uses the exact neutral shared material.
+- Hidden timing, target, geometry, collider and judgment must remain unchanged.
+  Retry continues to reset the presentation to full assigned color.
+- Final evidence: focused Hidden EditMode `15/15`, focused Hidden PlayMode
+  `8/8`, full EditMode `451/451` and full PlayMode `250/250`. No Builder,
+  simulation or test build is required because no Scene, deterministic content,
+  timing, balance, generation or judgment input changes.

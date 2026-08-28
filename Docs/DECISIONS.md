@@ -1574,3 +1574,14 @@ Status: Approved and implemented.
   because target-colored emission can remain visible.
 - This is Presentation-only. Hidden timing, selection, memorized target,
   collider, failure, Shield, Echo and Retry rules remain unchanged.
+
+## Iteration 45B — Hidden power loss is a deterministic presentation envelope
+
+- Hidden keeps one gameplay transition and one completion point. A fixed,
+  testable envelope shapes only the visible frame color, HDR emission and
+  emblem alpha into three electrical dips before the neutral final state.
+- The envelope is not random and owns no judgment state. Emblem scale remains
+  monotonic, preventing the power flicker from moving the target silhouette
+  back and forth.
+- No Scene object, particle system, audio cue, package, Stage value or timing
+  authority is added for this polish pass.

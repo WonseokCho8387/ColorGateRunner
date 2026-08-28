@@ -294,6 +294,31 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void HiddenPowerDownEnvelope_BlinksThenEndsFullyOff()
+        {
+            Assert.That(HiddenPowerDownEnvelope.Evaluate(0f), Is.EqualTo(1f));
+            Assert.That(HiddenPowerDownEnvelope.Evaluate(1f), Is.Zero);
+            Assert.That(
+                HiddenPowerDownEnvelope.Evaluate(0.22f),
+                Is.LessThan(HiddenPowerDownEnvelope.Evaluate(0.34f)));
+            Assert.That(
+                HiddenPowerDownEnvelope.Evaluate(0.44f),
+                Is.LessThan(HiddenPowerDownEnvelope.Evaluate(0.57f)));
+            Assert.That(
+                HiddenPowerDownEnvelope.Evaluate(0.68f),
+                Is.LessThan(HiddenPowerDownEnvelope.Evaluate(0.78f)));
+
+            for (int index = 0; index <= 100; index++)
+            {
+                float progress = index / 100f;
+                float first = HiddenPowerDownEnvelope.Evaluate(progress);
+                float second = HiddenPowerDownEnvelope.Evaluate(progress);
+                Assert.That(first, Is.EqualTo(second));
+                Assert.That(first, Is.InRange(0f, 1f));
+            }
+        }
+
+        [Test]
         public void HiddenPlan_UsesOrdinaryPlayerShieldAndFailurePriority()
         {
             ExperimentSession shielded = CreatePlayingHidden(shield: true);

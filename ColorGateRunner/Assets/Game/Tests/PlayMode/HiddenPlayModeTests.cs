@@ -139,6 +139,40 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void Hidden_PowerDownBlinksFrameAndEmblemBeforeFinalNeutral()
+        {
+            HiddenSettings settings = CreateFastHiddenSettings(
+                revealDuration: 0f,
+                transitionDuration: 1f);
+            StartHidden(settings, shield: false);
+            EnterPlaying();
+            StageGateView gate = FindGate(0);
+
+            _controller.Tick(0.22f);
+            float firstDip = gate.HiddenPowerVisibility;
+            float firstDipAlpha = gate.SymbolAlpha;
+            _controller.Tick(0.12f);
+            float firstRecovery = gate.HiddenPowerVisibility;
+            float firstRecoveryAlpha = gate.SymbolAlpha;
+            _controller.Tick(0.1f);
+            float secondDip = gate.HiddenPowerVisibility;
+            _controller.Tick(0.13f);
+            float secondRecovery = gate.HiddenPowerVisibility;
+
+            Assert.That(firstDip, Is.LessThan(firstRecovery));
+            Assert.That(firstDipAlpha, Is.LessThan(firstRecoveryAlpha));
+            Assert.That(secondDip, Is.LessThan(secondRecovery));
+
+            _controller.Tick(0.43f);
+            Assert.That(gate.HiddenTransitionProgress, Is.EqualTo(1f));
+            Assert.That(gate.HiddenPowerVisibility, Is.Zero);
+            Assert.That(gate.SymbolVisible, Is.False);
+            Assert.That(
+                gate.DisplayMaterial,
+                Is.SameAs(_controller.TrackPool.GetSegment(0).SurfaceMaterial));
+        }
+
+        [Test]
         public void Hidden_UsesOrdinaryShieldAndFailureFlows()
         {
             HiddenSettings settings = CreateFastHiddenSettings(

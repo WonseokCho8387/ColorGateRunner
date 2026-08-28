@@ -830,3 +830,15 @@ visible `HIDDEN` marker for current runtime presentation.
   stage-theme coupling remain deferred. Human portrait/device review owns
   emblem distinction, integration with the gate frame, Hidden memory pressure,
   Bloom balance and recognition during curves and Storm Fog.
+
+## Iteration 45B Hidden neon power loss
+
+- Hidden should feel like a neon gate losing power, not a UI element fading.
+  Within the existing short erase duration, color and emission drop sharply,
+  recover twice at weaker strength, flicker once more and then stay off.
+- The emblem shares the exact light-strength envelope so it never contradicts
+  the frame. Its silhouette still shrinks smoothly toward `0.72`, preserving a
+  single directional motion underneath the electrical flicker.
+- Recovery never flashes white or exceeds the assigned gate color. The final
+  silhouette remains the non-target neutral gate. Audio, particles and
+  full-screen effects remain excluded.
