@@ -419,9 +419,16 @@ namespace ColorGateRunner.Presentation
                 settings);
             if (_hiddenVisibility.HideStarted)
             {
-                ApplyRevealBlend(
-                    neutralMaterial,
-                    _hiddenVisibility.TargetAlpha);
+                if (_hiddenVisibility.TargetAlpha <= 0f)
+                {
+                    ApplyMaterial(neutralMaterial);
+                }
+                else
+                {
+                    ApplyRevealBlend(
+                        neutralMaterial,
+                        _hiddenVisibility.TargetAlpha);
+                }
             }
             else
             {

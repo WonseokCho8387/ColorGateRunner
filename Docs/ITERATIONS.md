@@ -2759,3 +2759,37 @@ Human feedback required
 - Elemental gate themes, per-color particles/models, Flicker Stages 24–26,
   release signing/AAB, deployment hosting and automatic balance changes remain
   deferred.
+
+## Iteration 45A — Hidden Neutral Frame Fix
+
+### Play / Analyze
+
+- Human review found that the emblem disappeared but target color remained on
+  the Hidden gate. The View blended base-color properties toward neutral while
+  keeping the assigned HDR-emissive material, unlike Camouflage's actual
+  neutral-material hidden state.
+
+### Design / Implementation
+
+- Hidden keeps its existing observation and `0.18s` erase transition. Once the
+  target alpha reaches zero, every frame renderer switches to the supplied
+  neutral material. The stored target color and ordinary judgment are not
+  changed.
+- PlayMode assertions now cover neutral material after forced and natural
+  Campaign hiding, Experiment hiding, and assigned-material restoration after
+  Retry.
+
+### Validation / Learning
+
+- Focused Hidden PlayMode passed `7/7`; full EditMode passed `450/450`; full
+  PlayMode passed `249/249`. No Builder, simulation or test build ran because
+  Scene structure and deterministic gameplay inputs were unchanged.
+- Final visual state must be tested at the material level when emissive
+  materials are used. Base-color equality alone does not prove that a color cue
+  is absent.
+
+### Deferred / Human Review
+
+- Confirm on the target display that Stages 21–23 retain a readable neutral
+  silhouette but no residual target-color glow. Elemental gate theming and
+  Flicker Stages 24–26 remain deferred.

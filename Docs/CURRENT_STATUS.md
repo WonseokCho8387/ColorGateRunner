@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `db8d21219a05885d8020a3333731c04f26810c70`
-- Base commit: `feat: add hidden stages and refresh test builds`
+- Implementation base HEAD: `7e28d98764a29086cf3d60b05ee1e174d240874b`
+- Base commit: `feat: improve hidden readability and color emblems`
 - Authoritative completion HEAD: the commit named
-  `feat: improve hidden readability and color emblems`; its exact hash is
-  recorded in the Iteration 45 final report because a commit cannot contain
+  `fix: fully hide hidden gate color`; its exact hash is recorded in the
+  Iteration 45A final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,8 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 45 — Hidden Feel and Color
-  Emblems**.
+- Current completed iteration: **Iteration 45A — Hidden Neutral Frame Fix**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -393,6 +392,25 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 45A validation result
+
+- Starting HEAD `7e28d98` was clean apart from one allowed package-managed
+  WebGL define. Completion commit name: `fix: fully hide hidden gate color`.
+- Hidden previously blended `_BaseColor` and `_Color` toward neutral while
+  retaining the assigned emissive material. Its target-colored emission could
+  therefore remain visible after the emblem disappeared.
+- At transition completion Hidden now applies the same neutral material used
+  by a hidden Camouflage gate. The memorized `AssignedColor`, geometry,
+  collider and ordinary judgment remain unchanged; Retry restores the assigned
+  color material before the next observation.
+- Focused Hidden PlayMode passed `7/7`. Full EditMode passed `450/450` and full
+  PlayMode passed `249/249`. No Builder, deterministic Stage data, Campaign or
+  Step 10 input changed, and no test build was produced.
+- Package files, tracked ProjectSettings, generated materials and build output
+  have no approved change. Stage 21–23 visual confirmation remains human
+  review because automation cannot establish whether all residual color is
+  absent on the target display.
 
 ## Iteration 45 validation result
 

@@ -802,3 +802,19 @@ fairness, or polish.
   two byte-identical 80-row / 64,016-run Step 10 runs. The real combined build
   produced a 68,774,305-byte APK and a 155,566,553-byte WebGL folder with an
   exact `540 x 960` / `9:16` canvas.
+
+### Iteration 45A Hidden neutral-frame correction
+
+- A fully hidden Experiment or Campaign gate must use the exact neutral shared
+  material used by hidden Camouflage, not the assigned color-emissive material
+  with only base-color property overrides.
+- Hidden observation and transition keep the existing emblem fade/contract,
+  timing and geometry. Judgment retains the memorized target color, and Retry
+  must restore the assigned color material before observation restarts.
+- Focused `HiddenPlayModeTests` must cover final neutral material and Retry
+  restoration. Campaign Hidden tests must cover forced and live-approach final
+  neutral material while retaining ordinary judgment.
+- Final evidence: focused Hidden PlayMode `7/7`, full EditMode `450/450` and
+  full PlayMode `249/249`. No Builder, simulation or test build is required
+  because Scene structure, deterministic content, timing, balance, generation
+  and judgment do not change.

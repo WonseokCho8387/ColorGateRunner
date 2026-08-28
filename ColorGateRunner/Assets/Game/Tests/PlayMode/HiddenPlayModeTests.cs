@@ -130,6 +130,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(gate.SymbolVisible, Is.False);
             Assert.That(gate.MarkerVisible, Is.False);
             Assert.That(gate.SymbolText, Is.Empty);
+            Assert.That(
+                gate.DisplayMaterial,
+                Is.SameAs(_controller.TrackPool.GetSegment(0).SurfaceMaterial));
             Assert.That(gate.AssignedColor, Is.EqualTo(targetColor));
             Assert.That(gate.transform.position, Is.EqualTo(position));
             Assert.That(gate.GetComponent<BoxCollider>().enabled, Is.True);
@@ -262,6 +265,10 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(replay.SymbolVisible, Is.True);
             Assert.That(replay.MarkerVisible, Is.False);
             Assert.That(replay.SymbolText, Is.Empty);
+            Assert.That(
+                replay.DisplayMaterial,
+                Is.SameAs(_controller.GetPresentationMaterial(
+                    replay.AssignedColor)));
         }
 
         private void StartHidden(

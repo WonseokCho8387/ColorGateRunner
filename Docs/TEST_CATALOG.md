@@ -1051,11 +1051,13 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   Builder validation and the existing HUD cases require SpriteRenderer/Image
   references rather than Unicode Text symbols.
 - `GrayboxScenePlayModeTests.CampaignHiddenGate_HidesEmblemWithoutTextAndKeepsJudgment`
-  rejects a Hidden marker while retaining ordinary judgment.
+  rejects a Hidden marker, requires the Camouflage-neutral material at full
+  hide and retains ordinary judgment.
   `CampaignHiddenGate_NaturallyErasesDuringLiveApproach` advances the real
-  Campaign until the live observation, fade/contract and fully hidden states.
+  Campaign until the live observation, fade/contract and fully neutral states.
 - `HiddenPlayModeTests` retains seven pause, timing, judgment, Echo, Shield and
-  Retry cases under the text-free emblem presentation. Flicker coverage now
+  Retry cases under the text-free emblem presentation, including neutral final
+  material and assigned-material Retry restoration. Flicker coverage now
   verifies its active Core color and emblem sprite stay synchronized while its
   distinct `FLICKER` marker remains.
 - `TestBuildMenuTests.AndroidGradle_AlignsKotlinLibrariesIdempotently` also

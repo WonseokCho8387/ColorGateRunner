@@ -1565,3 +1565,12 @@ Status: Approved and implemented.
   on WebGL, so the post-generation interface is compiled unconditionally; no
   Package, ProjectSettings, custom Gradle template or asynchronous platform
   reload state machine is introduced.
+
+## Iteration 45A — Fully hidden means the neutral material owns the frame
+
+- Hidden may blend toward neutral during its short transition, but its complete
+  state uses the same neutral shared material as hidden Camouflage. Keeping the
+  assigned emissive material with neutral base-color overrides is not accepted
+  because target-colored emission can remain visible.
+- This is Presentation-only. Hidden timing, selection, memorized target,
+  collider, failure, Shield, Echo and Retry rules remain unchanged.

@@ -816,8 +816,9 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 
 - Hidden communicates through the gate itself. It shows no `HIDDEN` label or
   explanatory text. The target emblem fades and contracts while the colored
-  frame blends to the existing neutral silhouette; neither target cue returns
-  before judgment.
+  frame blends to the existing neutral silhouette. When the transition
+  completes, the frame uses the neutral material itself so target-color
+  emission cannot remain visible; neither target cue returns before judgment.
 - Stages 21 / 22 / 23 distribute deterministic Hidden gates across the full
   run at gate numbers `6,12,16,21,27,33,36` / `6,9,17,21,24,29,34,37,43` /
   `6,9,12,15,21,25,30,33,36,39,47`.

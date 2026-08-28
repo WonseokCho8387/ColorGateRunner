@@ -2487,6 +2487,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(hidden.SymbolVisible, Is.False);
             Assert.That(hidden.MarkerVisible, Is.False);
             Assert.That(hidden.SymbolText, Is.Empty);
+            Assert.That(hidden.DisplayMaterial, Is.SameAs(neutral));
             Assert.That(hidden.AssignedColor, Is.EqualTo(targetColor));
             Match(targetColor);
             Assert.That(hidden.TryResolveCrossing(), Is.True);
@@ -2527,6 +2528,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(hidden.SymbolVisible, Is.False);
             Assert.That(hidden.MarkerVisible, Is.False);
             Assert.That(hidden.SymbolText, Is.Empty);
+            Assert.That(
+                hidden.DisplayMaterial,
+                Is.SameAs(_controller.TrackPool.GetSegment(0).SurfaceMaterial));
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
         }

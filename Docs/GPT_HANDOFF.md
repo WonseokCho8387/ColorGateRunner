@@ -6,10 +6,10 @@
 
 ## 1. 인계 기준
 
-- 기준일: 2026-08-28
+- 기준일: 2026-08-29
 - 브랜치: `main`
-- 최신 구현: `feat: improve hidden readability and color emblems` 완료 커밋
-- 완료 Iteration: **Iteration 45 — Hidden Feel and Color Emblems**
+- 최신 구현: `fix: fully hide hidden gate color` 완료 커밋
+- 완료 Iteration: **Iteration 45A — Hidden Neutral Frame Fix**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
 - Campaign Catalog: revision 12, stable Stage 1–23
@@ -17,7 +17,7 @@
 
 ### 현재 작업 트리 주의
 
-Iteration 45 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 45A 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.

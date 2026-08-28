@@ -821,9 +821,11 @@ visible `HIDDEN` marker for current runtime presentation.
   above it; an ordinary or Hidden gate adds no explanatory text.
 - Hidden starts with the full emblem, then fades it to transparent while
   reducing its scale to `0.72` over the authored transition. The gate frame
-  simultaneously becomes neutral. Geometry, opening, collider and judgment
-  pose remain stable, so the user experiences erased target information rather
-  than a disappearing obstacle or a tutorial label.
+  simultaneously becomes neutral and finishes on the same neutral material
+  used by a hidden Camouflage gate, rather than retaining a color-emissive
+  material with only its base tint overridden. Geometry, opening, collider and
+  judgment pose remain stable, so the user experiences erased target
+  information rather than a disappearing obstacle or a tutorial label.
 - Elemental fire/ice/vine identities, per-color particles, new gate models and
   stage-theme coupling remain deferred. Human portrait/device review owns
   emblem distinction, integration with the gate frame, Hidden memory pressure,
