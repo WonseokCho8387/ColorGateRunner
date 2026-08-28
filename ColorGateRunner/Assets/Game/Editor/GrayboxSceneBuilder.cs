@@ -57,6 +57,8 @@ namespace ColorGateRunner.Editor
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             Theme01UiSkinBuilder.EnsureAndConfigure();
+            Sprite[] colorEmblems =
+                Theme01UiSkinBuilder.LoadColorEmblems();
             string frontendPath = SelectFrontendScenePath(
                 EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
@@ -209,7 +211,8 @@ namespace ColorGateRunner.Editor
                     controller,
                     darkAlloy,
                     neutral,
-                    protectionFieldMaterial);
+                    protectionFieldMaterial,
+                    colorEmblems[0]);
             GateBreakEffectPool gateBreakEffects =
                 CreateGateBreakEffectPool(root.transform, cyan);
             ParticleSystem successParticles =
@@ -340,10 +343,11 @@ namespace ColorGateRunner.Editor
             GameObject colorHudPanel;
             GameObject[] colorTiles;
             Image[] colorTileImages;
-            Text[] colorTileSymbols;
+            Image[] colorTileEmblems;
             GameObject[] nextColorMarkers;
             CreateHud(
                 flowRoots[2].transform,
+                colorEmblems,
                 out hud,
                 out hudStage,
                 out hudProgress,
@@ -355,7 +359,7 @@ namespace ColorGateRunner.Editor
                 out colorHudPanel,
                 out colorTiles,
                 out colorTileImages,
-                out colorTileSymbols,
+                out colorTileEmblems,
                 out nextColorMarkers);
 
             GameObject clearPanel;
@@ -440,6 +444,7 @@ namespace ColorGateRunner.Editor
                 purple,
                 cyan,
                 failure,
+                colorEmblems,
                 tapSurface,
                 trackPool,
                 campaignSplinePath,
@@ -499,7 +504,7 @@ namespace ColorGateRunner.Editor
                 colorHudPanel,
                 colorTiles,
                 colorTileImages,
-                colorTileSymbols,
+                colorTileEmblems,
                 nextColorMarkers,
                 clearPanel,
                 clearTitle,
@@ -950,7 +955,7 @@ namespace ColorGateRunner.Editor
                     $"ColorTile_{tileIndex}") != 1 ||
                     CountNamedTransforms(
                         generatedRoot,
-                        $"ColorTileSymbol_{tileIndex}") != 1 ||
+                        $"ColorTileEmblem_{tileIndex}") != 1 ||
                     CountNamedTransforms(
                         generatedRoot,
                         $"ColorTileNextMarker_{tileIndex}") != 1)
@@ -2291,7 +2296,8 @@ namespace ColorGateRunner.Editor
             StageSceneController controller,
             Material darkMaterial,
             Material colorMaterial,
-            Material protectionFieldMaterial)
+            Material protectionFieldMaterial,
+            Sprite defaultEmblem)
         {
             GameObject pool = new GameObject("StageGatePool");
             pool.transform.SetParent(parent, false);
@@ -2328,19 +2334,32 @@ namespace ColorGateRunner.Editor
                     Transform anchor = new GameObject(anchorNames[part]).transform;
                     anchor.SetParent(gateObject.transform, false);
                 }
-                GameObject symbolObject = new GameObject(
-                    "ColorSymbol",
+                GameObject emblemObject = new GameObject(
+                    "ColorEmblem",
+                    typeof(SpriteRenderer));
+                emblemObject.transform.SetParent(gateObject.transform, false);
+                emblemObject.transform.localPosition =
+                    new Vector3(0f, 3f, -0.40f);
+                SpriteRenderer emblem =
+                    emblemObject.GetComponent<SpriteRenderer>();
+                emblem.sprite = defaultEmblem;
+                emblem.color = Color.white;
+                emblem.sortingOrder = 20;
+
+                GameObject markerObject = new GameObject(
+                    "MechanicMarker",
                     typeof(TextMesh));
-                symbolObject.transform.SetParent(gateObject.transform, false);
-                symbolObject.transform.localPosition =
-                    new Vector3(0f, 3f, -0.38f);
-                TextMesh symbol = symbolObject.GetComponent<TextMesh>();
-                symbol.text = "●";
-                symbol.anchor = TextAnchor.MiddleCenter;
-                symbol.alignment = TextAlignment.Center;
-                symbol.fontSize = 96;
-                symbol.characterSize = 0.035f;
-                symbol.color = Color.white;
+                markerObject.transform.SetParent(gateObject.transform, false);
+                markerObject.transform.localPosition =
+                    new Vector3(0f, 4.05f, -0.39f);
+                TextMesh marker = markerObject.GetComponent<TextMesh>();
+                marker.text = string.Empty;
+                marker.anchor = TextAnchor.MiddleCenter;
+                marker.alignment = TextAlignment.Center;
+                marker.fontSize = 72;
+                marker.characterSize = 0.025f;
+                marker.color = Color.white;
+                marker.gameObject.SetActive(false);
 
                 GameObject fieldObject = GameObject.CreatePrimitive(
                     PrimitiveType.Quad);
@@ -2364,7 +2383,12 @@ namespace ColorGateRunner.Editor
 
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
-                view.Configure(controller, renderers, symbol, echoField);
+                view.Configure(
+                    controller,
+                    renderers,
+                    emblem,
+                    marker,
+                    echoField);
                 gates[index] = view;
             }
 
@@ -3058,6 +3082,7 @@ namespace ColorGateRunner.Editor
 
         private static void CreateHud(
             Transform parent,
+            Sprite[] colorEmblems,
             out GameObject panel,
             out Text stage,
             out Text progress,
@@ -3069,7 +3094,7 @@ namespace ColorGateRunner.Editor
             out GameObject colorHudPanel,
             out GameObject[] colorTiles,
             out Image[] colorTileImages,
-            out Text[] colorTileSymbols,
+            out Image[] colorTileEmblems,
             out GameObject[] nextColorMarkers)
         {
             panel = CreatePanel(
@@ -3179,14 +3204,13 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.88f, 0.145f));
             colorTiles = new GameObject[6];
             colorTileImages = new Image[6];
-            colorTileSymbols = new Text[6];
+            colorTileEmblems = new Image[6];
             nextColorMarkers = new GameObject[6];
             Color[] tileColors =
             {
                 RedColor, BlueColor, GreenColor,
                 NeutralColor, NeutralColor, NeutralColor
             };
-            string[] symbols = { "●", "■", "▲", "★", "◆", "HEX" };
             for (int index = 0; index < colorTiles.Length; index++)
             {
                 GameObject tile = CreatePanel(
@@ -3203,13 +3227,23 @@ namespace ColorGateRunner.Editor
                 colorTiles[index] = tile;
                 colorTileImages[index] = tile.GetComponent<Image>();
                 colorTileImages[index].raycastTarget = false;
-                colorTileSymbols[index] = CreateText(
-                    $"ColorTileSymbol_{index}",
-                    tile.transform,
-                    symbols[index],
-                    index == 5 ? 24 : 38,
-                    Vector2.zero,
-                    Vector2.one);
+                GameObject emblemObject = new GameObject(
+                    $"ColorTileEmblem_{index}",
+                    typeof(RectTransform),
+                    typeof(Image));
+                emblemObject.transform.SetParent(tile.transform, false);
+                RectTransform emblemRect =
+                    emblemObject.GetComponent<RectTransform>();
+                emblemRect.anchorMin = new Vector2(0.18f, 0.08f);
+                emblemRect.anchorMax = new Vector2(0.82f, 0.92f);
+                emblemRect.offsetMin = Vector2.zero;
+                emblemRect.offsetMax = Vector2.zero;
+                colorTileEmblems[index] =
+                    emblemObject.GetComponent<Image>();
+                colorTileEmblems[index].sprite = colorEmblems[index];
+                colorTileEmblems[index].preserveAspect = true;
+                colorTileEmblems[index].raycastTarget = false;
+                colorTileEmblems[index].color = Color.white;
                 Text nextLabel = CreateText(
                     $"ColorTileNextMarker_{index}",
                     tile.transform,

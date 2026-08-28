@@ -784,7 +784,9 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
             Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(3));
-            Assert.That(_controller.GetColorTileSymbol(2).text, Is.EqualTo("▲"));
+            Assert.That(
+                _controller.GetColorTileEmblem(2).sprite,
+                Is.SameAs(_controller.GetColorEmblemSprite(RunnerColor.Green)));
         }
 
         [Test]
@@ -1036,7 +1038,12 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 0; index < 6; index++)
             {
                 Assert.That(_controller.GetColorTile(index), Is.Not.Null);
-                Assert.That(_controller.GetColorTileSymbol(index), Is.Not.Null);
+                Assert.That(_controller.GetColorTileEmblem(index), Is.Not.Null);
+                Assert.That(
+                    _controller.GetColorTileEmblem(index).sprite,
+                    Is.SameAs(
+                        _controller.GetColorEmblemSprite(
+                            (RunnerColor)index)));
             }
         }
 
@@ -2451,7 +2458,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void CampaignHiddenGate_HidesTargetAndKeepsMarkerAndJudgment()
+        public void CampaignHiddenGate_HidesEmblemWithoutTextAndKeepsJudgment()
         {
             SelectAndStartStage(21);
             StageGateView hidden = AdvanceToCampaignModifier(
@@ -2460,7 +2467,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Material neutral =
                 _controller.TrackPool.GetSegment(0).SurfaceMaterial;
 
-            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(hidden.SymbolVisible, Is.True);
+            Assert.That(hidden.MarkerVisible, Is.False);
+            Assert.That(hidden.SymbolText, Is.Empty);
             Assert.That(hidden.HiddenTargetAlpha, Is.EqualTo(1f));
 
             hidden.UpdateCampaignVisibility(
@@ -2475,13 +2484,51 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(hidden.HiddenHideStarted, Is.True);
             Assert.That(hidden.HiddenTargetAlpha, Is.Zero);
-            Assert.That(hidden.SymbolVisible, Is.True);
-            Assert.That(hidden.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(hidden.SymbolVisible, Is.False);
+            Assert.That(hidden.MarkerVisible, Is.False);
+            Assert.That(hidden.SymbolText, Is.Empty);
             Assert.That(hidden.AssignedColor, Is.EqualTo(targetColor));
             Match(targetColor);
             Assert.That(hidden.TryResolveCrossing(), Is.True);
             Assert.That(_controller.Session.FlowState,
                 Is.Not.EqualTo(StageFlowState.Failed));
+        }
+
+        [Test]
+        public void CampaignHiddenGate_NaturallyErasesDuringLiveApproach()
+        {
+            SelectAndStartStage(21);
+            StageGateView hidden = AdvanceToCampaignModifier(
+                GateModifierType.Hidden);
+            Match(hidden.AssignedColor);
+
+            for (int tick = 0;
+                tick < 240 && !hidden.HiddenHideStarted;
+                tick++)
+            {
+                _controller.Tick(0.05f);
+            }
+
+            Assert.That(hidden.HiddenHideStarted, Is.True);
+            Assert.That(
+                hidden.HiddenVisibleElapsed,
+                Is.GreaterThanOrEqualTo(
+                    _controller.Session.Stage.HiddenSettings
+                        .RevealDurationSeconds));
+
+            for (int tick = 0;
+                tick < 10 && hidden.HiddenTargetAlpha > 0f;
+                tick++)
+            {
+                _controller.Tick(0.05f);
+            }
+
+            Assert.That(hidden.HiddenTargetAlpha, Is.Zero);
+            Assert.That(hidden.SymbolVisible, Is.False);
+            Assert.That(hidden.MarkerVisible, Is.False);
+            Assert.That(hidden.SymbolText, Is.Empty);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
         }
 
         [TestCase(12, GateModifierType.Fog)]

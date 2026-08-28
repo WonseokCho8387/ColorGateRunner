@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `0318ba1b22b1719b47512088b2bcf04280e4e5a2`
-- Base commit: `feat: refine fog weather and curve readability`
+- Implementation base HEAD: `db8d21219a05885d8020a3333731c04f26810c70`
+- Base commit: `feat: add hidden stages and refresh test builds`
 - Authoritative completion HEAD: the commit named
-  `feat: add hidden stages and refresh test builds`; its exact hash is
-  recorded in the Iteration 44 final report because a commit cannot contain
+  `feat: improve hidden readability and color emblems`; its exact hash is
+  recorded in the Iteration 45 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,8 +23,8 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 44 — Hidden Campaign Block and
-  Current Test Builds**.
+- Current completed iteration: **Iteration 45 — Hidden Feel and Color
+  Emblems**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -148,6 +148,10 @@ below where their contracts differ.
   color is centered, next is emphasized to the right and previous is reduced
   to the left; two-color stages use a balanced current/next pair and additional
   colors reuse the same fixed slots without covering left-hand curves.
+- Gates and the bottom color-order HUD now share six distinct transparent,
+  non-elemental Theme 1 image emblems. The former Unicode shape glyphs are no
+  longer used by normal runtime presentation. Echo and Flicker retain their
+  concise mechanic markers, while Hidden has no explanatory marker or text.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
   alpha 9-slice panel/button/chip sprites and ten semantic resource/action
   icons. Builder-created panels retain their existing hierarchy and text;
@@ -199,6 +203,11 @@ below where their contracts differ.
   now teach Hidden recall with the same 2/2/3-color block shape and isolated
   Hidden modifier. Flicker remains available in Experiment Lab and is deferred
   from Campaign until planned Stages 24–26.
+- Hidden Stages 21–23 now place `7 / 9 / 11` deterministic occurrences across
+  the full run. Their `1.30 / 1.15 / 1.00s` hide leads and shared `0.18s`
+  emblem fade/contract transition make the intro readable while increasing
+  repetition and later-run memory pressure. Judgment and simulation authority
+  remain unchanged.
 - Existing saves that cleared Stage 20 and still store Stage 20 as their
   highest unlocked Stage resolve Stage 21 as effectively unlocked after the
   catalog expansion. Loading does not rewrite the Product save or legacy
@@ -272,19 +281,19 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `449/449`
-- PlayMode: `248/248`
-- Post-Builder PlayMode: `248/248`
+- EditMode: `450/450`
+- PlayMode: `249/249`
+- Post-Builder PlayMode: `249/249`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 44 passes completed; the active
+- Campaign Builder: two consecutive Iteration 45 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: revision 11 Resource contains 23 valid stages
+- Stage Catalog Builder: revision 12 Resource contains 23 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -384,6 +393,39 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 45 validation result
+
+- Starting HEAD `db8d212` was clean. Completion commit name:
+  `feat: improve hidden readability and color emblems`.
+- Catalog revision 12 keeps 23 stable Stages and redistributes Hidden across
+  the whole of Stages 21–23 with `7 / 9 / 11` occurrences. Stage-local leads
+  are `1.30 / 1.15 / 1.00s` and the shared transition is `0.18s`; ordinary
+  target-color judgment, seeds, gate counts, speed, cadence, rewards and save
+  contracts remain unchanged.
+- Six original transparent Theme 1 emblem sprites replace Unicode shapes on
+  pooled gates and the bottom color-order HUD. Hidden now communicates only by
+  fading/contracting that emblem and neutralizing the frame; no `HIDDEN` text
+  or instructional label remains. Elemental gate theming stays deferred.
+- Android Gradle alignment now implements its post-generation callback on
+  every Editor start target, rather than compiling the callback only while
+  Android is already active. The real combined Android-plus-WebGL command
+  therefore succeeds when launched from WebGL.
+- Focused Hidden EditMode passed `10/10`; focused Hidden PlayMode passed `7/7`
+  plus the live Campaign approach case `1/1`. WebGL-start build-tool EditMode
+  passed `7/7`. Campaign Builder completed consecutive passes; final full
+  EditMode passed `450/450` and final post-Builder PlayMode passed `249/249`.
+- Two 460-row Campaign simulations retained Summary
+  `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`,
+  JSON `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
+  and CSV `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`.
+  Two Step 10 runs retained all five authoritative hashes.
+- The real combined Development build produced a fresh 68,774,305-byte APK
+  and a 155,566,553-byte WebGL folder with index, data, framework, loader and
+  WASM. Its canvas remains `540 x 960` and exact `9:16`.
+- Package files, tracked ProjectSettings and the developer Product save retain
+  their approved baselines. Installation, touch/browser behavior, emblem
+  distinction and Hidden feel remain human review.
 
 ## Iteration 44 validation result
 
@@ -1409,13 +1451,14 @@ Test Build Tooling
 - Generated Android Gradle projects force Kotlin stdlib `1.8.22` and exclude
   the legacy split jdk7/jdk8 artifacts that otherwise duplicate classes with
   current Google dependencies. The postprocessor is idempotent and repairs a
-  cached pre-`plugins` insertion without deleting the whole build cache.
+  cached pre-`plugins` insertion without deleting the whole build cache. Its
+  callback remains registered when the Editor starts on WebGL.
 - Build-menu, portrait-template and Gradle-upgrade EditMode coverage passes
-  `7/7`; the full current EditMode suite passes `449/449`.
-- The current menu-driven Android build completed and produced a
-  64,957,676-byte APK. Installation and target-device behavior remain manual.
-- The current menu-driven WebGL build completed and produced a 156,006,568-byte
-  output folder. Its generated page contains a `540 x 960` canvas and exact
+  `7/7`; the full current EditMode suite passes `450/450`.
+- The current combined menu-driven Android build completed and produced a
+  68,774,305-byte APK. Installation and target-device behavior remain manual.
+- The same command produced a 155,566,553-byte WebGL output folder. Its
+  generated page contains a `540 x 960` canvas and exact
   `9:16` frame rules. Browser play, input, resizing and host-server behavior
   remain human acceptance checks.
 

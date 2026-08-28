@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 11
+  catalogRevision: 12
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -2146,14 +2146,14 @@ MonoBehaviour:
     fogFadeOutSeconds: 0.5
     iceSpeedMultiplier: 1.45
     hiddenEnabled: 1
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
+    hiddenEligibleStart: 0.1
+    hiddenEligibleEnd: 0.92
+    hiddenOccurrenceChance: 0.4
     hiddenMinimumGateCooldown: 2
     hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
+    hiddenLeadSeconds: 1.3
+    hiddenTransitionSeconds: 0.18
+    hiddenMaxOccurrences: 7
     hiddenFirstGuaranteed: 1
     flickerEnabled: 0
     flickerEligibleStart: 0.15
@@ -2253,14 +2253,14 @@ MonoBehaviour:
     fogFadeOutSeconds: 0.5
     iceSpeedMultiplier: 1.45
     hiddenEnabled: 1
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
+    hiddenEligibleStart: 0.1
+    hiddenEligibleEnd: 0.94
+    hiddenOccurrenceChance: 0.4
     hiddenMinimumGateCooldown: 2
     hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
+    hiddenLeadSeconds: 1.15
+    hiddenTransitionSeconds: 0.18
+    hiddenMaxOccurrences: 9
     hiddenFirstGuaranteed: 1
     flickerEnabled: 0
     flickerEligibleStart: 0.15
@@ -2360,14 +2360,14 @@ MonoBehaviour:
     fogFadeOutSeconds: 0.5
     iceSpeedMultiplier: 1.45
     hiddenEnabled: 1
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
+    hiddenEligibleStart: 0.1
+    hiddenEligibleEnd: 0.96
+    hiddenOccurrenceChance: 0.45
     hiddenMinimumGateCooldown: 2
     hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
+    hiddenLeadSeconds: 1
+    hiddenTransitionSeconds: 0.18
+    hiddenMaxOccurrences: 11
     hiddenFirstGuaranteed: 1
     flickerEnabled: 0
     flickerEligibleStart: 0.15

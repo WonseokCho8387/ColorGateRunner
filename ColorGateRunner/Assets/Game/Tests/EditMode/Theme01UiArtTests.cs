@@ -20,6 +20,11 @@ namespace ColorGateRunner.Tests.EditMode
             "Play", "Back", "Pause", "Retry", "Continue"
         };
 
+        private static readonly string[] ColorEmblemAssets =
+        {
+            "Red", "Blue", "Green", "Yellow", "Purple", "Cyan"
+        };
+
         [Test]
         public void Theme01UiArt_ImportsTransparentSpritesAndSliceBorders()
         {
@@ -41,6 +46,23 @@ namespace ColorGateRunner.Tests.EditMode
                 Theme01UiSkinBuilder.ArtFolder + "/ButtonPrimary.png");
             AssertHasRealTransparency(
                 Theme01UiSkinBuilder.ArtFolder + "/IconShield.png");
+
+            for (int index = 0;
+                index < ColorEmblemAssets.Length;
+                index++)
+            {
+                string path = Theme01UiSkinBuilder.ArtFolder +
+                    "/ColorEmblems/Emblem" +
+                    ColorEmblemAssets[index] + ".png";
+                AssertSprite(path, false);
+                TextureImporter importer =
+                    AssetImporter.GetAtPath(path) as TextureImporter;
+                Assert.That(
+                    importer.spritePixelsPerUnit,
+                    Is.EqualTo(512f),
+                    path);
+                AssertHasRealTransparency(path);
+            }
         }
 
         private static void AssertSprite(string path, bool sliced)

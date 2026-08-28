@@ -317,8 +317,8 @@ namespace ColorGateRunner.Tests.PlayMode
                 RunnerColor color = (RunnerColor)index;
                 _controller.GetColorTileImage(index).color =
                     _controller.GetPresentationMaterial(color).color;
-                _controller.GetColorTileSymbol(index).text =
-                    SymbolFor(color);
+                _controller.GetColorTileEmblem(index).sprite =
+                    _controller.GetColorEmblemSprite(color);
                 ((RectTransform)tile.transform).anchoredPosition =
                     new Vector2(0f, -34f - index * 42f);
                 tile.transform.localScale = Vector3.one *
@@ -379,25 +379,6 @@ namespace ColorGateRunner.Tests.PlayMode
             }
             Assert.Fail("Required experiment plan was not generated.");
             return default;
-        }
-
-        private static string SymbolFor(RunnerColor color)
-        {
-            switch (MobileUiPolicy.GetSymbol(color))
-            {
-                case RunnerColorSymbol.Circle:
-                    return "●";
-                case RunnerColorSymbol.Square:
-                    return "■";
-                case RunnerColorSymbol.Triangle:
-                    return "▲";
-                case RunnerColorSymbol.Star:
-                    return "★";
-                case RunnerColorSymbol.Diamond:
-                    return "◆";
-                default:
-                    return "HEX";
-            }
         }
 
         private void StartWithoutItems()

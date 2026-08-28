@@ -111,7 +111,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Vector3 position = gate.transform.position;
             RunnerColor targetColor = gate.AssignedColor;
 
-            Assert.That(gate.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(gate.SymbolVisible, Is.True);
+            Assert.That(gate.MarkerVisible, Is.False);
+            Assert.That(gate.SymbolText, Is.Empty);
             Assert.That(gate.HiddenTargetAlpha, Is.EqualTo(1f));
 
             _controller.Tick(0.99f);
@@ -125,8 +127,9 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(0.19f);
             Assert.That(gate.HiddenTransitionProgress, Is.EqualTo(1f));
             Assert.That(gate.HiddenTargetAlpha, Is.Zero);
-            Assert.That(gate.SymbolVisible, Is.True);
-            Assert.That(gate.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(gate.SymbolVisible, Is.False);
+            Assert.That(gate.MarkerVisible, Is.False);
+            Assert.That(gate.SymbolText, Is.Empty);
             Assert.That(gate.AssignedColor, Is.EqualTo(targetColor));
             Assert.That(gate.transform.position, Is.EqualTo(position));
             Assert.That(gate.GetComponent<BoxCollider>().enabled, Is.True);
@@ -256,7 +259,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(replay.HiddenHideStarted, Is.False);
             Assert.That(replay.HiddenTransitionProgress, Is.Zero);
             Assert.That(replay.HiddenTargetAlpha, Is.EqualTo(1f));
-            Assert.That(replay.SymbolText, Does.Contain("HIDDEN"));
+            Assert.That(replay.SymbolVisible, Is.True);
+            Assert.That(replay.MarkerVisible, Is.False);
+            Assert.That(replay.SymbolText, Is.Empty);
         }
 
         private void StartHidden(

@@ -2700,3 +2700,62 @@ Human feedback required
   memory, heat and device-specific graphics.
 - Flicker Stages 24–26, additional campaign content, release signing/AAB,
   store initialization, deployment hosting and balance changes remain deferred.
+
+## Iteration 45 — Hidden Feel and Color Emblems
+
+### Play / Analyze
+
+- Human play found that Stages 21–23 did not communicate a distinct mechanic.
+  Their four sparse selections appeared early, while the persistent `HIDDEN`
+  label explained a name instead of making the disappearing information felt.
+- The existing circle/square/triangle-style glyphs were too weak as redundant
+  color identifiers. Elemental fire/ice/vine treatments were considered but
+  deferred because future stage themes should own that environmental meaning.
+- A real combined test build started from WebGL exposed that the Kotlin Gradle
+  callback was removed at compile time unless Android was already active.
+
+### Design / Implementation
+
+- Added six original transparent Theme 1 neon-metal emblem sprites and one
+  Builder-owned color-index mapping reused by pooled gate SpriteRenderers and
+  bottom HUD Images. Echo/Flicker keep separate mechanic-marker text; ordinary
+  and Hidden gates do not.
+- Hidden now fades the emblem to zero, contracts it to `0.72` and neutralizes
+  the existing frame over `0.18s`, without moving geometry or changing the
+  collider/judgment path.
+- Catalog revision 12 distributes `7 / 9 / 11` deterministic Hidden gates
+  across Stages 21–23. Leads are `1.30 / 1.15 / 1.00s`, later eligible bounds
+  extend to `0.92 / 0.94 / 0.96`, and occurrence chances are `0.40 / 0.40 /
+  0.45`; gate counts, speed, cadence, seeds and rewards remain fixed.
+- Removed the `UNITY_ANDROID` compile guard from the existing Gradle callback.
+  Unity already supplies the Android Editor extension reference on WebGL, so
+  the combined command now applies the same Kotlin alignment before Android
+  packaging regardless of its starting target.
+
+### Validation / Learning
+
+- Focused Hidden EditMode passed `10/10`; focused Hidden PlayMode passed `7/7`
+  and the live Campaign erase case passed `1/1`. WebGL-target build-tool
+  EditMode passed `7/7`. Campaign Builder completed consecutive passes; final
+  EditMode passed `450/450` and final post-Builder PlayMode passed `249/249`.
+- Two Campaign simulations retained the authoritative 460-row Summary, JSON
+  and CSV hashes. Two Step 10 simulations retained all five authoritative
+  80-row / 64,016-run hashes. Package, tracked ProjectSettings and developer
+  save baselines remained unchanged.
+- A real combined command launched from WebGL applied Kotlin alignment and
+  produced a fresh 68,774,305-byte APK plus a 155,566,553-byte WebGL folder
+  containing index, data, framework, loader and WASM with a `540 x 960` exact
+  `9:16` canvas.
+- A disappearing cue reads more naturally when the normal identifier itself is
+  erased. Deterministic coverage must also include the later run; a correct
+  mechanic that appears only a few times near the start can feel absent.
+
+### Deferred / Human Review
+
+- Install the APK and serve the WebGL folder through HTTP. Judge whether every
+  emblem is distinguishable at portrait size, integrated with the gate, and
+  readable through curves/Fog; then judge Stage 21 onboarding and the increasing
+  Stage 22/23 memory pressure.
+- Elemental gate themes, per-color particles/models, Flicker Stages 24–26,
+  release signing/AAB, deployment hosting and automatic balance changes remain
+  deferred.

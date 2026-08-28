@@ -1,22 +1,17 @@
 using System;
 using System.IO;
-#if UNITY_ANDROID
 using UnityEditor.Android;
 using UnityEngine;
-#endif
 
 namespace ColorGateRunner.Editor
 {
     public sealed class AndroidGradleDependencyPostprocessor
-#if UNITY_ANDROID
         : IPostGenerateGradleAndroidProject
-#endif
     {
         internal const string KotlinVersion = "1.8.22";
         internal const string Marker =
             "// Color Gate Runner Kotlin dependency alignment";
 
-#if UNITY_ANDROID
         public int callbackOrder => 1000;
 
         public void OnPostGenerateGradleAndroidProject(string path)
@@ -34,7 +29,6 @@ namespace ColorGateRunner.Editor
                 "Android Gradle Kotlin dependencies aligned to " +
                 KotlinVersion + ".");
         }
-#endif
 
         internal static string InjectKotlinResolution(string gradle)
         {
@@ -87,7 +81,6 @@ namespace ColorGateRunner.Editor
             return gradle.Insert(insertionIndex, alignment);
         }
 
-#if UNITY_ANDROID
         private static string ResolveRootGradlePath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -128,6 +121,5 @@ namespace ColorGateRunner.Editor
             return contents.Contains("plugins {", StringComparison.Ordinal) &&
                 contents.Contains("tasks.register('clean'", StringComparison.Ordinal);
         }
-#endif
     }
 }

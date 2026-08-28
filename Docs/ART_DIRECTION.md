@@ -802,3 +802,29 @@ The three-Continue cap and original prices below are superseded by Iteration
   reveal a hidden gate's target. Human portrait review owns memory-window
   clarity, Stage 20-to-21 onboarding, three-color mastery load and whether the
   persistent marker is legible against Storm Fog and curved-road backgrounds.
+
+## Iteration 45 Gate emblems and text-free Hidden
+
+This section supersedes the Step 9C Unicode shape mapping and Iteration 44's
+visible `HIDDEN` marker for current runtime presentation.
+
+- Red, Blue, Green, Yellow, Purple and Cyan each use one distinct transparent
+  Theme 1 image emblem. The silhouettes are abstract, non-elemental neon-metal
+  marks with a bright center and dark machined edge so they remain recognizable
+  on a gate without competing with its colored frame.
+- The same sprite is reused in the bottom color-order HUD. Current remains the
+  largest center authority, next remains strong on the right and previous is
+  quieter on the left. No Unicode circle, square, triangle, star, diamond or
+  hexagon is used as the normal gate/HUD identifier.
+- Gate emblems occupy the readable opening as a sprite layer integrated with
+  the existing frame. Echo and Flicker may retain their concise mechanic marker
+  above it; an ordinary or Hidden gate adds no explanatory text.
+- Hidden starts with the full emblem, then fades it to transparent while
+  reducing its scale to `0.72` over the authored transition. The gate frame
+  simultaneously becomes neutral. Geometry, opening, collider and judgment
+  pose remain stable, so the user experiences erased target information rather
+  than a disappearing obstacle or a tutorial label.
+- Elemental fire/ice/vine identities, per-color particles, new gate models and
+  stage-theme coupling remain deferred. Human portrait/device review owns
+  emblem distinction, integration with the gate frame, Hidden memory pressure,
+  Bloom balance and recognition during curves and Storm Fog.

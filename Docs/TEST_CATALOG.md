@@ -157,6 +157,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/CampaignMechanicStageTests.c
 - `Ice_UsesAuthoredCampaignSpeedAndSharedSpacingMultipliers`
 - `EchoStage_AcquiresConsumesAndRestartsDeterministically`
 - `AuthoredSpeedCurves_AreSampledForDeterministicCoreUse`
+- `HiddenBlock_DistributesIncreasingPressureAcrossWholeStages`
 
 #### `CampaignDeferredMechanicStageTests.cs`
 
@@ -554,7 +555,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `MissingProductSession_CannotGrantFreeSelectableItem`
 - `DebugStagePicker_RemainsHidden`
 - `ColorHud_UpdatesCurrentAndNextAfterTap`
-- `CampaignHiddenGate_HidesTargetAndKeepsMarkerAndJudgment`
+- `CampaignHiddenGate_HidesEmblemWithoutTextAndKeepsJudgment`
+- `CampaignHiddenGate_NaturallyErasesDuringLiveApproach`
 - `ThreeColorHud_ShowsFullOrder`
 - `Shield_DoesNotHidePlayerMaterialStructurally`
 - `Shield_AppearsDuringCountdown`
@@ -1038,3 +1040,24 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `TestBuildMenuTests` fixes enabled Scene order, Development outputs, exact
   WebGL portrait settings, Kotlin dependency placement/exclusions,
   idempotency and cached-prefix upgrade behavior.
+
+## Iteration 45 current coverage
+
+- `CampaignMechanicStageTests.HiddenBlock_DistributesIncreasingPressureAcrossWholeStages`
+  fixes exact Stage 21–23 gate IDs, late-run distribution, increasing counts,
+  stage-local leads and the shared transition.
+- `Theme01UiArtTests.Theme01UiArt_ImportsTransparentSpritesAndSliceBorders`
+  now checks all six emblem sprites, 512 pixels per unit and genuine alpha.
+  Builder validation and the existing HUD cases require SpriteRenderer/Image
+  references rather than Unicode Text symbols.
+- `GrayboxScenePlayModeTests.CampaignHiddenGate_HidesEmblemWithoutTextAndKeepsJudgment`
+  rejects a Hidden marker while retaining ordinary judgment.
+  `CampaignHiddenGate_NaturallyErasesDuringLiveApproach` advances the real
+  Campaign until the live observation, fade/contract and fully hidden states.
+- `HiddenPlayModeTests` retains seven pause, timing, judgment, Echo, Shield and
+  Retry cases under the text-free emblem presentation. Flicker coverage now
+  verifies its active Core color and emblem sprite stay synchronized while its
+  distinct `FLICKER` marker remains.
+- `TestBuildMenuTests.AndroidGradle_AlignsKotlinLibrariesIdempotently` also
+  requires the post-generation interface when tests compile for WebGL. The
+  real combined build is the cross-target integration check.

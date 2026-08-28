@@ -47,6 +47,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Material purpleMaterial;
         [SerializeField] private Material cyanMaterial;
         [SerializeField] private Material failureMaterial;
+        [SerializeField] private Sprite[] colorEmblemSprites;
         [SerializeField] private GameplayTapSurface tapSurface;
         [SerializeField] private TrackPoolController trackPool;
         [SerializeField] private CampaignSplinePathView campaignSplinePath;
@@ -113,7 +114,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject colorHudPanel;
         [SerializeField] private GameObject[] colorTiles;
         [SerializeField] private Image[] colorTileImages;
-        [SerializeField] private Text[] colorTileSymbols;
+        [SerializeField] private Image[] colorTileEmblems;
         [SerializeField] private GameObject[] nextColorMarkers;
 
         [SerializeField] private GameObject clearPanel;
@@ -359,11 +360,14 @@ namespace ColorGateRunner.Presentation
         internal Button GetStageButton(int index) => stageButtons[index];
         internal GameObject GetColorTile(int index) => colorTiles[index];
         internal Image GetColorTileImage(int index) => colorTileImages[index];
-        internal Text GetColorTileSymbol(int index) => colorTileSymbols[index];
+        internal Image GetColorTileEmblem(int index) =>
+            colorTileEmblems[index];
         internal GameObject GetNextColorMarker(int index) =>
             nextColorMarkers[index];
         internal Material GetPresentationMaterial(RunnerColor color) =>
             GetMaterial(color);
+        internal Sprite GetColorEmblemSprite(RunnerColor color) =>
+            colorEmblemSprites[(int)color];
         internal GameObject ResetProgressConfirmation =>
             resetProgressConfirmation;
         internal float BoosterCameraBlend => _boosterCameraBlend;
@@ -1794,7 +1798,9 @@ namespace ColorGateRunner.Presentation
                 boosterWarning == null || colorHudPanel == null ||
                 colorTiles == null || colorTiles.Length != 6 ||
                 colorTileImages == null || colorTileImages.Length != 6 ||
-                colorTileSymbols == null || colorTileSymbols.Length != 6 ||
+                colorTileEmblems == null || colorTileEmblems.Length != 6 ||
+                colorEmblemSprites == null ||
+                colorEmblemSprites.Length != 6 ||
                 nextColorMarkers == null || nextColorMarkers.Length != 6 ||
                 clearPanel == null || clearTitleText == null ||
                 clearDetailsText == null || clearContinueButton == null ||
@@ -1832,6 +1838,14 @@ namespace ColorGateRunner.Presentation
             {
                 return false;
             }
+            for (int index = 0; index < colorEmblemSprites.Length; index++)
+            {
+                if (colorEmblemSprites[index] == null ||
+                    colorTileEmblems[index] == null)
+                {
+                    return false;
+                }
+            }
             for (int index = 0; index < gates.Length; index++)
             {
                 if (gates[index] == null || !gates[index].HasRequiredReferences())
@@ -1857,6 +1871,7 @@ namespace ColorGateRunner.Presentation
             Material purple,
             Material cyan,
             Material failure,
+            Sprite[] emblems,
             GameplayTapSurface gameplayTapSurface,
             TrackPoolController pool,
             CampaignSplinePathView campaignPath,
@@ -1916,7 +1931,7 @@ namespace ColorGateRunner.Presentation
             GameObject colorHud,
             GameObject[] hudColorTiles,
             Image[] hudColorTileImages,
-            Text[] hudColorTileSymbols,
+            Image[] hudColorTileEmblems,
             GameObject[] hudNextMarkers,
             GameObject clear,
             Text clearTitle,
@@ -1951,6 +1966,7 @@ namespace ColorGateRunner.Presentation
             purpleMaterial = purple;
             cyanMaterial = cyan;
             failureMaterial = failure;
+            colorEmblemSprites = emblems;
             tapSurface = gameplayTapSurface;
             trackPool = pool;
             campaignSplinePath = campaignPath;
@@ -2012,7 +2028,7 @@ namespace ColorGateRunner.Presentation
             colorHudPanel = colorHud;
             colorTiles = hudColorTiles;
             colorTileImages = hudColorTileImages;
-            colorTileSymbols = hudColorTileSymbols;
+            colorTileEmblems = hudColorTileEmblems;
             nextColorMarkers = hudNextMarkers;
             clearPanel = clear;
             clearTitleText = clearTitle;
@@ -3808,7 +3824,10 @@ namespace ColorGateRunner.Presentation
                     GetMaterial(color).color;
                 colorTileImages[index].canvasRenderer.SetAlpha(
                     GetColorStackAlpha(slot, activeCount));
-                colorTileSymbols[index].text = GetColorSymbol(color);
+                colorTileEmblems[index].sprite =
+                    GetColorEmblemSprite(color);
+                colorTileEmblems[index].canvasRenderer.SetAlpha(
+                    GetColorStackAlpha(slot, activeCount));
                 nextColorMarkers[index].SetActive(isNext);
             }
 
@@ -4049,32 +4068,6 @@ namespace ColorGateRunner.Presentation
             return (colorIndex - currentIndex +
                 _experimentSession.Definition.ColorCount) %
                 _experimentSession.Definition.ColorCount;
-        }
-
-        private static string GetColorSymbol(RunnerColor color)
-        {
-            RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(color);
-            if (symbol == RunnerColorSymbol.Circle)
-            {
-                return "●";
-            }
-            if (symbol == RunnerColorSymbol.Square)
-            {
-                return "■";
-            }
-            if (symbol == RunnerColorSymbol.Triangle)
-            {
-                return "▲";
-            }
-            if (symbol == RunnerColorSymbol.Star)
-            {
-                return "★";
-            }
-            if (symbol == RunnerColorSymbol.Diamond)
-            {
-                return "◆";
-            }
-            return "HEX";
         }
 
         private static void SetHorizontalFill(Image image, float amount)

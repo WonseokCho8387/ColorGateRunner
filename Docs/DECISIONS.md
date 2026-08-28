@@ -1544,3 +1544,24 @@ Status: Approved and implemented.
   ProjectSettings change. It is injected after the root `plugins` block,
   excludes legacy split jdk7/jdk8 stdlibs, forces stdlib `1.8.22`, and repairs
   the earlier cached prefix form idempotently.
+
+## Iteration 45 — Hidden is learned through erased information, not labels
+
+- Hidden no longer displays a persistent `HIDDEN` marker. Its presentation
+  begins as an ordinary readable gate, then removes the target emblem and color
+  through one short fade/contract transition while retaining neutral geometry
+  and ordinary judgment.
+- Six distinct transparent image emblems replace Unicode shape glyphs on gates
+  and the bottom color-order HUD. The emblem mapping is Presentation-owned;
+  Core color, input order and collision judgment remain authoritative.
+- Hidden pressure is authored per Stage and distributed through the entire run.
+  Stages 21–23 use `7 / 9 / 11` deterministic occurrences with decreasing
+  `1.30 / 1.15 / 1.00s` leads, rather than one uniform sparse early pattern.
+- Elemental fire/ice/vine gate identities remain deferred. They would couple
+  color semantics to future stage themes and are not required to solve current
+  recognition or Hidden-feel issues.
+- Android Gradle alignment must register regardless of the Editor's starting
+  platform. The Android extension is already referenced by the Editor assembly
+  on WebGL, so the post-generation interface is compiled unconditionally; no
+  Package, ProjectSettings, custom Gradle template or asynchronous platform
+  reload state machine is introduced.

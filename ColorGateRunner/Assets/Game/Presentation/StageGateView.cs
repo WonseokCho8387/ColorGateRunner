@@ -10,7 +10,8 @@ namespace ColorGateRunner.Presentation
 
         [SerializeField] private StageSceneController controller;
         [SerializeField] private Renderer[] gateRenderers;
-        [SerializeField] private TextMesh colorSymbol;
+        [SerializeField] private SpriteRenderer colorEmblem;
+        [SerializeField] private TextMesh mechanicMarker;
         [SerializeField] private EchoGateFieldView echoGateField;
 
         private bool _resolved;
@@ -43,15 +44,16 @@ namespace ColorGateRunner.Presentation
         internal int PartCount => gateRenderers == null ? 0 : gateRenderers.Length;
         internal bool HasExperimentPlan => _hasExperimentPlan;
         internal ExperimentGatePlan ActiveExperimentPlan => _experimentPlan;
-        internal bool SymbolVisible => colorSymbol.gameObject.activeSelf;
-        internal string SymbolText => colorSymbol.text;
+        internal bool SymbolVisible => colorEmblem.gameObject.activeSelf;
+        internal string SymbolText => mechanicMarker.text;
+        internal bool MarkerVisible => mechanicMarker.gameObject.activeSelf;
         internal bool EchoProviderVisualActive => _echoProviderVisualActive;
         internal bool EchoFieldVisible =>
             echoGateField != null && echoGateField.IsVisible;
         internal Color EchoFieldColor => echoGateField == null
             ? Color.clear
             : echoGateField.FieldColor;
-        internal float SymbolAlpha => colorSymbol.color.a;
+        internal float SymbolAlpha => colorEmblem.color.a;
         internal float CamouflageRevealProgress =>
             _camouflageRevealProgress;
         internal float HiddenVisibleElapsed =>
@@ -131,7 +133,8 @@ namespace ColorGateRunner.Presentation
             transform.localScale = _baseScale;
             ResetParts();
             ApplyMaterial(material);
-            ApplyColorSymbol();
+            ApplyColorEmblem();
+            HideMechanicMarker();
             if (plan.Modifier.IsEchoProvider)
             {
                 ApplyEchoProviderPresentation();
@@ -159,7 +162,8 @@ namespace ColorGateRunner.Presentation
             AssignedColor = plan.Color;
             _assignedMaterial = material;
             ApplyMaterial(material);
-            ApplyColorSymbol();
+            ApplyColorEmblem();
+            HideMechanicMarker();
             ResetEchoProviderPresentation();
             if (plan.Modifier.IsEchoProvider)
             {
@@ -207,7 +211,7 @@ namespace ColorGateRunner.Presentation
             if (plan.IsHidden)
             {
                 ApplyMaterial(_assignedMaterial);
-                ApplyHiddenSymbol(0f);
+                ApplyHiddenEmblem(0f);
                 return;
             }
             UpdateExperimentVisibility(
@@ -366,28 +370,26 @@ namespace ColorGateRunner.Presentation
             }
             if (hidden)
             {
-                colorSymbol.gameObject.SetActive(
-                    isEchoProvider);
+                colorEmblem.gameObject.SetActive(false);
+                mechanicMarker.gameObject.SetActive(isEchoProvider);
                 if (isEchoProvider)
                 {
-                    colorSymbol.text = "ECHO";
-                    colorSymbol.color = Color.white;
+                    mechanicMarker.text = "ECHO";
+                    mechanicMarker.color = Color.white;
                 }
                 SetEchoFieldPresentation(false, 0f);
             }
             else
             {
-                colorSymbol.gameObject.SetActive(true);
-                ApplyColorSymbol();
+                ApplyColorEmblem();
+                HideMechanicMarker();
                 if (isEchoProvider)
                 {
                     ApplyEchoProviderPresentation();
                 }
                 if (isCamouflage)
                 {
-                    Color symbolColor = colorSymbol.color;
-                    symbolColor.a = _camouflageRevealProgress;
-                    colorSymbol.color = symbolColor;
+                    SetEmblemAlpha(_camouflageRevealProgress);
                 }
                 SetEchoFieldPresentation(
                     isEchoProvider,
@@ -425,25 +427,17 @@ namespace ColorGateRunner.Presentation
             {
                 ApplyMaterial(_assignedMaterial);
             }
-            ApplyHiddenSymbol(
+            ApplyHiddenEmblem(
                 _hiddenVisibility.TransitionProgress);
         }
 
-        private void ApplyHiddenSymbol(float hideProgress)
+        private void ApplyHiddenEmblem(float hideProgress)
         {
-            colorSymbol.richText = true;
-            colorSymbol.gameObject.SetActive(true);
-            colorSymbol.color = Color.white;
-            int alpha = Mathf.RoundToInt(
-                255f * (1f - Mathf.Clamp01(hideProgress)));
-            string targetSymbol = GetSymbolText(
-                MobileUiPolicy.GetSymbol(AssignedColor));
-            colorSymbol.text =
-                "HIDDEN\n<color=#FFFFFF" +
-                alpha.ToString("X2") +
-                ">" +
-                targetSymbol +
-                "</color>";
+            float progress = Mathf.Clamp01(hideProgress);
+            ApplyColorEmblem(1f - progress);
+            colorEmblem.transform.localScale =
+                Vector3.one * Mathf.Lerp(1f, 0.72f, progress);
+            HideMechanicMarker();
         }
 
         private void UpdateFlickerCycle(float gameplayTimeSeconds)
@@ -471,17 +465,15 @@ namespace ColorGateRunner.Presentation
                 controller.GetPresentationMaterial(activeColor);
             ApplyMaterial(_assignedMaterial);
             ApplyFlickerPulse(sample.TransitionPulse);
-            ApplyFlickerSymbol();
+            ApplyFlickerPresentation();
         }
 
-        private void ApplyFlickerSymbol()
+        private void ApplyFlickerPresentation()
         {
-            colorSymbol.richText = true;
-            colorSymbol.gameObject.SetActive(true);
-            colorSymbol.color = Color.white;
-            colorSymbol.text =
-                "FLICKER\n" +
-                GetSymbolText(MobileUiPolicy.GetSymbol(AssignedColor));
+            ApplyColorEmblem();
+            mechanicMarker.gameObject.SetActive(true);
+            mechanicMarker.color = Color.white;
+            mechanicMarker.text = "FLICKER";
         }
 
         private void ApplyFlickerPulse(float pulse)
@@ -599,13 +591,16 @@ namespace ColorGateRunner.Presentation
             ResetEchoProviderPresentation();
             transform.localScale = Vector3.one;
             ResetParts();
-            colorSymbol.gameObject.SetActive(true);
+            colorEmblem.gameObject.SetActive(true);
+            colorEmblem.transform.localScale = Vector3.one;
+            HideMechanicMarker();
             gameObject.SetActive(false);
         }
 
         internal bool HasRequiredReferences()
         {
-            if (controller == null || colorSymbol == null ||
+            if (controller == null || colorEmblem == null ||
+                mechanicMarker == null ||
                 echoGateField == null ||
                 !echoGateField.HasRequiredReferences ||
                 gateRenderers == null || gateRenderers.Length == 0)
@@ -628,12 +623,14 @@ namespace ColorGateRunner.Presentation
         internal void Configure(
             StageSceneController sceneController,
             Renderer[] renderers,
-            TextMesh symbol,
+            SpriteRenderer emblem,
+            TextMesh marker,
             EchoGateFieldView field)
         {
             controller = sceneController;
             gateRenderers = renderers;
-            colorSymbol = symbol;
+            colorEmblem = emblem;
+            mechanicMarker = marker;
             echoGateField = field;
             CaptureParts();
         }
@@ -704,27 +701,30 @@ namespace ColorGateRunner.Presentation
             return Color.white;
         }
 
-        private void ApplyColorSymbol()
+        private void ApplyColorEmblem(float alpha = 1f)
         {
-            RunnerColorSymbol symbol = MobileUiPolicy.GetSymbol(AssignedColor);
-            colorSymbol.text = GetSymbolText(symbol);
-            colorSymbol.color = Color.white;
+            colorEmblem.sprite =
+                controller.GetColorEmblemSprite(AssignedColor);
+            colorEmblem.gameObject.SetActive(alpha > 0f);
+            colorEmblem.transform.localScale = Vector3.one;
+            SetEmblemAlpha(alpha);
         }
 
         private void ApplyEchoProviderPresentation()
         {
             _echoProviderVisualActive = true;
-            colorSymbol.text = "ECHO\n" + colorSymbol.text;
-            colorSymbol.color = Color.white;
+            mechanicMarker.gameObject.SetActive(true);
+            mechanicMarker.text = "ECHO";
+            mechanicMarker.color = Color.white;
             SetEchoFieldPresentation(true, 1f);
         }
 
         private void ResetEchoProviderPresentation()
         {
             _echoProviderVisualActive = false;
-            if (colorSymbol != null)
+            if (mechanicMarker != null)
             {
-                colorSymbol.color = Color.white;
+                HideMechanicMarker();
             }
             if (echoGateField != null)
             {
@@ -749,23 +749,18 @@ namespace ColorGateRunner.Presentation
                 alpha);
         }
 
-        private static string GetSymbolText(RunnerColorSymbol symbol)
+        private void SetEmblemAlpha(float alpha)
         {
-            switch (symbol)
-            {
-                case RunnerColorSymbol.Circle:
-                    return "●";
-                case RunnerColorSymbol.Square:
-                    return "■";
-                case RunnerColorSymbol.Triangle:
-                    return "▲";
-                case RunnerColorSymbol.Star:
-                    return "★";
-                case RunnerColorSymbol.Diamond:
-                    return "◆";
-                default:
-                    return "HEX";
-            }
+            Color color = Color.white;
+            color.a = Mathf.Clamp01(alpha);
+            colorEmblem.color = color;
+        }
+
+        private void HideMechanicMarker()
+        {
+            mechanicMarker.text = string.Empty;
+            mechanicMarker.color = Color.white;
+            mechanicMarker.gameObject.SetActive(false);
         }
 
         private void ResetParts()

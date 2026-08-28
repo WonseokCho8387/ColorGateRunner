@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 11;
+        private const int CurrentCatalogRevision = 12;
 
         [Serializable]
         private sealed class StageEntry
@@ -318,9 +318,24 @@ namespace ColorGateRunner.Presentation
                 return this;
             }
 
-            public StageEntry WithHidden()
+            public StageEntry WithHidden(
+                float eligibleStart,
+                float eligibleEnd,
+                float occurrenceChance,
+                int minimumGateCooldown,
+                float hideLeadSeconds,
+                float transitionSeconds,
+                int maxOccurrences)
             {
                 hiddenEnabled = true;
+                hiddenEligibleStart = eligibleStart;
+                hiddenEligibleEnd = eligibleEnd;
+                hiddenOccurrenceChance = occurrenceChance;
+                hiddenMinimumGateCooldown = minimumGateCooldown;
+                hiddenLeadSeconds = hideLeadSeconds;
+                hiddenTransitionSeconds = transitionSeconds;
+                hiddenMaxOccurrences = maxOccurrences;
+                hiddenFirstGuaranteed = true;
                 return this;
             }
 
@@ -982,7 +997,9 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.78f, 0.70f),
                         new Keyframe(1f, 1f))
                     .WithActiveColorCount(2)
-                    .WithHidden(),
+                    .WithHidden(
+                        0.10f, 0.92f, 0.40f, 2,
+                        1.30f, 0.18f, 7),
                 StageEntry.Create(
                     "stage-22", 22, "HIDDEN PRACTICE",
                     "Practice recalling hidden gates through a longer run.",
@@ -1009,7 +1026,9 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.75f, 0.66f),
                         new Keyframe(1f, 1f))
                     .WithActiveColorCount(2)
-                    .WithHidden(),
+                    .WithHidden(
+                        0.10f, 0.94f, 0.40f, 2,
+                        1.15f, 0.18f, 9),
                 StageEntry.Create(
                     "stage-23", 23, "HIDDEN MASTERY",
                     "Master three-color recall while gates hide their targets.",
@@ -1036,7 +1055,9 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0.72f, 0.64f),
                         new Keyframe(1f, 1f))
                     .WithDifficulty(StageDifficulty.Hard)
-                    .WithHidden()
+                    .WithHidden(
+                        0.10f, 0.96f, 0.45f, 2,
+                        1.00f, 0.18f, 11)
             };
         }
     }

@@ -411,28 +411,9 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             RunnerColor expected = plan.GetCycleColor(colorIndex);
             Assert.That(gate.AssignedColor, Is.EqualTo(expected));
-            Assert.That(
-                gate.SymbolText,
-                Does.Contain(GetSymbol(expected)));
-        }
-
-        private static string GetSymbol(RunnerColor color)
-        {
-            switch (color)
-            {
-                case RunnerColor.Red:
-                    return "●";
-                case RunnerColor.Blue:
-                    return "■";
-                case RunnerColor.Green:
-                    return "▲";
-                case RunnerColor.Yellow:
-                    return "★";
-                case RunnerColor.Purple:
-                    return "◆";
-                default:
-                    return "HEX";
-            }
+            Assert.That(gate.SymbolVisible, Is.True);
+            Assert.That(gate.MarkerVisible, Is.True);
+            Assert.That(gate.SymbolText, Is.EqualTo("FLICKER"));
         }
 
         private static FlickerSettings CreateSettings()

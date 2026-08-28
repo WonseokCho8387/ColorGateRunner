@@ -773,3 +773,32 @@ fairness, or polish.
   a WebGL folder containing `index.html`, data, framework, loader and WASM with
   a `540 x 960` exact-`9:16` canvas. Installation, touch/browser interaction,
   performance and visual feel remain human review rather than automated pass.
+
+### Iteration 45 Hidden feel, color emblems and cross-target builds
+
+- Catalog revision 12 retains 23 stable entries. EditMode must prove exact
+  whole-run Hidden occurrence IDs for Stages 21–23, increasing `7 / 9 / 11`
+  pressure, stage-local hide leads, `0.18s` transitions and late-run coverage.
+- Theme 1 art coverage must import six transparent single-sprite emblems at
+  512 pixels per unit. Builder and PlayMode must bind the same color-indexed
+  sprites to every pooled gate and bottom color-order HUD slot.
+- Hidden runtime coverage must prove there is no `HIDDEN` or instructional
+  marker, the emblem visibly fades and contracts during ordinary live approach,
+  the neutral frame remains, and judgment still uses the memorized target.
+  Echo/Flicker marker behavior and Flicker's color/emblem synchronization must
+  remain intact.
+- Android Gradle coverage must prove the post-generation interface is present
+  even under a WebGL Editor target, while retaining idempotent Kotlin force and
+  jdk7/jdk8 exclusion behavior. A real combined command started on WebGL must
+  produce both fresh outputs successfully.
+- Campaign Builder runs twice. Focused Hidden EditMode/PlayMode and build-tool
+  EditMode, full EditMode and post-Builder PlayMode, two Campaign simulations
+  and two Step 10 simulations are required. All eight authoritative artifact
+  hashes, package files, ProjectSettings and persistence snapshots must remain
+  exact.
+- Final evidence: Hidden EditMode `10/10`, Hidden PlayMode `7/7`, live approach
+  `1/1`, WebGL-start build-tool EditMode `7/7`, full EditMode `450/450`, full
+  post-Builder PlayMode `249/249`, two byte-identical 460-row Campaign runs and
+  two byte-identical 80-row / 64,016-run Step 10 runs. The real combined build
+  produced a 68,774,305-byte APK and a 155,566,553-byte WebGL folder with an
+  exact `540 x 960` / `9:16` canvas.

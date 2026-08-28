@@ -807,3 +807,27 @@ Flicker remains deferred to Stages 24–26.
 - Clearing Stage 20 on an older 20-Stage catalog makes Stage 21 effectively
   available when revision 11 loads. This compatibility repair does not write
   or synthesize a save record during load.
+
+## Iteration 45 Hidden feel and color-emblem contract
+
+This section supersedes Iteration 44's uniform `0.85s` Hidden lead and the
+older persistent `HIDDEN` presentation. Ordinary judgment, target colors,
+seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
+
+- Hidden communicates through the gate itself. It shows no `HIDDEN` label or
+  explanatory text. The target emblem fades and contracts while the colored
+  frame blends to the existing neutral silhouette; neither target cue returns
+  before judgment.
+- Stages 21 / 22 / 23 distribute deterministic Hidden gates across the full
+  run at gate numbers `6,12,16,21,27,33,36` / `6,9,17,21,24,29,34,37,43` /
+  `6,9,12,15,21,25,30,33,36,39,47`.
+- The three stages use hide leads `1.30 / 1.15 / 1.00s`, transition `0.18s`,
+  maximum occurrences `7 / 9 / 11`, eligible ranges `0.10-0.92 / 0.10-0.94 /
+  0.10-0.96`, and occurrence chances `0.40 / 0.40 / 0.45`. Cooldown remains
+  two gates and the first occurrence remains guaranteed.
+- The six runtime colors use distinct image emblems on both gates and the
+  bottom color-order HUD. Legacy Unicode circle/square/triangle-style glyphs
+  are no longer the normal runtime identifier. Color remains authoritative;
+  emblems are a recognition aid and do not change input or judgment.
+- Fire, ice, vine or other elemental gate identities remain deferred so a
+  future stage theme can own environmental meaning without conflict.

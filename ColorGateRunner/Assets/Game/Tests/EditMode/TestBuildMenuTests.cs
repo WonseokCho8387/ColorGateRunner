@@ -155,6 +155,12 @@ namespace ColorGateRunner.Tests.EditMode
                 "ColorGateRunner.Editor.AndroidGradleDependencyPostprocessor, " +
                 "ColorGateRunner.Editor");
             Assert.That(type, Is.Not.Null);
+            Assert.That(
+                type.GetInterface(
+                    "UnityEditor.Android.IPostGenerateGradleAndroidProject"),
+                Is.Not.Null,
+                "The Kotlin alignment callback must stay registered even " +
+                "when the Editor starts on WebGL.");
             MethodInfo inject = type.GetMethod(
                 "InjectKotlinResolution",
                 StaticNonPublic);

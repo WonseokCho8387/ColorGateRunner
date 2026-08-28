@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ColorGateRunner.Core;
 using NUnit.Framework;
 
@@ -139,6 +140,46 @@ namespace ColorGateRunner.Tests.EditMode
                         sequence.GetPlan(gate).Modifier.IsNone,
                         Is.True);
                 }
+            }
+        }
+
+        [Test]
+        public void HiddenBlock_DistributesIncreasingPressureAcrossWholeStages()
+        {
+            int[][] expectedGateNumbers =
+            {
+                new[] { 6, 12, 16, 21, 27, 33, 36 },
+                new[] { 6, 9, 17, 21, 24, 29, 34, 37, 43 },
+                new[] { 6, 9, 12, 15, 21, 25, 30, 33, 36, 39, 47 }
+            };
+            float[] expectedLeadSeconds = { 1.30f, 1.15f, 1.00f };
+
+            for (int stageOffset = 0;
+                stageOffset < expectedGateNumbers.Length;
+                stageOffset++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(21 + stageOffset);
+                var actual = new List<int>();
+                var sequence = new DeterministicStageGateSequence(stage);
+                for (int gate = 0; gate < stage.TargetGateCount; gate++)
+                {
+                    if (sequence.GetPlan(gate).Modifier.IsHidden)
+                    {
+                        actual.Add(gate + 1);
+                    }
+                }
+
+                Assert.That(actual, Is.EqualTo(expectedGateNumbers[stageOffset]));
+                Assert.That(
+                    stage.HiddenSettings.HideLeadTimeSeconds,
+                    Is.EqualTo(expectedLeadSeconds[stageOffset]));
+                Assert.That(
+                    stage.HiddenSettings.TransitionSeconds,
+                    Is.EqualTo(0.18f));
+                Assert.That(
+                    actual[actual.Count - 1],
+                    Is.GreaterThan(stage.TargetGateCount * 0.7f));
             }
         }
 

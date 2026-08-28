@@ -22,6 +22,11 @@ namespace ColorGateRunner.Editor
             "Play", "Back", "Pause", "Retry", "Continue"
         };
 
+        private static readonly string[] ColorEmblemNames =
+        {
+            "Red", "Blue", "Green", "Yellow", "Purple", "Cyan"
+        };
+
         internal static void EnsureAndConfigure()
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -34,6 +39,31 @@ namespace ColorGateRunner.Editor
             {
                 ConfigureSprite("Icon" + IconNames[index], false);
             }
+
+            for (int index = 0; index < ColorEmblemNames.Length; index++)
+            {
+                ConfigureSprite(
+                    "ColorEmblems/Emblem" + ColorEmblemNames[index],
+                    false,
+                    512f);
+            }
+        }
+
+        internal static Sprite[] LoadColorEmblems()
+        {
+            Sprite[] result = new Sprite[ColorEmblemNames.Length];
+            for (int index = 0; index < result.Length; index++)
+            {
+                string name =
+                    "ColorEmblems/Emblem" + ColorEmblemNames[index];
+                result[index] = LoadSprite(name);
+                if (result[index] == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Theme01 color emblem is missing: {name}");
+                }
+            }
+            return result;
         }
 
         internal static void ApplyPanel(Image image, string semanticName)
@@ -245,7 +275,10 @@ namespace ColorGateRunner.Editor
                 $"{ArtFolder}/{name}.png");
         }
 
-        private static void ConfigureSprite(string name, bool sliced)
+        private static void ConfigureSprite(
+            string name,
+            bool sliced,
+            float pixelsPerUnit = 100f)
         {
             string path = $"{ArtFolder}/{name}.png";
             TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -263,6 +296,9 @@ namespace ColorGateRunner.Editor
                 importer.mipmapEnabled ||
                 !importer.alphaIsTransparency ||
                 importer.spriteBorder != border ||
+                !Mathf.Approximately(
+                    importer.spritePixelsPerUnit,
+                    pixelsPerUnit) ||
                 importer.filterMode != FilterMode.Bilinear ||
                 importer.wrapMode != TextureWrapMode.Clamp;
             if (!changed)
@@ -275,6 +311,7 @@ namespace ColorGateRunner.Editor
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
             importer.spriteBorder = border;
+            importer.spritePixelsPerUnit = pixelsPerUnit;
             importer.filterMode = FilterMode.Bilinear;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
