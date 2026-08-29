@@ -61,17 +61,20 @@ Shader "ColorGateRunner/FlickerEmblemDissolve"
                 half _EdgeWidth;
             CBUFFER_END
 
-            float Hash21(float2 point)
+            float Hash21(float2 samplePosition)
             {
-                point = frac(point * float2(123.34, 456.21));
-                point += dot(point, point + 45.32);
-                return frac(point.x * point.y);
+                samplePosition = frac(
+                    samplePosition * float2(123.34, 456.21));
+                samplePosition += dot(
+                    samplePosition,
+                    samplePosition + 45.32);
+                return frac(samplePosition.x * samplePosition.y);
             }
 
-            float ValueNoise(float2 point)
+            float ValueNoise(float2 samplePosition)
             {
-                float2 cell = floor(point);
-                float2 local = frac(point);
+                float2 cell = floor(samplePosition);
+                float2 local = frac(samplePosition);
                 local = local * local * (3.0 - (2.0 * local));
                 float bottom = lerp(
                     Hash21(cell),

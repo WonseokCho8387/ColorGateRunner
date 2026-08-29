@@ -515,6 +515,10 @@ Source: `ColorGateRunner/Assets/Game/Tests/EditMode/FrontendSceneBuilderTests.cs
 Source: `ColorGateRunner/Assets/Game/Tests/EditMode/Theme01GameplayArtTests.cs`
 
 - `Theme01GameplayArt_PreservesSourceExportsAndPbrMaps`
+- `CyberOrbRunner_HasReadableRearSilhouetteParts`
+- `GameplayColorMaterials_EmitWhileDarkAlloyDoesNot`
+- `ProtectionFieldShader_HasNoCompilerErrors`
+- `FlickerShaders_HaveNoCompilerErrors`
 
 #### `TestBuildMenuTests.cs`
 
@@ -1093,7 +1097,22 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `FlickerBoundary_PulsesWithoutMovingOrDisablingGate` now verifies both emblem
   layers, matching current/next sprites, shared progress, path midpoint and
   single-sprite cleanup at completion.
-- `FlickerPath_FollowsLeftTopRightAndHasNoCollider` fixes the approved U-path
-  order at quarter/three-quarter progress and rejects a path Collider.
+- Iteration 47's former LineRenderer-path assertion is superseded by Iteration
+  48's existing-mesh dissolve coverage.
 - Pooled re-entry coverage requires both the path and secondary emblem to be
   cleared. Full current suites pass EditMode `455/455` and PlayMode `251/251`.
+
+## Iteration 48 current coverage
+
+- `Theme01GameplayArtTests.FlickerShaders_HaveNoCompilerErrors` covers both the
+  emblem and frame dissolve shaders and is also run in graphics-capable D3D
+  EditMode to reject the magenta error-material fallback.
+- `FlickerFrame_DissolvesExistingMeshesLeftTopRight` verifies sequential
+  left/top/right mesh progress, the shared frame transition material and the
+  complete absence of `FlickerGatePath` and `LineRenderer` objects.
+- `FlickerBoundary_PulsesWithoutMovingOrDisablingGate` now verifies frame and
+  emblem progress together and ordinary committed-material restoration.
+- `FlickerBreakMaterial_UsesCurrentCommittedGateColor` fixes the shared
+  Campaign/Experiment break-material authority on `AssignedColor`.
+- Focused Flicker PlayMode passes `13/13`; full current suites pass EditMode
+  `457/457` and PlayMode `252/252`.

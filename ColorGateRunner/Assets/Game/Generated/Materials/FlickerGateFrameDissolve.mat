@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FlickerGateTrace
+  m_Name: FlickerGateFrameDissolve
   m_Shader: {fileID: 4800000, guid: 05e77f6e05a84f1fb2a43e20fbd51258, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -24,8 +24,18 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _Axis: 1
+    - _AxisDirection: 1
+    - _AxisMin: 0
+    - _AxisRange: 1
+    - _EdgeWidth: 0.065
+    - _NoiseAmount: 0.09
+    - _RevealProgress: 0
     m_Colors:
-    - _TraceColor: {r: 0, g: 0.72156864, b: 0.8509804, a: 1}
+    - _CurrentColor: {r: 0, g: 0.72156864, b: 0.8509804, a: 1}
+    - _CurrentEmission: {r: 0, g: 3.2470589, b: 3.8294117, a: 4.5}
+    - _NextColor: {r: 0.9019608, g: 0.22352941, b: 0.27450982, a: 1}
+    - _NextEmission: {r: 4.0588236, g: 1.0058824, b: 1.2352942, a: 4.5}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

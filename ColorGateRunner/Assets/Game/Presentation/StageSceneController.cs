@@ -366,6 +366,8 @@ namespace ColorGateRunner.Presentation
             nextColorMarkers[index];
         internal Material GetPresentationMaterial(RunnerColor color) =>
             GetMaterial(color);
+        internal Material GetGateBreakMaterial(StageGateView gate) =>
+            GetMaterial(gate.AssignedColor);
         internal Sprite GetColorEmblemSprite(RunnerColor color) =>
             colorEmblemSprites[(int)color];
         internal GameObject ResetProgressConfirmation =>
@@ -1181,7 +1183,7 @@ namespace ColorGateRunner.Presentation
                 }
                 gateBreakEffects.Play(
                     gate.transform.position,
-                    GetMaterial(plan.Color));
+                    GetGateBreakMaterial(gate));
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();
@@ -1191,7 +1193,7 @@ namespace ColorGateRunner.Presentation
             {
                 gateBreakEffects.Play(
                     gate.transform.position,
-                    GetMaterial(plan.Color));
+                    GetGateBreakMaterial(gate));
                 gate.ShowBoosterImpact(failureMaterial);
             }
             else if (outcome == GateOutcome.Shielded)
@@ -1199,7 +1201,7 @@ namespace ColorGateRunner.Presentation
                 shieldField.PlayCollapse();
                 gateBreakEffects.Play(
                     gate.transform.position,
-                    GetMaterial(plan.Color));
+                    GetGateBreakMaterial(gate));
                 gate.ShowFailure(failureMaterial);
                 RecycleOrDeactivate(gate);
             }
@@ -2429,7 +2431,7 @@ namespace ColorGateRunner.Presentation
                 }
                 gateBreakEffects.Play(
                     gate.transform.position,
-                    GetMaterial(plan.Color));
+                    GetGateBreakMaterial(gate));
                 gate.ShowSuccess();
                 successParticles.transform.position = gate.transform.position;
                 successParticles.Play();

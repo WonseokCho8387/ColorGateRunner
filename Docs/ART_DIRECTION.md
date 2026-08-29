@@ -872,3 +872,17 @@ This section supersedes Iteration 46's inner-quad wipe presentation.
 - No explanatory text, particles, audio, elemental identity or full-screen
   effect is added. Human portrait/mobile/WebGL review owns line alignment,
   line width, Bloom strength, aliasing and `0.12s` readability.
+
+## Iteration 48 Mesh-bound Flicker dissolve
+
+This section supersedes Iteration 47's separate additive frame trace.
+
+- Flicker color replacement remains attached to the authored neon frame. The
+  existing `LeftNeon`, `TopNeon` and `RightNeon` meshes dissolve from old HDR
+  color to new HDR color using their own local bounds in the approved left-up,
+  top-right and right-down order.
+- Do not add a screen-aligned line, opening fill or duplicate model for this
+  transition. The mesh stays opaque while its emissive color is replaced, with
+  only a restrained procedural edge reacting to Bloom.
+- Magenta Unity error-material output is never an acceptable fallback. Both
+  Flicker shaders require graphics-platform compiler-message validation.

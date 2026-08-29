@@ -2901,3 +2901,42 @@ Human feedback required
 - Review on portrait mobile and WebGL at 30/60 fps: U-path alignment, rounded
   corner continuity, Bloom width, dissolve edge noise and symbol readability.
   Timing changes, SDF/vector morphs, audio and elemental themes remain deferred.
+
+## Iteration 48 — Flicker Frame Dissolve and Break Color Fix
+
+### Play / Analyze
+
+- Human play exposed a magenta emblem, roughly five shader errors, a detached
+  frame trace and gate-break fragments that returned to the authored initial
+  color after Flicker had committed a different color.
+- The five shader messages shared one cause: `point` was parsed as a reserved
+  D3D HLSL token. The earlier headless checks did not directly guard either
+  Flicker shader on the active graphics compiler.
+
+### Design / Implementation
+
+- Removed the trace LineRenderer, trace shader and trace material. A pooled
+  frame view now applies one opaque emissive dissolve shader to the existing
+  left, top and right neon meshes, normalizing progress from each mesh's local
+  bounds in the approved sequence.
+- Renamed the emblem noise-function parameter and added compiler guards for
+  both Flicker shaders. The complementary two-sprite emblem transition remains.
+- Centralized gate-break material selection on `StageGateView.AssignedColor`
+  and reused it for Campaign matched/boosted/shielded outcomes and Experiment.
+
+### Validation / Learning
+
+- D3D graphics Flicker shader checks passed `2/2`; focused Flicker PlayMode
+  passed `13/13`; Campaign Builder completed two passes; full EditMode passed
+  `457/457`; full post-Builder PlayMode passed `252/252`.
+- A presentation effect aligned by separately authored coordinates can drift
+  even when its order is correct. Driving existing mesh color from local mesh
+  bounds removes that duplicate spatial authority. Shader validation must also
+  execute on the graphics backend where the player will compile it.
+
+### Deferred / Human Review
+
+- Review Stage 24–26 on portrait mobile and WebGL at 30/60 fps for edge noise,
+  Bloom brightness, left/top/right continuity and emblem readability. No
+  timing, distance lock, dual judgment, Stage data, audio, SDF/vector assets or
+  elemental identity changed.

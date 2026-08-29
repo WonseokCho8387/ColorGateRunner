@@ -867,3 +867,22 @@ fairness, or polish.
   and post-Builder full PlayMode `251/251`. Campaign/Step 10 simulations and
   player builds are excluded because deterministic inputs and judgment do not
   change and the user owns Android/WebGL test builds.
+
+### Iteration 48 Flicker frame dissolve and break color
+
+- Graphics-capable EditMode must load both Flicker shaders and reject every
+  compiler error. A headless-only pass is insufficient because Iteration 47's
+  emblem shader error reproduced only on the active D3D graphics compiler.
+- PlayMode must prove the existing three neon meshes receive one transition
+  material, progress in left/top/right order and restore the committed ordinary
+  material on completion and pooled reuse. No `FlickerGatePath` or
+  `LineRenderer` may remain.
+- Gate-break material mapping must use `StageGateView.AssignedColor`, so both
+  Campaign and Experiment share the committed current Flicker color rather
+  than the authored initial plan color.
+- Campaign Builder runs twice, followed by full EditMode and post-Builder
+  PlayMode. Simulations and player builds remain excluded because Core timing,
+  judgment, deterministic content and balance do not change.
+- Final evidence: graphics Flicker shader EditMode `2/2`, focused Flicker
+  PlayMode `13/13`, full EditMode `457/457`, full PlayMode `252/252`, and two
+  Campaign Builder passes with no missing or duplicate generated reference.

@@ -6,18 +6,18 @@
 
 ## 1. 인계 기준
 
-- 기준일: 2026-08-29
+- 기준일: 2026-08-30
 - 브랜치: `main`
-- 최신 구현: `feat: refine flicker gate transition` 완료 커밋
-- 완료 Iteration: **Iteration 47 — Flicker Path and Emblem Transform**
+- 최신 구현: `fix: correct flicker gate visuals` 완료 커밋
+- 완료 Iteration: **Iteration 48 — Flicker Frame Dissolve and Break Color Fix**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
 - Campaign Catalog: revision 13, stable Stage 1–26
-- 표준 검증 기준: EditMode `455/455`, PlayMode `251/251`
+- 표준 검증 기준: EditMode `457/457`, PlayMode `252/252`
 
 ### 현재 작업 트리 주의
 
-Iteration 47 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 48 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.
@@ -79,8 +79,9 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - 6개 Gate 풀과 파괴 연출 풀
 - Gate와 하단 색상 UI가 공유하는 6개 투명 이미지 emblem
 - 설명 텍스트 없이 emblem과 색상이 전기 차단처럼 점멸 후 사라지는 Hidden 표현
-- 24-unit 접근 안전 잠금과 `0.12s` 양색 판정을 유지하며, 좌 기둥→상단→
-  우 기둥으로 흐르는 네온 경로와 연속 emblem dissolve를 갖춘 Flicker 표현
+- 24-unit 접근 안전 잠금과 `0.12s` 양색 판정을 유지하며, 기존 좌 기둥→
+  상단→우 기둥 메시 자체가 순차 디졸브되고 emblem도 연속 변환되는 Flicker
+  표현. 폭파 조각은 authored 초기색이 아닌 현재 확정색을 사용한다.
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
 - 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
 - 10-bank Fog, 고정-capacity wisp/rain과 Fog 구간 어두운 tone
@@ -139,7 +140,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 | Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
 | Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
 | Hidden | 완료 | 완료 | Stage 21–23 | 전 구간 7/9/11회·네온 차단 소거 표현, 인간 검증 필요 |
-| Flicker | 완료 | 완료 | Stage 24–26 | 6/8/10회·거리 잠금·프레임 경로·emblem 변환, 인간 검증 필요 |
+| Flicker | 완료 | 완료 | Stage 24–26 | 6/8/10회·거리 잠금·메시 디졸브·emblem 변환, 인간 검증 필요 |
 
 ### 구현되지 않은 기믹과 모드
 
@@ -172,8 +173,8 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
   전달, Bloom 과다 여부
 - Stage 21–23: 6개 emblem 구분, Gate와의 조화, Hidden 기억 시간,
   Stage 20→21 학습 전환, 후반 반복과 3색 숙련 피로도
-- Stage 24–26: 24-unit 잠금의 대응 여유, `0.12s` U자 프레임 경로와
-  emblem dissolve 인지, 두 색 판정의 납득도와 6/8/10회 압박 곡선
+- Stage 24–26: 24-unit 잠금의 대응 여유, `0.12s` 좌/상단/우 프레임 메시
+  디졸브와 emblem dissolve 인지, 두 색 판정의 납득도와 6/8/10회 압박 곡선
 - Stage 14–20: 카메라 관성, crest에서 다음 Gate 가시성, 멀미 가능성
 - Shield/Booster: 기기별 투명 shader와 Warp 상·하단 밀도
 - 도시: Goal까지 pop-in, 반복감, 트랙 침범 여부
@@ -266,12 +267,12 @@ metadata를 사용해야 한다.
 
 필요할 때 Test Build 메뉴로 Android APK와 WebGL을 새로 생성해 Stage
 12–26을 인간 플레이한다. Fog, Ice, Echo, 카메라, 색상 UI, Hidden 기억
-난이도와 Flicker 거리 잠금/프레임 경로/emblem 변환을 확인하고 결함과
+난이도와 Flicker 거리 잠금/프레임 메시 디졸브/emblem 변환을 확인하고 결함과
 취향 조정을 분리한다.
 
 ### P1 — Stage 21–26 인간 플레이 조정
 
-- Hidden 기억 압박과 Flicker 접근 안전 잠금, 프레임 경로 및 emblem
+- Hidden 기억 압박과 Flicker 접근 안전 잠금, 프레임 메시 디졸브 및 emblem
   변환을 모바일과 WebGL에서 확인한다.
 - 자동 검증으로 판단할 수 없는 가독성, 피로도, Bloom과 체감 속도만
   근거로 최소한의 밸런스/표현 조정 Iteration을 승인한다.
@@ -366,7 +367,7 @@ Step 10, 80 rows / 64,016 runs:
 Color Gate Runner 프로젝트를 Docs/GPT_HANDOFF.md 기준으로 이어간다.
 AGENTS.md의 절차와 CURRENT_STATUS.md의 기준선을 사용한다.
 
-먼저 현재 작업 트리와 Iteration 47 구현 상태를 확인하고,
+먼저 현재 작업 트리와 Iteration 48 구현 상태를 확인하고,
 Stage 21–26 인간 플레이 결과를 바탕으로 다음 조정 또는 Stage 27–36
 설계 Iteration의 Phase A만 진행한다. 보고 후 중단하고 승인 전에는 코드를
 수정하지 않는다.

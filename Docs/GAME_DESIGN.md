@@ -880,3 +880,12 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   incoming sprites coexist and exchange complementary dissolve regions driven
   by the same transition progress. This is a raster dissolve transform, not a
   geometric vector morph and not a second gameplay state.
+
+## Iteration 48 Flicker presentation correction
+
+- The Iteration 47 LineRenderer overlay is retired. The same Core transition
+  progress now replaces color directly on the existing left, top and right
+  neon frame meshes; no model, collider or judgment object is added.
+- The `24`-unit lock, `0.12s` transition and dual-color acceptance remain
+  unchanged. After completion, `AssignedColor` is the committed gate color and
+  owns the gate-break fragment color in both Campaign and Experiment.

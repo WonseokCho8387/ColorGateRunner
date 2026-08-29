@@ -11,8 +11,8 @@ iterations but do not override this section.
 - Implementation base HEAD: `b3379e49d020b3bc20816cd203ed00145b494c20`
 - Base commit: `feat: add flicker campaign stages`
 - Authoritative completion HEAD: the commit named
-  `feat: refine flicker gate transition`; its exact hash is recorded in the
-  Iteration 47 final report because a commit cannot contain
+  `fix: correct flicker gate visuals`; its exact hash is recorded in the
+  Iteration 48 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 47 — Flicker Path and Emblem Transform**.
+- Current completed iteration: **Iteration 48 — Flicker Frame Dissolve and Break Color Fix**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -209,11 +209,14 @@ below where their contracts differ.
 - Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences. A gate
   may begin changing only while farther than 24 scalar path units from the
   runner. During its `0.12s` dual-color window, the next neon color travels
-  around the frame from left pillar bottom-to-top, across the top, then down
-  the right pillar. The center emblem simultaneously replaces the old sprite
-  with the next through a complementary noise dissolve, so it never performs
-  a disappear-then-reappear sequence. Afterward the new color is committed and
-  held through judgment. Shield is selectable and Booster is disabled.
+  through the existing emissive frame meshes from left pillar bottom-to-top,
+  across the top, then down the right pillar. No overlay geometry or
+  LineRenderer is used. The center emblem simultaneously replaces the old
+  sprite with the next through a complementary noise dissolve, so it never
+  performs a disappear-then-reappear sequence. Afterward the new color is
+  committed and held through judgment, and gate-break fragments use that
+  committed color rather than the authored initial color. Shield is selectable
+  and Booster is disabled.
 - Existing saves that cleared Stage 23 and still store Stage 23 as their
   highest unlocked Stage resolve Stage 24 as effectively unlocked after this
   catalog expansion. The earlier Stage 20→21 repair remains intact. Loading
@@ -288,13 +291,13 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `455/455`
-- PlayMode: `251/251`
-- Post-Builder PlayMode: `251/251` (latest Builder-affecting iteration)
+- EditMode: `457/457`
+- PlayMode: `252/252`
+- Post-Builder PlayMode: `252/252` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 47 passes completed; the active
+- Campaign Builder: two consecutive Iteration 48 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
@@ -401,6 +404,30 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 48 validation result
+
+- The separate Flicker U-path LineRenderer and trace shader/material are
+  removed. One pooled `FlickerGateFrameView` drives the three existing neon
+  mesh renderers with an opaque emissive dissolve shader using each mesh's
+  actual local bounds. Segment progress remains left-up, top-right and
+  right-down while geometry, collider and Core timing stay unchanged.
+- The emblem dissolve shader no longer uses the HLSL-reserved `point` token.
+  Both Flicker shaders passed a graphics-capable D3D validation guard, fixing
+  the magenta error-material fallback that the earlier headless suite missed.
+- Campaign and Experiment gate-break paths now resolve their material from
+  `StageGateView.AssignedColor`. A completed Flicker change therefore breaks
+  in the committed current color rather than the authored initial color.
+- Campaign Builder completed two passes. Graphics EditMode Flicker shader
+  checks passed `2/2`, focused Flicker PlayMode passed `13/13`, full EditMode
+  passed `457/457`, and full post-Builder PlayMode passed `252/252`. Missing
+  Script/reference, generated-root, EventSystem and Build Settings validation
+  passed through the Builder and full suites.
+- Campaign and Step 10 simulations were not rerun because no deterministic
+  content, timing, balance, generation or judgment input changed. Android and
+  WebGL player builds remain user-owned and were not run.
+- Human portrait/mobile/WebGL review remains required for dissolve direction,
+  noise edge, Bloom intensity and the perceived continuity at `0.12s`.
 
 ## Iteration 47 validation result
 
@@ -1734,11 +1761,11 @@ Authoritative Iteration 8 Result
 
 Next Iteration
 
-Perform portrait-device human play of Stage 12 and 13. Record Hidden memory
-difficulty, Flicker collision-boundary readability, whether post-Booster
-Flicker encounters are sufficient, and whether the Stage 11 -> 12 difficulty
-step is too large. Do not mix modifiers or auto-tune values from simulation
-alone.
+Perform portrait-device and WebGL human play of Stages 24–26. Confirm the
+frame-mesh dissolve stays attached through curves, the left/top/right order and
+emblem replacement read within `0.12s`, Bloom is controlled, the break color
+matches the committed gate and the 24-unit lock remains fair. Do not change
+timing, judgment or Stage values from automated evidence alone.
 
 ---
 

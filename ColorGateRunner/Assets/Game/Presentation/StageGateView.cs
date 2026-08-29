@@ -13,7 +13,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private SpriteRenderer colorEmblem;
         [SerializeField] private TextMesh mechanicMarker;
         [SerializeField] private EchoGateFieldView echoGateField;
-        [SerializeField] private FlickerGatePathView flickerGatePath;
+        [SerializeField] private FlickerGateFrameView flickerGateFrame;
         [SerializeField] private FlickerGateEmblemView flickerEmblemTransition;
 
         private bool _resolved;
@@ -73,16 +73,20 @@ namespace ColorGateRunner.Presentation
         internal long FlickerPhaseIndex => _flickerPhaseIndex;
         internal float FlickerTransitionPulse => _flickerTransitionPulse;
         internal FlickerJudgmentWindow FlickerWindow => _flickerWindow;
-        internal bool FlickerPathVisible =>
-            flickerGatePath != null && flickerGatePath.IsVisible;
-        internal float FlickerPathProgress =>
-            flickerGatePath == null ? 0f : flickerGatePath.Progress;
-        internal int FlickerPathPointCount =>
-            flickerGatePath == null ? 0 : flickerGatePath.RenderedPointCount;
-        internal Vector3 FlickerPathEndPoint =>
-            flickerGatePath == null
-                ? Vector3.zero
-                : flickerGatePath.RenderedEndPoint;
+        internal bool FlickerFrameTransitioning =>
+            flickerGateFrame != null && flickerGateFrame.IsTransitioning;
+        internal float FlickerFrameProgress =>
+            flickerGateFrame == null ? 0f : flickerGateFrame.Progress;
+        internal float FlickerLeftProgress =>
+            flickerGateFrame == null ? 0f : flickerGateFrame.LeftProgress;
+        internal float FlickerTopProgress =>
+            flickerGateFrame == null ? 0f : flickerGateFrame.TopProgress;
+        internal float FlickerRightProgress =>
+            flickerGateFrame == null ? 0f : flickerGateFrame.RightProgress;
+        internal Material FlickerFrameMaterial =>
+            flickerGateFrame == null
+                ? null
+                : flickerGateFrame.TransitionMaterial;
         internal bool FlickerSymbolTransitioning =>
             flickerEmblemTransition != null &&
             flickerEmblemTransition.IsTransitioning;
@@ -496,18 +500,22 @@ namespace ColorGateRunner.Presentation
             AssignedColor = _flickerWindow.CurrentColor;
             _assignedMaterial =
                 controller.GetPresentationMaterial(AssignedColor);
-            ApplyMaterial(_assignedMaterial);
-            Color nextColor = GetMaterialColor(
-                controller.GetPresentationMaterial(
-                    _flickerWindow.NextColor));
-            if (flickerGatePath != null)
+            Material nextMaterial = controller.GetPresentationMaterial(
+                _flickerWindow.NextColor);
+            if (_flickerWindow.IsTransitioning &&
+                flickerGateFrame != null)
             {
-                flickerGatePath.SetPresentation(
-                    _flickerWindow.IsTransitioning,
-                    nextColor,
+                flickerGateFrame.SetTransition(
+                    _assignedMaterial,
+                    nextMaterial,
                     _flickerWindow.TransitionProgress);
             }
-            ApplyFlickerPresentation(nextColor);
+            else
+            {
+                flickerGateFrame?.ResetPresentation();
+                ApplyMaterial(_assignedMaterial);
+            }
+            ApplyFlickerPresentation(GetMaterialColor(nextMaterial));
         }
 
         private void ApplyFlickerPresentation(Color nextColor)
@@ -576,13 +584,7 @@ namespace ColorGateRunner.Presentation
                 0f,
                 0,
                 false);
-            if (flickerGatePath != null)
-            {
-                flickerGatePath.SetPresentation(
-                    false,
-                    Color.clear,
-                    0f);
-            }
+            flickerGateFrame?.ResetPresentation();
             if (flickerEmblemTransition != null && colorEmblem != null)
             {
                 flickerEmblemTransition.SetStatic(
@@ -678,8 +680,8 @@ namespace ColorGateRunner.Presentation
                 mechanicMarker == null ||
                 echoGateField == null ||
                 !echoGateField.HasRequiredReferences ||
-                flickerGatePath == null ||
-                !flickerGatePath.HasRequiredReferences ||
+                flickerGateFrame == null ||
+                !flickerGateFrame.HasRequiredReferences ||
                 flickerEmblemTransition == null ||
                 !flickerEmblemTransition.HasRequiredReferences ||
                 gateRenderers == null || gateRenderers.Length == 0)
@@ -705,7 +707,7 @@ namespace ColorGateRunner.Presentation
             SpriteRenderer emblem,
             TextMesh marker,
             EchoGateFieldView field,
-            FlickerGatePathView path,
+            FlickerGateFrameView frame,
             FlickerGateEmblemView emblemTransition)
         {
             controller = sceneController;
@@ -713,7 +715,7 @@ namespace ColorGateRunner.Presentation
             colorEmblem = emblem;
             mechanicMarker = marker;
             echoGateField = field;
-            flickerGatePath = path;
+            flickerGateFrame = frame;
             flickerEmblemTransition = emblemTransition;
             CaptureParts();
         }

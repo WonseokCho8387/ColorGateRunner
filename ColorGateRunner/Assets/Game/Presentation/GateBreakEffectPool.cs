@@ -8,6 +8,7 @@ namespace ColorGateRunner.Presentation
         private int _nextIndex;
 
         internal int Capacity => effects == null ? 0 : effects.Length;
+        internal Material LastPlayedMaterial { get; private set; }
 
         internal void Configure(GateBreakEffectView[] pooledEffects)
         {
@@ -33,6 +34,7 @@ namespace ColorGateRunner.Presentation
 
         internal void Play(Vector3 worldPosition, Material colorMaterial)
         {
+            LastPlayedMaterial = colorMaterial;
             GateBreakEffectView effect = effects[_nextIndex];
             _nextIndex = (_nextIndex + 1) % effects.Length;
             effect.Play(worldPosition, colorMaterial);
@@ -41,6 +43,7 @@ namespace ColorGateRunner.Presentation
         internal void ResetPool()
         {
             _nextIndex = 0;
+            LastPlayedMaterial = null;
             if (effects == null)
             {
                 return;

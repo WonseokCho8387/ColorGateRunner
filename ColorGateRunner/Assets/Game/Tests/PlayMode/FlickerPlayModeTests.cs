@@ -162,7 +162,11 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(1));
             Assert.That(gate.FlickerTransitionPulse, Is.EqualTo(1f));
-            Assert.That(gate.FlickerPathVisible, Is.False);
+            Assert.That(gate.FlickerFrameTransitioning, Is.True);
+            Assert.That(gate.FlickerFrameProgress, Is.Zero);
+            Assert.That(gate.FlickerLeftProgress, Is.Zero);
+            Assert.That(gate.FlickerTopProgress, Is.Zero);
+            Assert.That(gate.FlickerRightProgress, Is.Zero);
             Assert.That(gate.FlickerSymbolTransitioning, Is.True);
             Assert.That(gate.FlickerNextSymbolVisible, Is.True);
             Assert.That(gate.FlickerSymbolProgress, Is.Zero);
@@ -189,15 +193,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 30f,
                 0.05f);
             gate.ApplyFlickerRuntimeState(halfway);
-            Assert.That(gate.FlickerPathVisible, Is.True);
-            Assert.That(gate.FlickerPathProgress, Is.EqualTo(0.5f));
-            Assert.That(gate.FlickerPathPointCount, Is.EqualTo(3));
+            Assert.That(gate.FlickerFrameTransitioning, Is.True);
+            Assert.That(gate.FlickerFrameProgress, Is.EqualTo(0.5f));
+            Assert.That(gate.FlickerLeftProgress, Is.EqualTo(1f));
+            Assert.That(gate.FlickerTopProgress, Is.EqualTo(0.5f)
+                .Within(0.001f));
+            Assert.That(gate.FlickerRightProgress, Is.Zero);
             Assert.That(
-                gate.FlickerPathEndPoint.x,
-                Is.EqualTo(0f).Within(0.001f));
-            Assert.That(
-                gate.FlickerPathEndPoint.y,
-                Is.EqualTo(2.93f).Within(0.001f));
+                gate.DisplayMaterial,
+                Is.SameAs(gate.FlickerFrameMaterial));
             Assert.That(gate.FlickerSymbolTransitioning, Is.True);
             Assert.That(gate.FlickerNextSymbolVisible, Is.True);
             Assert.That(gate.FlickerSymbolProgress, Is.EqualTo(0.5f));
@@ -209,7 +213,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 0.05f);
             gate.ApplyFlickerRuntimeState(completed);
             Assert.That(gate.FlickerTransitionPulse, Is.Zero);
-            Assert.That(gate.FlickerPathVisible, Is.False);
+            Assert.That(gate.FlickerFrameTransitioning, Is.False);
             Assert.That(gate.FlickerSymbolTransitioning, Is.False);
             Assert.That(gate.FlickerNextSymbolVisible, Is.False);
             Assert.That(
@@ -220,7 +224,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void FlickerPath_FollowsLeftTopRightAndHasNoCollider()
+        public void FlickerFrame_DissolvesExistingMeshesLeftTopRight()
         {
             StartFlicker(CreateSettings());
             EnterPlaying();
@@ -235,27 +239,33 @@ namespace ColorGateRunner.Tests.PlayMode
                 0.525f,
                 30f,
                 0.025f));
-            Assert.That(gate.FlickerPathPointCount, Is.EqualTo(2));
-            Assert.That(
-                gate.FlickerPathEndPoint.x,
-                Is.EqualTo(-2.32f).Within(0.001f));
-            Assert.That(gate.FlickerPathEndPoint.y, Is.GreaterThan(0.18f));
+            Assert.That(gate.FlickerLeftProgress, Is.GreaterThan(0f));
+            Assert.That(gate.FlickerLeftProgress, Is.LessThan(1f));
+            Assert.That(gate.FlickerTopProgress, Is.Zero);
+            Assert.That(gate.FlickerRightProgress, Is.Zero);
 
             gate.ApplyFlickerRuntimeState(state.Update(
                 plan.FlickerPlan,
                 0.575f,
                 30f,
                 0.05f));
-            Assert.That(gate.FlickerPathPointCount, Is.EqualTo(4));
-            Assert.That(
-                gate.FlickerPathEndPoint.x,
-                Is.EqualTo(2.32f).Within(0.001f));
-            Assert.That(gate.FlickerPathEndPoint.y, Is.LessThan(2.93f));
+            Assert.That(gate.FlickerLeftProgress, Is.EqualTo(1f));
+            Assert.That(gate.FlickerTopProgress, Is.EqualTo(1f));
+            Assert.That(gate.FlickerRightProgress, Is.GreaterThan(0f));
+            Assert.That(gate.FlickerRightProgress, Is.LessThan(1f));
 
-            Transform path = gate.transform.Find("FlickerGatePath");
-            Assert.That(path, Is.Not.Null);
-            Assert.That(path.GetComponent<Collider>(), Is.Null);
-            Assert.That(path.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(gate.transform.Find("FlickerGatePath"), Is.Null);
+            Assert.That(
+                gate.GetComponentsInChildren<LineRenderer>(true),
+                Is.Empty);
+            for (int index = 0; index < gate.PartCount; index++)
+            {
+                Renderer renderer =
+                    gate.GetPartTransform(index).GetComponent<Renderer>();
+                Assert.That(
+                    renderer.sharedMaterial,
+                    Is.SameAs(gate.FlickerFrameMaterial));
+            }
         }
 
         [Test]
@@ -267,6 +277,8 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(0.5f);
             MatchColor(gate.AssignedColor);
             RunnerColor crossingColor = gate.AssignedColor;
+            Material crossingMaterial =
+                _controller.GetPresentationMaterial(crossingColor);
 
             Assert.That(gate.TryResolveCrossing(), Is.True);
             Assert.That(
@@ -275,6 +287,37 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(
                 _controller.ExperimentSession.LastResolution,
                 Is.EqualTo(ExperimentGateResolution.PlayerColorMatch));
+            Assert.That(
+                _controller.GateBreakEffects.LastPlayedMaterial,
+                Is.SameAs(crossingMaterial));
+        }
+
+        [Test]
+        public void FlickerBreakMaterial_UsesCurrentCommittedGateColor()
+        {
+            StartFlicker(CreateSettings());
+            EnterPlaying();
+            StageGateView gate = FindGate(0);
+            RunnerColor authoredColor = gate.AssignedColor;
+            RunnerColor currentColor = GetDifferentColor(authoredColor);
+            gate.ApplyFlickerRuntimeState(
+                new FlickerJudgmentWindow(
+                    currentColor,
+                    currentColor,
+                    false,
+                    0f,
+                    1,
+                    true));
+
+            Assert.That(gate.AssignedColor, Is.EqualTo(currentColor));
+            Assert.That(
+                _controller.GetGateBreakMaterial(gate),
+                Is.SameAs(
+                    _controller.GetPresentationMaterial(currentColor)));
+            Assert.That(
+                _controller.GetGateBreakMaterial(gate),
+                Is.Not.SameAs(
+                    _controller.GetPresentationMaterial(authoredColor)));
         }
 
         [Test]
@@ -386,7 +429,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(ordinary.ActiveExperimentPlan.IsFlicker, Is.False);
             Assert.That(ordinary.SymbolText, Does.Not.Contain("FLICKER"));
             Assert.That(ordinary.FlickerPhaseIndex, Is.Zero);
-            Assert.That(ordinary.FlickerPathVisible, Is.False);
+            Assert.That(ordinary.FlickerFrameTransitioning, Is.False);
             Assert.That(ordinary.FlickerNextSymbolVisible, Is.False);
             Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
         }

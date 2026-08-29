@@ -135,11 +135,33 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void ProtectionFieldShader_HasNoCompilerErrors()
         {
-            const string path =
-                "Assets/Game/Art/Gameplay/Theme01/ProtectionField.shader";
+            AssertShaderHasNoCompilerErrors(
+                "ProtectionField.shader",
+                "ColorGateRunner/ProtectionField");
+        }
+
+        [TestCase(
+            "FlickerEmblemDissolve.shader",
+            "ColorGateRunner/FlickerEmblemDissolve")]
+        [TestCase(
+            "FlickerGateFrameDissolve.shader",
+            "ColorGateRunner/FlickerGateFrameDissolve")]
+        public void FlickerShaders_HaveNoCompilerErrors(
+            string fileName,
+            string shaderName)
+        {
+            AssertShaderHasNoCompilerErrors(fileName, shaderName);
+        }
+
+        private static void AssertShaderHasNoCompilerErrors(
+            string fileName,
+            string shaderName)
+        {
+            string path =
+                "Assets/Game/Art/Gameplay/Theme01/" + fileName;
             Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             Assert.That(shader, Is.Not.Null, path);
-            Assert.That(shader.name, Is.EqualTo("ColorGateRunner/ProtectionField"));
+            Assert.That(shader.name, Is.EqualTo(shaderName));
 
             foreach (var message in ShaderUtil.GetShaderMessages(shader))
             {

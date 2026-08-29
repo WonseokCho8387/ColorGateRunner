@@ -1616,3 +1616,15 @@ Status: Approved and implemented.
   art pipeline.
 - Both effects are pooled Presentation state. They own no timing, randomness,
   collision or judgment and reset through the existing StageGateView lifecycle.
+
+## Iteration 48 — Flicker uses existing mesh-bound dissolve and current break color
+
+- The separate frame-trace LineRenderer is superseded because its fixed local
+  path can visually separate from the imported frame. Flicker now replaces HDR
+  color directly on the three existing neon meshes using their actual local
+  bounds and the unchanged Core progress.
+- The gate-break pool receives `StageGateView.AssignedColor` through one shared
+  Campaign/Experiment mapping. Authored `plan.Color` is not the current visual
+  authority after a Flicker transition.
+- Flicker shaders require a graphics-capable compiler-message test. Headless
+  suite success alone cannot certify the absence of a magenta error material.

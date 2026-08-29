@@ -139,9 +139,10 @@ namespace ColorGateRunner.Editor
             Material protectionFieldMaterial =
                 CreateOrUpdateProtectionFieldMaterial(
                     GeneratedMaterialsFolder + "/ProtectionField.mat");
-            Material flickerTraceMaterial =
-                CreateOrUpdateFlickerTraceMaterial(
-                    GeneratedMaterialsFolder + "/FlickerGateTrace.mat");
+            Material flickerFrameMaterial =
+                CreateOrUpdateFlickerFrameMaterial(
+                    GeneratedMaterialsFolder +
+                    "/FlickerGateFrameDissolve.mat");
             Material flickerEmblemMaterial =
                 CreateOrUpdateFlickerEmblemMaterial(
                     GeneratedMaterialsFolder + "/FlickerEmblemDissolve.mat");
@@ -218,7 +219,7 @@ namespace ColorGateRunner.Editor
                     darkAlloy,
                     neutral,
                     protectionFieldMaterial,
-                    flickerTraceMaterial,
+                    flickerFrameMaterial,
                     flickerEmblemMaterial,
                     colorEmblems[0]);
             GateBreakEffectPool gateBreakEffects =
@@ -2305,7 +2306,7 @@ namespace ColorGateRunner.Editor
             Material darkMaterial,
             Material colorMaterial,
             Material protectionFieldMaterial,
-            Material flickerTraceMaterial,
+            Material flickerFrameMaterial,
             Material flickerEmblemMaterial,
             Sprite defaultEmblem)
         {
@@ -2413,27 +2414,13 @@ namespace ColorGateRunner.Editor
                     fieldObject.AddComponent<EchoGateFieldView>();
                 echoField.Configure(fieldRenderer);
 
-                GameObject pathObject = new GameObject(
-                    "FlickerGatePath",
-                    typeof(LineRenderer),
-                    typeof(FlickerGatePathView));
-                pathObject.transform.SetParent(gateObject.transform, false);
-                LineRenderer pathRenderer =
-                    pathObject.GetComponent<LineRenderer>();
-                pathRenderer.sharedMaterial = flickerTraceMaterial;
-                pathRenderer.useWorldSpace = false;
-                pathRenderer.alignment = LineAlignment.View;
-                pathRenderer.textureMode = LineTextureMode.Stretch;
-                pathRenderer.widthMultiplier = 0.16f;
-                pathRenderer.numCornerVertices = 3;
-                pathRenderer.numCapVertices = 3;
-                pathRenderer.sortingOrder = 19;
-                pathRenderer.shadowCastingMode =
-                    UnityEngine.Rendering.ShadowCastingMode.Off;
-                pathRenderer.receiveShadows = false;
-                FlickerGatePathView flickerPath =
-                    pathObject.GetComponent<FlickerGatePathView>();
-                flickerPath.Configure(pathRenderer);
+                FlickerGateFrameView flickerFrame =
+                    gateObject.AddComponent<FlickerGateFrameView>();
+                flickerFrame.Configure(
+                    renderers[0],
+                    renderers[2],
+                    renderers[1],
+                    flickerFrameMaterial);
 
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
@@ -2443,7 +2430,7 @@ namespace ColorGateRunner.Editor
                     emblem,
                     marker,
                     echoField,
-                    flickerPath,
+                    flickerFrame,
                     emblemTransition);
                 gates[index] = view;
             }
@@ -4166,11 +4153,11 @@ namespace ColorGateRunner.Editor
             return material;
         }
 
-        private static Material CreateOrUpdateFlickerTraceMaterial(
+        private static Material CreateOrUpdateFlickerFrameMaterial(
             string path)
         {
             Shader shader = GetCheckedShader(
-                "ColorGateRunner/FlickerGateTrace");
+                "ColorGateRunner/FlickerGateFrameDissolve");
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
             {
@@ -4181,7 +4168,13 @@ namespace ColorGateRunner.Editor
             {
                 material.shader = shader;
             }
-            material.SetColor("_TraceColor", CyanColor);
+            material.SetColor("_CurrentColor", CyanColor);
+            material.SetColor("_NextColor", RedColor);
+            material.SetColor("_CurrentEmission", CyanColor * 4.5f);
+            material.SetColor("_NextEmission", RedColor * 4.5f);
+            material.SetFloat("_RevealProgress", 0f);
+            material.SetFloat("_EdgeWidth", 0.065f);
+            material.SetFloat("_NoiseAmount", 0.09f);
             EditorUtility.SetDirty(material);
             return material;
         }
