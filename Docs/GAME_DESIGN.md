@@ -867,3 +867,16 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A save whose stored highest Stage is cleared Stage 23 resolves Stage 24 as
   effectively unlocked without writing during load. Ordinary later progression
   persists the new stable ID; existing Stage 1–23 records are preserved.
+
+## Iteration 47 Flicker path and emblem transition contract
+
+- Flicker's existing `0.12s` Core window remains the only timing authority.
+  The 24-unit lock and dual-color acceptance are unchanged.
+- During that window the next color travels along the gate frame in one
+  continuous order: left pillar bottom-to-top, top beam left-to-right and right
+  pillar top-to-bottom. The old frame remains authoritative behind the trace
+  until completion commits the next material.
+- The center emblem does not disappear and later reappear. Outgoing and
+  incoming sprites coexist and exchange complementary dissolve regions driven
+  by the same transition progress. This is a raster dissolve transform, not a
+  geometric vector morph and not a second gameplay state.

@@ -856,3 +856,19 @@ visible `HIDDEN` marker for current runtime presentation.
 - Human portrait review owns wipe direction/readability under Bloom, color
   distinction at maximum speed, and whether the fixed quad feels integrated
   with the gate rather than like a detached UI overlay.
+
+## Iteration 47 Flicker frame trace and emblem transform
+
+This section supersedes Iteration 46's inner-quad wipe presentation.
+
+- The moving next color belongs to the gate's U-shaped neon channel, not the
+  opening. It rises along the left pillar, crosses the top and descends the
+  right pillar with rounded joins and caps. The path is additive/HDR,
+  collider-free and pooled.
+- The center emblem uses two coincident sprite layers and a complementary
+  procedural-noise dissolve. A narrow next-color emissive boundary makes the
+  replacement read as one continuous transformation; there is no intentional
+  fully blank beat between symbols.
+- No explanatory text, particles, audio, elemental identity or full-screen
+  effect is added. Human portrait/mobile/WebGL review owns line alignment,
+  line width, Bloom strength, aliasing and `0.12s` readability.

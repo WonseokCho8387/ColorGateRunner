@@ -139,6 +139,12 @@ namespace ColorGateRunner.Editor
             Material protectionFieldMaterial =
                 CreateOrUpdateProtectionFieldMaterial(
                     GeneratedMaterialsFolder + "/ProtectionField.mat");
+            Material flickerTraceMaterial =
+                CreateOrUpdateFlickerTraceMaterial(
+                    GeneratedMaterialsFolder + "/FlickerGateTrace.mat");
+            Material flickerEmblemMaterial =
+                CreateOrUpdateFlickerEmblemMaterial(
+                    GeneratedMaterialsFolder + "/FlickerEmblemDissolve.mat");
             Material warpCyanMaterial = CreateOrUpdateAdditiveParticleMaterial(
                 GeneratedMaterialsFolder + "/WarpCyan.mat",
                 CyanColor);
@@ -212,6 +218,8 @@ namespace ColorGateRunner.Editor
                     darkAlloy,
                     neutral,
                     protectionFieldMaterial,
+                    flickerTraceMaterial,
+                    flickerEmblemMaterial,
                     colorEmblems[0]);
             GateBreakEffectPool gateBreakEffects =
                 CreateGateBreakEffectPool(root.transform, cyan);
@@ -2297,6 +2305,8 @@ namespace ColorGateRunner.Editor
             Material darkMaterial,
             Material colorMaterial,
             Material protectionFieldMaterial,
+            Material flickerTraceMaterial,
+            Material flickerEmblemMaterial,
             Sprite defaultEmblem)
         {
             GameObject pool = new GameObject("StageGatePool");
@@ -2345,6 +2355,28 @@ namespace ColorGateRunner.Editor
                 emblem.sprite = defaultEmblem;
                 emblem.color = Color.white;
                 emblem.sortingOrder = 20;
+                emblem.sharedMaterial = flickerEmblemMaterial;
+
+                GameObject nextEmblemObject = new GameObject(
+                    "NextColorEmblem",
+                    typeof(SpriteRenderer));
+                nextEmblemObject.transform.SetParent(
+                    gateObject.transform,
+                    false);
+                nextEmblemObject.transform.localPosition =
+                    emblemObject.transform.localPosition;
+                SpriteRenderer nextEmblem =
+                    nextEmblemObject.GetComponent<SpriteRenderer>();
+                nextEmblem.sprite = defaultEmblem;
+                nextEmblem.color = Color.white;
+                nextEmblem.sortingOrder = 21;
+                nextEmblem.sharedMaterial = flickerEmblemMaterial;
+                FlickerGateEmblemView emblemTransition =
+                    gateObject.AddComponent<FlickerGateEmblemView>();
+                emblemTransition.Configure(
+                    emblem,
+                    nextEmblem,
+                    flickerEmblemMaterial);
 
                 GameObject markerObject = new GameObject(
                     "MechanicMarker",
@@ -2381,20 +2413,27 @@ namespace ColorGateRunner.Editor
                     fieldObject.AddComponent<EchoGateFieldView>();
                 echoField.Configure(fieldRenderer);
 
-                GameObject wipeObject = GameObject.CreatePrimitive(
-                    PrimitiveType.Quad);
-                wipeObject.name = "FlickerGateWipe";
-                wipeObject.transform.SetParent(gateObject.transform, false);
-                Renderer wipeRenderer = wipeObject.GetComponent<Renderer>();
-                wipeRenderer.sharedMaterial = protectionFieldMaterial;
-                wipeRenderer.shadowCastingMode =
+                GameObject pathObject = new GameObject(
+                    "FlickerGatePath",
+                    typeof(LineRenderer),
+                    typeof(FlickerGatePathView));
+                pathObject.transform.SetParent(gateObject.transform, false);
+                LineRenderer pathRenderer =
+                    pathObject.GetComponent<LineRenderer>();
+                pathRenderer.sharedMaterial = flickerTraceMaterial;
+                pathRenderer.useWorldSpace = false;
+                pathRenderer.alignment = LineAlignment.View;
+                pathRenderer.textureMode = LineTextureMode.Stretch;
+                pathRenderer.widthMultiplier = 0.16f;
+                pathRenderer.numCornerVertices = 3;
+                pathRenderer.numCapVertices = 3;
+                pathRenderer.sortingOrder = 19;
+                pathRenderer.shadowCastingMode =
                     UnityEngine.Rendering.ShadowCastingMode.Off;
-                wipeRenderer.receiveShadows = false;
-                UnityEngine.Object.DestroyImmediate(
-                    wipeObject.GetComponent<Collider>());
-                FlickerGateWipeView flickerWipe =
-                    wipeObject.AddComponent<FlickerGateWipeView>();
-                flickerWipe.Configure(wipeRenderer);
+                pathRenderer.receiveShadows = false;
+                FlickerGatePathView flickerPath =
+                    pathObject.GetComponent<FlickerGatePathView>();
+                flickerPath.Configure(pathRenderer);
 
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
@@ -2404,7 +2443,8 @@ namespace ColorGateRunner.Editor
                     emblem,
                     marker,
                     echoField,
-                    flickerWipe);
+                    flickerPath,
+                    emblemTransition);
                 gates[index] = view;
             }
 
@@ -4124,6 +4164,70 @@ namespace ColorGateRunner.Editor
             material.SetFloat("_FieldPulse", 1f);
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static Material CreateOrUpdateFlickerTraceMaterial(
+            string path)
+        {
+            Shader shader = GetCheckedShader(
+                "ColorGateRunner/FlickerGateTrace");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+            material.SetColor("_TraceColor", CyanColor);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateFlickerEmblemMaterial(
+            string path)
+        {
+            Shader shader = GetCheckedShader(
+                "ColorGateRunner/FlickerEmblemDissolve");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+            material.SetColor("_Color", Color.white);
+            material.SetColor("_EdgeColor", CyanColor);
+            material.SetFloat("_DissolveProgress", 0f);
+            material.SetFloat("_Incoming", 0f);
+            material.SetFloat("_EdgeWidth", 0.075f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Shader GetCheckedShader(string shaderName)
+        {
+            Shader shader = Shader.Find(shaderName);
+            if (shader == null)
+            {
+                throw new InvalidOperationException(
+                    $"{shaderName} shader is missing.");
+            }
+            foreach (var message in ShaderUtil.GetShaderMessages(shader))
+            {
+                if (message.severity.ToString() == "Error")
+                {
+                    throw new InvalidOperationException(
+                        $"{shaderName} shader failed to compile: " +
+                        $"{message.message} ({message.platform}).");
+                }
+            }
+            return shader;
         }
 
         private static Material CreateOrUpdateAdditiveParticleMaterial(

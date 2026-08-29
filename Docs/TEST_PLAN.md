@@ -852,3 +852,18 @@ fairness, or polish.
   520-row Campaign runs, and two byte-identical 80-row / 64,016-run Step 10
   runs. All Builders passed twice and no missing/duplicate generated reference
   failure was reported.
+
+### Iteration 47 Flicker path and emblem transform
+
+- PlayMode must prove the next-color path rises on the left, crosses the top
+  and descends on the right, uses no Collider and is removed after completion.
+- The old and next emblem sprites must both remain active during transition,
+  use the same Core progress and collapse to the committed single sprite on
+  completion, Retry and pooled reuse.
+- Campaign Builder must run twice. Shader compilation, generated references,
+  unique root, EventSystem and Build Settings remain part of post-Builder full
+  PlayMode validation.
+- Final evidence: focused Flicker PlayMode `12/12`, full EditMode `455/455`
+  and post-Builder full PlayMode `251/251`. Campaign/Step 10 simulations and
+  player builds are excluded because deterministic inputs and judgment do not
+  change and the user owns Android/WebGL test builds.

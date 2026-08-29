@@ -1087,3 +1087,13 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   wipe references/progress, player and Echo dual-color judgment, Pause, Retry,
   transition completion and near-gate lock behavior.
 - Full current suites pass EditMode `455/455` and PlayMode `250/250`.
+
+## Iteration 47 current coverage
+
+- `FlickerBoundary_PulsesWithoutMovingOrDisablingGate` now verifies both emblem
+  layers, matching current/next sprites, shared progress, path midpoint and
+  single-sprite cleanup at completion.
+- `FlickerPath_FollowsLeftTopRightAndHasNoCollider` fixes the approved U-path
+  order at quarter/three-quarter progress and rejects a path Collider.
+- Pooled re-entry coverage requires both the path and secondary emblem to be
+  cleared. Full current suites pass EditMode `455/455` and PlayMode `251/251`.

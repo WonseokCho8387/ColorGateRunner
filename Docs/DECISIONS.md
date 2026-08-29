@@ -1603,3 +1603,16 @@ Status: Approved and implemented.
   renders the Core window and resets it on pooled reuse/Retry.
 - Stage 24–26 isolate Flicker before future combinations. Shield remains
   selectable; Booster is disabled so the learning block is not bypassed.
+
+## Iteration 47 — Flicker presentation follows the frame and continuously replaces the emblem
+
+- The Iteration 46 inner quad is retired because it reads as an opening fill,
+  not the gate changing color. A fixed local-space LineRenderer follows the
+  three visible frame legs in the user-approved order and is driven directly
+  by Core transition progress.
+- Raster emblem assets remain authoritative. A complementary two-layer noise
+  dissolve provides continuous visual replacement without claiming a true
+  silhouette morph, which would require new SDF/vector assets and a different
+  art pipeline.
+- Both effects are pooled Presentation state. They own no timing, randomness,
+  collision or judgment and reset through the existing StageGateView lifecycle.

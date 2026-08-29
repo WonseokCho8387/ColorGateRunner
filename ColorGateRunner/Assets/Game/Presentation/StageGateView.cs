@@ -13,7 +13,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private SpriteRenderer colorEmblem;
         [SerializeField] private TextMesh mechanicMarker;
         [SerializeField] private EchoGateFieldView echoGateField;
-        [SerializeField] private FlickerGateWipeView flickerGateWipe;
+        [SerializeField] private FlickerGatePathView flickerGatePath;
+        [SerializeField] private FlickerGateEmblemView flickerEmblemTransition;
 
         private bool _resolved;
         private float _reactionRemaining;
@@ -72,10 +73,34 @@ namespace ColorGateRunner.Presentation
         internal long FlickerPhaseIndex => _flickerPhaseIndex;
         internal float FlickerTransitionPulse => _flickerTransitionPulse;
         internal FlickerJudgmentWindow FlickerWindow => _flickerWindow;
-        internal bool FlickerWipeVisible =>
-            flickerGateWipe != null && flickerGateWipe.IsVisible;
-        internal float FlickerWipeProgress =>
-            flickerGateWipe == null ? 0f : flickerGateWipe.Progress;
+        internal bool FlickerPathVisible =>
+            flickerGatePath != null && flickerGatePath.IsVisible;
+        internal float FlickerPathProgress =>
+            flickerGatePath == null ? 0f : flickerGatePath.Progress;
+        internal int FlickerPathPointCount =>
+            flickerGatePath == null ? 0 : flickerGatePath.RenderedPointCount;
+        internal Vector3 FlickerPathEndPoint =>
+            flickerGatePath == null
+                ? Vector3.zero
+                : flickerGatePath.RenderedEndPoint;
+        internal bool FlickerSymbolTransitioning =>
+            flickerEmblemTransition != null &&
+            flickerEmblemTransition.IsTransitioning;
+        internal bool FlickerNextSymbolVisible =>
+            flickerEmblemTransition != null &&
+            flickerEmblemTransition.NextEmblemVisible;
+        internal float FlickerSymbolProgress =>
+            flickerEmblemTransition == null
+                ? 0f
+                : flickerEmblemTransition.Progress;
+        internal Sprite FlickerCurrentSymbol =>
+            flickerEmblemTransition == null
+                ? null
+                : flickerEmblemTransition.CurrentSprite;
+        internal Sprite FlickerNextSymbol =>
+            flickerEmblemTransition == null
+                ? null
+                : flickerEmblemTransition.NextSprite;
         internal Material DisplayMaterial =>
             gateRenderers != null && gateRenderers.Length > 0
                 ? gateRenderers[0].sharedMaterial
@@ -472,22 +497,36 @@ namespace ColorGateRunner.Presentation
             _assignedMaterial =
                 controller.GetPresentationMaterial(AssignedColor);
             ApplyMaterial(_assignedMaterial);
-            if (flickerGateWipe != null)
+            Color nextColor = GetMaterialColor(
+                controller.GetPresentationMaterial(
+                    _flickerWindow.NextColor));
+            if (flickerGatePath != null)
             {
-                Color nextColor = GetMaterialColor(
-                    controller.GetPresentationMaterial(
-                        _flickerWindow.NextColor));
-                flickerGateWipe.SetPresentation(
+                flickerGatePath.SetPresentation(
                     _flickerWindow.IsTransitioning,
                     nextColor,
                     _flickerWindow.TransitionProgress);
             }
-            ApplyFlickerPresentation();
+            ApplyFlickerPresentation(nextColor);
         }
 
-        private void ApplyFlickerPresentation()
+        private void ApplyFlickerPresentation(Color nextColor)
         {
-            ApplyColorEmblem();
+            if (_flickerWindow.IsTransitioning &&
+                flickerEmblemTransition != null)
+            {
+                flickerEmblemTransition.SetTransition(
+                    controller.GetColorEmblemSprite(
+                        _flickerWindow.CurrentColor),
+                    controller.GetColorEmblemSprite(
+                        _flickerWindow.NextColor),
+                    nextColor,
+                    _flickerWindow.TransitionProgress);
+            }
+            else
+            {
+                ApplyColorEmblem();
+            }
             HideMechanicMarker();
         }
 
@@ -537,12 +576,18 @@ namespace ColorGateRunner.Presentation
                 0f,
                 0,
                 false);
-            if (flickerGateWipe != null)
+            if (flickerGatePath != null)
             {
-                flickerGateWipe.SetPresentation(
+                flickerGatePath.SetPresentation(
                     false,
                     Color.clear,
                     0f);
+            }
+            if (flickerEmblemTransition != null && colorEmblem != null)
+            {
+                flickerEmblemTransition.SetStatic(
+                    colorEmblem.sprite,
+                    colorEmblem.color.a);
             }
         }
 
@@ -633,8 +678,10 @@ namespace ColorGateRunner.Presentation
                 mechanicMarker == null ||
                 echoGateField == null ||
                 !echoGateField.HasRequiredReferences ||
-                flickerGateWipe == null ||
-                !flickerGateWipe.HasRequiredReferences ||
+                flickerGatePath == null ||
+                !flickerGatePath.HasRequiredReferences ||
+                flickerEmblemTransition == null ||
+                !flickerEmblemTransition.HasRequiredReferences ||
                 gateRenderers == null || gateRenderers.Length == 0)
             {
                 return false;
@@ -658,14 +705,16 @@ namespace ColorGateRunner.Presentation
             SpriteRenderer emblem,
             TextMesh marker,
             EchoGateFieldView field,
-            FlickerGateWipeView wipe)
+            FlickerGatePathView path,
+            FlickerGateEmblemView emblemTransition)
         {
             controller = sceneController;
             gateRenderers = renderers;
             colorEmblem = emblem;
             mechanicMarker = marker;
             echoGateField = field;
-            flickerGateWipe = wipe;
+            flickerGatePath = path;
+            flickerEmblemTransition = emblemTransition;
             CaptureParts();
         }
 
@@ -796,11 +845,18 @@ namespace ColorGateRunner.Presentation
 
         private void ApplyColorEmblem(float alpha = 1f)
         {
-            colorEmblem.sprite =
-                controller.GetColorEmblemSprite(AssignedColor);
-            colorEmblem.gameObject.SetActive(alpha > 0f);
+            Sprite sprite = controller.GetColorEmblemSprite(AssignedColor);
+            colorEmblem.sprite = sprite;
+            if (flickerEmblemTransition != null)
+            {
+                flickerEmblemTransition.SetStatic(sprite, alpha);
+            }
+            else
+            {
+                colorEmblem.gameObject.SetActive(alpha > 0f);
+                SetEmblemAlpha(alpha);
+            }
             colorEmblem.transform.localScale = Vector3.one;
-            SetEmblemAlpha(alpha);
         }
 
         private void ApplyEchoProviderPresentation()

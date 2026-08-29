@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `2f4f7999da3d1205614866fdf80d2d16bd810328`
-- Base commit: `feat: add hidden power-down flicker`
+- Implementation base HEAD: `b3379e49d020b3bc20816cd203ed00145b494c20`
+- Base commit: `feat: add flicker campaign stages`
 - Authoritative completion HEAD: the commit named
-  `feat: add flicker campaign stages`; its exact hash is recorded in the
-  Iteration 46 final report because a commit cannot contain
+  `feat: refine flicker gate transition`; its exact hash is recorded in the
+  Iteration 47 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 46 — Flicker Campaign Block**.
+- Current completed iteration: **Iteration 47 — Flicker Path and Emblem Transform**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -208,9 +208,12 @@ below where their contracts differ.
   remain unchanged.
 - Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences. A gate
   may begin changing only while farther than 24 scalar path units from the
-  runner. Its `0.12s` left-to-right next-color neon wipe accepts both colors;
-  afterward the new color is committed and held through judgment. Shield is
-  selectable and Booster is disabled throughout this block.
+  runner. During its `0.12s` dual-color window, the next neon color travels
+  around the frame from left pillar bottom-to-top, across the top, then down
+  the right pillar. The center emblem simultaneously replaces the old sprite
+  with the next through a complementary noise dissolve, so it never performs
+  a disappear-then-reappear sequence. Afterward the new color is committed and
+  held through judgment. Shield is selectable and Booster is disabled.
 - Existing saves that cleared Stage 23 and still store Stage 23 as their
   highest unlocked Stage resolve Stage 24 as effectively unlocked after this
   catalog expansion. The earlier Stage 20→21 repair remains intact. Loading
@@ -286,12 +289,12 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `455/455`
-- PlayMode: `250/250`
-- Post-Builder PlayMode: `250/250` (latest Builder-affecting iteration)
+- PlayMode: `251/251`
+- Post-Builder PlayMode: `251/251` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 46 passes completed; the active
+- Campaign Builder: two consecutive Iteration 47 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
@@ -398,6 +401,32 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 47 validation result
+
+- Flicker's Core timing, 24-unit path-distance lock, `0.12s` transition and
+  dual-color judgment remain unchanged. This iteration changes only pooled
+  Presentation and its Builder-owned Scene structure.
+- The former inner quad wipe is removed. One collider-free pooled LineRenderer
+  now reveals the next HDR neon color at constant path distance along the left
+  pillar, top beam and right pillar. The committed frame material changes only
+  when the existing Core transition completes.
+- Every pooled gate now owns a second emblem SpriteRenderer. A shared
+  procedural-noise dissolve shader uses complementary masks for outgoing and
+  incoming sprites plus a next-color emissive edge; both sprites coexist for
+  the transition and the secondary sprite is disabled on completion, Retry and
+  pooled reuse.
+- Campaign Builder completed two consecutive passes. Focused Flicker PlayMode
+  passed `12/12`, full EditMode passed `455/455`, and post-Builder full
+  PlayMode passed `251/251`. Shader compilation, required references,
+  collider-free path, unique generated root and Build Settings passed.
+- Campaign and Step 10 simulations were not rerun because no deterministic
+  content, timing, balance, generation or judgment input changed. Their
+  approved hashes remain authoritative. Android and WebGL player builds remain
+  user-owned and were not run.
+- Human portrait/mobile/WebGL review remains required for the perceived path
+  alignment, Bloom width, dissolve readability and whether `0.12s` provides
+  enough frames for the richer presentation at 30 and 60 fps.
 
 ## Iteration 46 validation result
 

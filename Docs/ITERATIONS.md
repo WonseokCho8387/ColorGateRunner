@@ -2869,3 +2869,35 @@ Human feedback required
   boundary, the `0.12s` wipe reads left-to-right under Bloom, and Stages 24–26
   create noticeable but learnable pressure. Audio, particles, elemental gate
   themes, modifier stacking and Stage 27+ remain deferred.
+
+## Iteration 47 — Flicker Path and Emblem Transform
+
+### Play / Analyze
+
+- The inner rectangular wipe did not match the intended gate-frame color
+  change. The center emblem also snapped only after completion, so it read as
+  replacement rather than transformation.
+
+### Design / Implementation
+
+- Replaced the quad with one pooled, collider-free U-path LineRenderer. Its
+  endpoint advances by physical segment length from the left pillar through
+  the top beam and down the right pillar.
+- Added a second pooled emblem layer and a procedural complementary dissolve
+  shader. The outgoing and incoming sprites share Core progress and a
+  next-color emissive edge, then return to one sprite after completion.
+- Preserved the 24-unit lock, `0.12s` timing, dual-color judgment, Stage data,
+  save state, packages and ProjectSettings.
+
+### Validation / Learning
+
+- Campaign Builder passed twice. Focused Flicker PlayMode passed `12/12`, full
+  EditMode `455/455` and full post-Builder PlayMode `251/251`.
+- A path-following overlay avoids replacing the existing gate material/shader,
+  keeping presentation polish isolated from judgment and Hidden/Camouflage.
+
+### Deferred / Human Review
+
+- Review on portrait mobile and WebGL at 30/60 fps: U-path alignment, rounded
+  corner continuity, Bloom width, dissolve edge noise and symbol readability.
+  Timing changes, SDF/vector morphs, audio and elemental themes remain deferred.
