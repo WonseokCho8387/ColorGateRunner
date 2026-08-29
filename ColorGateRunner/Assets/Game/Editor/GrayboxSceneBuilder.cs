@@ -2381,6 +2381,21 @@ namespace ColorGateRunner.Editor
                     fieldObject.AddComponent<EchoGateFieldView>();
                 echoField.Configure(fieldRenderer);
 
+                GameObject wipeObject = GameObject.CreatePrimitive(
+                    PrimitiveType.Quad);
+                wipeObject.name = "FlickerGateWipe";
+                wipeObject.transform.SetParent(gateObject.transform, false);
+                Renderer wipeRenderer = wipeObject.GetComponent<Renderer>();
+                wipeRenderer.sharedMaterial = protectionFieldMaterial;
+                wipeRenderer.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
+                wipeRenderer.receiveShadows = false;
+                UnityEngine.Object.DestroyImmediate(
+                    wipeObject.GetComponent<Collider>());
+                FlickerGateWipeView flickerWipe =
+                    wipeObject.AddComponent<FlickerGateWipeView>();
+                flickerWipe.Configure(wipeRenderer);
+
                 StageGateView view =
                     gateObject.GetComponent<StageGateView>();
                 view.Configure(
@@ -2388,7 +2403,8 @@ namespace ColorGateRunner.Editor
                     renderers,
                     emblem,
                     marker,
-                    echoField);
+                    echoField,
+                    flickerWipe);
                 gates[index] = view;
             }
 

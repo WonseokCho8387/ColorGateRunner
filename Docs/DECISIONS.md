@@ -1585,3 +1585,21 @@ Status: Approved and implemented.
   back and forth.
 - No Scene object, particle system, audio cue, package, Stage value or timing
   authority is added for this polish pass.
+
+## Iteration 46 — Flicker locks by path distance and transitions as a dual-color window
+
+- Core owns one deterministic `FlickerGateRuntimeState` per gate. It is the
+  authority for current/pending colors, phase, transition progress and lock;
+  Presentation never recomputes judgment color from wall-clock time.
+- Remaining scalar path distance is the fairness measure. Campaign uses gate
+  path distance minus Campaign distance; Experiment uses its existing Z
+  distance. At or below 24 units, the lock check precedes a scheduled phase
+  change. An already-active transition may finish, then locks.
+- The fixed transition duration is `0.12s`, and both endpoint colors pass
+  during it for player and held Echo. This avoids a visual/judgment mismatch
+  while the gate contains two visible colors.
+- Presentation uses one fixed, collider-free, left-to-right next-color wipe in
+  each pooled gate. Flicker has no explanatory marker or text. The View only
+  renders the Core window and resets it on pooled reuse/Retry.
+- Stage 24–26 isolate Flicker before future combinations. Shield remains
+  selectable; Booster is disabled so the learning block is not bypassed.

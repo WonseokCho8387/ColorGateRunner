@@ -312,8 +312,26 @@ namespace ColorGateRunner.Core
                             session.GetSpeedForPlan(plan));
                     float judgmentTime =
                         session.ElapsedPlayingSeconds + travelTime;
-                    RunnerColor judgmentColor =
-                        plan.GetJudgmentColor(judgmentTime);
+                    RunnerColor judgmentColor;
+                    if (plan.Modifier.IsFlicker)
+                    {
+                        FlickerJudgmentWindow window =
+                            SimulateFlickerApproach(
+                                session,
+                                plan,
+                                session.ElapsedPlayingSeconds,
+                                plan.Spacing,
+                                Math.Max(
+                                    0.01f,
+                                    session.GetSpeedForPlan(plan)),
+                                travelTime);
+                        judgmentColor = window.CurrentColor;
+                    }
+                    else
+                    {
+                        judgmentColor =
+                            plan.GetJudgmentColor(judgmentTime);
+                    }
                     float reaction = profile.ReactionSeconds +
                         (NextSigned(ref random) * profile.ReactionVariance);
                     float margin = travelTime - Math.Max(0f, reaction);
@@ -617,6 +635,36 @@ namespace ColorGateRunner.Core
                 ? 0f
                 : (float)postContinueFailures / postContinueWindows;
             return result;
+        }
+
+        private static FlickerJudgmentWindow SimulateFlickerApproach(
+            StageSession session,
+            GatePlan plan,
+            float startTime,
+            float spacing,
+            float speed,
+            float travelTime)
+        {
+            const float stepSeconds = 0.02f;
+            float elapsed = 0f;
+            FlickerJudgmentWindow window =
+                session.UpdateFlickerGateAtTime(
+                    plan,
+                    startTime,
+                    spacing,
+                    0f);
+            while (elapsed < travelTime)
+            {
+                float step = Math.Min(stepSeconds, travelTime - elapsed);
+                elapsed += step;
+                float remaining = Math.Max(0f, spacing - (speed * elapsed));
+                window = session.UpdateFlickerGateAtTime(
+                    plan,
+                    startTime + elapsed,
+                    remaining,
+                    step);
+            }
+            return window;
         }
 
         public static SimulationBatchResult RunFullMatrix(int stochasticRuns)

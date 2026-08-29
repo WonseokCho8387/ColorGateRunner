@@ -630,6 +630,9 @@ namespace ColorGateRunner.Core
     {
         private readonly DeterministicExperimentGateSequence _sequence;
         private readonly EchoOfferCoordinator _echoCoordinator;
+        private readonly Dictionary<int, FlickerGateRuntimeState>
+            _flickerStates =
+                new Dictionary<int, FlickerGateRuntimeState>();
         private bool _shieldActive;
         private float _boosterDistanceRemaining;
 
@@ -744,13 +747,23 @@ namespace ColorGateRunner.Core
             {
                 return false;
             }
-            RunnerColor judgmentColor =
-                plan.GetJudgmentColor(gameplayTimeSeconds);
+            FlickerGateRuntimeState flickerState = null;
+            bool hasFlickerWindow = plan.IsFlicker &&
+                _flickerStates.TryGetValue(plan.GateId, out flickerState);
+            FlickerJudgmentWindow flickerWindow = hasFlickerWindow
+                ? flickerState.Current
+                : default;
+            RunnerColor judgmentColor = hasFlickerWindow
+                ? flickerWindow.CurrentColor
+                : plan.GetJudgmentColor(gameplayTimeSeconds);
             LastJudgmentColor = judgmentColor;
             LastJudgedGateWasFlicker = plan.IsFlicker;
-            bool playerMatch = CurrentColor == judgmentColor;
+            bool playerMatch = hasFlickerWindow
+                ? flickerWindow.Accepts(CurrentColor)
+                : CurrentColor == judgmentColor;
             if (playerMatch)
             {
+                LastJudgmentColor = CurrentColor;
                 LastResolution = ExperimentGateResolution.PlayerColorMatch;
                 if (plan.IsEchoProvider)
                 {
@@ -760,8 +773,13 @@ namespace ColorGateRunner.Core
                         true);
                 }
             }
-            else if (_echoCoordinator.TryConsume(judgmentColor))
+            else if (_echoCoordinator.EchoActive &&
+                (hasFlickerWindow
+                    ? flickerWindow.Accepts(_echoCoordinator.EchoColor)
+                    : _echoCoordinator.EchoColor == judgmentColor) &&
+                _echoCoordinator.TryConsume(_echoCoordinator.EchoColor))
             {
+                LastJudgmentColor = _echoCoordinator.EchoColor;
                 LastResolution = ExperimentGateResolution.EchoColorMatch;
             }
             else if (_boosterDistanceRemaining > 0f)
@@ -811,6 +829,44 @@ namespace ColorGateRunner.Core
                 (plan.IsIce ? Definition.IceSpeedMultiplier : 1f);
         }
 
+        public FlickerJudgmentWindow UpdateFlickerGate(
+            ExperimentGatePlan plan,
+            float remainingDistance,
+            float deltaSeconds)
+        {
+            return UpdateFlickerGateAtTime(
+                plan,
+                ElapsedPlayingSeconds,
+                remainingDistance,
+                deltaSeconds);
+        }
+
+        internal FlickerJudgmentWindow UpdateFlickerGateAtTime(
+            ExperimentGatePlan plan,
+            float gameplayTimeSeconds,
+            float remainingDistance,
+            float deltaSeconds)
+        {
+            if (!plan.IsFlicker)
+            {
+                throw new ArgumentException(
+                    "A Flicker gate is required.",
+                    nameof(plan));
+            }
+            if (!_flickerStates.TryGetValue(
+                plan.GateId,
+                out FlickerGateRuntimeState state))
+            {
+                state = new FlickerGateRuntimeState();
+                _flickerStates.Add(plan.GateId, state);
+            }
+            return state.Update(
+                plan.FlickerPlan,
+                gameplayTimeSeconds,
+                remainingDistance,
+                deltaSeconds);
+        }
+
         public void Advance(float deltaSeconds)
         {
             if (deltaSeconds < 0f)
@@ -827,6 +883,7 @@ namespace ColorGateRunner.Core
         {
             _sequence.Reset();
             _echoCoordinator.Restart();
+            _flickerStates.Clear();
             CurrentColor = Definition.GetColor(0);
             GatesPassed = 0;
             CurrentSpeed = Definition.StartingSpeed;
@@ -1108,8 +1165,13 @@ namespace ColorGateRunner.Core
                         totalVisible += 2f;
                         fogSamples++;
                     }
-                    RunnerColor judgmentColor =
-                        plan.GetJudgmentColor(time + arrival);
+                    RunnerColor judgmentColor = plan.IsFlicker
+                        ? SimulateFlickerApproach(
+                            plan,
+                            time,
+                            speed,
+                            arrival).CurrentColor
+                        : plan.GetJudgmentColor(time + arrival);
                     int requiredTapCount = CalculateRequiredTaps(
                         definition,
                         simulatedColor,
@@ -1224,6 +1286,33 @@ namespace ColorGateRunner.Core
                 (float)mechanicFailures / Math.Max(1, runs);
             result.Risk = Classify(result);
             return result;
+        }
+
+        private static FlickerJudgmentWindow SimulateFlickerApproach(
+            ExperimentGatePlan plan,
+            float startTime,
+            float speed,
+            float travelTime)
+        {
+            const float stepSeconds = 0.02f;
+            FlickerGateRuntimeState state = new FlickerGateRuntimeState();
+            float elapsed = 0f;
+            FlickerJudgmentWindow window = state.Update(
+                plan.FlickerPlan,
+                startTime,
+                plan.Spacing,
+                0f);
+            while (elapsed < travelTime)
+            {
+                float step = Math.Min(stepSeconds, travelTime - elapsed);
+                elapsed += step;
+                window = state.Update(
+                    plan.FlickerPlan,
+                    startTime + elapsed,
+                    Math.Max(0f, plan.Spacing - (speed * elapsed)),
+                    step);
+            }
+            return window;
         }
 
         public static void RunCandidateItemMatrix(

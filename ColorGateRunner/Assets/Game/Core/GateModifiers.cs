@@ -741,6 +741,192 @@ namespace ColorGateRunner.Core
         }
     }
 
+    public readonly struct FlickerJudgmentWindow
+    {
+        public FlickerJudgmentWindow(
+            RunnerColor currentColor,
+            RunnerColor nextColor,
+            bool isTransitioning,
+            float transitionProgress,
+            long phaseIndex,
+            bool isLocked)
+        {
+            CurrentColor = currentColor;
+            NextColor = nextColor;
+            IsTransitioning = isTransitioning;
+            TransitionProgress = Math.Max(
+                0f,
+                Math.Min(1f, transitionProgress));
+            PhaseIndex = phaseIndex;
+            IsLocked = isLocked;
+        }
+
+        public RunnerColor CurrentColor { get; }
+        public RunnerColor NextColor { get; }
+        public bool IsTransitioning { get; }
+        public float TransitionProgress { get; }
+        public long PhaseIndex { get; }
+        public bool IsLocked { get; }
+
+        public bool Accepts(RunnerColor color)
+        {
+            return color == CurrentColor ||
+                (IsTransitioning && color == NextColor);
+        }
+    }
+
+    public sealed class FlickerGateRuntimeState
+    {
+        public const float LockDistance = 24f;
+
+        private bool _initialized;
+        private int _currentColorIndex;
+        private int _nextColorIndex;
+        private long _observedPhaseIndex;
+        private float _transitionElapsed;
+        private bool _transitioning;
+        private bool _lockAfterTransition;
+
+        public FlickerJudgmentWindow Current { get; private set; }
+
+        public FlickerJudgmentWindow Update(
+            FlickerGatePlan plan,
+            float gameplayTimeSeconds,
+            float remainingDistance,
+            float deltaSeconds)
+        {
+            if (!plan.IsEnabled)
+            {
+                throw new ArgumentException(
+                    "An enabled Flicker plan is required.",
+                    nameof(plan));
+            }
+            if (gameplayTimeSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(gameplayTimeSeconds));
+            }
+            if (remainingDistance < 0f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(remainingDistance));
+            }
+            if (deltaSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
+            }
+
+            FlickerCycleSample scheduled = plan.GetSample(
+                gameplayTimeSeconds);
+            if (!_initialized)
+            {
+                _initialized = true;
+                _currentColorIndex = scheduled.CycleColorIndex;
+                _nextColorIndex = _currentColorIndex;
+                _observedPhaseIndex = scheduled.PhaseIndex;
+                Current = CreateWindow(
+                    plan,
+                    remainingDistance <= LockDistance);
+                return Current;
+            }
+
+            bool insideLockDistance = remainingDistance <= LockDistance;
+            if (_transitioning)
+            {
+                if (insideLockDistance)
+                {
+                    _lockAfterTransition = true;
+                }
+                AdvanceTransition(plan, deltaSeconds);
+                return Current;
+            }
+
+            if (Current.IsLocked || insideLockDistance)
+            {
+                Current = CreateWindow(plan, true);
+                return Current;
+            }
+
+            if (scheduled.PhaseIndex != _observedPhaseIndex)
+            {
+                _observedPhaseIndex = scheduled.PhaseIndex;
+                _nextColorIndex = scheduled.CycleColorIndex;
+                if (_nextColorIndex != _currentColorIndex)
+                {
+                    _transitioning = true;
+                    _transitionElapsed = 0f;
+                    if (plan.TransitionPulseSeconds <= 0f)
+                    {
+                        CompleteTransition(plan, false);
+                    }
+                    else
+                    {
+                        Current = CreateWindow(plan, false);
+                    }
+                    return Current;
+                }
+            }
+
+            Current = CreateWindow(plan, false);
+            return Current;
+        }
+
+        public void Reset()
+        {
+            _initialized = false;
+            _currentColorIndex = 0;
+            _nextColorIndex = 0;
+            _observedPhaseIndex = 0;
+            _transitionElapsed = 0f;
+            _transitioning = false;
+            _lockAfterTransition = false;
+            Current = default;
+        }
+
+        private void AdvanceTransition(
+            FlickerGatePlan plan,
+            float deltaSeconds)
+        {
+            _transitionElapsed = Math.Min(
+                plan.TransitionPulseSeconds,
+                _transitionElapsed + deltaSeconds);
+            if (_transitionElapsed >= plan.TransitionPulseSeconds)
+            {
+                CompleteTransition(plan, _lockAfterTransition);
+                return;
+            }
+            Current = CreateWindow(plan, false);
+        }
+
+        private void CompleteTransition(
+            FlickerGatePlan plan,
+            bool locked)
+        {
+            _currentColorIndex = _nextColorIndex;
+            _transitioning = false;
+            _transitionElapsed = 0f;
+            _lockAfterTransition = false;
+            Current = CreateWindow(plan, locked);
+        }
+
+        private FlickerJudgmentWindow CreateWindow(
+            FlickerGatePlan plan,
+            bool locked)
+        {
+            float progress = !_transitioning ||
+                plan.TransitionPulseSeconds <= 0f
+                ? 0f
+                : _transitionElapsed / plan.TransitionPulseSeconds;
+            return new FlickerJudgmentWindow(
+                plan.GetCycleColor(_currentColorIndex),
+                plan.GetCycleColor(_nextColorIndex),
+                _transitioning,
+                progress,
+                _observedPhaseIndex,
+                locked);
+        }
+    }
+
     public static class DeterministicModifierPlanner
     {
         public static bool[] BuildOccurrenceMask(

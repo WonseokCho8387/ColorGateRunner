@@ -842,3 +842,17 @@ visible `HIDDEN` marker for current runtime presentation.
 - Recovery never flashes white or exceeds the assigned gate color. The final
   silhouette remains the non-target neutral gate. Audio, particles and
   full-screen effects remain excluded.
+
+## Iteration 46 Flicker neon wipe
+
+- A Flicker transition reads as the next neon color filling the gate opening
+  from left to right, like a short gauge. The existing frame and emblem retain
+  the current color while a collider-free inner wipe reveals the next color.
+- The wipe uses the existing protection-field shader/material family and a
+  fixed pooled quad. It grows only in width, never allocates during play and
+  disappears outside the `0.12s` transition.
+- Flicker shows no label or mechanic marker. Motion and the two simultaneous
+  neon colors must communicate the state without tutorial copy.
+- Human portrait review owns wipe direction/readability under Bloom, color
+  distinction at maximum speed, and whether the fixed quad feels integrated
+  with the gate rather than like a detached UI overlay.

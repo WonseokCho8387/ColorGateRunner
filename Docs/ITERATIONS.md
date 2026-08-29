@@ -2828,3 +2828,44 @@ Human feedback required
 - Judge the three outage beats, residual Bloom and memorization clarity on
   portrait mobile and WebGL. Audio sparks, particles, elemental gate themes
   and any timing/balance change remain deferred.
+
+## Iteration 46 — Flicker Campaign Block
+
+### Play / Analyze
+
+- The existing Flicker changed instantly from absolute time and could switch
+  too close to judgment. Its marker explained the mechanic instead of making
+  the gate itself readable, and presentation had no safe representation for a
+  two-color transition.
+
+### Design / Implementation
+
+- Added a deterministic per-gate Core state with a 24-unit path-distance lock.
+  Boundary precedence prevents a newly scheduled change at the lock threshold;
+  a change already underway completes in `0.12s` and then locks.
+- Both colors pass during the transition for player and held Echo. The View
+  consumes the same state to grow a pooled, collider-free next-color neon wipe
+  left to right, with no `FLICKER` marker.
+- Catalog revision 13 adds Stages 24–26 with 44/48/52 gates, 2/2/3 colors,
+  6/8/10 deterministic Flicker occurrences and increasing speed/switch
+  pressure. Shield is enabled, Booster disabled and Stage 26 is Hard.
+
+### Validation / Learning
+
+- Stage Catalog Builder and Campaign Builder each passed twice. Focused
+  Flicker EditMode passed `22/22`, focused PlayMode `11/11`, full EditMode
+  `455/455` and full PlayMode `250/250`.
+- Two Campaign runs produced byte-identical 520-row artifacts with Summary /
+  JSON / CSV hashes `BDCAAFE...A4EB4`, `748AF7A9...85F7A` and
+  `627B5B4A...8C73`. Two Step 10 runs retained all five approved hashes across
+  80 rows and 64,016 runs.
+- A transition can remain deterministic and fair when one Core window owns
+  both judgment endpoints and visual progress. Distance lock must be evaluated
+  before scheduled phase advancement to avoid a same-frame late switch.
+
+### Deferred / Human Review
+
+- Verify on portrait mobile and WebGL that 24 units is a comfortable reaction
+  boundary, the `0.12s` wipe reads left-to-right under Bloom, and Stages 24–26
+  create noticeable but learnable pressure. Audio, particles, elemental gate
+  themes, modifier stacking and Stage 27+ remain deferred.

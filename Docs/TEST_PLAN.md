@@ -831,3 +831,24 @@ fairness, or polish.
   `8/8`, full EditMode `451/451` and full PlayMode `250/250`. No Builder,
   simulation or test build is required because no Scene, deterministic content,
   timing, balance, generation or judgment input changes.
+
+### Iteration 46 Flicker campaign block
+
+- Core tests must prove boundary precedence at 24 scalar path units, completion
+  of a transition begun outside the boundary, exact `0.12s` progress and dual
+  acceptance of previous/next colors for both player and held Echo.
+- Catalog tests must prove revision 13 contains stable Stages 1–26; Stages
+  24–26 are Flicker-only with exact 2/2/3-color, 6/8/10-occurrence, timing,
+  difficulty and Shield-on/Booster-off contracts.
+- PlayMode tests must reject a `FLICKER` marker, verify the left-to-right wipe,
+  confirm the wipe has no collider, and cover Pause, Retry, transition and
+  locked judgment behavior in Experiment and Campaign presentation.
+- Stage Catalog Builder and Campaign Builder must each run twice. Full EditMode
+  and post-Builder PlayMode, two Campaign simulations and two Step 10
+  simulations are required because catalog, Scene structure, timing and
+  judgment changed. Test builds remain excluded at the user's request.
+- Final evidence: focused Flicker EditMode `22/22`, focused Flicker PlayMode
+  `11/11`, full EditMode `455/455`, full PlayMode `250/250`, two byte-identical
+  520-row Campaign runs, and two byte-identical 80-row / 64,016-run Step 10
+  runs. All Builders passed twice and no missing/duplicate generated reference
+  failure was reported.

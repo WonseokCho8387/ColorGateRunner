@@ -1163,6 +1163,11 @@ namespace ColorGateRunner.Presentation
             }
             GatePlan plan = gate.ActivePlan;
             int gateIndex = gate.PlanIndex;
+            if (plan.Modifier.IsFlicker)
+            {
+                gate.ApplyFlickerRuntimeState(
+                    _session.UpdateFlickerGate(plan, 0f, 0f));
+            }
             GateOutcome outcome = _session.ResolveGate(
                 plan,
                 _session.ElapsedPlayingSeconds);
@@ -2300,6 +2305,14 @@ namespace ColorGateRunner.Presentation
                 _nextGateZ,
                 gatePosition,
                 gateRotation);
+            if (plan.Modifier.IsFlicker)
+            {
+                gate.ApplyFlickerRuntimeState(
+                    _session.UpdateFlickerGate(
+                        plan,
+                        GetCampaignRemainingDistance(_nextGateZ),
+                        0f));
+            }
             gate.UpdateCampaignVisibility(
                 _session.GatesPassed,
                 EstimateCampaignGateEta(plan, _nextGateZ),
@@ -2333,6 +2346,14 @@ namespace ColorGateRunner.Presentation
                 _experimentSession.Definition.Hidden,
                 _experimentSession.Definition.Flicker,
                 _experimentSession.ElapsedPlayingSeconds);
+            if (plan.IsFlicker)
+            {
+                gate.ApplyFlickerRuntimeState(
+                    _experimentSession.UpdateFlickerGate(
+                        plan,
+                        GetExperimentRemainingDistance(_nextGateZ),
+                        0f));
+            }
             _nextPlanIndex++;
         }
 
@@ -2369,6 +2390,14 @@ namespace ColorGateRunner.Presentation
             }
 
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
+            if (plan.IsFlicker)
+            {
+                gate.ApplyFlickerRuntimeState(
+                    _experimentSession.UpdateFlickerGate(
+                        plan,
+                        0f,
+                        0f));
+            }
             bool resolved = _experimentSession.Resolve(
                 plan,
                 _experimentSession.ElapsedPlayingSeconds);
@@ -2536,6 +2565,17 @@ namespace ColorGateRunner.Presentation
                 StageGateView gate = gates[index];
                 if (gate.gameObject.activeSelf && gate.HasExperimentPlan)
                 {
+                    ExperimentGatePlan plan = gate.ActiveExperimentPlan;
+                    float remainingDistance = GetExperimentRemainingDistance(
+                        gate.PathDistance);
+                    if (plan.IsFlicker)
+                    {
+                        gate.ApplyFlickerRuntimeState(
+                            _experimentSession.UpdateFlickerGate(
+                                plan,
+                                remainingDistance,
+                                deltaSeconds));
+                    }
                     gate.UpdateExperimentVisibility(
                         _experimentSession.GatesPassed,
                         EstimateExperimentGateEta(
@@ -2555,13 +2595,17 @@ namespace ColorGateRunner.Presentation
             ExperimentGatePlan plan,
             float gateWorldZ)
         {
-            float remainingDistance = Mathf.Max(
-                0f,
-                gateWorldZ - player.position.z);
+            float remainingDistance = GetExperimentRemainingDistance(
+                gateWorldZ);
             float speed = _experimentSession.GetSpeedForPlan(plan);
             return GateEtaEstimator.EstimateSeconds(
                 remainingDistance,
                 speed);
+        }
+
+        private float GetExperimentRemainingDistance(float gateWorldZ)
+        {
+            return Mathf.Max(0f, gateWorldZ - player.position.z);
         }
 
         private void UpdateCampaignGateVisibility(
@@ -2578,6 +2622,17 @@ namespace ColorGateRunner.Presentation
                 if (gate.gameObject.activeSelf &&
                     !gate.HasExperimentPlan)
                 {
+                    GatePlan plan = gate.ActivePlan;
+                    float remainingDistance = GetCampaignRemainingDistance(
+                        gate.PathDistance);
+                    if (plan.Modifier.IsFlicker)
+                    {
+                        gate.ApplyFlickerRuntimeState(
+                            _session.UpdateFlickerGate(
+                                plan,
+                                remainingDistance,
+                                deltaSeconds));
+                    }
                     gate.UpdateCampaignVisibility(
                         _session.GatesPassed,
                         EstimateCampaignGateEta(
@@ -2623,12 +2678,16 @@ namespace ColorGateRunner.Presentation
             GatePlan plan,
             float gatePathDistance)
         {
-            float remainingDistance = Mathf.Max(
-                0f,
-                gatePathDistance - _campaignDistance);
+            float remainingDistance = GetCampaignRemainingDistance(
+                gatePathDistance);
             return GateEtaEstimator.EstimateSeconds(
                 remainingDistance,
                 _session.GetSpeedForPlan(plan));
+        }
+
+        private float GetCampaignRemainingDistance(float gatePathDistance)
+        {
+            return Mathf.Max(0f, gatePathDistance - _campaignDistance);
         }
 
         private void PlacePlannedGoal()

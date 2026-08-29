@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 12;
+        private const int CurrentCatalogRevision = 13;
 
         [Serializable]
         private sealed class StageEntry
@@ -339,9 +339,24 @@ namespace ColorGateRunner.Presentation
                 return this;
             }
 
-            public StageEntry WithFlicker()
+            public StageEntry WithFlicker(
+                float eligibleStart,
+                float eligibleEnd,
+                float occurrenceChance,
+                int minimumGateCooldown,
+                float switchSeconds,
+                float transitionSeconds,
+                int maxOccurrences)
             {
                 flickerEnabled = true;
+                flickerEligibleStart = eligibleStart;
+                flickerEligibleEnd = eligibleEnd;
+                flickerOccurrenceChance = occurrenceChance;
+                flickerMinimumGateCooldown = minimumGateCooldown;
+                flickerSwitchSeconds = switchSeconds;
+                flickerPulseSeconds = transitionSeconds;
+                flickerMaxOccurrences = maxOccurrences;
+                flickerFirstGuaranteed = true;
                 return this;
             }
 
@@ -1057,7 +1072,97 @@ namespace ColorGateRunner.Presentation
                     .WithDifficulty(StageDifficulty.Hard)
                     .WithHidden(
                         0.10f, 0.96f, 0.45f, 2,
-                        1.00f, 0.18f, 11)
+                        1.00f, 0.18f, 11),
+                StageEntry.Create(
+                    "stage-24", 24, "FLICKER INTRO",
+                    "Read a gate whose neon color changes as you approach.",
+                    44, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    44f, 60f, 1.18f, 0.84f,
+                    new[]
+                    {
+                        GatePatternType.Steady,
+                        GatePatternType.Compression,
+                        GatePatternType.Release
+                    },
+                    8, 7, 840f, 144f, 240024u,
+                    true, null,
+                    StagePrimaryMechanic.Flicker,
+                    GateModifierType.Flicker)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.44f, 0.28f),
+                        new Keyframe(0.77f, 0.69f),
+                        new Keyframe(1f, 1f))
+                    .WithActiveColorCount(2)
+                    .WithItemAvailability(true, false)
+                    .WithFlicker(
+                        0.10f, 0.92f, 0.22f, 2,
+                        0.72f, 0.12f, 6),
+                StageEntry.Create(
+                    "stage-25", 25, "FLICKER PRACTICE",
+                    "Track faster color changes through a longer approach.",
+                    48, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    46f, 64f, 1.12f, 0.80f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Compression,
+                        GatePatternType.Release
+                    },
+                    7, 8, 860f, 146f, 250025u,
+                    true, null,
+                    StagePrimaryMechanic.Flicker,
+                    GateModifierType.Flicker)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.42f, 0.26f),
+                        new Keyframe(0.75f, 0.66f),
+                        new Keyframe(1f, 1f))
+                    .WithActiveColorCount(2)
+                    .WithItemAvailability(true, false)
+                    .WithFlicker(
+                        0.10f, 0.94f, 0.30f, 2,
+                        0.60f, 0.12f, 8),
+                StageEntry.Create(
+                    "stage-26", 26, "FLICKER MASTERY",
+                    "Master three-color gates with compressed neon changes.",
+                    52, new[]
+                    {
+                        RunnerColor.Red,
+                        RunnerColor.Blue,
+                        RunnerColor.Green
+                    },
+                    48f, 68f, 1.06f, 0.76f,
+                    new[]
+                    {
+                        GatePatternType.ThreeColorFlow,
+                        GatePatternType.Syncopation,
+                        GatePatternType.Release
+                    },
+                    6, 10, 880f, 148f, 260026u,
+                    true, null,
+                    StagePrimaryMechanic.Flicker,
+                    GateModifierType.Flicker)
+                    .WithSpeedCurve(
+                        new Keyframe(0f, 0f),
+                        new Keyframe(0.38f, 0.24f),
+                        new Keyframe(0.72f, 0.64f),
+                        new Keyframe(1f, 1f))
+                    .WithDifficulty(StageDifficulty.Hard)
+                    .WithItemAvailability(true, false)
+                    .WithFlicker(
+                        0.10f, 0.96f, 0.46f, 2,
+                        0.52f, 0.12f, 10)
             };
         }
     }

@@ -63,6 +63,72 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void FlickerLock_WinsWhenPhaseChangesAtSafetyBoundary()
+        {
+            FlickerGatePlan plan = new FlickerGatePlan(
+                new[] { RunnerColor.Red, RunnerColor.Blue },
+                0.5f,
+                0f,
+                0.12f,
+                1u);
+            FlickerGateRuntimeState state = new FlickerGateRuntimeState();
+
+            FlickerJudgmentWindow before = state.Update(
+                plan,
+                0.49f,
+                30f,
+                0f);
+            FlickerJudgmentWindow locked = state.Update(
+                plan,
+                0.5f,
+                FlickerGateRuntimeState.LockDistance,
+                0.01f);
+
+            Assert.That(before.CurrentColor, Is.EqualTo(RunnerColor.Red));
+            Assert.That(locked.CurrentColor, Is.EqualTo(RunnerColor.Red));
+            Assert.That(locked.IsTransitioning, Is.False);
+            Assert.That(locked.IsLocked, Is.True);
+        }
+
+        [Test]
+        public void FlickerTransition_AcceptsBothColorsThenCompletesAndLocks()
+        {
+            FlickerGatePlan plan = new FlickerGatePlan(
+                new[] { RunnerColor.Red, RunnerColor.Blue },
+                0.5f,
+                0f,
+                0.12f,
+                1u);
+            FlickerGateRuntimeState state = new FlickerGateRuntimeState();
+            state.Update(plan, 0.49f, 30f, 0f);
+
+            FlickerJudgmentWindow started = state.Update(
+                plan,
+                0.5f,
+                30f,
+                0.01f);
+            FlickerJudgmentWindow halfway = state.Update(
+                plan,
+                0.56f,
+                30f,
+                0.06f);
+            FlickerJudgmentWindow completed = state.Update(
+                plan,
+                0.62f,
+                20f,
+                0.06f);
+
+            Assert.That(started.IsTransitioning, Is.True);
+            Assert.That(started.Accepts(RunnerColor.Red), Is.True);
+            Assert.That(started.Accepts(RunnerColor.Blue), Is.True);
+            Assert.That(halfway.TransitionProgress, Is.EqualTo(0.5f));
+            Assert.That(completed.IsTransitioning, Is.False);
+            Assert.That(completed.CurrentColor, Is.EqualTo(RunnerColor.Blue));
+            Assert.That(completed.IsLocked, Is.True);
+            Assert.That(completed.Accepts(RunnerColor.Red), Is.False);
+        }
+
+        [Test]
         public void FlickerPlanning_IsDeterministicAndRespectsSelectionRules()
         {
             ExperimentDefinition definition = ExperimentCatalog.Get(

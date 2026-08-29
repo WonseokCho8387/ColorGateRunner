@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `97358cda2156e3ca770656b684c4cb5a479fb282`
-- Base commit: `fix: fully hide hidden gate color`
+- Implementation base HEAD: `2f4f7999da3d1205614866fdf80d2d16bd810328`
+- Base commit: `feat: add hidden power-down flicker`
 - Authoritative completion HEAD: the commit named
-  `feat: add hidden power-down flicker`; its exact hash is recorded in the
-  Iteration 45B final report because a commit cannot contain
+  `feat: add flicker campaign stages`; its exact hash is recorded in the
+  Iteration 46 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,12 +23,12 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 45B — Hidden Power-Down Flicker**.
+- Current completed iteration: **Iteration 46 — Flicker Campaign Block**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
   Lab-local and non-persistent.
-- All 23 active Campaign Stages use one scalar-distance Spline route rather
+- All 26 active Campaign Stages use one scalar-distance Spline route rather
   than the legacy recycled straight-track placement. The same evaluated pose
   owns runner, chase camera, pooled gates, Goal, Fog curtain and preplaced Ice
   runway. Stages 1–7 introduce restrained horizontal curvature, Stages 8–13
@@ -106,7 +106,7 @@ below where their contracts differ.
   PlayerPrefs are imported once. Legacy keys remain for rollback safety, but
   Product save becomes the runtime write authority.
 - First clear grants `100 / 200 / 500` Coins for Normal / Hard / Very Hard
-  difficulty. Stages 11, 14, 17 and 23 are Hard; Stage 20 is Very Hard; the other
+  difficulty. Stages 11, 14, 17, 23 and 26 are Hard; Stage 20 is Very Hard; the other
   authored Stages are Normal. Every even first-cleared Stage up
   to Stage 36 applies one automatic Lobby milestone and an idempotent reward.
   The starter reward policy grants 200 Coins, or 300 at every third milestone,
@@ -149,8 +149,8 @@ below where their contracts differ.
   colors reuse the same fixed slots without covering left-hand curves.
 - Gates and the bottom color-order HUD now share six distinct transparent,
   non-elemental Theme 1 image emblems. The former Unicode shape glyphs are no
-  longer used by normal runtime presentation. Echo and Flicker retain their
-  concise mechanic markers, while Hidden has no explanatory marker or text.
+  longer used by normal runtime presentation. Echo retains its concise
+  mechanic marker, while Hidden and Flicker have no explanatory marker or text.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
   alpha 9-slice panel/button/chip sprites and ten semantic resource/action
   icons. Builder-created panels retain their existing hierarchy and text;
@@ -194,23 +194,28 @@ below where their contracts differ.
   the existing
   Booster state, distance, FOV, warning and pause ownership and allocates no
   runtime emitter.
-- Campaign contains 23 stable-ID Stages. Stages 1–5 remain the color/rhythm
+- Campaign contains 26 stable-ID Stages. Stages 1–5 remain the color/rhythm
   foundation; Stage 6 provides Shield and Stage 7 provides Booster while
   selection stays locked; Stage 8 is the first clean three-color Stage with
   selectable items. Stages 9–20 teach Camouflage, Fog, Ice and Echo in
   three-Stage intro/practice/mastery blocks using 2/2/3 colors. Stages 21–23
-  now teach Hidden recall with the same 2/2/3-color block shape and isolated
-  Hidden modifier. Flicker remains available in Experiment Lab and is deferred
-  from Campaign until planned Stages 24–26.
+  teach Hidden recall and Stages 24–26 teach Flicker timing with the same
+  2/2/3-color block shape and an isolated modifier per block.
 - Hidden Stages 21–23 now place `7 / 9 / 11` deterministic occurrences across
   the full run. Their `1.30 / 1.15 / 1.00s` hide leads and shared `0.18s`
   emblem fade/contract transition make the intro readable while increasing
   repetition and later-run memory pressure. Judgment and simulation authority
   remain unchanged.
-- Existing saves that cleared Stage 20 and still store Stage 20 as their
-  highest unlocked Stage resolve Stage 21 as effectively unlocked after the
-  catalog expansion. Loading does not rewrite the Product save or legacy
-  PlayerPrefs; a later ordinary progression write persists the new stable ID.
+- Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences. A gate
+  may begin changing only while farther than 24 scalar path units from the
+  runner. Its `0.12s` left-to-right next-color neon wipe accepts both colors;
+  afterward the new color is committed and held through judgment. Shield is
+  selectable and Booster is disabled throughout this block.
+- Existing saves that cleared Stage 23 and still store Stage 23 as their
+  highest unlocked Stage resolve Stage 24 as effectively unlocked after this
+  catalog expansion. The earlier Stage 20→21 repair remains intact. Loading
+  does not rewrite the Product save or legacy PlayerPrefs; a later ordinary
+  progression write persists the new stable ID.
 - From Stage 8 onward, selecting Shield or Booster consumes one owned unit of
   each selected item in one atomic Product save when `START` succeeds, before
   Countdown. At zero stock the item button offers one Shield or Booster for
@@ -280,19 +285,20 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `451/451`
+- EditMode: `455/455`
 - PlayMode: `250/250`
-- Post-Builder PlayMode: `249/249` (latest Builder-affecting iteration)
+- Post-Builder PlayMode: `250/250` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 45 passes completed; the active
+- Campaign Builder: two consecutive Iteration 46 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: revision 12 Resource contains 23 valid stages
+- Stage Catalog Builder: two consecutive Iteration 46 passes completed;
+  revision 13 Resource contains 26 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -317,18 +323,18 @@ All three entries are expected to be enabled and unique.
 
 ### Campaign simulation baseline
 
-- Rows: `460`
+- Rows: `520`
 - Summary SHA-256:
-  `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`
+  `BDCAAFE843F1FB81BE8569BE8F01424ABD8FD4CEFED56F89C5889EB4892A4EB4`
 - JSON SHA-256:
-  `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
+  `748AF7A9D8368125E9AFF1943DC4B6A225E9F48E72A043507A7049FECBE85F7A`
 - CSV SHA-256:
-  `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`
+  `627B5B4A4CCD8DBB2C3942343550118F2EE8E141BD683597FF14F1A0F3098C73`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
-- The 60 new rows cover Stages 21–23 across every standard profile and start-
-  item combination. Existing Stage 1–20 rows retain their prior behavior.
+- The 60 new rows cover Stages 24–26 across every standard profile and start-
+  item combination. Existing Stage 1–23 rows retain their prior behavior.
 - Step 10 was rerun twice. Its 80-row, 64,016-run artifacts remain byte-exact
   to the baseline below.
 
@@ -392,6 +398,38 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 46 validation result
+
+- Catalog revision 13 adds stable Stages 24–26 as a Flicker-only learning
+  block. They use 44/48/52 gates, 2/2/3 colors, increasing speed and cadence
+  pressure, deterministic 6/8/10 Flicker occurrences, Shield availability and
+  no Booster selection. Stage 26 is Hard.
+- `FlickerGateRuntimeState` is the single deterministic authority for each
+  gate's current color, pending color, transition progress and distance lock.
+  At or below 24 scalar path units a new phase cannot begin; a transition that
+  already began outside the boundary completes before the gate locks.
+- Every transition lasts `0.12s`. During that window both the previous and next
+  colors pass for the player and a held Echo. The same window drives a
+  collider-free next-color neon wipe from left to right inside the gate.
+- Flicker no longer presents an explanatory marker. Existing gate frame and
+  emblem presentation remain authoritative outside the transition wipe.
+- Stage Catalog Builder and Campaign Builder each completed two consecutive
+  passes. Focused Flicker EditMode passed `22/22`, focused Flicker PlayMode
+  passed `11/11`, full EditMode passed `455/455`, and full PlayMode passed
+  `250/250`. Missing Script, Missing Reference, duplicate generated root and
+  Build Settings checks passed through the standard suites.
+- Two 520-row Campaign simulations were byte-identical with Summary / JSON /
+  CSV hashes `BDCAAFE...A4EB4`, `748AF7A9...85F7A` and
+  `627B5B4A...8C73`. Two Step 10 runs retained all five approved hashes across
+  80 rows and 64,016 runs.
+- The Editor Product save and Campaign PlayerPrefs were not mutated. No
+  package, approved ProjectSettings semantic, Android build or WebGL build was
+  changed. Player builds were intentionally left to the user's requested test
+  build menu workflow.
+- Human review remains required for the comfort of the 24-unit safety boundary,
+  the readability and direction of the `0.12s` wipe under Bloom, and the
+  authored Stage 24–26 pressure on mobile and WebGL.
 
 ## Iteration 45B validation result
 

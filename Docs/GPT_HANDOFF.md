@@ -8,16 +8,16 @@
 
 - 기준일: 2026-08-29
 - 브랜치: `main`
-- 최신 구현: `feat: add hidden power-down flicker` 완료 커밋
-- 완료 Iteration: **Iteration 45B — Hidden Power-Down Flicker**
+- 최신 구현: `feat: add flicker campaign stages` 완료 커밋
+- 완료 Iteration: **Iteration 46 — Flicker Campaign Block**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
-- Campaign Catalog: revision 12, stable Stage 1–23
-- 표준 검증 기준: EditMode `451/451`, PlayMode `250/250`
+- Campaign Catalog: revision 13, stable Stage 1–26
+- 표준 검증 기준: EditMode `455/455`, PlayMode `250/250`
 
 ### 현재 작업 트리 주의
 
-Iteration 45B 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 46 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.
@@ -69,7 +69,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 
 ### Campaign과 플레이
 
-- Stage 1–23, 결정론적 Gate 생성과 Retry
+- Stage 1–26, 결정론적 Gate 생성과 Retry
 - 전체 Campaign Spline 이동, 좌우 곡선과 완만한 고저차
 - Spline 기반 러너, 카메라, Gate, Goal, Fog, Ice와 도시 배치
 - 카메라 회전 관성: half-life `0.3s`, yaw `24°`, pitch `16°`, roll 없음
@@ -79,6 +79,8 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - 6개 Gate 풀과 파괴 연출 풀
 - Gate와 하단 색상 UI가 공유하는 6개 투명 이미지 emblem
 - 설명 텍스트 없이 emblem과 색상이 전기 차단처럼 점멸 후 사라지는 Hidden 표현
+- 24-unit 접근 안전 잠금, `0.12s` 양색 판정과 좌→우 네온 wipe를 갖춘
+  marker-free Flicker 표현
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
 - 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
 - 10-bank Fog, 고정-capacity wisp/rain과 Fog 구간 어두운 tone
@@ -129,7 +131,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 
 | 기믹 | Core/테스트 | Experiment | Campaign | 현재 상태 |
 |---|---|---|---|---|
-| 색상 순환/일치 | 완료 | 완료 | Stage 1–23 | 핵심 규칙 완료 |
+| 색상 순환/일치 | 완료 | 완료 | Stage 1–26 | 핵심 규칙 완료 |
 | Shield | 완료 | 완료 | Stage 6+, 선택 가능 | 비주얼·경제 연결 완료 |
 | Booster | 완료 | 완료 | Stage 7+, 선택 가능 | 3D Warp와 카메라 연결 완료 |
 | Camouflage | 완료 | 완료 | Stage 9–11 | 입문/연습/숙련 완료 |
@@ -137,12 +139,10 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 | Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
 | Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
 | Hidden | 완료 | 완료 | Stage 21–23 | 전 구간 7/9/11회·네온 차단 소거 표현, 인간 검증 필요 |
-| Flicker | 완료 | 완료 | 미배치 | Stage 24–26 제작 필요 |
+| Flicker | 완료 | 완료 | Stage 24–26 | 6/8/10회·거리 잠금·양색 wipe, 인간 검증 필요 |
 
 ### 구현되지 않은 기믹과 모드
 
-- **Flicker Campaign block**: 기능은 존재하지만 Stage 24–26 콘텐츠,
-  frequency/duty/reveal 곡선, 접근성 검증이 없다.
 - **Stage 27–36의 새 기믹**: 승인된 새 Gate Modifier가 없다. 먼저 기존
   여섯 Modifier의 재등장과 교대 조합으로 충분한지 인간 플레이로 판단해야
   한다. 같은 Gate에 여러 Modifier를 중첩하는 규칙도 아직 승인되지 않았다.
@@ -172,6 +172,8 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
   전달, Bloom 과다 여부
 - Stage 21–23: 6개 emblem 구분, Gate와의 조화, Hidden 기억 시간,
   Stage 20→21 학습 전환, 후반 반복과 3색 숙련 피로도
+- Stage 24–26: 24-unit 잠금의 대응 여유, `0.12s` 좌→우 wipe 인지,
+  전환 중 두 색 판정의 납득도와 6/8/10회 압박 곡선
 - Stage 14–20: 카메라 관성, crest에서 다음 Gate 가시성, 멀미 가능성
 - Shield/Booster: 기기별 투명 shader와 Warp 상·하단 밀도
 - 도시: Goal까지 pop-in, 반복감, 트랙 침범 여부
@@ -262,16 +264,16 @@ metadata를 사용해야 한다.
 
 ### P0 — 현재 플레이 빌드 검증
 
-생성된 Android APK와 WebGL 폴더로 Stage 12–23을 인간 플레이한다. Fog,
-Ice, Echo, 카메라, 색상 UI와 Hidden 기억 난이도를 확인하고 결함과 취향
-조정을 분리한다.
+필요할 때 Test Build 메뉴로 Android APK와 WebGL을 새로 생성해 Stage
+12–26을 인간 플레이한다. Fog, Ice, Echo, 카메라, 색상 UI, Hidden 기억
+난이도와 Flicker 거리 잠금/wipe를 확인하고 결함과 취향 조정을 분리한다.
 
-### P1 — Campaign을 26 Stage까지 완성
+### P1 — Stage 21–26 인간 플레이 조정
 
-1. Flicker Stage 24–26: intro / practice / mastery
-
-각 block은 현재 Spline, Continue, Shield/Booster, Fog/Ice/Echo와 충돌하지
-않는지 검증한다. 특히 Flicker는 접근성/피로도 검증이 필수다.
+- Hidden 기억 압박과 Flicker 접근 안전 잠금/wipe를 모바일과 WebGL에서
+  확인한다.
+- 자동 검증으로 판단할 수 없는 가독성, 피로도, Bloom과 체감 속도만
+  근거로 최소한의 밸런스/표현 조정 Iteration을 승인한다.
 
 ### P2 — Stage 27–36 Act 3 설계와 제작
 
@@ -319,7 +321,7 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 - Gameplay Core는 Unity 비의존 구조를 유지한다.
 - 모든 gameplay random은 명시적 seed를 사용한다.
 - Campaign scalar distance와 Spline pose가 유일한 공간 권위자다.
-- 현재 Stage 1–23 stable ID와 저장 기록을 재설계 과정에서 지우지 않는다.
+- 현재 Stage 1–26 stable ID와 저장 기록을 재설계 과정에서 지우지 않는다.
 - Product Save schema 3와 transaction ledger가 경제 권위자다.
 - AppRoot, EventSystem, Scene destination과 저장 권위자를 중복 생성하지 않는다.
 - unavailable provider는 성공을 흉내 내지 않고 action을 숨긴다.
@@ -330,11 +332,11 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 
 ## 11. 현재 결정론적 기준
 
-Campaign 460 rows:
+Campaign 520 rows:
 
-- Summary: `4E3B9ACE68ABDFF9540F9A26D7085C664C1658DAC133D73AE7E87BE3A5A1D07B`
-- JSON: `3C3233C5CA3DA50B1272ADE1FE451D718CAA4E148598C81220881530B942A68D`
-- CSV: `9CFB8DE0CFC54483E518F91290F998FEF57CBC5E0722CC4A0B2BDC744EF43611`
+- Summary: `BDCAAFE843F1FB81BE8569BE8F01424ABD8FD4CEFED56F89C5889EB4892A4EB4`
+- JSON: `748AF7A9D8368125E9AFF1943DC4B6A225E9F48E72A043507A7049FECBE85F7A`
+- CSV: `627B5B4A4CCD8DBB2C3942343550118F2EE8E141BD683597FF14F1A0F3098C73`
 
 Step 10, 80 rows / 64,016 runs:
 
@@ -351,10 +353,10 @@ Step 10, 80 rows / 64,016 runs:
 1. 이 문서와 `AGENTS.md`, `CURRENT_STATUS.md`를 읽는다.
 2. `git status --short`로 위의 Editor 생성 차이를 재확인한다.
 3. 사용자의 최신 인간 플레이 피드백을 받는다.
-4. 우선 **Iteration 46 — Flicker Campaign Block**의
-   Phase A를 수행한다.
-5. Stage 21–23 Hidden 인간 플레이 결과와 Flicker 24–26의 가장 작은
-   2/2/3색 학습 블록 후보를 분리해 보고한다.
+4. Stage 21–26 인간 플레이 피드백이 있으면 Hidden과 Flicker 결함/취향을
+   분리해 다음 조정 Iteration의 Phase A를 수행한다.
+5. 피드백이 없으면 Stage 27–36 Act 3의 기존 기믹 교대 재사용안을 먼저
+   설계하고, 새 Modifier나 같은 Gate 중첩은 별도 결정으로 남긴다.
 6. Phase A 보고 후 승인 전에는 구현하지 않는다.
 
 첫 요청 예시:
@@ -363,8 +365,8 @@ Step 10, 80 rows / 64,016 runs:
 Color Gate Runner 프로젝트를 Docs/GPT_HANDOFF.md 기준으로 이어간다.
 AGENTS.md의 절차와 CURRENT_STATUS.md의 기준선을 사용한다.
 
-먼저 현재 작업 트리와 Iteration 45 구현 상태를 확인하고,
-Iteration 46 — Flicker Campaign Block의 Phase A만 진행한다.
-Stage 21–23 Hidden 인간 플레이 확인 항목과 Stage 24–26 Flicker의 가장 작은
-구현 후보를 보고한 뒤 중단한다. 아직 코드를 수정하지 않는다.
+먼저 현재 작업 트리와 Iteration 46 구현 상태를 확인하고,
+Stage 21–26 인간 플레이 결과를 바탕으로 다음 조정 또는 Stage 27–36
+설계 Iteration의 Phase A만 진행한다. 보고 후 중단하고 승인 전에는 코드를
+수정하지 않는다.
 ```

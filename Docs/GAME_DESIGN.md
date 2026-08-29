@@ -844,3 +844,26 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - The final sample is fully off and uses the exact neutral shared material.
   No randomness, extra judgment state, particles, audio or white flash is part
   of the mechanic.
+
+## Iteration 46 Flicker campaign contract
+
+- Stages 24–26 are the isolated Flicker intro/practice/mastery block. They use
+  `44 / 48 / 52` gates, `2 / 2 / 3` active colors, speed `44→60 / 46→64 /
+  48→68`, cadence `1.18→0.84 / 1.12→0.80 / 1.06→0.76`, and deterministic
+  `6 / 8 / 10` Flicker occurrences. Stage 26 is Hard.
+- Flicker switch periods are `0.72 / 0.60 / 0.52s`; every color transition is
+  `0.12s`. Shield is selectable and Booster is disabled for all three stages.
+- Each Flicker gate owns a deterministic runtime window. A new color change
+  cannot start once the runner is at or inside 24 scalar path units. If a
+  change already started outside that boundary, it completes before locking.
+  The boundary check wins when a scheduled phase and lock threshold occur in
+  the same update.
+- During the `0.12s` transition, both the previous and next colors are valid
+  for the runner and for a held Echo. Afterward only the committed next color
+  is valid through judgment. Retry recreates the same authored sequence and
+  runtime state; Pause advances neither timing nor presentation.
+- The gate communicates the mechanic through its own moving neon color. It has
+  no `FLICKER` marker or explanatory runtime text.
+- A save whose stored highest Stage is cleared Stage 23 resolves Stage 24 as
+  effectively unlocked without writing during load. Ordinary later progression
+  persists the new stable ID; existing Stage 1–23 records are preserved.

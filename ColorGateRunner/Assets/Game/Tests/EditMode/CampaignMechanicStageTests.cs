@@ -126,6 +126,10 @@ namespace ColorGateRunner.Tests.EditMode
             {
                 AssertModifierExists(stageNumber, GateModifierType.Hidden);
             }
+            for (int stageNumber = 24; stageNumber <= 26; stageNumber++)
+            {
+                AssertModifierExists(stageNumber, GateModifierType.Flicker);
+            }
 
             for (int stageNumber = 1; stageNumber <= 8; stageNumber++)
             {
@@ -180,6 +184,47 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(
                     actual[actual.Count - 1],
                     Is.GreaterThan(stage.TargetGateCount * 0.7f));
+            }
+        }
+
+        [Test]
+        public void FlickerBlock_UsesIncreasingPressureAndAuthoredTiming()
+        {
+            int[] expectedCounts = { 6, 8, 10 };
+            int[] expectedColors = { 2, 2, 3 };
+            float[] expectedSwitchSeconds = { 0.72f, 0.60f, 0.52f };
+
+            for (int offset = 0; offset < 3; offset++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(24 + offset);
+                DeterministicStageGateSequence sequence =
+                    new DeterministicStageGateSequence(stage);
+                List<int> occurrences = new List<int>();
+                for (int gate = 0; gate < stage.TargetGateCount; gate++)
+                {
+                    GatePlan plan = sequence.GetPlan(gate);
+                    if (plan.Modifier.IsFlicker)
+                    {
+                        occurrences.Add(gate + 1);
+                        Assert.That(
+                            plan.FlickerPlan.TransitionPulseSeconds,
+                            Is.EqualTo(0.12f));
+                    }
+                }
+
+                Assert.That(occurrences.Count,
+                    Is.EqualTo(expectedCounts[offset]),
+                    $"Stage {stage.DisplayNumber}: " +
+                    string.Join(",", occurrences));
+                Assert.That(stage.AllowedColorCount,
+                    Is.EqualTo(expectedColors[offset]));
+                Assert.That(
+                    stage.FlickerSettings.SwitchIntervalSeconds,
+                    Is.EqualTo(expectedSwitchSeconds[offset]));
+                Assert.That(
+                    occurrences[occurrences.Count - 1],
+                    Is.GreaterThan(stage.TargetGateCount * 0.58f));
             }
         }
 

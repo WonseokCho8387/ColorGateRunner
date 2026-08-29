@@ -13,6 +13,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private SpriteRenderer colorEmblem;
         [SerializeField] private TextMesh mechanicMarker;
         [SerializeField] private EchoGateFieldView echoGateField;
+        [SerializeField] private FlickerGateWipeView flickerGateWipe;
 
         private bool _resolved;
         private float _reactionRemaining;
@@ -33,6 +34,7 @@ namespace ColorGateRunner.Presentation
         private float _hiddenPowerVisibility = 1f;
         private long _flickerPhaseIndex;
         private float _flickerTransitionPulse;
+        private FlickerJudgmentWindow _flickerWindow;
         private MaterialPropertyBlock _visibilityPropertyBlock;
 
         internal RunnerColor AssignedColor { get; private set; }
@@ -69,6 +71,11 @@ namespace ColorGateRunner.Presentation
             _hiddenVisibility.HideStartCount;
         internal long FlickerPhaseIndex => _flickerPhaseIndex;
         internal float FlickerTransitionPulse => _flickerTransitionPulse;
+        internal FlickerJudgmentWindow FlickerWindow => _flickerWindow;
+        internal bool FlickerWipeVisible =>
+            flickerGateWipe != null && flickerGateWipe.IsVisible;
+        internal float FlickerWipeProgress =>
+            flickerGateWipe == null ? 0f : flickerGateWipe.Progress;
         internal Material DisplayMaterial =>
             gateRenderers != null && gateRenderers.Length > 0
                 ? gateRenderers[0].sharedMaterial
@@ -326,7 +333,7 @@ namespace ColorGateRunner.Presentation
             if (isFlicker)
             {
                 SetEchoFieldPresentation(false, 0f);
-                UpdateFlickerCycle(gameplayTimeSeconds);
+                ApplyFlickerRuntimePresentation();
                 return;
             }
 
@@ -448,40 +455,40 @@ namespace ColorGateRunner.Presentation
             HideMechanicMarker();
         }
 
-        private void UpdateFlickerCycle(float gameplayTimeSeconds)
+        internal void ApplyFlickerRuntimeState(
+            FlickerJudgmentWindow window)
         {
-            FlickerCycleSample sample;
-            RunnerColor activeColor;
-            if (_hasExperimentPlan)
-            {
-                sample =
-                    _experimentPlan.GetFlickerSample(gameplayTimeSeconds);
-                activeColor = _experimentPlan.GetCycleColor(
-                    sample.CycleColorIndex);
-            }
-            else
-            {
-                sample = ActivePlan.FlickerPlan.GetSample(
-                    gameplayTimeSeconds);
-                activeColor = ActivePlan.FlickerPlan.GetCycleColor(
-                    sample.CycleColorIndex);
-            }
-            _flickerPhaseIndex = sample.PhaseIndex;
-            _flickerTransitionPulse = sample.TransitionPulse;
-            AssignedColor = activeColor;
+            _flickerWindow = window;
+            _flickerPhaseIndex = window.PhaseIndex;
+            _flickerTransitionPulse = window.IsTransitioning
+                ? 1f - window.TransitionProgress
+                : 0f;
+            ApplyFlickerRuntimePresentation();
+        }
+
+        private void ApplyFlickerRuntimePresentation()
+        {
+            AssignedColor = _flickerWindow.CurrentColor;
             _assignedMaterial =
-                controller.GetPresentationMaterial(activeColor);
+                controller.GetPresentationMaterial(AssignedColor);
             ApplyMaterial(_assignedMaterial);
-            ApplyFlickerPulse(sample.TransitionPulse);
+            if (flickerGateWipe != null)
+            {
+                Color nextColor = GetMaterialColor(
+                    controller.GetPresentationMaterial(
+                        _flickerWindow.NextColor));
+                flickerGateWipe.SetPresentation(
+                    _flickerWindow.IsTransitioning,
+                    nextColor,
+                    _flickerWindow.TransitionProgress);
+            }
             ApplyFlickerPresentation();
         }
 
         private void ApplyFlickerPresentation()
         {
             ApplyColorEmblem();
-            mechanicMarker.gameObject.SetActive(true);
-            mechanicMarker.color = Color.white;
-            mechanicMarker.text = "FLICKER";
+            HideMechanicMarker();
         }
 
         private void ApplyFlickerPulse(float pulse)
@@ -523,6 +530,20 @@ namespace ColorGateRunner.Presentation
         {
             _flickerPhaseIndex = 0;
             _flickerTransitionPulse = 0f;
+            _flickerWindow = new FlickerJudgmentWindow(
+                AssignedColor,
+                AssignedColor,
+                false,
+                0f,
+                0,
+                false);
+            if (flickerGateWipe != null)
+            {
+                flickerGateWipe.SetPresentation(
+                    false,
+                    Color.clear,
+                    0f);
+            }
         }
 
         internal Transform GetPartTransform(int index)
@@ -612,6 +633,8 @@ namespace ColorGateRunner.Presentation
                 mechanicMarker == null ||
                 echoGateField == null ||
                 !echoGateField.HasRequiredReferences ||
+                flickerGateWipe == null ||
+                !flickerGateWipe.HasRequiredReferences ||
                 gateRenderers == null || gateRenderers.Length == 0)
             {
                 return false;
@@ -634,13 +657,15 @@ namespace ColorGateRunner.Presentation
             Renderer[] renderers,
             SpriteRenderer emblem,
             TextMesh marker,
-            EchoGateFieldView field)
+            EchoGateFieldView field,
+            FlickerGateWipeView wipe)
         {
             controller = sceneController;
             gateRenderers = renderers;
             colorEmblem = emblem;
             mechanicMarker = marker;
             echoGateField = field;
+            flickerGateWipe = wipe;
             CaptureParts();
         }
 

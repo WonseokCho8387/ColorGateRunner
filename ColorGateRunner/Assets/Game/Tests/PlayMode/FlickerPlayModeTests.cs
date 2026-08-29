@@ -69,8 +69,20 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(0.5f);
 
             Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(1));
+            Assert.That(gate.AssignedColor, Is.EqualTo(initial));
+            Assert.That(gate.FlickerWindow.IsTransitioning, Is.True);
+            Assert.That(
+                gate.FlickerWindow.Accepts(initial),
+                Is.True);
+            Assert.That(
+                gate.FlickerWindow.Accepts(
+                    gate.ActiveExperimentPlan.GetCycleColor(1)),
+                Is.True);
+            Assert.That(gate.SymbolText, Is.Empty);
+
+            _controller.Tick(0.2f);
+            Assert.That(gate.FlickerWindow.IsTransitioning, Is.False);
             Assert.That(gate.AssignedColor, Is.Not.EqualTo(initial));
-            Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
         }
 
         [Test]
@@ -104,14 +116,28 @@ namespace ColorGateRunner.Tests.PlayMode
             EnterPlaying();
             StageGateView gate = FindGate(0);
             ExperimentGatePlan plan = gate.ActiveExperimentPlan;
+            FlickerGateRuntimeState state = new FlickerGateRuntimeState();
 
             Assert.That(plan.CycleColorCount, Is.EqualTo(colorCount));
             for (int index = 0; index < colorCount; index++)
             {
+                float phaseTime = index * 0.5f;
+                FlickerJudgmentWindow window = state.Update(
+                    plan.FlickerPlan,
+                    phaseTime,
+                    30f,
+                    0f);
+                if (window.IsTransitioning)
+                {
+                    window = state.Update(
+                        plan.FlickerPlan,
+                        phaseTime + 0.1f,
+                        30f,
+                        0.1f);
+                }
+                gate.ApplyFlickerRuntimeState(window);
                 AssertDisplayedPhase(gate, plan, index);
-                _controller.Tick(0.5f);
             }
-            AssertDisplayedPhase(gate, plan, 0);
         }
 
         [Test]
@@ -123,20 +149,43 @@ namespace ColorGateRunner.Tests.PlayMode
             Vector3 position = gate.transform.position;
             Vector3 scale = gate.transform.localScale;
             BoxCollider collider = gate.GetComponent<BoxCollider>();
+            FlickerGateRuntimeState state = new FlickerGateRuntimeState();
+            ExperimentGatePlan plan = gate.ActiveExperimentPlan;
+            state.Update(plan.FlickerPlan, 0.49f, 30f, 0f);
 
-            _controller.Tick(0.5f);
+            FlickerJudgmentWindow started = state.Update(
+                plan.FlickerPlan,
+                0.5f,
+                30f,
+                0f);
+            gate.ApplyFlickerRuntimeState(started);
 
             Assert.That(gate.FlickerPhaseIndex, Is.EqualTo(1));
             Assert.That(gate.FlickerTransitionPulse, Is.EqualTo(1f));
             Assert.That(gate.SymbolVisible, Is.True);
-            Assert.That(gate.SymbolText, Does.Contain("FLICKER"));
+            Assert.That(gate.SymbolText, Is.Empty);
             Assert.That(gate.transform.position, Is.EqualTo(position));
             Assert.That(gate.transform.localScale, Is.EqualTo(scale));
             Assert.That(collider.enabled, Is.True);
             Assert.That(collider.isTrigger, Is.True);
 
-            _controller.Tick(0.1f);
+            FlickerJudgmentWindow halfway = state.Update(
+                plan.FlickerPlan,
+                0.55f,
+                30f,
+                0.05f);
+            gate.ApplyFlickerRuntimeState(halfway);
+            Assert.That(gate.FlickerWipeVisible, Is.True);
+            Assert.That(gate.FlickerWipeProgress, Is.EqualTo(0.5f));
+
+            FlickerJudgmentWindow completed = state.Update(
+                plan.FlickerPlan,
+                0.6f,
+                30f,
+                0.05f);
+            gate.ApplyFlickerRuntimeState(completed);
             Assert.That(gate.FlickerTransitionPulse, Is.Zero);
+            Assert.That(gate.FlickerWipeVisible, Is.False);
         }
 
         [Test]
@@ -255,7 +304,7 @@ namespace ColorGateRunner.Tests.PlayMode
             StartFlicker(CreateSettings());
             EnterPlaying();
             _controller.Tick(0.5f);
-            Assert.That(FindGate(0).SymbolText, Does.Contain("FLICKER"));
+            Assert.That(FindGate(0).SymbolText, Is.Empty);
 
             _controller.BackToExperimentLab();
             ExperimentLauncher launcher = FindLauncher();
@@ -412,8 +461,8 @@ namespace ColorGateRunner.Tests.PlayMode
             RunnerColor expected = plan.GetCycleColor(colorIndex);
             Assert.That(gate.AssignedColor, Is.EqualTo(expected));
             Assert.That(gate.SymbolVisible, Is.True);
-            Assert.That(gate.MarkerVisible, Is.True);
-            Assert.That(gate.SymbolText, Is.EqualTo("FLICKER"));
+            Assert.That(gate.MarkerVisible, Is.False);
+            Assert.That(gate.SymbolText, Is.Empty);
         }
 
         private static FlickerSettings CreateSettings()

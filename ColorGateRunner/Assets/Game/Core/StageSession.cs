@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ColorGateRunner.Core
 {
@@ -8,6 +9,9 @@ namespace ColorGateRunner.Core
 
         private readonly DeterministicStageGateSequence _sequence;
         private readonly EchoOfferCoordinator _echoCoordinator;
+        private readonly Dictionary<int, FlickerGateRuntimeState>
+            _flickerStates =
+                new Dictionary<int, FlickerGateRuntimeState>();
         private StartItemSelection _items;
         private float _shieldRecoveryRemaining;
         private float _boosterExitRemaining;
@@ -319,22 +323,36 @@ namespace ColorGateRunner.Core
                 return GateOutcome.Ignored;
             }
 
-            RunnerColor judgmentColor =
-                plan.GetJudgmentColor(gameplayTimeSeconds);
-            bool passedByPlayerColor = CurrentColor == judgmentColor;
+            FlickerGateRuntimeState flickerState = null;
+            bool hasFlickerWindow = plan.Modifier.IsFlicker &&
+                _flickerStates.TryGetValue(plan.GateId, out flickerState);
+            FlickerJudgmentWindow flickerWindow = hasFlickerWindow
+                ? flickerState.Current
+                : default;
+            RunnerColor judgmentColor = hasFlickerWindow
+                ? flickerWindow.CurrentColor
+                : plan.GetJudgmentColor(gameplayTimeSeconds);
+            bool passedByPlayerColor = hasFlickerWindow
+                ? flickerWindow.Accepts(CurrentColor)
+                : CurrentColor == judgmentColor;
             if (Stage.EchoSettings.Enabled && passedByPlayerColor)
             {
                 _echoCoordinator.TryAcquire(
                     plan.GateId,
-                    judgmentColor,
+                    CurrentColor,
                     plan.Modifier.IsEchoProvider);
                 return CompleteSuccessfulGate(
                     plan.GateId,
                     GateOutcome.Matched);
             }
 
+            bool echoMatches = hasFlickerWindow
+                ? flickerWindow.Accepts(_echoCoordinator.EchoColor)
+                : _echoCoordinator.EchoColor == judgmentColor;
             if (Stage.EchoSettings.Enabled &&
-                _echoCoordinator.TryConsume(judgmentColor))
+                _echoCoordinator.EchoActive &&
+                echoMatches &&
+                _echoCoordinator.TryConsume(_echoCoordinator.EchoColor))
             {
                 return CompleteSuccessfulGate(
                     plan.GateId,
@@ -377,6 +395,44 @@ namespace ColorGateRunner.Core
             _speedBeforeFailure = CurrentSpeed;
             CurrentSpeed = 0f;
             return GateOutcome.Mismatched;
+        }
+
+        public FlickerJudgmentWindow UpdateFlickerGate(
+            GatePlan plan,
+            float remainingDistance,
+            float deltaSeconds)
+        {
+            return UpdateFlickerGateAtTime(
+                plan,
+                ElapsedPlayingSeconds,
+                remainingDistance,
+                deltaSeconds);
+        }
+
+        internal FlickerJudgmentWindow UpdateFlickerGateAtTime(
+            GatePlan plan,
+            float gameplayTimeSeconds,
+            float remainingDistance,
+            float deltaSeconds)
+        {
+            if (!plan.Modifier.IsFlicker)
+            {
+                throw new ArgumentException(
+                    "A Flicker gate is required.",
+                    nameof(plan));
+            }
+            if (!_flickerStates.TryGetValue(
+                plan.GateId,
+                out FlickerGateRuntimeState state))
+            {
+                state = new FlickerGateRuntimeState();
+                _flickerStates.Add(plan.GateId, state);
+            }
+            return state.Update(
+                plan.FlickerPlan,
+                gameplayTimeSeconds,
+                remainingDistance,
+                deltaSeconds);
         }
 
         public bool ContinueAfterFailure()

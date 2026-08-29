@@ -45,6 +45,28 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void CampaignStagesTwentyFourThroughTwentySix_EnableOnlyFlicker()
+        {
+            for (int stageNumber = 24; stageNumber <= 26; stageNumber++)
+            {
+                StageDefinition stage =
+                    StageCatalog.GetByDisplayNumber(stageNumber);
+
+                Assert.That(stage.PrimaryMechanic,
+                    Is.EqualTo(StagePrimaryMechanic.Flicker));
+                Assert.That(stage.GateModifiers,
+                    Is.EqualTo(GateModifierType.Flicker));
+                Assert.That(stage.HiddenSettings.Enabled, Is.False);
+                Assert.That(stage.FlickerSettings.Enabled, Is.True);
+                Assert.That(stage.BoosterAllowed, Is.False);
+                Assert.That(stage.ShieldAllowed, Is.True);
+                Assert.That(
+                    stage.FlickerSettings.TransitionPulseSeconds,
+                    Is.EqualTo(0.12f));
+            }
+        }
+
+        [Test]
         public void ExperimentCatalog_RetainsHiddenAndFlickerImplementations()
         {
             ExperimentDefinition hidden = ExperimentCatalog.Get(

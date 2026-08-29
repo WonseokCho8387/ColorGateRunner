@@ -1059,9 +1059,8 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   Campaign until the live observation, fade/contract and fully neutral states.
 - `HiddenPlayModeTests` retains seven pause, timing, judgment, Echo, Shield and
   Retry cases under the text-free emblem presentation, including neutral final
-  material and assigned-material Retry restoration. Flicker coverage now
-  verifies its active Core color and emblem sprite stay synchronized while its
-  distinct `FLICKER` marker remains.
+  material and assigned-material Retry restoration. Historical Flicker marker
+  coverage is superseded by Iteration 46's marker-free transition coverage.
 - `TestBuildMenuTests.AndroidGradle_AlignsKotlinLibrariesIdempotently` also
   requires the post-generation interface when tests compile for WebGL. The
   real combined build is the cross-target integration check.
@@ -1073,3 +1072,18 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - `Hidden_PowerDownBlinksFrameAndEmblemBeforeFinalNeutral` verifies synchronized
   frame/emblem dips and recoveries followed by the exact neutral material.
 - Full current suites pass EditMode `451/451` and PlayMode `250/250`.
+
+## Iteration 46 current coverage
+
+- `FlickerLock_WinsWhenPhaseChangesAtSafetyBoundary` and
+  `FlickerTransition_AcceptsBothColorsThenCompletesAndLocks` fix the 24-unit
+  boundary precedence, `0.12s` dual-color judgment and completion lock.
+- `CampaignStagesTwentyFourThroughTwentySix_EnableOnlyFlicker` fixes modifier
+  isolation and item availability. `FlickerBlock_UsesIncreasingPressureAndAuthoredTiming`
+  fixes 2/2/3 colors, 6/8/10 occurrences, timing, late distribution and
+  increasing pressure. Catalog/session coverage requires revision 13 and 26
+  stable entries.
+- `FlickerPlayModeTests` contains 11 cases covering marker absence, pooled
+  wipe references/progress, player and Echo dual-color judgment, Pause, Retry,
+  transition completion and near-gate lock behavior.
+- Full current suites pass EditMode `455/455` and PlayMode `250/250`.
