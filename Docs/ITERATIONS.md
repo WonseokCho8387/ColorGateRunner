@@ -3024,8 +3024,67 @@ Human feedback required
 
 ### Deferred / Human Review
 
+- The user completed the current Editor play check and confirmed the visible
+  side order, longer timing and restored Booster access.
 - Verify Stage 24–26 on portrait mobile and WebGL for actual reaction comfort,
   visible side order, corner continuity, Booster exit and post-Booster Flicker
   density. Automation cannot certify those visual or difficulty judgments.
 - No player build, Experiment policy change, elemental theme, audio or Stage
   27+ content is included.
+
+## Iteration 51 — Reusable Quality Graph Workflow
+
+### Play / Analyze
+
+- Recent iterations were playable and their deterministic suites passed, but
+  human review still found missing materials and behavior that did not match
+  intent. Repeated full-loop validation also consumed more tokens than the
+  actual risk justified.
+- Unity was sometimes open and sometimes closed without a recorded environment
+  contract. That ambiguity can create file-lock conflicts, transient
+  serialization changes and evidence from a different graphics/runtime path.
+- The existing loop remains valuable for product learning; the missing layer
+  was independent QC with explicit environment and evidence authority.
+
+### Design / Implementation
+
+- Added a reusable `quality-graph` Codex Skill with risk routes, one-Maker
+  ownership, one fresh-context Checker, a single bounded repair and separate
+  deterministic, rendered and human evidence gates.
+- Added a project adapter that identifies the primary Unity root, protected
+  paths, lock/process rules, supported Player artifacts and validation entry
+  points. The generic Skill remains usable by non-Unity repositories.
+- Added preflight modes for inspection, primary-project headless validation,
+  graphics-aware visual QC and finalization. Integrated batch validation so it
+  stops before Unity when the primary Editor or lock is active.
+- Versioned the canonical Skill source in the repository and installed a copy
+  into the user's Codex Skill directory for cross-project use.
+
+### Validation / Learning
+
+- Preflight self-tests passed `13/13`; packaged Skill validation passed; a
+  generic non-Unity fixture proved the fallback path uses its own process/lock
+  contract without Unity language.
+- An independent checker first found five real gaps: protected-path aliases,
+  arbitrary Player files, generic fallback wording, visual metadata and policy
+  precision. One repair fixed them and the follow-up verdict was `PASS`.
+- After the user closed Unity, the primary/headless manifest recorded no Editor
+  process and no lock. Full EditMode passed `457/457`; full PlayMode passed
+  `255/255`. Package and ProjectSettings hashes remained exact, and the actual
+  Product save was byte- and timestamp-identical.
+- Batch validation can still cause harmless generated-asset reserialization;
+  the two affected Warp material diffs were detected and restored before
+  documentation or staging. Environment state is therefore evidence, not just
+  an operational preference.
+
+### Deferred / Human Review
+
+- No Android or WebGL Player was produced. This workflow can require and record
+  Player/graphics evidence, but it cannot certify visual taste, readability,
+  fairness or device comfort without actual captures and human judgment.
+- Runtime token accounting is recorded only when the host exposes it. Risk
+  routing and compact checker packets bound work, but no fabricated token
+  estimate is treated as evidence.
+- Future repositories should copy or install the generic Skill and add only a
+  local adapter; they should not inherit Color Gate Runner paths, Unity rules
+  or its regression suite.

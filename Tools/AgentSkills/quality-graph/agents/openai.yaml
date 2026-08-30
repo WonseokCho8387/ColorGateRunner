@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quality Graph"
+  short_description: "Independent QC with explicit environment state"
+  default_prompt: "Use $quality-graph to design a risk-routed maker/checker workflow for this project."

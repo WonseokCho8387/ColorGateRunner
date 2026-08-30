@@ -2,6 +2,16 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $validationRepoPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$qualityPreflightPath = Join-Path `
+    $validationRepoPath `
+    'Tools\QualityGraph\Invoke-QualityPreflight.ps1'
+
+if (-not (Test-Path -LiteralPath $qualityPreflightPath -PathType Leaf)) {
+    throw "Quality Graph preflight was not found at '$qualityPreflightPath'."
+}
+
+& $qualityPreflightPath -Mode 'batch-validate' -WriteManifest
+
 $validationProjectPath = (Resolve-Path -LiteralPath (Join-Path $validationRepoPath 'ColorGateRunner')).Path
 $validationAssetsPath = Join-Path $validationProjectPath 'Assets'
 $validationArtifactsPath = Join-Path $validationRepoPath 'Artifacts\Validation'

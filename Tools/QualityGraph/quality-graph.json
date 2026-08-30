@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "project_name": "Color Gate Runner",
+  "project_kind": "unity",
+  "workspace_root": "../..",
+  "project_root": "ColorGateRunner",
+  "project_copy": "primary",
+  "artifact_root": "Artifacts/QualityGraph",
+  "stateful_application": {
+    "name": "Unity Editor",
+    "lock_paths": [
+      "Temp/UnityLockfile"
+    ]
+  },
+  "closed_required_paths": [
+    "ColorGateRunner/Assets/Scenes",
+    "ColorGateRunner/Packages",
+    "ColorGateRunner/ProjectSettings"
+  ],
+  "state_policy": {
+    "require_application_closed": [
+      "batch-validate",
+      "finalize"
+    ]
+  },
+  "default_backends": {
+    "inspect": "not-applicable",
+    "source-edit": "not-applicable",
+    "batch-validate": "headless",
+    "visual-qc": "graphics-editor",
+    "finalize": "not-applicable"
+  },
+  "player_artifacts": [
+    {
+      "kind": "directory",
+      "root": "ColorGateRunner/Builds/Test/WebGL",
+      "required_files": [
+        "index.html"
+      ]
+    },
+    {
+      "kind": "file",
+      "root": "ColorGateRunner/Builds/Test/Android",
+      "extensions": [
+        ".apk"
+      ]
+    }
+  ],
+  "validation": {
+    "batch": "Tools/Validate.ps1",
+    "edit_mode_assembly": "ColorGateRunner.EditModeTests",
+    "play_mode_assembly": "ColorGateRunner.PlayModeTests"
+  },
+  "protected_state": [
+    "Editor Campaign PlayerPrefs",
+    "Product save and backup",
+    "Guest identity",
+    "Packages and ProjectSettings baseline"
+  ]
+}

@@ -2246,3 +2246,26 @@ Any mismatch blocks implementation.
 - The user-authored Product save already held revision 686 before validation
   and remained byte- and timestamp-identical at SHA-256
   `83BAD27CFCE46EEF1E5BB65EF780BB23E9008F417D644C2E03DB1E09541CB93C`.
+
+## Iteration 51 — Reusable Quality Graph Workflow
+
+- Base HEAD: `644d507`; completion message
+  `chore: add reusable quality graph workflow`.
+- Quality Graph route Q1 used one Maker and one fresh-context Checker. The
+  initial checker verdict rejected five seeded/observed contract gaps; one
+  targeted repair resolved them and the final verdict was `PASS` with no
+  remaining findings.
+- Preflight self-tests passed `13/13`. The packaged Skill validator passed, its
+  installed copy matched the versioned source, and an isolated non-Unity
+  fixture passed without Unity-specific process or lock assumptions.
+- Primary-project `batch-validate` evidence recorded Unity Editor closed and no
+  project lock. Full EditMode passed `457/457`; full PlayMode passed `255/255`.
+  Builder and simulation runs were omitted because no game code, Scene,
+  generated content, Stage data, timing, judgment or deterministic input
+  changed.
+- Package manifest, package lock and meaningful ProjectSettings hashes matched
+  the authoritative baseline. Incidental Warp material reserialization was
+  restored. The revision-697 Product save remained byte- and timestamp-exact at
+  SHA-256 `9BB91E092D66648BFFF69B0A2D9CF71E25050DA9B560D77DC6ECA757D4D976FD`.
+- No Android or WebGL Player was built. Rendered/device quality and gameplay
+  feel remain human-review evidence, not automated validation claims.

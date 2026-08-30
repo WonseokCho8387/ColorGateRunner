@@ -10,6 +10,8 @@
 [Mm]emoryCaptures/
 [Rr]ecordings/
 [Cc]rashReports/
+__pycache__/
+*.py[cod]
 
 # Asset Store Tools
 [Aa]ssets/AssetStoreTools*

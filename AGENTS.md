@@ -41,13 +41,15 @@ modifying files.
 
 ### Phase A — Inspect and propose
 
-1. Read all required documents.
-2. Run the baseline checks defined in `CURRENT_STATUS.md` and
+1. Run `Tools/QualityGraph/Invoke-QualityPreflight.ps1 -Mode inspect` and
+   record the observed Editor, project-copy, backend, revision, and dirty state.
+2. Read all required documents.
+3. Run the baseline checks defined in `CURRENT_STATUS.md` and
    `TEST_PLAN.md`.
-3. Inspect the actual code, Scene, Builder, persistence, and test boundaries
+4. Inspect the actual code, Scene, Builder, persistence, and test boundaries
    relevant to the request.
-4. Identify the smallest safe implementation.
-5. Report:
+5. Identify the smallest safe implementation.
+6. Report:
    - baseline result;
    - current architecture;
    - proposed design and ownership;
@@ -55,14 +57,15 @@ modifying files.
    - risks and unresolved decisions;
    - explicit non-goals;
    - feature-specific tests.
-6. Stop and wait for user approval.
+7. Stop and wait for user approval.
 
 Do not modify code, Scene assets, ProjectSettings, packages, or documentation in
 Phase A unless the user explicitly requests a documentation-only iteration.
 
 ### Phase B — Implement after approval
 
-1. Reconfirm that the working tree still matches the approved Phase A state.
+1. Reconfirm that the working tree and Quality Graph environment state still
+   match the approved Phase A state.
 2. Implement the smallest approved change.
 3. Add or update feature-specific tests.
 4. Run the applicable Standard Regression Suite from `TEST_PLAN.md`.
@@ -135,6 +138,44 @@ When Product save, Profile, Settings, or account state changes:
 Automated evidence must never be described as proof of fun, fairness,
 readability, satisfaction, motivation, or visual quality. Report those as human
 review items.
+
+## 5.1 Quality Graph and Environment Contract
+
+The versioned generic Skill source is
+`Tools/AgentSkills/quality-graph`; the Color Gate Runner adapter is
+`Tools/QualityGraph/quality-graph.json`. Use the adapter before any Unity
+command whose correctness depends on the Editor state.
+
+Operating modes:
+
+- `inspect`: read-only investigation; the interactive Editor may be open.
+- `source-edit`: ordinary C# and external tooling changes may proceed while
+  Unity is open. Scene, Package, and ProjectSettings paths require Unity closed.
+- `batch-validate`: the primary Editor and its project lock must be absent.
+- `visual-qc`: use a graphics-capable Editor or supplied Player artifact;
+  Headless output is not visual evidence.
+- `finalize`: save intended assets, exit Play Mode, close Unity, and verify the
+  final disk and Git state.
+
+Quality Graph routing preserves the existing iteration protocol:
+
+- Routine documentation or isolated pure-code work uses one maker and the
+  deterministic tier selected by `TEST_PLAN.md`.
+- Integrated behavior, shared controllers, persistence, generation, or
+  cross-feature work adds one fresh-context checker after deterministic gates.
+- Scene, shader, material, camera, UI, animation, device, or release-facing
+  work adds black-box or rendered-artifact QC and retains a human gate.
+
+Only the maker may modify shared project files. A checker receives the approved
+acceptance criteria, diff and evidence, but not the maker's reasoning or full
+conversation. It reports evidence and does not silently repair. Default to one
+checker, one targeted repair, and no parallel writers. A second failed check,
+conflicting evidence, or missing product authority returns to the user.
+
+Every final report identifies the project copy, Unity state, graphics backend,
+revision and checks actually observed. Record token usage only when the runtime
+reports it; never estimate it. Headless validation never certifies rendered
+pixels, visual quality, readability, feel or device behavior.
 
 ## 6. Architecture and Coding Rules
 

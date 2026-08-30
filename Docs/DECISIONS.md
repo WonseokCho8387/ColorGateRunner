@@ -1658,3 +1658,27 @@ Status: Approved and implemented.
   the six-gate window at `BoosterDistance`, using Booster speed only before the
   boundary and normal maximum speed after it. Deterministic cooldown selection
   fills the approved `6 / 8 / 10` quotas after Booster reach.
+
+## Iteration 51 — Quality Graph augments rather than replaces the development loop
+
+- The existing Play / Analyze / Design / Implement / Validate / Learn loop
+  remains the product-learning authority. Quality Graph adds explicit
+  environment, independent-checker, evidence-merge and human-gate nodes only
+  where the change risk requires them.
+- One Maker owns every shared-file mutation. Independent Checkers receive a
+  compact acceptance contract, diff and raw evidence in a fresh context; they
+  report findings and never silently repair the Maker's workspace.
+- The default graph uses one Checker and one targeted repair. Routine work may
+  stay on deterministic checks, while integrated work uses behavior QC and
+  user-visible or release-facing work requires rendered or Player evidence.
+- Unity state is part of validation authority. Inspect may run with the Editor
+  open; primary-project batch validation and finalization require it closed;
+  visual QC records the actual graphics API and resolution. An explicitly
+  identified Player artifact may supply visual evidence without an open Editor.
+- The reusable generic Skill is versioned under `Tools/AgentSkills` and
+  installed into the user's Codex Skill directory. Color Gate Runner owns only
+  a thin adapter, so non-Unity projects do not inherit Unity-specific locks or
+  path rules.
+- Token use is bounded through risk routing, compact task packets, one Checker,
+  one repair and deterministic tools before model judgment. Usage is recorded
+  only when the runtime exposes it; no estimate is treated as evidence.

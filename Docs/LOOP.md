@@ -28,6 +28,37 @@ Play Again
 
 ---
 
+## Development Quality Graph
+
+The Play-to-Play loop remains the product-learning authority. For work whose
+risk crosses behavior, generation, persistence or presentation boundaries, the
+Codex node expands into this bounded quality graph:
+
+```text
+Environment Preflight
+        -> Approved Acceptance Contract
+        -> Maker
+        -> Deterministic Validation
+        -> Independent Behavior / Visual QC when routed
+        -> Evidence Merge
+        -> Human Play
+```
+
+Only Maker changes shared files. Independent QC receives observable acceptance
+criteria and resulting evidence without Maker reasoning. Headless validation
+does not satisfy visual QC, and human play retains final authority over feel,
+readability and visual judgment. The default graph uses one checker and one
+targeted repair so additional quality capacity does not become an unbounded
+token loop.
+
+The user has now confirmed Flicker Iteration 50 in the current Editor play
+check, including the corrected visible side order, longer timing and restored
+Booster access. Portrait mobile and WebGL device review remain separate human
+checks; later tuning requires a new approved iteration rather than reopening it
+implicitly.
+
+---
+
 KPI
 
 Completion

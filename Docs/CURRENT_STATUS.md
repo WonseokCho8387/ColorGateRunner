@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `8cafafab59d8f426967311b99a335fdb6b62f890`
-- Base commit: `fix: improve flicker campaign readability`
+- Implementation base HEAD: `644d507019aba64d133493092bfafc77e6906e3d`
+- Base commit: `fix: refine flicker timing and booster access`
 - Authoritative completion HEAD: the commit named
-  `fix: refine flicker timing and booster access`; its exact hash is recorded
-  in the Iteration 50 final report because a commit cannot contain
+  `chore: add reusable quality graph workflow`; its exact hash is recorded
+  in the Iteration 51 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,11 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 50 — Flicker Screen Order, Timing and Booster Access**.
+- Current completed iteration: **Iteration 51 — Reusable Quality Graph Workflow**.
+- The project now routes development through an explicit environment preflight,
+  risk-sized deterministic validation and fresh-context QC. The generic
+  `quality-graph` Skill is versioned under `Tools/AgentSkills`; this repository
+  supplies only its Unity/project adapter under `Tools/QualityGraph`.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -300,13 +304,13 @@ below where their contracts differ.
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
 - Campaign Builder: the latest Scene-affecting two-pass validation remains
-  Iteration 49; Iteration 50 changed no Scene or Campaign Builder structure. The active
+  Iteration 49; Iterations 50–51 changed no Scene or Campaign Builder structure. The active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: two consecutive Iteration 50 passes completed;
+- Stage Catalog Builder: the latest two consecutive Iteration 50 passes completed;
   revision 16 Resource contains 26 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
@@ -321,14 +325,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 686, profile/Guest ID
+- Schema 3, revision 697, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
-  with 5 records, 55,200 Coins, 8 Shields, 8 Boosters, 3 Hearts and 0 Continue
+  with 5 records, 48,600 Coins, 8 Shields, 8 Boosters, 2 Hearts and 0 Continue
   Tickets.
 - SHA-256:
-  `83BAD27CFCE46EEF1E5BB65EF780BB23E9008F417D644C2E03DB1E09541CB93C`.
-- This user-authored play state predates Iteration 50 validation. Its
-  `LastWriteUtc` remained `2026-08-30T04:40:30.8876046Z`; automated validation
+  `9BB91E092D66648BFFF69B0A2D9CF71E25050DA9B560D77DC6ECA757D4D976FD`.
+- This user-authored play state predates Iteration 51 validation. Its
+  `LastWriteUtc` remained `2026-08-30T11:26:16.1371297Z`; automated validation
   did not restore or mutate this file. Developer Console mutations still occur
   only after an explicit Apply, Reset, or Unlock action.
 
@@ -410,6 +414,33 @@ All three entries are expected to be enabled and unique.
 
 ## Latest Iteration Result and History
 
+## Iteration 51 validation result
+
+- Added a reusable `quality-graph` Skill, a thin Color Gate Runner adapter and
+  preflight entry points for inspect, primary-project batch validation,
+  graphics-aware visual QC and finalization. `Tools/Validate.ps1` now refuses
+  unsafe primary-project batch execution before starting Unity.
+- Environment evidence distinguishes project copy, Editor/process lock state,
+  validation backend, graphics API, resolution and Player artifact shape.
+  Protected-path checks reject relative, absolute and case-variant access while
+  Unity is open; Player evidence rejects arbitrary files.
+- The preflight self-test passed `13/13`. The generic Skill passed its packaged
+  validator and a non-Unity fixture verified that project adapters do not leak
+  Unity-specific wording or lock rules.
+- A fresh-context checker initially rejected five gaps in path protection,
+  Player evidence, generic fallback behavior, visual metadata and policy
+  wording. One targeted repair addressed all five; the same independent route
+  then returned `PASS` with no remaining findings.
+- With the primary Unity Editor closed and no lock present, full EditMode passed
+  `457/457` and full PlayMode passed `255/255`. No Builder or deterministic
+  simulation rerun was required because no game code, Scene, generated content,
+  Stage data, timing, judgment or simulation input changed.
+- Batch execution briefly reserialized two generated Warp materials; those
+  incidental changes were restored. Package and ProjectSettings hashes remain
+  exact, and the user-authored Product save above remained byte- and
+  timestamp-identical. No Android or WebGL Player was built, so device visual
+  quality remains human evidence rather than an automated claim.
+
 ## Iteration 50 validation result
 
 - Chase-view Flicker flow now rises on the visible screen-left pillar, crosses
@@ -430,6 +461,9 @@ All three entries are expected to be enabled and unique.
 - Two complete 520-row Campaign simulations were byte-identical with the
   current Summary / JSON / CSV hashes above. Step 10 was omitted because
   Experiment inputs are unchanged. Android and WebGL builds were not produced.
+- The user completed the current Editor play check and confirmed the corrected
+  visible side order, longer Flicker timing and restored Booster access.
+  Portrait mobile and WebGL device review remain separate human checks.
 
 ## Iteration 49 validation result
 

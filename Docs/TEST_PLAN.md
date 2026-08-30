@@ -8,20 +8,23 @@ must be validated and when**.
 
 For every iteration:
 
-1. During Phase A, inspect the baseline, affected contracts, and risks. Do not
+1. Run the Quality Graph `inspect` preflight and record whether Unity is open,
+   which project copy is in scope, and which backend can provide evidence.
+2. During Phase A, inspect the baseline, affected contracts, and risks. Do not
    run the full EditMode suite, full PlayMode suite, Builders, or Simulations
    merely to begin an iteration.
-2. Select the lowest Validation Tier that covers the actual change. Escalate
+3. Select the lowest Validation Tier that covers the actual change. Escalate
    when a shared controller, shared prefab, persistence boundary, stage rule,
    or deterministic input is affected.
-3. Implement the approved scope.
-4. After implementation, run the selected tier's required validation once.
+4. Implement the approved scope through one maker.
+5. After implementation, run the selected tier's required validation once.
    Focused tests may be run earlier while developing, but the complete tier is
    not repeated unless a failure or subsequent edit invalidates its evidence.
-5. Record final counts and artifact evidence in `CURRENT_STATUS.md`. Move
+6. Run the independent QC route required by the Quality Graph risk class.
+7. Record final counts and artifact evidence in `CURRENT_STATUS.md`. Move
    iteration-specific acceptance mapping and final evidence to
    `TEST_HISTORY.md`; do not append them here.
-6. Use `TEST_CATALOG.md` to locate current automated tests and structural
+8. Use `TEST_CATALOG.md` to locate current automated tests and structural
    checks. Do not copy the entire catalog into a Codex prompt.
 
 Phase A may run a focused baseline test only when the investigated area
@@ -77,10 +80,45 @@ When a change spans tiers, use the highest applicable tier. If implementation
 expands beyond the assumptions used to choose the tier, reclassify before final
 validation.
 
+## Quality Graph Routes
+
+Quality Graph risk routing is independent of the deterministic Validation Tier.
+The Tier selects project tests; the Route selects independent evidence.
+
+### Route Q0 — Deterministic only
+
+- Documentation and isolated pure logic with no demonstrated semantic,
+  integration, visual, device, or release risk.
+- Run the selected Validation Tier with one maker. No checker is required.
+
+### Route Q1 — Independent behavior checker
+
+- Shared controller, persistence, stage generation, Builder, navigation,
+  timing, policy consistency, or cross-feature applicability changes.
+- After deterministic gates, a fresh-context checker receives the acceptance
+  contract, diff, environment manifest and relevant black-box evidence.
+- The checker reports pass, fail, or insufficient evidence and does not edit.
+
+### Route Q2 — Rendered or release-facing QC
+
+- Scene, shader, material, VFX, camera, UI, animation, mobile/WebGL, or other
+  user-visible output.
+- Q1 applies, plus graphics-capable captures or a Player artifact at the
+  relevant resolution/backend. Headless evidence cannot satisfy this route.
+- Human review remains required for feel, readability, taste, fairness and
+  device comfort.
+
+Use one checker by default. Pass a compact task packet rather than the complete
+conversation. Allow one targeted repair; a repeated failure or product-intent
+conflict returns to the user. When a validator becomes a completion gate, seed
+isolated mutations representative of its failure class and prove the validator
+rejects them.
+
 ## Standard Regression Suite
 
 ### Before implementation — Phase A inspection
 
+- Run `Tools/QualityGraph/Invoke-QualityPreflight.ps1 -Mode inspect`.
 - Verify `git status --short` and `git diff --check`.
 - Verify the repository and HEAD against the Authoritative Baseline in
   `CURRENT_STATUS.md`.
@@ -97,6 +135,9 @@ validation.
 
 ### After implementation — one tiered validation pass
 
+- Run `batch-validate` preflight before Headless Unity and `finalize` preflight
+  before final documentation and Git staging. Both require the primary Editor
+  closed. Label isolated copies explicitly.
 - Run targeted tests for every new or changed behavior.
 - Run the additional suites, Builders, simulations, and artifact comparisons
   required by the selected Validation Tier.
