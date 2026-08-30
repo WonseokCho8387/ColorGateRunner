@@ -8,16 +8,16 @@
 
 - 기준일: 2026-08-30
 - 브랜치: `main`
-- 최신 구현: `fix: correct flicker gate visuals` 완료 커밋
-- 완료 Iteration: **Iteration 48 — Flicker Frame Dissolve and Break Color Fix**
+- 최신 구현: `fix: improve flicker campaign readability` 완료 커밋
+- 완료 Iteration: **Iteration 49 — Flicker Readability and Stage 26 Startup Fix**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
-- Campaign Catalog: revision 13, stable Stage 1–26
-- 표준 검증 기준: EditMode `457/457`, PlayMode `252/252`
+- Campaign Catalog: revision 14, stable Stage 1–26
+- 표준 검증 기준: EditMode `457/457`, PlayMode `255/255`
 
 ### 현재 작업 트리 주의
 
-Iteration 48 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 49 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.
@@ -79,9 +79,12 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - 6개 Gate 풀과 파괴 연출 풀
 - Gate와 하단 색상 UI가 공유하는 6개 투명 이미지 emblem
 - 설명 텍스트 없이 emblem과 색상이 전기 차단처럼 점멸 후 사라지는 Hidden 표현
-- 24-unit 접근 안전 잠금과 `0.12s` 양색 판정을 유지하며, 기존 좌 기둥→
+- 24-unit 접근 안전 잠금과 `0.24s` 양색 판정을 유지하며, 기존 좌 기둥→
   상단→우 기둥 메시 자체가 순차 디졸브되고 emblem도 연속 변환되는 Flicker
   표현. 폭파 조각은 authored 초기색이 아닌 현재 확정색을 사용한다.
+- Flicker Campaign 주기는 Stage 24–26 순서로 `0.90 / 0.78 / 0.66s`다.
+  Stage 26은 비-Ice 스테이지이므로 50-slot Ice runway 용량 검증을 건너뛰고
+  52개 Gate 계획과 6개 활성 Gate 풀로 정상 시작한다.
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
 - 거친 비발광 아스팔트, Cyan emissive edge와 Bloom
 - 10-bank Fog, 고정-capacity wisp/rain과 Fog 구간 어두운 tone
@@ -140,7 +143,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 | Ice | 완료 | 완료 | Stage 15–17 | Spline ribbon과 재질 적용, 인간 비주얼 검증 필요 |
 | Echo Provider | 완료 | 완료 | Stage 18–20 | Gate membrane/색 전달 적용, 인간 검증 필요 |
 | Hidden | 완료 | 완료 | Stage 21–23 | 전 구간 7/9/11회·네온 차단 소거 표현, 인간 검증 필요 |
-| Flicker | 완료 | 완료 | Stage 24–26 | 6/8/10회·거리 잠금·메시 디졸브·emblem 변환, 인간 검증 필요 |
+| Flicker | 완료 | 완료 | Stage 24–26 | 6/8/10회·완화된 주기·거리 잠금·게이트 기준 메시 디졸브·emblem 변환, 인간 검증 필요 |
 
 ### 구현되지 않은 기믹과 모드
 
@@ -173,7 +176,7 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
   전달, Bloom 과다 여부
 - Stage 21–23: 6개 emblem 구분, Gate와의 조화, Hidden 기억 시간,
   Stage 20→21 학습 전환, 후반 반복과 3색 숙련 피로도
-- Stage 24–26: 24-unit 잠금의 대응 여유, `0.12s` 좌/상단/우 프레임 메시
+- Stage 24–26: 24-unit 잠금의 대응 여유, `0.24s` 좌/상단/우 프레임 메시
   디졸브와 emblem dissolve 인지, 두 색 판정의 납득도와 6/8/10회 압박 곡선
 - Stage 14–20: 카메라 관성, crest에서 다음 Gate 가시성, 멀미 가능성
 - Shield/Booster: 기기별 투명 shader와 Warp 상·하단 밀도
@@ -336,9 +339,9 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 
 Campaign 520 rows:
 
-- Summary: `BDCAAFE843F1FB81BE8569BE8F01424ABD8FD4CEFED56F89C5889EB4892A4EB4`
-- JSON: `748AF7A9D8368125E9AFF1943DC4B6A225E9F48E72A043507A7049FECBE85F7A`
-- CSV: `627B5B4A4CCD8DBB2C3942343550118F2EE8E141BD683597FF14F1A0F3098C73`
+- Summary: `FAC276004569FA58BDA71FA11C55EB169890B953E648FFCD8FC5D2059FBE78E9`
+- JSON: `F3CC3B4477BFA9671B9E194FAF5E67575B29FC04CE90921713971FC0D05F10E5`
+- CSV: `ACD559E9878C95B4652A4E3C49F7283D10B90C796C48C936AA14F52AE43952DF`
 
 Step 10, 80 rows / 64,016 runs:
 

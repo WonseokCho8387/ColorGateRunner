@@ -2555,6 +2555,50 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.Not.EqualTo(StageFlowState.Failed));
         }
 
+        [TestCase(24, 44)]
+        [TestCase(25, 48)]
+        [TestCase(26, 52)]
+        public void FlickerCampaignStage_StartsWithVisibleGatePool(
+            int stageNumber,
+            int targetGateCount)
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(stageNumber);
+            _controller.StartSelectedStage();
+
+            Assert.That(_controller.Session.Stage.TargetGateCount,
+                Is.EqualTo(targetGateCount));
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.GatePoolSize, Is.EqualTo(6));
+            Assert.That(_controller.ActiveGateCount, Is.EqualTo(6));
+            Assert.That(_controller.NextPlanIndex, Is.EqualTo(6));
+            Assert.That(_controller.Goal.activeSelf, Is.True);
+            Assert.That(_controller.CampaignSplinePath.VisualsActive, Is.True);
+
+            StageGateView firstGate = FindGateByPlanIndex(0);
+            Assert.That(firstGate, Is.Not.Null);
+            _controller.CampaignSplinePath.EvaluatePose(
+                firstGate.PathDistance,
+                0f,
+                out Vector3 expectedPosition,
+                out Quaternion expectedRotation);
+            Assert.That(Vector3.Distance(
+                firstGate.transform.position,
+                expectedPosition), Is.LessThan(0.001f));
+            Assert.That(Quaternion.Angle(
+                firstGate.transform.rotation,
+                expectedRotation), Is.LessThan(0.01f));
+
+            _controller.Tick(3.1f);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(_controller.ActiveGateCount, Is.EqualTo(6));
+            Assert.That(FindGateByPlanIndex(0), Is.Not.Null);
+        }
+
         [Test]
         public void RuntimeGateAndTrackPools_DoNotGrow()
         {

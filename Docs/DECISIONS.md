@@ -1628,3 +1628,15 @@ Status: Approved and implemented.
   authority after a Flicker transition.
 - Flicker shaders require a graphics-capable compiler-message test. Headless
   suite success alone cannot certify the absence of a magenta error material.
+
+## Iteration 49 — Campaign Flicker slows down and frame direction is gate-relative
+
+- Campaign Stages 24–26 use `0.90 / 0.78 / 0.66s` switch periods and a shared
+  `0.24s` dual-color window. The 24-unit safety lock remains the fairness
+  boundary; Booster remains disabled so the learning block cannot be skipped.
+- Imported neon mesh axes are presentation details, not design authority.
+  `FlickerGateFrameView` resolves each shader-axis sign against the desired
+  gate-local direction on the active transform.
+- The fixed Ice runway validates capacity only for stages that actually author
+  Ice. A longer non-Ice stage must not fail startup because an unused visual
+  pool is smaller than its gate count.

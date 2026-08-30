@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `b3379e49d020b3bc20816cd203ed00145b494c20`
-- Base commit: `feat: add flicker campaign stages`
+- Implementation base HEAD: `1db433186488f2c2890ee640168aac96e22e00ec`
+- Base commit: `fix: correct flicker gate visuals`
 - Authoritative completion HEAD: the commit named
-  `fix: correct flicker gate visuals`; its exact hash is recorded in the
-  Iteration 48 final report because a commit cannot contain
+  `fix: improve flicker campaign readability`; its exact hash is recorded in
+  the Iteration 49 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 48 — Flicker Frame Dissolve and Break Color Fix**.
+- Current completed iteration: **Iteration 49 — Flicker Readability and Stage 26 Startup Fix**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -206,9 +206,10 @@ below where their contracts differ.
   emblem fade/contract transition make the intro readable while increasing
   repetition and later-run memory pressure. Judgment and simulation authority
   remain unchanged.
-- Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences. A gate
+- Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences with
+  `0.90 / 0.78 / 0.66s` switch periods. A gate
   may begin changing only while farther than 24 scalar path units from the
-  runner. During its `0.12s` dual-color window, the next neon color travels
+  runner. During its `0.24s` dual-color window, the next neon color travels
   through the existing emissive frame meshes from left pillar bottom-to-top,
   across the top, then down the right pillar. No overlay geometry or
   LineRenderer is used. The center emblem simultaneously replaces the old
@@ -292,19 +293,19 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `457/457`
-- PlayMode: `252/252`
-- Post-Builder PlayMode: `252/252` (latest Builder-affecting iteration)
+- PlayMode: `255/255`
+- Post-Builder PlayMode: `255/255` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 48 passes completed; the active
+- Campaign Builder: two consecutive Iteration 49 passes completed; the active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: two consecutive Iteration 46 passes completed;
-  revision 13 Resource contains 26 valid stages
+- Stage Catalog Builder: two consecutive Iteration 49 passes completed;
+  revision 14 Resource contains 26 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -318,24 +319,26 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 501, highest unlocked Stage ID `stage-01` with no records,
-  0 Coins, 0 Shields, 0 Boosters and 4 Hearts.
+- Schema 3, revision 669, profile/Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
+  with 5 records, 81,300 Coins, 8 Shields, 8 Boosters, 0 Hearts and 0 Continue
+  Tickets.
 - SHA-256:
-  `29FBE57FD5BE028EAEEEF75EC6DD5B2DD3208DBCB533AD33C9905EC373CC9D20`.
-- This user-authored reset/attempt state predates Iteration 43 validation.
-  Its `LastWriteUtc` remained `2026-08-27T01:45:18.7882931Z`; automated
-  validation did not restore or mutate this file. Developer Console
-  mutations still occur only after an explicit Apply, Reset, or Unlock action.
+  `9BCB200D54B9DB0F43202F55FE63C3E3976F15DCA989BFFFF5DF8433419B1374`.
+- This user-authored play state predates Iteration 49 validation. Its
+  `LastWriteUtc` remained `2026-08-29T16:23:05.6791334Z`; automated validation
+  did not restore or mutate this file. Developer Console mutations still occur
+  only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
 - Rows: `520`
 - Summary SHA-256:
-  `BDCAAFE843F1FB81BE8569BE8F01424ABD8FD4CEFED56F89C5889EB4892A4EB4`
+  `FAC276004569FA58BDA71FA11C55EB169890B953E648FFCD8FC5D2059FBE78E9`
 - JSON SHA-256:
-  `748AF7A9D8368125E9AFF1943DC4B6A225E9F48E72A043507A7049FECBE85F7A`
+  `F3CC3B4477BFA9671B9E194FAF5E67575B29FC04CE90921713971FC0D05F10E5`
 - CSV SHA-256:
-  `627B5B4A4CCD8DBB2C3942343550118F2EE8E141BD683597FF14F1A0F3098C73`
+  `ACD559E9878C95B4652A4E3C49F7283D10B90C796C48C936AA14F52AE43952DF`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
@@ -404,6 +407,28 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 49 validation result
+
+- Flicker Campaign switch periods are now `0.90 / 0.78 / 0.66s` for Stages
+  24–26 and the shared dual-color transition is `0.24s`. The 24-unit lock,
+  Shield availability and intentional Booster lock remain unchanged.
+- Each imported frame part resolves its shader-axis sign in gate space, so the
+  visible replacement direction remains left-up, top-right and right-down even
+  when FBX transforms or a curved route rotate the gate.
+- Stage 26 startup no longer asks the fixed 50-panel Ice runway to validate a
+  non-Ice 52-gate Stage. Ice-bearing stages retain the exact pool-capacity
+  validation; non-Ice stages reset and skip runway construction.
+- Focused Campaign EditMode passed `11/11`, focused Flicker PlayMode passed
+  `13/13`, and Stage 24–26 startup PlayMode passed `3/3` after reproducing and
+  fixing the Stage 26 exception. Full EditMode passed `457/457`; full
+  post-Builder PlayMode passed `255/255`.
+- Stage Catalog and Campaign Builders completed two passes. Two complete
+  520-row Campaign simulations were byte-identical with the current Summary /
+  JSON / CSV hashes above. Step 10 was omitted because Experiment timing,
+  profiles and inputs are unchanged.
+- Android and WebGL player builds were not produced; the user owns those
+  on-demand test builds.
 
 ## Iteration 48 validation result
 

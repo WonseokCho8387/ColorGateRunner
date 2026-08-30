@@ -24,7 +24,7 @@ namespace ColorGateRunner.Editor
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
             }
-            else if (asset.Count != 23 || asset.RequiresUpgrade)
+            else if (asset.Count != 26 || asset.RequiresUpgrade)
             {
                 asset.InitializeLegacyStages();
                 EditorUtility.SetDirty(asset);

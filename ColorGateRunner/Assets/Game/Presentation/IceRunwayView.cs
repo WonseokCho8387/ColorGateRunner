@@ -73,6 +73,11 @@ namespace ColorGateRunner.Presentation
             float playerZ,
             float initialGateLeadDistance)
         {
+            if (!RequiresRunway(session))
+            {
+                ResetRunway();
+                return;
+            }
             ValidateBuild(session);
             EnsureRuntimeMeshes();
 
@@ -104,6 +109,11 @@ namespace ColorGateRunner.Presentation
             CampaignSplinePathView path,
             float initialGateLeadDistance)
         {
+            if (!RequiresRunway(session))
+            {
+                ResetRunway();
+                return;
+            }
             ValidateBuild(session);
             if (path == null || path.PathLength <= 0f)
             {
@@ -188,10 +198,6 @@ namespace ColorGateRunner.Presentation
 
         private void ValidateBuild(StageSession session)
         {
-            if (session == null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
             if (!HasRequiredReferences())
             {
                 throw new InvalidOperationException(
@@ -202,6 +208,16 @@ namespace ColorGateRunner.Presentation
                 throw new InvalidOperationException(
                     "The authored stage exceeds the fixed Ice runway pool.");
             }
+        }
+
+        private static bool RequiresRunway(StageSession session)
+        {
+            if (session == null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            return (session.Stage.GateModifiers & GateModifierType.Ice) != 0;
         }
 
         private void EnsureRuntimeMeshes()

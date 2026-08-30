@@ -2940,3 +2940,46 @@ Human feedback required
   Bloom brightness, left/top/right continuity and emblem readability. No
   timing, distance lock, dual judgment, Stage data, audio, SDF/vector assets or
   elemental identity changed.
+
+## Iteration 49 — Flicker Readability and Stage 26 Startup Fix
+
+### Play / Analyze
+
+- Human play found Campaign Flicker changes too frequent and the visible frame
+  direction inconsistent with left-up, top-right, right-down. Stage 26 showed
+  no gates at all.
+- A direct Stage 24–26 startup regression reproduced Stage 26 only: the shared
+  Ice runway rejected its 52-gate count before any gate could appear, even
+  though the Stage contains no Ice.
+
+### Design / Implementation
+
+- Slowed Campaign switch periods to `0.90 / 0.78 / 0.66s` and doubled the
+  dual-color replacement to `0.24s`. The existing 24-unit lock, dual judgment,
+  Shield availability and Booster restriction remain.
+- Frame dissolve direction now derives from each renderer axis transformed
+  into gate space, preserving left-up, top-right and right-down through FBX
+  orientation and curved-route rotation.
+- Non-Ice stages reset and skip Ice runway building. Ice stages retain the
+  exact 50-panel capacity guard. Catalog revision 14 also fixes the Builder's
+  expected Stage count at 26.
+
+### Validation / Learning
+
+- Focused Campaign EditMode passed `11/11`; focused Flicker PlayMode passed
+  `13/13`; Stage 24–26 startup passed `3/3` after the Stage 26 fix.
+- Stage Catalog and Campaign Builders completed twice. Full EditMode passed
+  `457/457`; full post-Builder PlayMode passed `255/255`.
+- Two 520-row Campaign simulations were byte-identical. Summary / JSON / CSV
+  SHA-256 are `FAC27600...78E9`, `F3CC3B44...10E5`, and
+  `ACD559E9...52DF`. Step 10 was omitted because Experiment inputs are intact.
+- A presentation subsystem shared by all stages must check applicability
+  before checking finite visual capacity; otherwise unrelated late content can
+  fail before its own runtime objects are created.
+
+### Deferred / Human Review
+
+- Verify Stage 24–26 on portrait mobile and WebGL for reaction time, continuous
+  corner flow, emblem synchronization and Bloom. No player build was produced.
+- Any further timing adjustment, Booster policy change, elemental theming,
+  audio or Stage 27+ content remains deferred.

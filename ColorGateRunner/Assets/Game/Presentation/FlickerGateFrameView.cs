@@ -41,6 +41,18 @@ namespace ColorGateRunner.Presentation
         internal float LeftProgress { get; private set; }
         internal float TopProgress { get; private set; }
         internal float RightProgress { get; private set; }
+        internal Vector3 LeftRevealDirection => GetRevealDirectionInGateSpace(
+            leftRenderer,
+            1f,
+            ResolveAxisDirection(leftRenderer, 1f, Vector3.up));
+        internal Vector3 TopRevealDirection => GetRevealDirectionInGateSpace(
+            topRenderer,
+            0f,
+            ResolveAxisDirection(topRenderer, 0f, Vector3.right));
+        internal Vector3 RightRevealDirection => GetRevealDirectionInGateSpace(
+            rightRenderer,
+            1f,
+            ResolveAxisDirection(rightRenderer, 1f, Vector3.down));
         internal Material TransitionMaterial => transitionMaterial;
         internal bool HasRequiredReferences =>
             HasMesh(leftRenderer) &&
@@ -97,7 +109,7 @@ namespace ColorGateRunner.Presentation
                 nextEmission,
                 LeftProgress,
                 1f,
-                1f);
+                ResolveAxisDirection(leftRenderer, 1f, Vector3.up));
             ApplyPart(
                 topRenderer,
                 ref _topProperties,
@@ -107,7 +119,7 @@ namespace ColorGateRunner.Presentation
                 nextEmission,
                 TopProgress,
                 0f,
-                1f);
+                ResolveAxisDirection(topRenderer, 0f, Vector3.right));
             ApplyPart(
                 rightRenderer,
                 ref _rightProperties,
@@ -117,7 +129,7 @@ namespace ColorGateRunner.Presentation
                 nextEmission,
                 RightProgress,
                 1f,
-                -1f);
+                ResolveAxisDirection(rightRenderer, 1f, Vector3.down));
         }
 
         internal void ResetPresentation()
@@ -161,6 +173,51 @@ namespace ColorGateRunner.Presentation
             properties.SetFloat(AxisDirectionId, direction);
             renderer.sharedMaterial = transitionMaterial;
             renderer.SetPropertyBlock(properties);
+        }
+
+        private float ResolveAxisDirection(
+            Renderer renderer,
+            float axis,
+            Vector3 desiredGateDirection)
+        {
+            Vector3 rendererAxis = axis < 0.5f
+                ? Vector3.right
+                : Vector3.up;
+            Vector3 axisInWorld = renderer.localToWorldMatrix
+                .MultiplyVector(rendererAxis);
+            Vector3 desiredInWorld = transform.localToWorldMatrix
+                .MultiplyVector(desiredGateDirection);
+            if (axisInWorld.sqrMagnitude < 0.0001f ||
+                desiredInWorld.sqrMagnitude < 0.0001f)
+            {
+                return 1f;
+            }
+
+            return Vector3.Dot(
+                axisInWorld.normalized,
+                desiredInWorld.normalized) >= 0f
+                    ? 1f
+                    : -1f;
+        }
+
+        private Vector3 GetRevealDirectionInGateSpace(
+            Renderer renderer,
+            float axis,
+            float direction)
+        {
+            if (renderer == null)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3 rendererAxis = axis < 0.5f
+                ? Vector3.right
+                : Vector3.up;
+            Vector3 worldDirection = renderer.localToWorldMatrix
+                .MultiplyVector(rendererAxis * direction);
+            return transform.worldToLocalMatrix
+                .MultiplyVector(worldDirection)
+                .normalized;
         }
 
         private static bool HasMesh(Renderer renderer)

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 13
+  catalogRevision: 14
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -2483,8 +2483,8 @@ MonoBehaviour:
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 6
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.72
-    flickerPulseSeconds: 0.12
+    flickerSwitchSeconds: 0.9
+    flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
@@ -2590,8 +2590,8 @@ MonoBehaviour:
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 8
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.6
-    flickerPulseSeconds: 0.12
+    flickerSwitchSeconds: 0.78
+    flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1
     mechanicGrantEnabled: 0
@@ -2697,8 +2697,8 @@ MonoBehaviour:
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 10
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.52
-    flickerPulseSeconds: 0.12
+    flickerSwitchSeconds: 0.66
+    flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1
     mechanicGrantEnabled: 0

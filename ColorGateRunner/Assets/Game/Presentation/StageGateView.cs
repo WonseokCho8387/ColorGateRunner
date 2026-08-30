@@ -83,6 +83,18 @@ namespace ColorGateRunner.Presentation
             flickerGateFrame == null ? 0f : flickerGateFrame.TopProgress;
         internal float FlickerRightProgress =>
             flickerGateFrame == null ? 0f : flickerGateFrame.RightProgress;
+        internal Vector3 FlickerLeftRevealDirection =>
+            flickerGateFrame == null
+                ? Vector3.zero
+                : flickerGateFrame.LeftRevealDirection;
+        internal Vector3 FlickerTopRevealDirection =>
+            flickerGateFrame == null
+                ? Vector3.zero
+                : flickerGateFrame.TopRevealDirection;
+        internal Vector3 FlickerRightRevealDirection =>
+            flickerGateFrame == null
+                ? Vector3.zero
+                : flickerGateFrame.RightRevealDirection;
         internal Material FlickerFrameMaterial =>
             flickerGateFrame == null
                 ? null

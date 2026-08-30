@@ -2203,3 +2203,24 @@ Any mismatch blocks implementation.
 - Packages and tracked ProjectSettings had no diff after volatile build output
   was restored. APK installation, WebGL browser play, touch/focus/audio,
   Stage 21–23 balance and device performance remain human acceptance work.
+
+## Iteration 49 — Flicker Readability and Stage 26 Startup Fix
+
+- Base HEAD: `1db4331`; completion message
+  `fix: improve flicker campaign readability`.
+- Focused Campaign EditMode passed `11/11`; focused Flicker PlayMode passed
+  `13/13`. The new Stage 24–26 startup test first reproduced Stage 26's Ice
+  runway capacity exception, then passed `3/3` after the applicability fix.
+- Stage Catalog Builder and Campaign Builder each completed two passes.
+  Generated references, unique roots, one EventSystem, fixed Gate/Track/Ice
+  pools and Build Settings were covered by the final post-Builder suite.
+- Full EditMode passed `457/457`; full PlayMode passed `255/255`.
+- Two complete Campaign simulations produced 520 byte-identical rows:
+  - Summary: `FAC276004569FA58BDA71FA11C55EB169890B953E648FFCD8FC5D2059FBE78E9`
+  - JSON: `F3CC3B4477BFA9671B9E194FAF5E67575B29FC04CE90921713971FC0D05F10E5`
+  - CSV: `ACD559E9878C95B4652A4E3C49F7283D10B90C796C48C936AA14F52AE43952DF`
+- Step 10 was omitted because Experiment contracts and inputs are unchanged.
+  No Android or WebGL build was produced. Package and meaningful
+  ProjectSettings changes were excluded.
+- The pre-existing Editor Product save remained byte- and timestamp-identical
+  at SHA-256 `9BCB200D54B9DB0F43202F55FE63C3E3976F15DCA989BFFFF5DF8433419B1374`.

@@ -889,3 +889,15 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - The `24`-unit lock, `0.12s` transition and dual-color acceptance remain
   unchanged. After completion, `AssignedColor` is the committed gate color and
   owns the gate-break fragment color in both Campaign and Experiment.
+
+## Iteration 49 Flicker readability and Stage 26 startup contract
+
+- This section supersedes only the Campaign timing values in Iterations 46–48.
+  Stage 24 / 25 / 26 switch periods are `0.90 / 0.78 / 0.66s`, and their
+  dual-color transition lasts `0.24s`. The 24-unit safety lock and completion-
+  then-lock precedence are unchanged.
+- Shield remains selectable and Booster remains intentionally disabled across
+  the Flicker learning block. Experiment Flicker retains its existing timing.
+- Non-Ice Campaign stages do not allocate or validate Ice runway ribbons.
+  Fixed-pool capacity remains a hard failure for an authored Ice stage that
+  would require more than 50 panels.

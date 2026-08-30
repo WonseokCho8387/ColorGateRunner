@@ -192,7 +192,7 @@ namespace ColorGateRunner.Tests.EditMode
         {
             int[] expectedCounts = { 6, 8, 10 };
             int[] expectedColors = { 2, 2, 3 };
-            float[] expectedSwitchSeconds = { 0.72f, 0.60f, 0.52f };
+            float[] expectedSwitchSeconds = { 0.90f, 0.78f, 0.66f };
 
             for (int offset = 0; offset < 3; offset++)
             {
@@ -209,7 +209,7 @@ namespace ColorGateRunner.Tests.EditMode
                         occurrences.Add(gate + 1);
                         Assert.That(
                             plan.FlickerPlan.TransitionPulseSeconds,
-                            Is.EqualTo(0.12f));
+                            Is.EqualTo(0.24f));
                     }
                 }
 

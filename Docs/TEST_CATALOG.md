@@ -631,6 +631,7 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/GrayboxScenePlayModeTests.cs
 - `CampaignCamouflageGate_RevealsFromEtaAndStaysJudged`
 - `CampaignEchoProvider_ActivatesColoredPlayerShell`
 - `CampaignMechanicIntro_BindsModifierToRuntimeGateView`
+- `FlickerCampaignStage_StartsWithVisibleGatePool`
 - `RuntimeGateAndTrackPools_DoNotGrow`
 - `SafeArea_CalculatesNormalizedAnchorsAndContainsPlayerUi`
 - `RequiredReferencesAndPools_AreStable`
@@ -738,7 +739,9 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/FlickerPlayModeTests.cs`
 - `Pause_FreezesFlickerGameplayTimeAndDisplayedPhase`
 - `ActivePaletteFlicker_UpdatesColorAndSymbolFromSamePhase`
 - `FlickerBoundary_PulsesWithoutMovingOrDisablingGate`
+- `FlickerFrame_DissolvesExistingMeshesLeftTopRight`
 - `Flicker_PlayerPassUsesExactGameplayTimeColor`
+- `FlickerBreakMaterial_UsesCurrentCommittedGateColor`
 - `Flicker_EchoMatchConsumesEchoAndPreservesShield`
 - `Flicker_ShieldAndFailureReuseOrdinaryFlow`
 - `Retry_ReplaysCycleAndResetsGameplayPhase`
@@ -1116,3 +1119,18 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   Campaign/Experiment break-material authority on `AssignedColor`.
 - Focused Flicker PlayMode passes `13/13`; full current suites pass EditMode
   `457/457` and PlayMode `252/252`.
+
+## Iteration 49 current coverage
+
+- `CampaignMechanicStageTests.FlickerBlock_UsesIncreasingPressureAndAuthoredTiming`
+  now fixes the Campaign switch periods at `0.90 / 0.78 / 0.66s` and the
+  dual-color transition at `0.24s`.
+- `FlickerFrame_DissolvesExistingMeshesLeftTopRight` additionally verifies
+  each imported mesh's resolved gate-local reveal direction: left-up,
+  top-right and right-down.
+- `FlickerCampaignStage_StartsWithVisibleGatePool` covers Stages 24–26 before
+  and after Countdown: target counts, six active gates, Spline/Goal activity,
+  first-gate path pose and retained Playing state.
+- Focused Campaign EditMode passes `11/11`, focused Flicker PlayMode `13/13`,
+  focused Campaign startup `3/3`, and full current suites EditMode `457/457`
+  and PlayMode `255/255`.

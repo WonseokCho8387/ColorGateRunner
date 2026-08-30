@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 13;
+        private const int CurrentCatalogRevision = 14;
 
         [Serializable]
         private sealed class StageEntry
@@ -1102,7 +1102,7 @@ namespace ColorGateRunner.Presentation
                     .WithItemAvailability(true, false)
                     .WithFlicker(
                         0.10f, 0.92f, 0.22f, 2,
-                        0.72f, 0.12f, 6),
+                        0.90f, 0.24f, 6),
                 StageEntry.Create(
                     "stage-25", 25, "FLICKER PRACTICE",
                     "Track faster color changes through a longer approach.",
@@ -1132,7 +1132,7 @@ namespace ColorGateRunner.Presentation
                     .WithItemAvailability(true, false)
                     .WithFlicker(
                         0.10f, 0.94f, 0.30f, 2,
-                        0.60f, 0.12f, 8),
+                        0.78f, 0.24f, 8),
                 StageEntry.Create(
                     "stage-26", 26, "FLICKER MASTERY",
                     "Master three-color gates with compressed neon changes.",
@@ -1162,7 +1162,7 @@ namespace ColorGateRunner.Presentation
                     .WithItemAvailability(true, false)
                     .WithFlicker(
                         0.10f, 0.96f, 0.46f, 2,
-                        0.52f, 0.12f, 10)
+                        0.66f, 0.24f, 10)
             };
         }
     }

@@ -167,6 +167,15 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(gate.FlickerLeftProgress, Is.Zero);
             Assert.That(gate.FlickerTopProgress, Is.Zero);
             Assert.That(gate.FlickerRightProgress, Is.Zero);
+            Assert.That(
+                Vector3.Dot(gate.FlickerLeftRevealDirection, Vector3.up),
+                Is.GreaterThan(0.999f));
+            Assert.That(
+                Vector3.Dot(gate.FlickerTopRevealDirection, Vector3.right),
+                Is.GreaterThan(0.999f));
+            Assert.That(
+                Vector3.Dot(gate.FlickerRightRevealDirection, Vector3.down),
+                Is.GreaterThan(0.999f));
             Assert.That(gate.FlickerSymbolTransitioning, Is.True);
             Assert.That(gate.FlickerNextSymbolVisible, Is.True);
             Assert.That(gate.FlickerSymbolProgress, Is.Zero);

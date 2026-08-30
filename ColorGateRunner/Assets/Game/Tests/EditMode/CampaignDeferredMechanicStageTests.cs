@@ -62,7 +62,7 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(stage.ShieldAllowed, Is.True);
                 Assert.That(
                     stage.FlickerSettings.TransitionPulseSeconds,
-                    Is.EqualTo(0.12f));
+                    Is.EqualTo(0.24f));
             }
         }
 

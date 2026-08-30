@@ -886,3 +886,15 @@ This section supersedes Iteration 47's separate additive frame trace.
   only a restrained procedural edge reacting to Bloom.
 - Magenta Unity error-material output is never an acceptable fallback. Both
   Flicker shaders require graphics-platform compiler-message validation.
+
+## Iteration 49 Gate-relative Flicker direction
+
+- The three mesh-bound replacement directions are defined in gate space, not
+  by assumed imported mesh-axis signs: left pillar bottom-to-top, top beam
+  left-to-right and right pillar top-to-bottom.
+- Each renderer maps its selected local shader axis into gate space before the
+  dissolve begins. Curved-route gate rotation, FBX conversion and mirrored
+  part transforms must not reverse the visible flow.
+- The longer `0.24s` Campaign window is still a short continuous replacement,
+  not three separate pauses. The emblem uses the same normalized progress.
+  Human mobile/WebGL review owns final Bloom readability and perceived pace.
