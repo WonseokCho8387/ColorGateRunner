@@ -901,3 +901,22 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - Non-Ice Campaign stages do not allocate or validate Ice runway ribbons.
   Fixed-pool capacity remains a hard failure for an authored Ice stage that
   would require more than 50 panels.
+
+## Iteration 50 Flicker screen order, timing and Booster contract
+
+- This section supersedes the Campaign Flicker direction, timing and item
+  policy in Iterations 46–49. In the chase view, color rises on screen-left,
+  crosses the top left-to-right and descends on screen-right.
+- Stage 24 / 25 / 26 switch periods are `1.35 / 1.17 / 0.99s`. The `0.24s`
+  dual-color transition, exact gameplay-time judgment and 24-unit safety lock
+  are unchanged.
+- Shield and Booster are selectable in all three Campaign Flicker stages.
+  A selected Booster retains ordinary start-at-GO auto-pass behavior and does
+  not create a Flicker-specific judgment exception.
+- Deterministic visibility planning splits a candidate's six-gate exposure at
+  the authored Booster travel boundary: overlapping distance uses Booster
+  speed and later distance uses normal maximum speed. Eligible targets are
+  selected deterministically with the existing cooldown until the authored
+  `6 / 8 / 10` quota is reached after Booster reach.
+- Experiment Lab Hidden and Flicker timing and Booster restrictions remain
+  unchanged.

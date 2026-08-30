@@ -898,3 +898,16 @@ This section supersedes Iteration 47's separate additive frame trace.
 - The longer `0.24s` Campaign window is still a short continuous replacement,
   not three separate pauses. The emblem uses the same normalized progress.
   Human mobile/WebGL review owns final Bloom readability and perceived pace.
+
+## Iteration 50 Chase-view Flicker direction
+
+- Screen-space readability is the visual authority for the side pillars. The
+  next color rises on the pillar visible at screen-left, continues across the
+  top from left to right and descends on the pillar visible at screen-right.
+- Imported `LeftNeon` and `RightNeon` names may appear reversed from the chase
+  camera because of the authored model orientation. Do not rename or duplicate
+  those meshes; map their progress and gate-local reveal vectors to the visible
+  order.
+- The top direction, mesh-bound dissolve, emblem dissolve, restrained edge and
+  Bloom behavior remain unchanged. Human mobile/WebGL review owns final side
+  identification, continuity and perceived pace at `1.35 / 1.17 / 0.99s`.

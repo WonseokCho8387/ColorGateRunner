@@ -44,7 +44,7 @@ namespace ColorGateRunner.Presentation
         internal Vector3 LeftRevealDirection => GetRevealDirectionInGateSpace(
             leftRenderer,
             1f,
-            ResolveAxisDirection(leftRenderer, 1f, Vector3.up));
+            ResolveAxisDirection(leftRenderer, 1f, Vector3.down));
         internal Vector3 TopRevealDirection => GetRevealDirectionInGateSpace(
             topRenderer,
             0f,
@@ -52,7 +52,7 @@ namespace ColorGateRunner.Presentation
         internal Vector3 RightRevealDirection => GetRevealDirectionInGateSpace(
             rightRenderer,
             1f,
-            ResolveAxisDirection(rightRenderer, 1f, Vector3.down));
+            ResolveAxisDirection(rightRenderer, 1f, Vector3.up));
         internal Material TransitionMaterial => transitionMaterial;
         internal bool HasRequiredReferences =>
             HasMesh(leftRenderer) &&
@@ -85,10 +85,10 @@ namespace ColorGateRunner.Presentation
             IsTransitioning = true;
 
             float distance = Progress * TotalLength;
-            LeftProgress = Mathf.Clamp01(distance / SideLength);
+            RightProgress = Mathf.Clamp01(distance / SideLength);
             TopProgress = Mathf.Clamp01(
                 (distance - SideLength) / TopLength);
-            RightProgress = Mathf.Clamp01(
+            LeftProgress = Mathf.Clamp01(
                 (distance - SideLength - TopLength) / SideLength);
 
             Color currentColor = GetMaterialColor(currentMaterial);
@@ -109,7 +109,7 @@ namespace ColorGateRunner.Presentation
                 nextEmission,
                 LeftProgress,
                 1f,
-                ResolveAxisDirection(leftRenderer, 1f, Vector3.up));
+                ResolveAxisDirection(leftRenderer, 1f, Vector3.down));
             ApplyPart(
                 topRenderer,
                 ref _topProperties,
@@ -129,7 +129,7 @@ namespace ColorGateRunner.Presentation
                 nextEmission,
                 RightProgress,
                 1f,
-                ResolveAxisDirection(rightRenderer, 1f, Vector3.down));
+                ResolveAxisDirection(rightRenderer, 1f, Vector3.up));
         }
 
         internal void ResetPresentation()

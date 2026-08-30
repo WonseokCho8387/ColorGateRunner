@@ -259,16 +259,45 @@ namespace ColorGateRunner.Core
             {
                 visibleDistance += GetSpacingForEligibility(index);
             }
-            float fastestSpeed = _stage.BoosterAllowed
-                ? Math.Max(_stage.MaximumSpeed, _stage.BoosterSpeed)
-                : _stage.MaximumSpeed;
-            float expectedVisibleSeconds =
-                GateEtaEstimator.EstimateSeconds(
-                    visibleDistance,
-                    fastestSpeed);
+            float expectedVisibleSeconds = EstimateVisibleSeconds(
+                firstVisibleGate,
+                visibleDistance);
             return expectedVisibleSeconds >=
                 settings.SwitchIntervalSeconds *
                 settings.MinimumCyclesVisible;
+        }
+
+        private float EstimateVisibleSeconds(
+            int firstVisibleGate,
+            float visibleDistance)
+        {
+            float normalSpeed = _stage.MaximumSpeed;
+            if (!_stage.BoosterAllowed ||
+                _stage.BoosterDistance <= 0f ||
+                _stage.BoosterSpeed <= normalSpeed)
+            {
+                return GateEtaEstimator.EstimateSeconds(
+                    visibleDistance,
+                    normalSpeed);
+            }
+
+            float distanceBeforeWindow = 0f;
+            for (int index = 0; index < firstVisibleGate; index++)
+            {
+                distanceBeforeWindow += GetSpacingForEligibility(index);
+            }
+            float boostedDistance = Math.Max(
+                0f,
+                Math.Min(
+                    visibleDistance,
+                    _stage.BoosterDistance - distanceBeforeWindow));
+            float normalDistance = visibleDistance - boostedDistance;
+            return GateEtaEstimator.EstimateSeconds(
+                    boostedDistance,
+                    _stage.BoosterSpeed) +
+                GateEtaEstimator.EstimateSeconds(
+                    normalDistance,
+                    normalSpeed);
         }
 
         private float GetSpacingForEligibility(int gateIndex)

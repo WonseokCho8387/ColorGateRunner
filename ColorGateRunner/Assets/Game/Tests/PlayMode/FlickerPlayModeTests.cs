@@ -168,13 +168,13 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(gate.FlickerTopProgress, Is.Zero);
             Assert.That(gate.FlickerRightProgress, Is.Zero);
             Assert.That(
-                Vector3.Dot(gate.FlickerLeftRevealDirection, Vector3.up),
+                Vector3.Dot(gate.FlickerLeftRevealDirection, Vector3.down),
                 Is.GreaterThan(0.999f));
             Assert.That(
                 Vector3.Dot(gate.FlickerTopRevealDirection, Vector3.right),
                 Is.GreaterThan(0.999f));
             Assert.That(
-                Vector3.Dot(gate.FlickerRightRevealDirection, Vector3.down),
+                Vector3.Dot(gate.FlickerRightRevealDirection, Vector3.up),
                 Is.GreaterThan(0.999f));
             Assert.That(gate.FlickerSymbolTransitioning, Is.True);
             Assert.That(gate.FlickerNextSymbolVisible, Is.True);
@@ -204,10 +204,10 @@ namespace ColorGateRunner.Tests.PlayMode
             gate.ApplyFlickerRuntimeState(halfway);
             Assert.That(gate.FlickerFrameTransitioning, Is.True);
             Assert.That(gate.FlickerFrameProgress, Is.EqualTo(0.5f));
-            Assert.That(gate.FlickerLeftProgress, Is.EqualTo(1f));
+            Assert.That(gate.FlickerRightProgress, Is.EqualTo(1f));
             Assert.That(gate.FlickerTopProgress, Is.EqualTo(0.5f)
                 .Within(0.001f));
-            Assert.That(gate.FlickerRightProgress, Is.Zero);
+            Assert.That(gate.FlickerLeftProgress, Is.Zero);
             Assert.That(
                 gate.DisplayMaterial,
                 Is.SameAs(gate.FlickerFrameMaterial));
@@ -233,7 +233,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void FlickerFrame_DissolvesExistingMeshesLeftTopRight()
+        public void FlickerFrame_DissolvesInChaseViewLeftTopRightOrder()
         {
             StartFlicker(CreateSettings());
             EnterPlaying();
@@ -248,20 +248,20 @@ namespace ColorGateRunner.Tests.PlayMode
                 0.525f,
                 30f,
                 0.025f));
-            Assert.That(gate.FlickerLeftProgress, Is.GreaterThan(0f));
-            Assert.That(gate.FlickerLeftProgress, Is.LessThan(1f));
+            Assert.That(gate.FlickerRightProgress, Is.GreaterThan(0f));
+            Assert.That(gate.FlickerRightProgress, Is.LessThan(1f));
             Assert.That(gate.FlickerTopProgress, Is.Zero);
-            Assert.That(gate.FlickerRightProgress, Is.Zero);
+            Assert.That(gate.FlickerLeftProgress, Is.Zero);
 
             gate.ApplyFlickerRuntimeState(state.Update(
                 plan.FlickerPlan,
                 0.575f,
                 30f,
                 0.05f));
-            Assert.That(gate.FlickerLeftProgress, Is.EqualTo(1f));
+            Assert.That(gate.FlickerRightProgress, Is.EqualTo(1f));
             Assert.That(gate.FlickerTopProgress, Is.EqualTo(1f));
-            Assert.That(gate.FlickerRightProgress, Is.GreaterThan(0f));
-            Assert.That(gate.FlickerRightProgress, Is.LessThan(1f));
+            Assert.That(gate.FlickerLeftProgress, Is.GreaterThan(0f));
+            Assert.That(gate.FlickerLeftProgress, Is.LessThan(1f));
 
             Assert.That(gate.transform.Find("FlickerGatePath"), Is.Null);
             Assert.That(

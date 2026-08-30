@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 14
+  catalogRevision: 16
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -2445,7 +2445,7 @@ MonoBehaviour:
     boosterDistance: 840
     boosterSpeed: 144
     shieldAllowed: 1
-    boosterAllowed: 0
+    boosterAllowed: 1
     seed: 240024
     activeColorsFromStart: 1
     firstGateIndicesByColor: 000000000000000000000000
@@ -2479,11 +2479,11 @@ MonoBehaviour:
     flickerEnabled: 1
     flickerEligibleStart: 0.1
     flickerEligibleEnd: 0.92
-    flickerOccurrenceChance: 0.22
+    flickerOccurrenceChance: 1
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 6
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.9
+    flickerSwitchSeconds: 1.35
     flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1
@@ -2552,7 +2552,7 @@ MonoBehaviour:
     boosterDistance: 860
     boosterSpeed: 146
     shieldAllowed: 1
-    boosterAllowed: 0
+    boosterAllowed: 1
     seed: 250025
     activeColorsFromStart: 1
     firstGateIndicesByColor: 000000000000000000000000
@@ -2586,11 +2586,11 @@ MonoBehaviour:
     flickerEnabled: 1
     flickerEligibleStart: 0.1
     flickerEligibleEnd: 0.94
-    flickerOccurrenceChance: 0.3
+    flickerOccurrenceChance: 1
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 8
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.78
+    flickerSwitchSeconds: 1.17
     flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1
@@ -2659,7 +2659,7 @@ MonoBehaviour:
     boosterDistance: 880
     boosterSpeed: 148
     shieldAllowed: 1
-    boosterAllowed: 0
+    boosterAllowed: 1
     seed: 260026
     activeColorsFromStart: 1
     firstGateIndicesByColor: 000000000000000000000000
@@ -2693,11 +2693,11 @@ MonoBehaviour:
     flickerEnabled: 1
     flickerEligibleStart: 0.1
     flickerEligibleEnd: 0.96
-    flickerOccurrenceChance: 0.46
+    flickerOccurrenceChance: 1
     flickerMinimumGateCooldown: 2
     flickerMaxOccurrences: 10
     flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.66
+    flickerSwitchSeconds: 0.99
     flickerPulseSeconds: 0.24
     flickerMinimumCyclesVisible: 3
     flickerRandomizePhase: 1

@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `1db433186488f2c2890ee640168aac96e22e00ec`
-- Base commit: `fix: correct flicker gate visuals`
+- Implementation base HEAD: `8cafafab59d8f426967311b99a335fdb6b62f890`
+- Base commit: `fix: improve flicker campaign readability`
 - Authoritative completion HEAD: the commit named
-  `fix: improve flicker campaign readability`; its exact hash is recorded in
-  the Iteration 49 final report because a commit cannot contain
+  `fix: refine flicker timing and booster access`; its exact hash is recorded
+  in the Iteration 50 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 49 — Flicker Readability and Stage 26 Startup Fix**.
+- Current completed iteration: **Iteration 50 — Flicker Screen Order, Timing and Booster Access**.
 - The development Experiment panel now exposes `SPLINE TRACK LAB`. It runs a
   separate horizontal S-curve with distance-to-Spline runner, camera, gate and
   Goal poses plus a generated dark-alloy/Cyan road mesh. Restart and Exit remain
@@ -207,17 +207,18 @@ below where their contracts differ.
   repetition and later-run memory pressure. Judgment and simulation authority
   remain unchanged.
 - Flicker Stages 24–26 place `6 / 8 / 10` deterministic occurrences with
-  `0.90 / 0.78 / 0.66s` switch periods. A gate
+  `1.35 / 1.17 / 0.99s` switch periods. A gate
   may begin changing only while farther than 24 scalar path units from the
   runner. During its `0.24s` dual-color window, the next neon color travels
-  through the existing emissive frame meshes from left pillar bottom-to-top,
-  across the top, then down the right pillar. No overlay geometry or
+  through the existing emissive frame meshes from chase-view screen-left
+  bottom-to-top, across the top left-to-right, then down screen-right. No overlay geometry or
   LineRenderer is used. The center emblem simultaneously replaces the old
   sprite with the next through a complementary noise dissolve, so it never
   performs a disappear-then-reappear sequence. Afterward the new color is
   committed and held through judgment, and gate-break fragments use that
-  committed color rather than the authored initial color. Shield is selectable
-  and Booster is disabled.
+  committed color rather than the authored initial color. Shield and Booster
+  are selectable; deterministic Flicker teaching targets remain after the
+  finite Booster travel distance.
 - Existing saves that cleared Stage 23 and still store Stage 23 as their
   highest unlocked Stage resolve Stage 24 as effectively unlocked after this
   catalog expansion. The earlier Stage 20→21 repair remains intact. Loading
@@ -298,14 +299,15 @@ below where their contracts differ.
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: two consecutive Iteration 49 passes completed; the active
+- Campaign Builder: the latest Scene-affecting two-pass validation remains
+  Iteration 49; Iteration 50 changed no Scene or Campaign Builder structure. The active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
   Spline Lab, bounded camera/runner steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
-- Stage Catalog Builder: two consecutive Iteration 49 passes completed;
-  revision 14 Resource contains 26 valid stages
+- Stage Catalog Builder: two consecutive Iteration 50 passes completed;
+  revision 16 Resource contains 26 valid stages
 - Missing Script / Missing Reference / duplicate generated object failures:
   none
 
@@ -319,14 +321,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 669, profile/Guest ID
+- Schema 3, revision 686, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
-  with 5 records, 81,300 Coins, 8 Shields, 8 Boosters, 0 Hearts and 0 Continue
+  with 5 records, 55,200 Coins, 8 Shields, 8 Boosters, 3 Hearts and 0 Continue
   Tickets.
 - SHA-256:
-  `9BCB200D54B9DB0F43202F55FE63C3E3976F15DCA989BFFFF5DF8433419B1374`.
-- This user-authored play state predates Iteration 49 validation. Its
-  `LastWriteUtc` remained `2026-08-29T16:23:05.6791334Z`; automated validation
+  `83BAD27CFCE46EEF1E5BB65EF780BB23E9008F417D644C2E03DB1E09541CB93C`.
+- This user-authored play state predates Iteration 50 validation. Its
+  `LastWriteUtc` remained `2026-08-30T04:40:30.8876046Z`; automated validation
   did not restore or mutate this file. Developer Console mutations still occur
   only after an explicit Apply, Reset, or Unlock action.
 
@@ -334,11 +336,11 @@ All three entries are expected to be enabled and unique.
 
 - Rows: `520`
 - Summary SHA-256:
-  `FAC276004569FA58BDA71FA11C55EB169890B953E648FFCD8FC5D2059FBE78E9`
+  `0C07357C04BDDDDBEFD35D621966967B33D0F68099F0D65ED8FFCAE7BF2347CA`
 - JSON SHA-256:
-  `F3CC3B4477BFA9671B9E194FAF5E67575B29FC04CE90921713971FC0D05F10E5`
+  `E2B18725FE63BD7C93109C0EE9CC08777CC2BA814B05A4B38E61F9C6ADFB807B`
 - CSV SHA-256:
-  `ACD559E9878C95B4652A4E3C49F7283D10B90C796C48C936AA14F52AE43952DF`
+  `5502E9A93461A49D28BD3040666733778A768F59B611FC61B7FDCBDB39F7AB84`
 - Two complete runs are byte-identical. Continue-use metrics are deterministic
   and bounded by each finite Stage. Continuity and pool-violation counters are
   zero.
@@ -407,6 +409,27 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 50 validation result
+
+- Chase-view Flicker flow now rises on the visible screen-left pillar, crosses
+  the top from left to right and descends on the visible screen-right pillar.
+  The imported FBX left/right names remain serialized details and no Scene
+  reference or model is replaced.
+- Campaign Stage 24–26 switch periods are `1.35 / 1.17 / 0.99s`, exactly 1.5
+  times Iteration 49. The `0.24s` dual-color transition and 24-unit safety lock
+  are unchanged.
+- Shield and Booster are both selectable in the Campaign Flicker block.
+  Visibility planning applies Booster speed only to the authored spacing that
+  overlaps its travel distance, then normal maximum speed afterward. The
+  deterministic `6 / 8 / 10` Flicker targets occur after the Booster reach and
+  reproduce after Retry. Experiment Hidden/Flicker item policy is unchanged.
+- Stage Catalog Builder completed two final revision-16 passes. Focused
+  Campaign EditMode passed `15/15`, focused Flicker PlayMode passed `13/13`,
+  full EditMode passed `457/457` and full PlayMode passed `255/255`.
+- Two complete 520-row Campaign simulations were byte-identical with the
+  current Summary / JSON / CSV hashes above. Step 10 was omitted because
+  Experiment inputs are unchanged. Android and WebGL builds were not produced.
 
 ## Iteration 49 validation result
 

@@ -1134,3 +1134,17 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
 - Focused Campaign EditMode passes `11/11`, focused Flicker PlayMode `13/13`,
   focused Campaign startup `3/3`, and full current suites EditMode `457/457`
   and PlayMode `255/255`.
+
+## Iteration 50 current coverage
+
+- `CampaignMechanicStageTests.FlickerBlock_UsesIncreasingPressureAndAuthoredTiming`
+  now fixes `1.35 / 1.17 / 0.99s`, Booster availability, `6 / 8 / 10`
+  occurrences, post-Booster first placement and Reset/Retry equality.
+- `CampaignStagesTwentyFourThroughTwentySix_EnableOnlyFlicker` requires both
+  selectable items while preserving Flicker-only modifier isolation.
+- `FlickerFrame_DissolvesInChaseViewLeftTopRightOrder` verifies the imported
+  screen-left part fills first upward, the top remains left-to-right and the
+  screen-right part fills last downward. `FlickerBoundary` verifies the same
+  resolved direction vectors.
+- Focused Campaign EditMode passes `15/15`, focused Flicker PlayMode `13/13`,
+  and full current suites pass EditMode `457/457` and PlayMode `255/255`.

@@ -2224,3 +2224,25 @@ Any mismatch blocks implementation.
   ProjectSettings changes were excluded.
 - The pre-existing Editor Product save remained byte- and timestamp-identical
   at SHA-256 `9BCB200D54B9DB0F43202F55FE63C3E3976F15DCA989BFFFF5DF8433419B1374`.
+
+## Iteration 50 — Flicker Screen Order, Timing and Booster Access
+
+- Base HEAD: `8cafafa`; completion message
+  `fix: refine flicker timing and booster access`.
+- Focused Campaign EditMode passed `15/15`; focused Flicker PlayMode passed
+  `13/13`. Coverage now requires chase-view left/top/right flow, exact
+  `1.35 / 1.17 / 0.99s` timing, Campaign Booster availability, `6 / 8 / 10`
+  occurrences after Booster reach and Reset/Retry reproduction.
+- Stage Catalog Builder completed two final revision-16 passes. Full EditMode
+  passed `457/457`; full PlayMode passed `255/255`. Generated scene/reference,
+  fixed-pool and Build Settings coverage remained green.
+- Two complete Campaign simulations produced 520 byte-identical rows:
+  - Summary: `0C07357C04BDDDDBEFD35D621966967B33D0F68099F0D65ED8FFCAE7BF2347CA`
+  - JSON: `E2B18725FE63BD7C93109C0EE9CC08777CC2BA814B05A4B38E61F9C6ADFB807B`
+  - CSV: `5502E9A93461A49D28BD3040666733778A768F59B611FC61B7FDCBDB39F7AB84`
+- Step 10 was omitted because Experiment inputs are unchanged. No Android or
+  WebGL build was produced. Package-managed ProjectSettings define churn was
+  excluded from the feature commit.
+- The user-authored Product save already held revision 686 before validation
+  and remained byte- and timestamp-identical at SHA-256
+  `83BAD27CFCE46EEF1E5BB65EF780BB23E9008F417D644C2E03DB1E09541CB93C`.

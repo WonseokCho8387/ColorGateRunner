@@ -58,7 +58,7 @@ namespace ColorGateRunner.Tests.EditMode
                     Is.EqualTo(GateModifierType.Flicker));
                 Assert.That(stage.HiddenSettings.Enabled, Is.False);
                 Assert.That(stage.FlickerSettings.Enabled, Is.True);
-                Assert.That(stage.BoosterAllowed, Is.False);
+                Assert.That(stage.BoosterAllowed, Is.True);
                 Assert.That(stage.ShieldAllowed, Is.True);
                 Assert.That(
                     stage.FlickerSettings.TransitionPulseSeconds,

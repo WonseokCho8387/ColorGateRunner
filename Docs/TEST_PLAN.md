@@ -886,3 +886,23 @@ fairness, or polish.
 - Final evidence: graphics Flicker shader EditMode `2/2`, focused Flicker
   PlayMode `13/13`, full EditMode `457/457`, full PlayMode `252/252`, and two
   Campaign Builder passes with no missing or duplicate generated reference.
+
+### Iteration 50 Flicker screen order, timing and Booster access
+
+- `CampaignMechanicStageTests.FlickerBlock_UsesIncreasingPressureAndAuthoredTiming`
+  must require `1.35 / 1.17 / 0.99s`, Campaign Booster availability,
+  deterministic `6 / 8 / 10` occurrences, first occurrence beyond authored
+  Booster reach and identical occurrence IDs after Reset/Retry.
+- `CampaignStagesTwentyFourThroughTwentySix_EnableOnlyFlicker` must retain
+  Flicker-only modifier isolation, Shield availability and now require Booster
+  availability.
+- Flicker PlayMode must prove chase-view screen-left-up, top-left-to-right and
+  screen-right-down progress on the existing meshes, with unchanged emblem,
+  collider, transition and pooled-reset behavior.
+- Stage Catalog Builder runs twice. Full EditMode and PlayMode plus two Campaign
+  simulations are required because Catalog timing, item availability and
+  deterministic target planning changed. Step 10 is omitted because Experiment
+  inputs are unchanged; player builds remain user-owned.
+- Final evidence: focused Campaign EditMode `15/15`, focused Flicker PlayMode
+  `13/13`, full EditMode `457/457`, full PlayMode `255/255`, two identical
+  520-row Campaign runs and no Missing Script/reference validation failure.

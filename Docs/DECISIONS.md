@@ -1640,3 +1640,21 @@ Status: Approved and implemented.
 - The fixed Ice runway validates capacity only for stages that actually author
   Ice. A longer non-Ice stage must not fail startup because an unused visual
   pool is smaller than its gate count.
+
+## Iteration 50 — Campaign Flicker uses chase-view sides and restores Booster
+
+- User-visible screen left/right is authoritative for the U-shaped frame
+  sequence. Existing FBX renderer names remain serialized implementation
+  details; Presentation swaps their segment progress and desired vertical
+  direction without changing Scene references or geometry.
+- Campaign Stage 24–26 periods increase by exactly 1.5 times to `1.35 / 1.17 /
+  0.99s`. Transition duration and near-gate safety remain separate constants
+  and stay at `0.24s` and 24 units.
+- Booster is restored for the Campaign Flicker block to match the Stage 8+
+  selectable-item contract. Experiment Lab keeps its existing Hidden/Flicker
+  restrictions because both Lab mechanics already apply the same rule.
+- Treating every candidate as if Booster speed lasted for the whole Stage can
+  erase late Flicker teaching targets. Visibility estimation therefore splits
+  the six-gate window at `BoosterDistance`, using Booster speed only before the
+  boundary and normal maximum speed after it. Deterministic cooldown selection
+  fills the approved `6 / 8 / 10` quotas after Booster reach.

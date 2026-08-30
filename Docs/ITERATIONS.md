@@ -2983,3 +2983,49 @@ Human feedback required
   corner flow, emblem synchronization and Bloom. No player build was produced.
 - Any further timing adjustment, Booster policy change, elemental theming,
   audio or Stage 27+ content remains deferred.
+
+## Iteration 50 — Flicker Screen Order, Timing and Booster Access
+
+### Play / Analyze
+
+- Human play confirmed the top left-to-right transition but showed that the
+  two side pillars were reversed in the chase view. The current visible flow
+  rose at screen-right and ended at screen-left because imported FBX side names
+  do not match the camera-facing interpretation.
+- The Campaign period still felt too short. Campaign alone also blocked
+  Booster in the Flicker block, while other Stage 8+ mechanic blocks allowed
+  it. A direct unlock initially exposed a planning issue: treating the entire
+  Stage as Booster-speed exposure could remove Flicker targets.
+
+### Design / Implementation
+
+- Reassigned segment progress and vertical reveal vectors so the visible order
+  is screen-left up, top left-to-right and screen-right down, without changing
+  Builder-owned references or model geometry.
+- Increased the Stage 24–26 periods by exactly 1.5 times to `1.35 / 1.17 /
+  0.99s`. The `0.24s` transition and 24-unit lock remain unchanged.
+- Restored Campaign Shield+Booster availability. Visibility estimation now
+  splits each six-gate window at Booster travel distance and uses normal
+  maximum speed afterward. Eligible targets use deterministic cooldown
+  selection to retain `6 / 8 / 10` occurrences after Booster reach.
+- Experiment Lab Hidden/Flicker settings remain unchanged. Catalog revision 16
+  regenerates the final authored values.
+
+### Validation / Learning
+
+- Focused Campaign EditMode passed `15/15`; focused Flicker PlayMode passed
+  `13/13`; full EditMode passed `457/457`; full PlayMode passed `255/255`.
+- Stage Catalog Builder completed two final revision-16 passes. Two 520-row
+  Campaign simulations were byte-identical with Summary / JSON / CSV hashes
+  `0C07357C...7CA`, `E2B18725...07B`, and `5502E9A9...B84`.
+- Screen-facing semantics must be tested independently of authored part names.
+  A finite-duration speed modifier must likewise affect only the distance it
+  can actually cover, rather than globally weakening late-stage readability.
+
+### Deferred / Human Review
+
+- Verify Stage 24–26 on portrait mobile and WebGL for actual reaction comfort,
+  visible side order, corner continuity, Booster exit and post-Booster Flicker
+  density. Automation cannot certify those visual or difficulty judgments.
+- No player build, Experiment policy change, elemental theme, audio or Stage
+  27+ content is included.

@@ -8,16 +8,16 @@
 
 - 기준일: 2026-08-30
 - 브랜치: `main`
-- 최신 구현: `fix: improve flicker campaign readability` 완료 커밋
-- 완료 Iteration: **Iteration 49 — Flicker Readability and Stage 26 Startup Fix**
+- 최신 구현: `fix: refine flicker timing and booster access` 완료 커밋
+- 완료 Iteration: **Iteration 50 — Flicker Screen Order, Timing and Booster Access**
 - Push: 하지 않음
 - Unity: `6000.5.1f1`
-- Campaign Catalog: revision 14, stable Stage 1–26
+- Campaign Catalog: revision 16, stable Stage 1–26
 - 표준 검증 기준: EditMode `457/457`, PlayMode `255/255`
 
 ### 현재 작업 트리 주의
 
-Iteration 49 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
+Iteration 50 완료 시 승인된 파일만 커밋하고 작업 트리는 clean이어야 한다.
 Unity가 재질, `.utmp`, `ProjectSettings.asset` 또는 WebGL 생성 파일을 다시
 쓰면 먼저 승인 범위인지 확인한다. package-managed WebGL define 이외의
 ProjectSettings 차이는 기준선으로 받아들이지 않는다.
@@ -79,10 +79,12 @@ Continue는 Ticket, 실제 광고 가능 여부, Coin 순서다. Retry는 새 At
 - 6개 Gate 풀과 파괴 연출 풀
 - Gate와 하단 색상 UI가 공유하는 6개 투명 이미지 emblem
 - 설명 텍스트 없이 emblem과 색상이 전기 차단처럼 점멸 후 사라지는 Hidden 표현
-- 24-unit 접근 안전 잠금과 `0.24s` 양색 판정을 유지하며, 기존 좌 기둥→
-  상단→우 기둥 메시 자체가 순차 디졸브되고 emblem도 연속 변환되는 Flicker
-  표현. 폭파 조각은 authored 초기색이 아닌 현재 확정색을 사용한다.
-- Flicker Campaign 주기는 Stage 24–26 순서로 `0.90 / 0.78 / 0.66s`다.
+- 24-unit 접근 안전 잠금과 `0.24s` 양색 판정을 유지하며, 추격 화면 기준
+  왼쪽 기둥 아래→위, 상단 왼쪽→오른쪽, 오른쪽 기둥 위→아래로 메시 자체가
+  순차 디졸브되고 emblem도 연속 변환된다. 폭파 조각은 현재 확정색을 쓴다.
+- Flicker Campaign 주기는 Stage 24–26 순서로 `1.35 / 1.17 / 0.99s`다.
+  Shield와 Booster 모두 선택 가능하며, Booster 거리 이후에도 결정론적
+  `6 / 8 / 10` Flicker 배치가 유지된다.
   Stage 26은 비-Ice 스테이지이므로 50-slot Ice runway 용량 검증을 건너뛰고
   52개 Gate 계획과 6개 활성 Gate 풀로 정상 시작한다.
 - Theme 1 러너, Gate, Goal, 도로, 도시 Blender/FBX 원본
@@ -339,9 +341,9 @@ Race Mode, Leaderboard, Journey와 Collection은 기본 Campaign/Shop 출시
 
 Campaign 520 rows:
 
-- Summary: `FAC276004569FA58BDA71FA11C55EB169890B953E648FFCD8FC5D2059FBE78E9`
-- JSON: `F3CC3B4477BFA9671B9E194FAF5E67575B29FC04CE90921713971FC0D05F10E5`
-- CSV: `ACD559E9878C95B4652A4E3C49F7283D10B90C796C48C936AA14F52AE43952DF`
+- Summary: `0C07357C04BDDDDBEFD35D621966967B33D0F68099F0D65ED8FFCAE7BF2347CA`
+- JSON: `E2B18725FE63BD7C93109C0EE9CC08777CC2BA814B05A4B38E61F9C6ADFB807B`
+- CSV: `5502E9A93461A49D28BD3040666733778A768F59B611FC61B7FDCBDB39F7AB84`
 
 Step 10, 80 rows / 64,016 runs:
 

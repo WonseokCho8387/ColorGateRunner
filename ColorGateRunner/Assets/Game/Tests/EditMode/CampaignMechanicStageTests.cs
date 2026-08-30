@@ -192,7 +192,7 @@ namespace ColorGateRunner.Tests.EditMode
         {
             int[] expectedCounts = { 6, 8, 10 };
             int[] expectedColors = { 2, 2, 3 };
-            float[] expectedSwitchSeconds = { 0.90f, 0.78f, 0.66f };
+            float[] expectedSwitchSeconds = { 1.35f, 1.17f, 0.99f };
 
             for (int offset = 0; offset < 3; offset++)
             {
@@ -201,12 +201,19 @@ namespace ColorGateRunner.Tests.EditMode
                 DeterministicStageGateSequence sequence =
                     new DeterministicStageGateSequence(stage);
                 List<int> occurrences = new List<int>();
+                float authoredDistance = 0f;
+                float firstOccurrenceDistance = 0f;
                 for (int gate = 0; gate < stage.TargetGateCount; gate++)
                 {
                     GatePlan plan = sequence.GetPlan(gate);
+                    authoredDistance += plan.Spacing;
                     if (plan.Modifier.IsFlicker)
                     {
                         occurrences.Add(gate + 1);
+                        if (firstOccurrenceDistance <= 0f)
+                        {
+                            firstOccurrenceDistance = authoredDistance;
+                        }
                         Assert.That(
                             plan.FlickerPlan.TransitionPulseSeconds,
                             Is.EqualTo(0.24f));
@@ -219,12 +226,27 @@ namespace ColorGateRunner.Tests.EditMode
                     string.Join(",", occurrences));
                 Assert.That(stage.AllowedColorCount,
                     Is.EqualTo(expectedColors[offset]));
+                Assert.That(stage.BoosterAllowed, Is.True);
                 Assert.That(
                     stage.FlickerSettings.SwitchIntervalSeconds,
                     Is.EqualTo(expectedSwitchSeconds[offset]));
                 Assert.That(
                     occurrences[occurrences.Count - 1],
                     Is.GreaterThan(stage.TargetGateCount * 0.58f));
+                Assert.That(
+                    firstOccurrenceDistance,
+                    Is.GreaterThan(stage.BoosterDistance));
+
+                sequence.Reset();
+                List<int> retryOccurrences = new List<int>();
+                for (int gate = 0; gate < stage.TargetGateCount; gate++)
+                {
+                    if (sequence.GetPlan(gate).Modifier.IsFlicker)
+                    {
+                        retryOccurrences.Add(gate + 1);
+                    }
+                }
+                Assert.That(retryOccurrences, Is.EqualTo(occurrences));
             }
         }
 
