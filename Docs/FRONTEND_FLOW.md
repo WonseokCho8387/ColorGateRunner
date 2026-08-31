@@ -539,8 +539,10 @@ Rules:
 
 - Campaign Clear first presents a skippable victory emblem and fixed-pool
   celebration, then opens the reward page. Reward rows reveal sequentially and
-  list only values confirmed by the clear transaction, including a returned
-  finite Heart when applicable.
+  list only earned Coin and item values confirmed by the clear transaction.
+  A finite Heart is still refunded atomically, but no `HEART RETURNED` reward
+  row or refill copy is shown because normal Stage-start consumption is not
+  exposed to the player.
 - Next Stage and Lobby remain unavailable during celebration and return only
   after the reward reveal. Experiment Lab retains its existing diagnostic
   Completed/Replay result instead of entering this Campaign sequence.

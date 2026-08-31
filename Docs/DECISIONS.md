@@ -1689,6 +1689,9 @@ Status: Approved and implemented.
   reward lines backed by the successful clear transaction. The Product layer
   remains the reward and Heart-refund authority; Presentation never predicts
   or grants rewards.
+- The successful-attempt Heart refund is silent. It refreshes Product wallet
+  state but is not labeled or animated as an earned reward because the normal
+  Stage-start Heart spend is not surfaced to the player.
 - Campaign failure owns four explicit phases: Continue offer, Give Up
   confirmation, zero-or-more consequence pages and final Try Again/Lobby
   choice. Stable-ID consequence entries are the extension point for future

@@ -678,7 +678,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator LastHeart_ClearRefundsAndShowsFirstClearRewards()
+        public IEnumerator LastHeart_ClearRefundsWithoutShowingHeartAsReward()
         {
             var save = new StockedCampaignSaveService(heartCount: 1);
             yield return LoadFrontendThroughBoot(() => CreateGraph(save));
@@ -699,7 +699,17 @@ namespace ColorGateRunner.Tests.PlayMode
             campaign.HandleGameplayTap();
             campaign.Tick(2f);
             Assert.That(campaign.ResultSequenceView.VisibleRewardRowCount,
-                Is.EqualTo(4));
+                Is.EqualTo(3));
+            Text[] resultTexts = campaign.ResultSequenceView
+                .GetComponentsInChildren<Text>(true);
+            for (int index = 0; index < resultTexts.Length; index++)
+            {
+                if (resultTexts[index].gameObject.activeInHierarchy)
+                {
+                    Assert.That(resultTexts[index].text,
+                        Does.Not.Contain("HEART RETURNED"));
+                }
+            }
             Assert.That(campaign.ReplayButton.gameObject.activeSelf, Is.False);
         }
 

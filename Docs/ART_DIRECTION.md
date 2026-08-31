@@ -76,8 +76,10 @@ The five-entry picker remains hidden for development.
 - Clear and failure use separate full-screen panels.
 - Campaign Clear first prioritizes an original victory emblem and restrained
   fixed-pool fireworks, then transitions to a darker reward card where actual
-  Coin, item and returned-Heart rows reveal in order. Time, items, best time,
-  Next Stage and Lobby remain secondary to that sequence.
+  Coin and item rows reveal in order. The successful-attempt Heart refund is
+  intentionally not presented as a reward because Stage-start consumption is
+  not surfaced to the player. Time, items, best time, Next Stage and Lobby
+  remain secondary to that sequence.
 - Campaign failure first prioritizes remaining gates, current Coin/Heart
   status and eligible Continue actions. `GIVE UP` uses the Coral danger skin;
   confirmation and the final `TRY AGAIN` / `LOBBY` choice remain visually

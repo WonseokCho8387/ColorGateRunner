@@ -172,7 +172,6 @@ namespace ColorGateRunner.Presentation
         private string _clearRewardSummary = string.Empty;
         private StageClearRewardPreview _clearRewardPreview;
         private bool _clearRewardsEarned;
-        private bool _clearHeartReturned;
         private string _heartRefundToken = string.Empty;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
@@ -2891,7 +2890,6 @@ namespace ColorGateRunner.Presentation
             _clearRewardSummary = string.Empty;
             _clearRewardPreview = default;
             _clearRewardsEarned = false;
-            _clearHeartReturned = false;
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
@@ -2906,8 +2904,6 @@ namespace ColorGateRunner.Presentation
             ProductMutationResult result;
             bool productRewardAuthority =
                 _progressStore is IAtomicStageProgressStore;
-            bool heartReturnPending = productRewardAuthority &&
-                !string.IsNullOrWhiteSpace(_heartRefundToken);
             if (_progressStore is IAtomicStageProgressStore atomicStore)
             {
                 result = atomicStore.SaveClearResult(
@@ -2935,7 +2931,6 @@ namespace ColorGateRunner.Presentation
                     _clearRewardsEarned = true;
                     _clearRewardSummary = FormatClearReward(reward);
                 }
-                _clearHeartReturned = heartReturnPending;
                 _heartRefundToken = string.Empty;
                 RefreshStartItemInventory();
             }
@@ -3131,13 +3126,6 @@ namespace ColorGateRunner.Presentation
                         _clearRewardPreview.Boosters));
                 }
             }
-            if (_clearHeartReturned)
-            {
-                rewards.Add(new StageResultRewardLine(
-                    StageResultRewardKind.Heart,
-                    "HEART RETURNED",
-                    1));
-            }
             return rewards.ToArray();
         }
 
@@ -3185,7 +3173,6 @@ namespace ColorGateRunner.Presentation
             _clearRewardSummary = string.Empty;
             _clearRewardPreview = default;
             _clearRewardsEarned = false;
-            _clearHeartReturned = false;
             _campaignResultFlow?.Reset();
             _failureConsequenceQueue?.Reset();
             resultSequenceView.ResetView();

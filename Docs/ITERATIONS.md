@@ -3144,3 +3144,34 @@ Human feedback required
 - Future event penalties may enqueue consequence pages through the new queue;
   no event system, Shop, audio, haptics, analytics, ad provider or IAP flow was
   introduced in this iteration.
+
+## Iteration 52A — Silent Heart Refund Copy
+
+### Play / Analyze
+
+- Human review found that `HEART RETURNED` exposed an internal Stage-start
+  spend the normal UI never tells the player about, making a successful result
+  more confusing rather than more rewarding.
+
+### Design / Implementation
+
+- Kept the existing atomic Product Heart refund and removed only the Heart
+  reward-line construction from Campaign result presentation.
+- Updated the Product-backed PlayMode case to require the Heart count to return
+  while exactly three earned rows remain and no active result text contains
+  `HEART RETURNED`.
+
+### Validation / Learning
+
+- Focused PlayMode passed `1/1`; full EditMode passed `465/465`; full PlayMode
+  passed `257/257`.
+- D3D11 visual Q2 passed `1/1` at `1080 x 1920`. The reward page shows Clear
+  Coins, Milestone Coins and Shield with a clean remaining layout.
+- The user-authored Product save changed while the interactive Editor was open
+  33 minutes before targeted validation began. Its later timestamp and hash
+  remained untouched by both automated suites.
+
+### Deferred / Human Review
+
+- No economy, Heart, Scene, Builder, animation, audio or navigation behavior
+  changed. Mobile/WebGL review still owns the overall reward pacing and feel.

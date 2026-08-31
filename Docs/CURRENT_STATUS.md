@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `8790868105f6ba40a6f3ca273626c67abff53421`
-- Base commit: `chore: add reusable quality graph workflow`
+- Implementation base HEAD: `4959efe69ac01f5f87088e7f507a55c1aab4bca5`
+- Base commit: `feat: improve campaign result experience`
 - Authoritative completion HEAD: the commit named
-  `feat: improve campaign result experience`; its exact hash is recorded
-  in the Iteration 52 final report because a commit cannot contain
+  `fix: hide heart refund result copy`; its exact hash is recorded
+  in the Iteration 52A final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,7 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 52 — Campaign Result Experience**.
+- Current completed iteration: **Iteration 52A — Silent Heart Refund Copy**.
 - Campaign Clear now opens with an original victory emblem and a fixed-pool
   firework celebration, then reveals only rewards actually committed by the
   clear transaction. Campaign failure first presents Continue cost and the
@@ -31,6 +31,9 @@ below where their contracts differ.
   through an explicit consumed-Heart confirmation and an extensible
   consequence queue, then offers Try Again or Lobby. Leaving does not spend a
   second Heart; Experiment retains its prior diagnostic result flow.
+- Successful Campaign attempts still refund their consumed finite Heart in the
+  atomic Product clear transaction, but the reward page does not label or
+  animate that invisible Stage-start spend as `HEART RETURNED`.
 - The project now routes development through an explicit environment preflight,
   risk-sized deterministic validation and fresh-context QC. The generic
   `quality-graph` Skill is versioned under `Tools/AgentSkills`; this repository
@@ -332,16 +335,18 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 697, profile/Guest ID
+- Schema 3, revision 702, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
-  with 5 records, 48,600 Coins, 8 Shields, 8 Boosters, 2 Hearts and 0 Continue
+  with 6 records, 48,600 Coins, 8 Shields, 8 Boosters, 4 Hearts and 0 Continue
   Tickets.
 - SHA-256:
-  `9BB91E092D66648BFFF69B0A2D9CF71E25050DA9B560D77DC6ECA757D4D976FD`.
-- This user-authored play state predates Iteration 51 validation. Its
-  `LastWriteUtc` remained `2026-08-30T11:26:16.1371297Z`; automated validation
-  did not restore or mutate this file. Developer Console mutations still occur
-  only after an explicit Apply, Reset, or Unlock action.
+  `CBC96750762F099247510F3F30A1172CD999B503A724B526E771A258443B8D4C`.
+- This user-authored play state was written while the interactive Editor was
+  open, before Iteration 52A automated validation began. Its `LastWriteUtc` is
+  `2026-08-31T09:17:26.3776645Z`; the targeted test began at `09:50:47Z` and
+  the full PlayMode suite began at `09:54:04Z`, so validation did not restore
+  or mutate this file. Developer Console mutations still occur only after an
+  explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
@@ -420,6 +425,21 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 52A validation result
+
+- Campaign Clear still atomically refunds the finite Heart consumed by the
+  successful attempt, but no reward row or active result text contains
+  `HEART RETURNED`. Stage 8's first-clear example now displays only Clear
+  Coins, Milestone Coins and Shield.
+- Focused Product/Frontend PlayMode passed `1/1`. Full EditMode passed
+  `465/465`; full PlayMode passed `257/257`.
+- One graphics-capable Q2 run at `1080 x 1920` on Direct3D 11 passed `1/1`.
+  The clear reward capture shows the expected three earned reward rows with no
+  Heart refill copy and no layout gap that blocks Next Stage or Lobby.
+- No Scene, Builder, package, ProjectSettings, economy rule, save schema or
+  deterministic gameplay input changed. The fresh Product save hash above
+  predates automated validation and remained unchanged through both suites.
 
 ## Iteration 52 validation result
 

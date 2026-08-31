@@ -955,7 +955,8 @@ fairness, or polish.
   rejection and the post-Continue remaining-gate calculation.
 - PlayMode must prove Campaign Clear shows celebration before sequential
   transaction-backed reward rows, while Experiment retains its legacy result
-  hierarchy. Empty reward rows remain hidden.
+  hierarchy. Empty reward rows remain hidden. The Product Heart refund must
+  still succeed while no active reward row contains `HEART RETURNED`.
 - Failure PlayMode must show the authoritative Continue cost and remaining
   gates, require Give Up confirmation, preserve the Heart count through that
   confirmation, traverse queued consequences and expose Try Again/Lobby only
@@ -981,3 +982,14 @@ fairness, or polish.
   no deterministic content, balance, timing, movement, generation or judgment
   input. Celebration satisfaction, pacing, device readability and touch
   comfort remain human review.
+
+### Iteration 52A silent Heart refund copy
+
+- The Product-backed Campaign clear test must prove the finite Heart is
+  refunded while the visible result contains only earned Coin/item rows and no
+  active text contains `HEART RETURNED`.
+- Final evidence: focused PlayMode `1/1`, EditMode `465/465`, PlayMode
+  `257/257`, and D3D11 visual Q2 `1/1` at `1080 x 1920`.
+- Builder, simulations and Player builds are not required because no Scene,
+  deterministic gameplay input, economy rule, save schema or package setting
+  changes.
