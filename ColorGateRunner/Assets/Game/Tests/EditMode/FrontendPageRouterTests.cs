@@ -38,6 +38,20 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void ShopBack_ReturnsToLobbyWithoutExitModal()
+        {
+            var router = new FrontendPageRouter(FrontendPage.Lobby);
+
+            Assert.That(router.TryShowPage(FrontendPage.Shop), Is.True);
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Shop));
+            Assert.That(
+                router.HandleBack(),
+                Is.EqualTo(FrontendBackResult.ReturnedToLobby));
+            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(router.CurrentModal, Is.EqualTo(FrontendModal.None));
+        }
+
+        [Test]
         public void Transition_RejectsDuplicateNavigationAndBack()
         {
             var router = new FrontendPageRouter();

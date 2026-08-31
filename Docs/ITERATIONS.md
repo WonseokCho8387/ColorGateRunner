@@ -3175,3 +3175,57 @@ Human feedback required
 
 - No economy, Heart, Scene, Builder, animation, audio or navigation behavior
   changed. Mobile/WebGL review still owns the overall reward pacing and feel.
+
+## Iteration 53 — Lobby Navigation and Shop Layout
+
+### Play / Analyze
+
+- The approved Block Out screens established a clear mobile shell: persistent
+  wallet, a dominant Home surface, five bottom destinations and vertically
+  browsed feature pages. The existing Color Courtyard already supplied the
+  correct Home hierarchy but had no persistent product navigation or Shop.
+- The repository already owned 11 commerce definitions and atomic grant rules,
+  but no store initialization or provider prices. A useful Shop iteration
+  therefore had to show catalog structure without pretending purchases worked.
+
+### Design / Implementation
+
+- Added a persistent five-tab Theme 1 neon navigation bar. Home and Shop are
+  active; Rank, Journey and Collection remain visible and truthfully disabled.
+- Added a shared top wallet shell and a vertical Shop page with five Featured
+  Circuit bundles followed by six Coin Vault packs. Presentation derives every
+  title and reward summary from the existing commerce catalog.
+- Added a small Shop view that rebuilds layout and resets scroll position when
+  shown. The router gives Shop a direct Back-to-Home rule. Home theme,
+  progression, inventory and Stage action are hidden while Shop is active.
+- All product actions are disabled and labeled `STORE OFFLINE`. No localized
+  price, order, receipt, reward grant, store service or new package is created.
+
+### Validation / Learning
+
+- Frontend Builder completed two final passes. Focused Shop EditMode passed
+  `2/2`; focused Home/Shop PlayMode passed `1/1`; full EditMode passed
+  `468/468`; full PlayMode passed `258` cases with the opt-in visual test
+  intentionally ignored.
+- D3D11 visual QC passed `1/1` at `1080 x 1920`. Home and Shop captures show
+  all five labels inside the portrait safe area, only the selected tab raised,
+  Home content absent from Shop and catalog cards continuing behind the fixed
+  navigation bar.
+- Independent QC found that the Collection destination was visibly shortened
+  to `COLLECT`. The one bounded repair changed it to `COLLECTION`, added an
+  exact-label PlayMode assertion and reran both Builders, focused behavior,
+  D3D11 capture and both full suites. Follow-up verdict: `RESOLVED / PASS`.
+- Missing Script/reference searches were clean. Package and ProjectSettings
+  have no diff. The developer Product save remained SHA-256
+  `CBC96750762F099247510F3F30A1172CD999B503A724B526E771A258443B8D4C`.
+- Reusing the catalog as the single data source prevents layout previews from
+  drifting away from later transaction authority. Explicitly disabled actions
+  preserve trust while still allowing visual and scroll testing now.
+
+### Deferred / Human Review
+
+- Review tab touch comfort, Shop scroll feel, card density and text readability
+  on portrait mobile and WebGL. The user owns those Player builds.
+- Rank, Journey and Collection pages, final product illustrations, localized
+  provider prices, Unity IAP initialization, receipts, grants, Shop entry from
+  insufficient-Coin flows, audio and animation remain separate iterations.

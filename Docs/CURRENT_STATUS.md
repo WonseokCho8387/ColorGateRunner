@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `4959efe69ac01f5f87088e7f507a55c1aab4bca5`
-- Base commit: `feat: improve campaign result experience`
+- Implementation base HEAD: `3825d61351d416ff849b12801269cade0276dfb8`
+- Base commit: `fix: hide heart refund result copy`
 - Authoritative completion HEAD: the commit named
-  `fix: hide heart refund result copy`; its exact hash is recorded
-  in the Iteration 52A final report because a commit cannot contain
+  `feat: add lobby navigation and shop layout`; its exact hash is recorded
+  in the Iteration 53 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,17 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 52A — Silent Heart Refund Copy**.
+- Current completed iteration: **Iteration 53 — Lobby Navigation and Shop Layout**.
+- Frontend now uses a persistent five-tab portrait navigation shell inspired
+  by the approved information hierarchy while retaining original Theme 1 neon
+  surfaces and geometric glyphs. Home and Shop are actionable; Rank, Journey
+  and Collection remain visible but truthfully disabled until their systems
+  exist. Shop Back returns to Home without opening the app-exit confirmation.
+- Shop is a vertical catalog preview over the shared Profile / Coin / Heart /
+  Settings shell. It displays all 11 existing local catalog definitions as
+  five Featured Circuit bundles followed by six Coin Vault packs. Every action
+  is disabled and labeled `STORE OFFLINE`; no price, order, receipt or grant is
+  simulated.
 - Campaign Clear now opens with an original victory emblem and a fixed-pool
   firework celebration, then reveals only rewards actually committed by the
   clear transaction. Campaign failure first presents Continue cost and the
@@ -84,8 +94,9 @@ below where their contracts differ.
 - Unity IAP `5.4.2` and its Unity Services Core `1.18.0` dependency are
   installed. Android billing mode is Google Play and the Android application
   ID is `com.wscho.colorgaterunner`.
-- The package baseline does not yet initialize a store, fetch products,
-  process orders, validate receipts, grant paid rewards, or display a Shop.
+- The package baseline does not yet initialize a store, fetch provider prices,
+  process orders, validate receipts or grant paid rewards. The Shop displays
+  only the local catalog preview and a truthful disconnected state.
   Firebase exists only as a console project; no Firebase Unity SDK or mobile
   configuration file is present in the repository.
 - Runtime flow: `Boot(0) -> Frontend(1) -> SampleScene/Campaign(2)`.
@@ -133,6 +144,10 @@ below where their contracts differ.
   appear only as a pending banner. Hearts show `5/5`, next-recharge time, or
   timed-unlimited remaining time from Product state. Frontend-origin result
   actions return there; direct/development entry keeps Campaign Lobby fallback.
+- The same top wallet and five-tab bottom navigation remain present on Home and
+  Shop. The Home theme, progression and Stage card are hidden while Shop is
+  active; Shop content uses a fixed portrait ScrollRect and resets to its top
+  when opened.
 - Theme 1, `COLOR COURTYARD`, now uses original portrait artwork in three
   Builder-owned layers: a dark futuristic courtyard background, a central
   color-energy reactor and a transparent ambient energy frame. Six automatic
@@ -299,20 +314,26 @@ below where their contracts differ.
   tap on every Ice gate; Stage 17 requires one tap on 14 of 15 Ice gates and
   two taps on one deterministic gate (`6.67%`). Ice gates never require zero
   or more than two authored taps. Retry reproduces the same quota and colors.
-- The local catalog owns six Coin packs and five bundles. Grants are atomic
+- The local catalog owns six Coin packs and five bundles. Its Frontend Shop
+  preview renders all 11 definitions without a provider price. Grants are atomic
   and order-ID idempotent; Starter is locally account-limited. Continue
   Tickets are offered before real ads and Coins. Store connection, receipt
-  validation, Shop UI, Firebase integration and a real rewarded-ad provider
+  validation, purchasing, Firebase integration and a real rewarded-ad provider
   remain deferred.
 
 ### Automated validation
 
-- EditMode: `465/465`
-- PlayMode: `257/257`
-- Post-Builder PlayMode: `257/257` (latest Builder-affecting iteration)
+- EditMode: `468/468`
+- PlayMode: `258/258` passed, with the opt-in graphics capture test intentionally
+  ignored in the headless full suite
+- Post-Builder PlayMode: same `258` passes plus one intentional graphics-test
+  ignore
+- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing both Home and Shop
+- Independent UI QC: initial `COLLECT`/`COLLECTION` naming mismatch repaired;
+  focused follow-up verdict `RESOLVED / PASS`
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
-  generated references, UI skin, unique roots, EventSystem and Build Settings
-  passed
+  generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
+  unique roots, EventSystem and Build Settings passed
 - Campaign Builder: the latest Scene-affecting two-pass validation is
   Iteration 52. The active
   Campaign Spline path, generated full-route road, deterministic 24-slot city

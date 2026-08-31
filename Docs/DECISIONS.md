@@ -1706,3 +1706,21 @@ Status: Approved and implemented.
 - Result presentation uses Builder-owned fixed pools and an original emblem.
   It may animate existing objects but may not instantiate result effects or
   reward rows at runtime.
+
+## Iteration 53 — Lobby navigation exposes product structure without faking services
+
+- The approved Block Out reference defines hierarchy and navigation only.
+  Color Gate Runner keeps its original dark-alloy, Cyan and Gold Theme 1 skin,
+  geometric glyph language and Color Courtyard Home rather than copying the
+  reference game's branded art.
+- Five bottom destinations remain visible so the product structure is legible.
+  Home and Shop are the only active pages; Rank, Journey and Collection are
+  non-interactable until their real systems and acceptance criteria exist.
+- Shop is a read-only projection of the existing `CommerceProductCatalog`, not
+  a second economy catalog. It groups five bundles before six Coin packs and
+  never predicts provider prices, orders, receipts or grants.
+- An unavailable store is a truthful state: every card action is disabled and
+  reads `STORE OFFLINE`. This visual foundation does not authorize Unity IAP
+  initialization, Firebase, networking, analytics or real-money purchasing.
+- Home and Shop share one top wallet and bottom navigation shell. Device Back
+  from Shop returns Home; app-exit confirmation remains a Home-only behavior.

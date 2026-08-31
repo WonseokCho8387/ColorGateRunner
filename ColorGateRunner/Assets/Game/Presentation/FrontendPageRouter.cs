@@ -5,7 +5,8 @@ namespace ColorGateRunner.Presentation
     public enum FrontendPage
     {
         AccountChoice = 0,
-        Lobby = 1
+        Lobby = 1,
+        Shop = 2
     }
 
     public enum FrontendModal
@@ -23,7 +24,8 @@ namespace ColorGateRunner.Presentation
     {
         Ignored = 0,
         ModalClosed = 1,
-        ExitConfirmationRequested = 2
+        ExitConfirmationRequested = 2,
+        ReturnedToLobby = 3
     }
 
     public sealed class FrontendPageRouter
@@ -31,8 +33,7 @@ namespace ColorGateRunner.Presentation
         public FrontendPageRouter(
             FrontendPage initialPage = FrontendPage.AccountChoice)
         {
-            if (initialPage != FrontendPage.AccountChoice &&
-                initialPage != FrontendPage.Lobby)
+            if (!IsValidPage(initialPage))
             {
                 throw new ArgumentOutOfRangeException(nameof(initialPage));
             }
@@ -51,8 +52,7 @@ namespace ColorGateRunner.Presentation
 
         public bool TryShowPage(FrontendPage page)
         {
-            if (page != FrontendPage.AccountChoice &&
-                page != FrontendPage.Lobby)
+            if (!IsValidPage(page))
             {
                 throw new ArgumentOutOfRangeException(nameof(page));
             }
@@ -138,6 +138,12 @@ namespace ColorGateRunner.Presentation
                     ? FrontendBackResult.ModalClosed
                     : FrontendBackResult.Ignored;
             }
+            if (CurrentPage == FrontendPage.Shop)
+            {
+                return TryShowPage(FrontendPage.Lobby)
+                    ? FrontendBackResult.ReturnedToLobby
+                    : FrontendBackResult.Ignored;
+            }
             TryShowModal(FrontendModal.ExitConfirmation);
             return FrontendBackResult.ExitConfirmationRequested;
         }
@@ -158,5 +164,10 @@ namespace ColorGateRunner.Presentation
             IsTransitioning = value;
             TransitionChanged?.Invoke(IsTransitioning);
         }
+
+        private static bool IsValidPage(FrontendPage page) =>
+            page == FrontendPage.AccountChoice ||
+            page == FrontendPage.Lobby ||
+            page == FrontendPage.Shop;
     }
 }

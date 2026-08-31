@@ -2,11 +2,12 @@
 
 ## Status
 
-Approved commercial-flow design baseline. The Account Onboarding, consolidated
-Lobby, Settings, Gameplay Pause, and automatic Lobby progression foundation
-are implemented. The first Color Courtyard Lobby art slice is implemented.
-Campaign Page, Stage Detail, final result presentation, additional Lobby themes
-and final device polish remain pending.
+Approved commercial-flow design baseline. Account Onboarding, consolidated
+Lobby, Settings, Gameplay Pause, automatic Lobby progression, persistent
+five-tab navigation and the disconnected Shop catalog preview are implemented.
+The first Color Courtyard Lobby art slice is implemented. Leaderboard, Journey,
+Collection, Campaign Page, Stage Detail, additional Lobby themes and final
+device polish remain pending.
 
 This document defines the target player-facing Scene, page, overlay, and
 navigation structure. It does not change gameplay, balance, Stage data,
@@ -56,7 +57,7 @@ This document does not own:
 The commercial shell must preserve these contracts:
 
 - The campaign uses stable Stage IDs and one Inspector-authored Stage Catalog.
-- Campaign currently contains Stages 1–23.
+- Campaign currently contains Stages 1–26.
 - Runtime, simulation, and tests share the same Core rules.
 - Core remains free of UnityEngine references.
 - Experiment Lab remains isolated from campaign progress and release
@@ -263,12 +264,16 @@ action.
 
 ### Navigation
 
-Initial tabs:
+Persistent tabs:
 
-- Home.
-- Campaign.
+- Shop — implemented.
+- Rank / leaderboard — visible and disabled.
+- Home — implemented and selected by default.
+- Journey / progression — visible and disabled.
+- Collection — visible and disabled.
 
-Reserved tabs remain hidden until functional.
+Only Home and Shop accept input. Disabled destinations expose no fake page or
+success state.
 
 ## Dynamic-module contract
 
@@ -374,8 +379,9 @@ Changing theme must not require a new Lobby Scene.
 - Stage 6/7 provided items remain free and attempt-local. They do not consume
   Product inventory. Missing Product services expose zero selectable stock;
   itemless runs and Stage-provided items remain playable.
-- Stage Detail exposes only the approved one-item quick buy. Shop navigation,
-  bundles, dynamic prices and real-money purchasing remain separate flows.
+- Stage Detail exposes only the approved one-item quick buy. The disconnected
+  Shop catalog is informational only; dynamic prices and real-money purchasing
+  remain separate flows.
 
 Example:
 
@@ -515,9 +521,9 @@ Rules:
   requests resume the same Failure Result without consuming a Continue.
 - Release builds hide the rewarded-ad action when no provider is configured.
   The current build has no provider, so the action is intentionally hidden.
-- Insufficient Coins open a truthful local notice. Because Shop navigation is
-  not implemented, the notice must not present a working Shop action or imply
-  that a purchase occurred.
+- Insufficient Coins open a truthful local notice. Although Shop navigation is
+  implemented, provider purchasing is not, so the notice must not imply that a
+  top-up or purchase can succeed.
 
 # 10. Clear Result
 
@@ -621,6 +627,7 @@ Only one blocking modal is active at a time.
 
 - Account Choice: platform-appropriate exit confirmation.
 - Lobby: exit confirmation.
+- Shop: return to Home without exit confirmation.
 - Campaign: return to Lobby.
 - Stage Detail: return to Campaign and preserve Stage focus.
 - Account / Settings: return to the opening page.
@@ -857,7 +864,7 @@ Implementation status: Partially completed through Iteration 15.
 - Campaign page from Stage Catalog.
 - Stage Detail.
 - Existing item selection.
-- Stage 1–23 launch.
+- Stage 1–26 launch.
 
 ## Frontend Iteration 4 — Gameplay shell
 
@@ -911,7 +918,7 @@ Additional acceptance:
 - Offline play works.
 - Login failure cannot block local play.
 - Stage progress uses stable IDs.
-- The current Stage 1–23 Catalog remains deterministic.
+- The current Stage 1–26 Catalog remains deterministic.
 - Retry resets the attempt-local Continue economy, while Goal rules remain
   unchanged.
 - Event modules and Lobby themes are data-driven.
@@ -921,7 +928,8 @@ Additional acceptance:
 - Experiment Lab remains isolated.
 - No package, provider SDK, ad, IAP, or network dependency is added without
   separate approval. Iteration 20 approves the Unity IAP package baseline but
-  does not make a Shop or purchase action available.
+  does not authorize purchasing; Iteration 53 adds only a disconnected Shop
+  catalog preview.
 
 ## Iteration 14 — PreRun Back and toggle-state hotfix
 
@@ -958,6 +966,25 @@ not reusable art assets or an exact visual copy.
 - The immediate Shop foundation may implement Home and Shop navigation only.
   Leaderboard, Journey and Collection require separate product iterations and
   must not be presented as working placeholders.
+
+## Implemented UX slice — Iteration 53 Lobby navigation and Shop layout
+
+- Home and Shop share one persistent Safe Area shell with Profile, Coin, Heart,
+  Settings and the five approved bottom destinations. The selected Home or Shop
+  tab uses an original raised neon state; the three deferred tabs remain
+  visible, dimmed and non-interactable.
+- Home retains the Color Courtyard, milestone progression, inventory chips,
+  current-Stage card and primary `PLAY` action. Opening Shop hides that Home
+  content rather than stacking pages beneath the catalog.
+- Shop uses one portrait vertical ScrollRect. It maps the existing local
+  `CommerceProductCatalog` into five Featured Circuit cards followed by six
+  Coin Vault cards, preserving reward quantities without creating a parallel
+  catalog.
+- Because no store is initialized, cards show no fabricated localized price.
+  Every action reads `STORE OFFLINE`, is disabled and grants nothing. Opening
+  Shop resets the scroll position; Back returns to Home.
+- Rank, Journey and Collection layouts remain later iterations. Their visible
+  tabs communicate the intended product structure but never open placeholders.
 ## Iteration 21 failure offer hierarchy
 
 - Campaign failure actions are ordered by owned Continue Ticket, real
@@ -976,8 +1003,8 @@ not reusable art assets or an exact visual copy.
   `900 / 1900 / 2900 / 4900+` Coin Continue schedule. Ticket and the single
   rewarded-ad right remain independent sources; the absent ad provider keeps
   the ad action hidden.
-- Insufficient Coins show a truthful local notice. Shop navigation remains
-  unavailable and is never presented as a successful or working action.
+- Insufficient Coins show a truthful local notice. The later disconnected Shop
+  preview does not make a purchase or top-up action available.
 - Before the first Continue-countdown frame, retained gate modifier visuals
   and safe colors match resumed gameplay, while consumed Shield, Booster,
   Echo, local grants, and their presentation are already inactive.
@@ -1012,8 +1039,9 @@ not reusable art assets or an exact visual copy.
 - Heart state refreshes while Lobby is visible. It shows `5/5` when full, a
   next-heart countdown while recharging, or remaining unlimited time. The UI
   reads Product state and does not own recharge or persistence rules.
-- Shop, IAP product cards and bottom navigation destinations remain separate
-  iterations.
+- This Lobby hierarchy remains authoritative. Iteration 53 later adds the
+  persistent navigation shell and disconnected Shop preview without changing
+  the Home progression or `PLAY` contract.
 
 ## Implemented UX slice — Iteration 30 Theme 1 visual slice
 

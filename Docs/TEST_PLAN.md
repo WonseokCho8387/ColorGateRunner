@@ -993,3 +993,25 @@ fairness, or polish.
 - Builder, simulations and Player builds are not required because no Scene,
   deterministic gameplay input, economy rule, save schema or package setting
   changes.
+
+### Iteration 53 Lobby navigation and Shop layout
+
+- EditMode must prove Shop Back returns Home, all five Featured and six Coin
+  Vault cards map from the existing `CommerceProductCatalog`, reward summaries
+  are non-empty and no provider price or successful purchase state is invented.
+- PlayMode must prove Home and Shop share the persistent top/bottom shell, only
+  Home and Shop are interactable, Home content is absent on Shop, all 11 cards
+  exist in a scrollable content root, all `STORE OFFLINE` actions are disabled
+  and Back restores Home without an exit modal.
+- Frontend Builder runs twice. Generated-reference, unique-root, one-
+  EventSystem and Build Settings checks remain mandatory.
+- Visual QC runs on D3D11 at `1080 x 1920` and captures Home plus Shop. It may
+  assess clipping, overlap and page separation, but cannot certify device touch
+  comfort, store appeal or purchase comprehension.
+- Final evidence: Frontend Builder `2/2`; focused Shop EditMode `2/2`; focused
+  navigation PlayMode `1/1`; full EditMode `468/468`; full PlayMode `258`
+  passed with the opt-in capture intentionally ignored; separate graphics
+  capture `1/1`. Product-save, Package and ProjectSettings baselines remain
+  unchanged. Campaign and Step 10 simulations and Player builds are excluded
+  because no deterministic gameplay, balance, timing, judgment or release
+  artifact changes.

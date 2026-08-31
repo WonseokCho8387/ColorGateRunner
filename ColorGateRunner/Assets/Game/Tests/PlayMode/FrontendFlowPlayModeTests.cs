@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.IO;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
 using ColorGateRunner.Product;
@@ -144,7 +145,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThanOrEqualTo(0.84f));
             Assert.That(controller.LobbyPlayButton
                     .GetComponent<RectTransform>().anchorMax.y,
-                Is.LessThanOrEqualTo(0.20f));
+                Is.LessThanOrEqualTo(0.23f));
             Assert.That(controller.EventModuleSlotRoot.activeSelf, Is.False);
             Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
                 Is.True);
@@ -169,6 +170,125 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.Router.CurrentModal,
                 Is.EqualTo(FrontendModal.ExitConfirmation));
             Assert.That(controller.ActivePrimaryPageCount(), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator LobbyNavigation_HomeAndShopShareShellWithTruthfulLocks()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+
+            FrontendSceneController controller = RequireController();
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.HomeNavigationSelection.activeSelf, Is.True);
+            Assert.That(controller.ShopNavigationSelection.activeSelf, Is.False);
+            Assert.That(controller.ShopPageRoot.activeSelf, Is.False);
+            Assert.That(controller.LeaderboardNavigationButton.interactable,
+                Is.False);
+            Assert.That(controller.JourneyNavigationButton.interactable,
+                Is.False);
+            Assert.That(controller.CollectionNavigationButton.interactable,
+                Is.False);
+            Assert.That(
+                controller.CollectionNavigationButton
+                    .GetComponentInChildren<Text>().text,
+                Is.EqualTo("COLLECTION"));
+
+            controller.ShopNavigationButton.onClick.Invoke();
+            yield return null;
+
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Shop));
+            Assert.That(controller.LobbyPageRoot.activeSelf, Is.True);
+            Assert.That(controller.ShopPageRoot.activeSelf, Is.True);
+            Assert.That(controller.LobbyThemeRoot.activeSelf, Is.False);
+            Assert.That(controller.ShopNavigationSelection.activeSelf, Is.True);
+            Assert.That(controller.HomeNavigationSelection.activeSelf, Is.False);
+            Transform content = controller.ShopPageRoot.transform
+                .Find("ShopScrollView/Viewport/Content");
+            Assert.That(content, Is.Not.Null);
+            Assert.That(content.GetComponent<RectTransform>().rect.height,
+                Is.GreaterThan(1000f));
+            int productCards = 0;
+            Button[] buttons = content.GetComponentsInChildren<Button>(true);
+            for (int index = 0; index < buttons.Length; index++)
+            {
+                if (buttons[index].name == "ShopUnavailablePurchaseButton")
+                {
+                    productCards++;
+                    Assert.That(buttons[index].interactable, Is.False);
+                    Assert.That(buttons[index].GetComponentInChildren<Text>().text,
+                        Is.EqualTo("STORE OFFLINE"));
+                }
+            }
+            Assert.That(productCards, Is.EqualTo(11));
+
+            controller.HandleBack();
+            yield return null;
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.Router.CurrentModal,
+                Is.EqualTo(FrontendModal.None));
+            Assert.That(controller.LobbyThemeRoot.activeSelf, Is.True);
+        }
+
+        [UnityTest]
+        [Category("VisualQC")]
+        public IEnumerator LobbyAndShopVisualCapture_WritesPortraitEvidence()
+        {
+            if (Environment.GetEnvironmentVariable(
+                    "COLOR_GATE_RUNNER_CAPTURE_FRONTEND") != "1")
+            {
+                Assert.Ignore("Frontend visual capture is opt-in.");
+            }
+
+            Screen.SetResolution(1080, 1920, false);
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+            FrontendSceneController controller = RequireController();
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
+
+            string artifactDirectory = Path.GetFullPath(Path.Combine(
+                Application.dataPath,
+                "..",
+                "..",
+                "Artifacts",
+                "Validation",
+                "VisualQC"));
+            Directory.CreateDirectory(artifactDirectory);
+            string homePath = Path.Combine(
+                artifactDirectory,
+                "LobbyHome-1080x1920.png");
+            string shopPath = Path.Combine(
+                artifactDirectory,
+                "LobbyShop-1080x1920.png");
+
+            if (File.Exists(homePath))
+            {
+                File.Delete(homePath);
+            }
+            if (File.Exists(shopPath))
+            {
+                File.Delete(shopPath);
+            }
+
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(homePath);
+
+            controller.ShopNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++)
+            {
+                yield return null;
+            }
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(shopPath);
+
+            Assert.That(new FileInfo(homePath).Length, Is.GreaterThan(1024));
+            Assert.That(new FileInfo(shopPath).Length, Is.GreaterThan(1024));
         }
 
         [UnityTest]
@@ -914,6 +1034,19 @@ namespace ColorGateRunner.Tests.PlayMode
                 Object.Destroy(roots[index].gameObject);
             }
             yield return null;
+        }
+
+        private static void CaptureFrame(string path)
+        {
+            Texture2D capture = ScreenCapture.CaptureScreenshotAsTexture();
+            try
+            {
+                File.WriteAllBytes(path, capture.EncodeToPNG());
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(capture);
+            }
         }
 
         private void RestoreCampaignProgress()

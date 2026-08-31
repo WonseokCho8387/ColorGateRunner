@@ -4,9 +4,10 @@
 
 Approved commercial-systems design baseline. Local Profile/Settings foundation
 and schema-3 Campaign/Economy/Lobby, Heart, timed entitlement, Continue Ticket
-and commerce-reward foundations are implemented. Unity IAP 5 is installed as
-an approved package baseline; runtime purchasing and external validation
-providers remain pending.
+and commerce-reward foundations are implemented. The Frontend exposes a
+read-only disconnected Shop projection of that local catalog. Unity IAP 5 is
+installed as an approved package baseline; runtime purchasing, provider prices
+and external validation providers remain pending.
 
 This document defines local-first service boundaries and data ownership for
 the commercial shell. Iteration 21 authorizes local idempotent reward grants
@@ -355,7 +356,7 @@ Rules:
 - Catalog order determines normal next-Stage progression.
 - A clear is recorded exactly once per result.
 - Continue clears preserve existing Best restrictions.
-- Stage 1–23 definitions and deterministic plans are not duplicated in save.
+- Stage 1–26 definitions and deterministic plans are not duplicated in save.
 - Unknown saved Stage IDs are not remapped by array index.
 
 # 7. Economy
@@ -992,7 +993,7 @@ The local product foundation is complete when:
 - Fresh install creates a Guest profile.
 - Boot initializes one AppRoot.
 - Save data is versioned and recoverable.
-- Stage 1–23 progress persists by stable ID.
+- Stage 1–26 progress persists by stable ID.
 - Existing Continue and Best rules persist correctly.
 - Offline play reaches Gameplay.
 - Frontend pages consume services instead of `PlayerPrefs` transport.
@@ -1075,3 +1076,17 @@ The local product foundation is complete when:
 - Loading never rewrites the save, creates a Stage record, grants a reward or
   mutates the commerce ledger. The next normal clear/progression transaction
   persists through the existing clone-save-publish authority.
+
+### Iteration 53 disconnected Shop catalog projection
+
+- `CommerceProductCatalog` remains the sole local definition source for the
+  six Coin packs and five bundles. `ShopCatalogPresentation` derives display
+  sections, titles and reward summaries without duplicating grant quantities
+  or adding a second catalog authority.
+- The Frontend Shop is presentation-only. It does not initialize Unity IAP,
+  request provider metadata, synthesize a localized price, create an order,
+  call the grant service or write Product save state.
+- Every catalog action is disabled and labeled `STORE OFFLINE`. A later live
+  store iteration must replace that state only after real provider readiness,
+  pending-order persistence, receipt validation and idempotent grant/confirm
+  behavior are implemented and separately approved.
