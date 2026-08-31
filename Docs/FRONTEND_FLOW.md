@@ -484,6 +484,20 @@ Required information:
 
 Rules:
 
+- Campaign failure begins on a Continue page. It shows the next authoritative
+  Continue price/source and how many gates remain after Continue retires the
+  failed gate; it does not describe an extra move or a new Continue benefit.
+- The former Retry action is `GIVE UP` on this page. It opens a confirmation
+  explaining that the Heart already consumed at Stage start will not be
+  returned. Confirming does not spend a second Heart; cancelling restores the
+  same frozen Continue page.
+- Confirmed Give Up traverses zero or more stable-ID consequence pages, then
+  opens the final `TRY AGAIN` / `LOBBY` choice with the current Heart wallet.
+  The queue is empty until a future event system supplies real consequences.
+- Final Retry reuses the existing new-attempt path and its ordinary Stage-start
+  cost. Lobby follows the existing Frontend-origin/direct-entry destination.
+- Experiment Lab keeps its existing Retry and Back-to-Lab result behavior and
+  does not enter the Campaign failure sequence.
 - Do not expose internal implementation language.
 - Flicker may show the collision-time Gate color.
 - Hidden remains an ordinary mismatch result with Hidden context.
@@ -523,6 +537,13 @@ Required information:
 
 Rules:
 
+- Campaign Clear first presents a skippable victory emblem and fixed-pool
+  celebration, then opens the reward page. Reward rows reveal sequentially and
+  list only values confirmed by the clear transaction, including a returned
+  finite Heart when applicable.
+- Next Stage and Lobby remain unavailable during celebration and return only
+  after the reward reveal. Experiment Lab retains its existing diagnostic
+  Completed/Replay result instead of entering this Campaign sequence.
 - Clear is recorded once.
 - A finite Heart consumed by this successful attempt is refunded atomically
   with the Clear mutation. Unlimited-Heart attempts have nothing to refund;

@@ -1682,3 +1682,24 @@ Status: Approved and implemented.
 - Token use is bounded through risk routing, compact task packets, one Checker,
   one repair and deterministic tools before model judgment. Usage is recorded
   only when the runtime exposes it; no estimate is treated as evidence.
+
+## Iteration 52 — Campaign results use a staged, transaction-backed sequence
+
+- Campaign Clear first owns a short celebration page, then reveals only the
+  reward lines backed by the successful clear transaction. The Product layer
+  remains the reward and Heart-refund authority; Presentation never predicts
+  or grants rewards.
+- Campaign failure owns four explicit phases: Continue offer, Give Up
+  confirmation, zero-or-more consequence pages and final Try Again/Lobby
+  choice. Stable-ID consequence entries are the extension point for future
+  event-loss messaging without coupling an event system to the current flow.
+- Remaining-gate copy counts gates after the failed gate is retired by a
+  successful Continue. It does not imply extra moves or a new Continue rule.
+- A finite Heart is consumed once when the Stage starts. Give Up and Lobby do
+  not perform another spend; the confirmation explains that the already-used
+  Heart will not be refunded. Clear keeps the existing atomic refund contract.
+- Experiment Lab retains its diagnostic result presentation. Campaign polish
+  must not alter its Retry/Replay or return behavior.
+- Result presentation uses Builder-owned fixed pools and an original emblem.
+  It may animate existing objects but may not instantiate result effects or
+  reward rows at runtime.

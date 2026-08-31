@@ -40,6 +40,8 @@ namespace ColorGateRunner.Editor
                 ConfigureSprite("Icon" + IconNames[index], false);
             }
 
+            ConfigureSprite("VictoryEmblem", false, 512f);
+
             for (int index = 0; index < ColorEmblemNames.Length; index++)
             {
                 ConfigureSprite(
@@ -62,6 +64,28 @@ namespace ColorGateRunner.Editor
                     throw new InvalidOperationException(
                         $"Theme01 color emblem is missing: {name}");
                 }
+            }
+            return result;
+        }
+
+        internal static Sprite LoadVictoryEmblem()
+        {
+            Sprite result = LoadSprite("VictoryEmblem");
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    "Theme01 victory emblem is missing: VictoryEmblem");
+            }
+            return result;
+        }
+
+        internal static Sprite LoadIcon(string iconName)
+        {
+            Sprite result = LoadSprite("Icon" + iconName);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme01 UI icon is missing: {iconName}");
             }
             return result;
         }
@@ -168,6 +192,8 @@ namespace ColorGateRunner.Editor
         private static bool ShouldSkinPanel(string name)
         {
             if (string.IsNullOrEmpty(name) ||
+                name == "StageClearPanel" ||
+                name == "StageFailedPanel" ||
                 name.Contains("Background", StringComparison.Ordinal) ||
                 name.Contains("Artwork", StringComparison.Ordinal) ||
                 name.Contains("Fill", StringComparison.Ordinal) ||
@@ -184,6 +210,8 @@ namespace ColorGateRunner.Editor
                 name.Contains("Popup", StringComparison.Ordinal) ||
                 name.Contains("Modal", StringComparison.Ordinal) ||
                 name.Contains("Card", StringComparison.Ordinal) ||
+                name.Contains("Confirmation", StringComparison.Ordinal) ||
+                name.Contains("Choice", StringComparison.Ordinal) ||
                 name.Contains("Slot", StringComparison.Ordinal) ||
                 name.Contains("Bar", StringComparison.Ordinal) ||
                 name.Contains("Track", StringComparison.Ordinal) ||
@@ -197,6 +225,7 @@ namespace ColorGateRunner.Editor
                 name.Contains("Confirmation", StringComparison.Ordinal) ||
                 name.Contains("Pause", StringComparison.Ordinal) ||
                 name.Contains("Result", StringComparison.Ordinal) ||
+                name.Contains("Failure", StringComparison.Ordinal) ||
                 name.Contains("Failed", StringComparison.Ordinal) ||
                 name.Contains("Clear", StringComparison.Ordinal))
             {

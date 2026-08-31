@@ -947,3 +947,37 @@ fairness, or polish.
 - Final evidence: focused Campaign EditMode `15/15`, focused Flicker PlayMode
   `13/13`, full EditMode `457/457`, full PlayMode `255/255`, two identical
   520-row Campaign runs and no Missing Script/reference validation failure.
+
+### Iteration 52 Campaign result experience
+
+- Pure EditMode coverage must prove the clear page order, every failure page
+  transition, empty and populated consequence queues, invalid transition
+  rejection and the post-Continue remaining-gate calculation.
+- PlayMode must prove Campaign Clear shows celebration before sequential
+  transaction-backed reward rows, while Experiment retains its legacy result
+  hierarchy. Empty reward rows remain hidden.
+- Failure PlayMode must show the authoritative Continue cost and remaining
+  gates, require Give Up confirmation, preserve the Heart count through that
+  confirmation, traverse queued consequences and expose Try Again/Lobby only
+  on the final page.
+- Scene/Builder validation requires all result references, exactly 16 firework
+  sparks, exactly five reward rows, no duplicate generated roots, one
+  EventSystem and the approved Build Settings order. Campaign Builder runs
+  twice and full PlayMode follows the generated Scene.
+- Visual Q2 must run on a graphics-capable backend at `1080 x 1920`. It must
+  capture celebration, rewards, Continue offer, Give Up confirmation and final
+  choice. Continue and final-choice Retry buttons require a valid visible skin
+  background and icon before capture; RenderTexture creation warnings fail the
+  evidence gate.
+- Final evidence: Campaign Builder passes 5 and 6 succeeded; EditMode
+  `465/465`; PlayMode `257/257`; two D3D11 visual runs `1/1` each. Continue
+  Offer images match SHA-256
+  `114848C2ACBF940BA11F656DB0EB8B8B46A756CBD8E87A588E2EEB6F322F6F1F`
+  and Final Choice images match
+  `6C7C8F549CFD46435E5984897DFC0C61160FF9029B06770ECD98B943B90F17D4`
+  across both runs. Package, ProjectSettings and Product-save hashes remain at
+  the authoritative baseline.
+- Campaign and Step 10 simulations are not required because the change owns
+  no deterministic content, balance, timing, movement, generation or judgment
+  input. Celebration satisfaction, pacing, device readability and touch
+  comfort remain human review.

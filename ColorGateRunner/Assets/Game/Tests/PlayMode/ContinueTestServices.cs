@@ -8,19 +8,22 @@ namespace ColorGateRunner.Tests.PlayMode
     {
         internal ContinueEconomyTestGateway(
             int coinBalance = 10000,
-            int continueTicketCount = 0)
+            int continueTicketCount = 0,
+            int heartCount = HeartStatePolicy.MaximumHearts)
         {
             CoinBalance = coinBalance;
             ContinueTicketCount = continueTicketCount;
+            HeartCount = heartCount;
         }
 
         public bool IsAvailable => true;
         public int CoinBalance { get; private set; }
         public int ContinueTicketCount { get; private set; }
         public HeartStateSnapshot Hearts => new HeartStateSnapshot(
-            HeartStatePolicy.MaximumHearts,
+            HeartCount,
             false,
             default);
+        internal int HeartCount { get; }
         internal int SpendCount { get; private set; }
         internal int TicketSpendCount { get; private set; }
         internal int TotalSpent { get; private set; }

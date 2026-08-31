@@ -386,8 +386,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 candidate => candidate.name == "StageFailedPanel");
             Assert.That(failure, Is.Not.Null);
             Image failureImage = failure.GetComponent<Image>();
-            Assert.That(failureImage.type, Is.EqualTo(Image.Type.Sliced));
-            Assert.That(failureImage.sprite.name, Is.EqualTo("Modal"));
+            Assert.That(failureImage.type, Is.EqualTo(Image.Type.Simple));
+            Assert.That(failureImage.sprite, Is.Null);
+            Transform failureCard = Array.Find(
+                visuals,
+                candidate => candidate.name == "FailureOfferCard");
+            Assert.That(failureCard, Is.Not.Null);
+            Image failureCardImage = failureCard.GetComponent<Image>();
+            Assert.That(failureCardImage.type, Is.EqualTo(Image.Type.Sliced));
+            Assert.That(failureCardImage.sprite.name, Is.EqualTo("Modal"));
 
             Transform shield = Array.Find(
                 visuals,
@@ -1694,9 +1701,51 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(_controller.FailurePanelDelaySeconds + 0.01f);
             Assert.That(_controller.FailPanel.activeSelf, Is.True);
             Assert.That(_controller.FailDetailsText.text,
-                Does.Contain("PROGRESS"));
+                Does.Contain("GATES LEFT"));
             Assert.That(_controller.FailDetailsText.text,
-                Does.Contain("ITEMS"));
+                Does.Contain("CONTINUE CLEARS THIS GATE"));
+        }
+
+        [Test]
+        public void CampaignFailure_ExitConfirmsHeartThenShowsFinalChoice()
+        {
+            var economy = new ContinueEconomyTestGateway(5000);
+            _controller.SetContinueServicesForTests(
+                economy,
+                new UnavailableRewardedAdService());
+            StartPlaying(false, false);
+            Fail();
+            _controller.Tick(_controller.FailurePanelDelaySeconds + 0.01f);
+
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.FailureContinue));
+            Assert.That(_controller.ResultSequenceView.FailureContinueRoot.activeSelf,
+                Is.True);
+            Assert.That(_controller.FailLobbyButton.gameObject.activeSelf,
+                Is.False);
+
+            _controller.RequestFailureExit();
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.FailureExitConfirmation));
+            Assert.That(
+                _controller.ResultSequenceView.FailureExitConfirmationRoot.activeSelf,
+                Is.True);
+
+            _controller.CancelFailureExit();
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.FailureContinue));
+
+            _controller.RequestFailureExit();
+            _controller.ConfirmFailureExit();
+
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.FailureFinalChoice));
+            Assert.That(
+                _controller.ResultSequenceView.FailureFinalChoiceRoot.activeSelf,
+                Is.True);
+            Assert.That(_controller.RetryButton.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.FailLobbyButton.gameObject.activeSelf, Is.True);
+            Assert.That(economy.SpendCount, Is.Zero);
         }
 
         [Test]
@@ -1721,6 +1770,18 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThan(1f));
             _controller.Tick(_controller.ClearPanelDelaySeconds + 0.01f);
             Assert.That(_controller.ClearPanel.activeSelf, Is.True);
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearCelebration));
+            Assert.That(
+                _controller.ResultSequenceView.ClearCelebrationRoot.activeSelf,
+                Is.True);
+
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearRewards));
+            Assert.That(_controller.ResultSequenceView.ClearRewardRoot.activeSelf,
+                Is.True);
         }
 
         [Test]
@@ -2130,6 +2191,10 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(1.3f);
 
             Assert.That(_controller.ReplayButton.gameObject.activeSelf, Is.False);
+            Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
+                Is.False);
+            _controller.HandleGameplayTap();
+            _controller.Tick(2f);
             Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
                 Is.True);
             _controller.OpenNextStagePreRun();

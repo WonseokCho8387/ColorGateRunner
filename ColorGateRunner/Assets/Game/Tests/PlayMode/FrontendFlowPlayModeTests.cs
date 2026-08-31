@@ -693,10 +693,48 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
             Assert.That(save.Stored.Economy.Coins, Is.EqualTo(300));
             Assert.That(campaign.ClearDetailsText.text,
-                Does.Contain("CLEAR REWARD +100 COINS"));
+                Does.Contain("STAGE 8 COMPLETE"));
             Assert.That(campaign.ClearDetailsText.text,
-                Does.Contain("LOBBY REWARD +200 COINS"));
+                Does.Contain("TIME"));
+            campaign.HandleGameplayTap();
+            campaign.Tick(2f);
+            Assert.That(campaign.ResultSequenceView.VisibleRewardRowCount,
+                Is.EqualTo(4));
             Assert.That(campaign.ReplayButton.gameObject.activeSelf, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator FailureExitConfirmation_DoesNotSpendASecondHeart()
+        {
+            var save = new StockedCampaignSaveService(heartCount: 2);
+            yield return LoadFrontendThroughBoot(() => CreateGraph(save));
+            RequireController().LobbyPlayButton.onClick.Invoke();
+            yield return WaitForScene(CampaignPath);
+            StageSceneController campaign =
+                Object.FindFirstObjectByType<StageSceneController>();
+            campaign.SelectStage(1);
+            campaign.StartSelectedStage();
+            campaign.Tick(3.1f);
+            campaign.Session.Advance(1f, 0f);
+            StageGateView gate = FindCurrentGate(campaign);
+            Assert.That(gate, Is.Not.Null);
+            while (campaign.Session.CurrentColor == gate.AssignedColor)
+            {
+                campaign.HandleGameplayTap();
+            }
+
+            Assert.That(gate.TryResolveCrossing(), Is.True);
+            Assert.That(campaign.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            campaign.Tick(campaign.FailurePanelDelaySeconds + 0.1f);
+            Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
+
+            campaign.RequestFailureExit();
+            campaign.ConfirmFailureExit();
+
+            Assert.That(campaign.ResultPage,
+                Is.EqualTo(CampaignResultPage.FailureFinalChoice));
+            Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
         }
 
         [UnityTest]

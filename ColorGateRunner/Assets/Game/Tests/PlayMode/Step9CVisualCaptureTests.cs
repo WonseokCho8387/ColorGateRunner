@@ -7,6 +7,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace ColorGateRunner.Tests.PlayMode
 {
@@ -70,19 +71,49 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return Capture("07-Booster-FinalWarning.png");
 
             yield return LoadCleanScene();
+            _store.HighestUnlocked = 2;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(2);
             StartWithoutItems();
             ClearCurrentStage();
             _controller.Tick(_controller.ClearPanelDelaySeconds + 0.1f);
-            yield return Capture("08-Clear-Result.png");
+            _controller.Tick(0.62f);
+            yield return Capture("08-Clear-Celebration.png");
+            _controller.HandleGameplayTap();
+            _controller.Tick(2f);
+            yield return Capture("09-Clear-Rewards.png");
 
             yield return LoadCleanScene();
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(heartCount: 4),
+                new RewardedAdTestService());
             StartWithoutItems();
             FailCurrentGate();
             _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
-            yield return Capture("09-Failed-Result.png");
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            AssertSkinnedButtonVisible(_controller.RetryButton);
+            yield return Capture("10-Failed-Continue-Offer.png");
 
+            _controller.RequestFailureExit();
+            yield return Capture("11-Failed-Exit-Confirmation.png");
+            _controller.ConfirmFailureExit();
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            AssertSkinnedButtonVisible(_controller.RetryButton);
+            yield return Capture("12-Failed-Final-Choice.png");
+
+            yield return LoadCleanScene();
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(heartCount: 4),
+                new RewardedAdTestService());
+            StartWithoutItems();
+            FailCurrentGate();
+            _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
             _controller.RequestCoinContinue();
-            yield return Capture("10-Continue-Countdown.png");
+            yield return Capture("13-Continue-Countdown.png");
         }
 
         [UnityTest]
@@ -214,7 +245,7 @@ namespace ColorGateRunner.Tests.PlayMode
             RenderTexture uiTarget = new RenderTexture(
                 1080,
                 1920,
-                0,
+                24,
                 RenderTextureFormat.ARGB32);
             Texture2D worldImage = new Texture2D(
                 1080,
@@ -301,6 +332,42 @@ namespace ColorGateRunner.Tests.PlayMode
             UnityEngine.Object.Destroy(worldTarget);
             UnityEngine.Object.Destroy(uiTarget);
             yield return null;
+        }
+
+        private static void AssertSkinnedButtonVisible(Button button)
+        {
+            Assert.That(button, Is.Not.Null);
+            Assert.That(button.gameObject.activeInHierarchy, Is.True);
+
+            Image background = button.GetComponent<Image>();
+            Assert.That(background, Is.Not.Null);
+            Assert.That(background.enabled, Is.True);
+            Assert.That(background.sprite, Is.Not.Null);
+            Assert.That(background.color.a, Is.GreaterThan(0.99f));
+            Assert.That(background.canvasRenderer.GetAlpha(),
+                Is.GreaterThan(0.99f));
+            Assert.That(background.canvasRenderer.cull, Is.False);
+            AssertCanvasRendererIsVisible(background.canvasRenderer);
+
+            Image icon = button.transform.Find("ThemeIcon")
+                ?.GetComponent<Image>();
+            Assert.That(icon, Is.Not.Null);
+            Assert.That(icon.enabled, Is.True);
+            Assert.That(icon.sprite, Is.Not.Null);
+            Assert.That(icon.color.a, Is.GreaterThan(0.99f));
+            Assert.That(icon.canvasRenderer.GetAlpha(),
+                Is.GreaterThan(0.99f));
+            Assert.That(icon.canvasRenderer.cull, Is.False);
+            AssertCanvasRendererIsVisible(icon.canvasRenderer);
+        }
+
+        private static void AssertCanvasRendererIsVisible(
+            CanvasRenderer renderer)
+        {
+            Color color = renderer.GetColor();
+            Assert.That(color.r, Is.GreaterThan(0.1f));
+            Assert.That(color.g, Is.GreaterThan(0.1f));
+            Assert.That(color.b, Is.GreaterThan(0.1f));
         }
 
         private void ConfigureStackPreview(int count)
@@ -461,7 +528,9 @@ namespace ColorGateRunner.Tests.PlayMode
             return null;
         }
 
-        private sealed class CaptureProgressStore : IStageProgressStore
+        private sealed class CaptureProgressStore :
+            IStageProgressStore,
+            IAtomicStageProgressStore
         {
             private readonly StageRecord[] _records =
                 new StageRecord[StageCatalog.Count];
@@ -475,6 +544,17 @@ namespace ColorGateRunner.Tests.PlayMode
                 HighestUnlocked = stageNumber;
             public void SaveRecord(int stageNumber, StageRecord record) =>
                 _records[stageNumber - 1] = record;
+
+            public ColorGateRunner.Product.ProductMutationResult SaveClearResult(
+                int stageNumber,
+                StageRecord record,
+                int highestUnlocked,
+                string heartRefundToken)
+            {
+                _records[stageNumber - 1] = record;
+                HighestUnlocked = highestUnlocked;
+                return ColorGateRunner.Product.ProductMutationResult.Success(true);
+            }
 
             public void ClearGameplayProgress()
             {

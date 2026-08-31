@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ColorGateRunner.Core;
 using ColorGateRunner.Product;
 using UnityEngine;
@@ -123,6 +124,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button clearContinueButton;
         [SerializeField] private Button replayButton;
         [SerializeField] private Button clearLobbyButton;
+        [SerializeField] private StageResultSequenceView resultSequenceView;
 
         [SerializeField] private GameObject failPanel;
         [SerializeField] private Text failTitleText;
@@ -168,6 +170,9 @@ namespace ColorGateRunner.Presentation
         private string _startItemStartError = string.Empty;
         private string _clearSaveError = string.Empty;
         private string _clearRewardSummary = string.Empty;
+        private StageClearRewardPreview _clearRewardPreview;
+        private bool _clearRewardsEarned;
+        private bool _clearHeartReturned;
         private string _heartRefundToken = string.Empty;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
@@ -224,6 +229,8 @@ namespace ColorGateRunner.Presentation
         private string _preRunReturnError = string.Empty;
         private StartItemKind? _pendingStartItemPurchase;
         private bool _startItemPurchasePending;
+        private CampaignResultFlow _campaignResultFlow;
+        private FailureConsequenceQueue _failureConsequenceQueue;
 
         internal StageSession Session => _session;
         internal int HighestUnlocked => _highestUnlocked;
@@ -300,6 +307,10 @@ namespace ColorGateRunner.Presentation
         internal Button ClearContinueButton => clearContinueButton;
         internal Button ClearLobbyButton => clearLobbyButton;
         internal Button FailLobbyButton => failLobbyButton;
+        internal StageResultSequenceView ResultSequenceView =>
+            resultSequenceView;
+        internal CampaignResultPage ResultPage =>
+            _campaignResultFlow?.CurrentPage ?? CampaignResultPage.None;
         internal Transform PlayerTransform => player;
         internal Renderer PlayerRenderer => playerRenderer;
         internal RunnerColorView RunnerColorView => runnerColorView;
@@ -414,6 +425,8 @@ namespace ColorGateRunner.Presentation
                 StageCatalogProvider.EnsureConfigured();
             }
             ValidateRequiredReferences();
+            _campaignResultFlow = new CampaignResultFlow();
+            _failureConsequenceQueue = new FailureConsequenceQueue();
             _pauseCoordinator = new GameplayPauseCoordinator();
             _sceneTransitionLoader ??= new UnitySceneTransitionLoader();
             _pausedEffectWasPlaying = new bool[attemptEffects.Length];
@@ -484,6 +497,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             TickGateReactions(deltaTime);
+            resultSequenceView.Tick(deltaTime);
             TickOutcomePresentation(deltaTime);
             TickColorStackAnimation(deltaTime);
             TickContinueGoFlash(deltaTime);
@@ -604,6 +618,14 @@ namespace ColorGateRunner.Presentation
 
         internal void HandleGameplayTap()
         {
+            if (!_experimentActive &&
+                _campaignResultFlow?.CurrentPage ==
+                CampaignResultPage.ClearCelebration)
+            {
+                resultSequenceView.SkipClearCelebrationNow();
+                return;
+            }
+
             if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
             {
                 return;
@@ -663,6 +685,13 @@ namespace ColorGateRunner.Presentation
 
         internal void HandleBack()
         {
+            if (!_experimentActive &&
+                _campaignResultFlow?.CurrentPage ==
+                CampaignResultPage.FailureExitConfirmation)
+            {
+                CancelFailureExit();
+                return;
+            }
             if (splineTrackLab != null && splineTrackLab.Active)
             {
                 ShowLobby();
@@ -1812,6 +1841,8 @@ namespace ColorGateRunner.Presentation
                 clearPanel == null || clearTitleText == null ||
                 clearDetailsText == null || clearContinueButton == null ||
                 replayButton == null || clearLobbyButton == null ||
+                resultSequenceView == null ||
+                !resultSequenceView.HasRequiredReferences() ||
                 failPanel == null || failTitleText == null ||
                 failDetailsText == null || failContinueStatusText == null ||
                 ticketContinueButton == null || coinContinueButton == null ||
@@ -2057,6 +2088,11 @@ namespace ColorGateRunner.Presentation
             insufficientCoinsCloseButton = coinPopupClose;
         }
 
+        internal void ConfigureResultSequence(StageResultSequenceView sequenceView)
+        {
+            resultSequenceView = sequenceView;
+        }
+
         private void AddListeners()
         {
             lobbyPlayButton.onClick.AddListener(PlayFromLobby);
@@ -2086,11 +2122,21 @@ namespace ColorGateRunner.Presentation
             rewardedContinueButton.onClick.AddListener(RequestRewardedContinue);
             insufficientCoinsCloseButton.onClick.AddListener(
                 CloseInsufficientCoinsPopup);
-            retryButton.onClick.AddListener(RetryToItemSelection);
+            retryButton.onClick.AddListener(RequestFailureExit);
             replayButton.onClick.AddListener(RetryToItemSelection);
             clearContinueButton.onClick.AddListener(OpenNextStagePreRun);
             clearLobbyButton.onClick.AddListener(LeaveResultFlow);
             failLobbyButton.onClick.AddListener(LeaveResultFlow);
+            resultSequenceView.FailureExitConfirmButton.onClick.AddListener(
+                ConfirmFailureExit);
+            resultSequenceView.FailureExitCancelButton.onClick.AddListener(
+                CancelFailureExit);
+            resultSequenceView.FailureConsequenceContinueButton.onClick
+                .AddListener(AdvanceFailureConsequence);
+            resultSequenceView.ClearSkipButton.onClick.AddListener(
+                resultSequenceView.SkipClearCelebrationNow);
+            resultSequenceView.ClearCelebrationCompleted +=
+                OnClearCelebrationCompleted;
             pauseButton.onClick.AddListener(RequestPause);
             pauseResumeButton.onClick.AddListener(RequestResume);
             pauseRestartButton.onClick.AddListener(RequestPauseRestart);
@@ -2138,11 +2184,21 @@ namespace ColorGateRunner.Presentation
             rewardedContinueButton.onClick.RemoveListener(RequestRewardedContinue);
             insufficientCoinsCloseButton.onClick.RemoveListener(
                 CloseInsufficientCoinsPopup);
-            retryButton.onClick.RemoveListener(RetryToItemSelection);
+            retryButton.onClick.RemoveListener(RequestFailureExit);
             replayButton.onClick.RemoveListener(RetryToItemSelection);
             clearContinueButton.onClick.RemoveListener(OpenNextStagePreRun);
             clearLobbyButton.onClick.RemoveListener(LeaveResultFlow);
             failLobbyButton.onClick.RemoveListener(LeaveResultFlow);
+            resultSequenceView.FailureExitConfirmButton.onClick.RemoveListener(
+                ConfirmFailureExit);
+            resultSequenceView.FailureExitCancelButton.onClick.RemoveListener(
+                CancelFailureExit);
+            resultSequenceView.FailureConsequenceContinueButton.onClick
+                .RemoveListener(AdvanceFailureConsequence);
+            resultSequenceView.ClearSkipButton.onClick.RemoveListener(
+                resultSequenceView.SkipClearCelebrationNow);
+            resultSequenceView.ClearCelebrationCompleted -=
+                OnClearCelebrationCompleted;
             pauseButton.onClick.RemoveListener(RequestPause);
             pauseResumeButton.onClick.RemoveListener(RequestResume);
             pauseRestartButton.onClick.RemoveListener(RequestPauseRestart);
@@ -2154,8 +2210,104 @@ namespace ColorGateRunner.Presentation
             pauseSettingsPanel.CancelRequested -= ClosePauseSettings;
         }
 
+        internal void RequestFailureExit()
+        {
+            if (_experimentActive)
+            {
+                RetryToItemSelection();
+                return;
+            }
+
+            if (_campaignResultFlow == null)
+            {
+                return;
+            }
+
+            if (_campaignResultFlow.CurrentPage ==
+                CampaignResultPage.FailureFinalChoice)
+            {
+                RetryToItemSelection();
+                return;
+            }
+
+            if (_campaignResultFlow.RequestFailureExit())
+            {
+                resultSequenceView.ShowFailureExitConfirmation();
+            }
+        }
+
+        internal void CancelFailureExit()
+        {
+            if (_campaignResultFlow?.CancelFailureExit() == true)
+            {
+                resultSequenceView.ShowFailureContinue();
+                SynchronizeContinueOffers();
+                SetButtonLabel(retryButton, "GIVE UP");
+            }
+        }
+
+        internal void ConfirmFailureExit()
+        {
+            if (_campaignResultFlow == null)
+            {
+                return;
+            }
+
+            _campaignResultFlow.ConfirmFailureExit(_failureConsequenceQueue);
+            if (_campaignResultFlow.CurrentPage ==
+                CampaignResultPage.FailureConsequence &&
+                _failureConsequenceQueue.TryGetCurrent(
+                    out FailureConsequencePage page))
+            {
+                resultSequenceView.ShowFailureConsequence(page);
+                return;
+            }
+
+            ShowFailureFinalChoice();
+        }
+
+        internal void AdvanceFailureConsequence()
+        {
+            _campaignResultFlow?.AdvanceFailureConsequence(
+                _failureConsequenceQueue);
+            if (_campaignResultFlow?.CurrentPage ==
+                CampaignResultPage.FailureConsequence &&
+                _failureConsequenceQueue.TryGetCurrent(
+                    out FailureConsequencePage page))
+            {
+                resultSequenceView.ShowFailureConsequence(page);
+                return;
+            }
+
+            ShowFailureFinalChoice();
+        }
+
+        private void ShowFailureFinalChoice()
+        {
+            HeartStateSnapshot hearts = _continueEconomy?.Hearts ?? default;
+            string heartStatus = hearts.Unlimited
+                ? "HEARTS UNLIMITED"
+                : $"HEARTS {hearts.Count}/{HeartStatePolicy.MaximumHearts}";
+            resultSequenceView.ShowFailureFinalChoice(heartStatus);
+            SetButtonLabel(retryButton, "TRY AGAIN");
+            SetButtonLabel(failLobbyButton, "LOBBY");
+        }
+
+        private void OnClearCelebrationCompleted()
+        {
+            _campaignResultFlow?.CompleteClearCelebration();
+        }
+
         private void LeaveResultFlow()
         {
+            if (!_experimentActive && _session != null &&
+                _session.FlowState == StageFlowState.Failed &&
+                _campaignResultFlow?.CurrentPage !=
+                CampaignResultPage.FailureFinalChoice)
+            {
+                return;
+            }
+
             _continueRequestGeneration++;
             _continueRequestPending = false;
             if (_experimentActive)
@@ -2737,6 +2889,9 @@ namespace ColorGateRunner.Presentation
             _clearRecorded = true;
             _clearSaveError = string.Empty;
             _clearRewardSummary = string.Empty;
+            _clearRewardPreview = default;
+            _clearRewardsEarned = false;
+            _clearHeartReturned = false;
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
@@ -2751,6 +2906,8 @@ namespace ColorGateRunner.Presentation
             ProductMutationResult result;
             bool productRewardAuthority =
                 _progressStore is IAtomicStageProgressStore;
+            bool heartReturnPending = productRewardAuthority &&
+                !string.IsNullOrWhiteSpace(_heartRefundToken);
             if (_progressStore is IAtomicStageProgressStore atomicStore)
             {
                 result = atomicStore.SaveClearResult(
@@ -2774,8 +2931,11 @@ namespace ColorGateRunner.Presentation
                         StageClearRewardPolicy.Preview(
                             _selectedStageNumber,
                             MapRewardDifficulty(_session.Stage.Difficulty));
+                    _clearRewardPreview = reward;
+                    _clearRewardsEarned = true;
                     _clearRewardSummary = FormatClearReward(reward);
                 }
+                _clearHeartReturned = heartReturnPending;
                 _heartRefundToken = string.Empty;
                 RefreshStartItemInventory();
             }
@@ -2868,19 +3028,24 @@ namespace ColorGateRunner.Presentation
                     failLobbyButton.gameObject.SetActive(true);
                     SetButtonLabel(retryButton, "RETRY SAME TEST");
                     SetButtonLabel(failLobbyButton, "BACK TO LAB");
+                    resultSequenceView.ShowExperimentFailure();
                 }
                 else if (_failureDelayRemaining <= 0f && _session != null)
                 {
                     failPanel.SetActive(true);
                     failTitleText.text = "STAGE FAILED";
-                    failDetailsText.text =
-                        $"PROGRESS {_session.GatesPassed}/{_session.Stage.TargetGateCount}\n" +
-                        $"ITEMS {FormatItems(_session.Items)}";
-                    retryButton.gameObject.SetActive(true);
-                    failLobbyButton.gameObject.SetActive(true);
+                    int remaining = CampaignResultFlow.RemainingGatesAfterContinue(
+                        _session.Stage.TargetGateCount,
+                        _session.GatesPassed);
+                    failDetailsText.text = remaining > 0
+                        ? $"{remaining} GATES LEFT\n" +
+                            "CONTINUE CLEARS THIS GATE · READY / GO"
+                        : "GOAL AHEAD\n" +
+                            "CONTINUE CLEARS THIS GATE · READY / GO";
+                    _campaignResultFlow.BeginFailure();
+                    resultSequenceView.ShowFailureContinue();
                     SynchronizeContinueOffers();
-                    SetButtonLabel(retryButton, "RETRY");
-                    SetButtonLabel(failLobbyButton, "LOBBY");
+                    SetButtonLabel(retryButton, "GIVE UP");
                 }
             }
             if (_clearDelayRemaining > 0f)
@@ -2903,6 +3068,7 @@ namespace ColorGateRunner.Presentation
                     clearLobbyButton.gameObject.SetActive(true);
                     SetButtonLabel(replayButton, "REPLAY");
                     SetButtonLabel(clearLobbyButton, "BACK TO LAB");
+                    resultSequenceView.ShowExperimentClear();
                 }
                 else if (_clearDelayRemaining <= 0f && _session != null)
                 {
@@ -2912,9 +3078,6 @@ namespace ColorGateRunner.Presentation
                         _progressStore.LoadRecord(_selectedStageNumber);
                     clearDetailsText.text =
                         $"STAGE {_selectedStageNumber} COMPLETE\n" +
-                        (string.IsNullOrWhiteSpace(_clearRewardSummary)
-                            ? string.Empty
-                            : _clearRewardSummary + "\n") +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
                         $"BEST {record.BestTime:0.00}s" +
@@ -2927,8 +3090,55 @@ namespace ColorGateRunner.Presentation
                     clearLobbyButton.gameObject.SetActive(true);
                     SetButtonLabel(clearContinueButton, "NEXT STAGE");
                     SetButtonLabel(clearLobbyButton, "LOBBY");
+                    _campaignResultFlow.BeginClear();
+                    resultSequenceView.PlayCampaignClear(
+                        BuildClearRewardLines());
                 }
             }
+        }
+
+        private StageResultRewardLine[] BuildClearRewardLines()
+        {
+            var rewards = new List<StageResultRewardLine>(5);
+            if (_clearRewardsEarned)
+            {
+                if (_clearRewardPreview.BaseCoins > 0)
+                {
+                    rewards.Add(new StageResultRewardLine(
+                        StageResultRewardKind.Coin,
+                        "CLEAR COINS",
+                        _clearRewardPreview.BaseCoins));
+                }
+                if (_clearRewardPreview.MilestoneCoins > 0)
+                {
+                    rewards.Add(new StageResultRewardLine(
+                        StageResultRewardKind.Coin,
+                        "MILESTONE COINS",
+                        _clearRewardPreview.MilestoneCoins));
+                }
+                if (_clearRewardPreview.Shields > 0)
+                {
+                    rewards.Add(new StageResultRewardLine(
+                        StageResultRewardKind.Shield,
+                        "SHIELD",
+                        _clearRewardPreview.Shields));
+                }
+                if (_clearRewardPreview.Boosters > 0)
+                {
+                    rewards.Add(new StageResultRewardLine(
+                        StageResultRewardKind.Booster,
+                        "BOOSTER",
+                        _clearRewardPreview.Boosters));
+                }
+            }
+            if (_clearHeartReturned)
+            {
+                rewards.Add(new StageResultRewardLine(
+                    StageResultRewardKind.Heart,
+                    "HEART RETURNED",
+                    1));
+            }
+            return rewards.ToArray();
         }
 
         private bool TryGetUnlockedNextStage(out StageDefinition next)
@@ -2973,6 +3183,12 @@ namespace ColorGateRunner.Presentation
             _pauseSceneLoadError = string.Empty;
             _clearRecorded = false;
             _clearRewardSummary = string.Empty;
+            _clearRewardPreview = default;
+            _clearRewardsEarned = false;
+            _clearHeartReturned = false;
+            _campaignResultFlow?.Reset();
+            _failureConsequenceQueue?.Reset();
+            resultSequenceView.ResetView();
             CloseInsufficientCoinsPopup();
             _cameraShakeRemaining = 0f;
             _failureDelayRemaining = 0f;

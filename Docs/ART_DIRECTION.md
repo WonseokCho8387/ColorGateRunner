@@ -74,10 +74,15 @@ The five-entry picker remains hidden for development.
 
 - A visible neutral Goal appears after the final gate.
 - Clear and failure use separate full-screen panels.
-- Clear prioritizes STAGE CLEAR, the difficulty base Coin reward, a separate
-  milestone reward when earned, time, items, and best time.
-- Failure prioritizes STAGE FAILED, progress, current Coin/Heart status,
-  eligible Continue actions, and Retry.
+- Campaign Clear first prioritizes an original victory emblem and restrained
+  fixed-pool fireworks, then transitions to a darker reward card where actual
+  Coin, item and returned-Heart rows reveal in order. Time, items, best time,
+  Next Stage and Lobby remain secondary to that sequence.
+- Campaign failure first prioritizes remaining gates, current Coin/Heart
+  status and eligible Continue actions. `GIVE UP` uses the Coral danger skin;
+  confirmation and the final `TRY AGAIN` / `LOBBY` choice remain visually
+  distinct pages over the frozen failed run.
+- Experiment results retain their compact diagnostic layout.
 - Clear waits 1.2 seconds and uses bright positive effects; failure waits 1.0
   second and uses a darker hierarchy. The character animation remains visible
   before either panel.
@@ -911,3 +916,22 @@ This section supersedes Iteration 47's separate additive frame trace.
 - The top direction, mesh-bound dissolve, emblem dissolve, restrained edge and
   Bloom behavior remain unchanged. Human mobile/WebGL review owns final side
   identification, continuity and perceived pace at `1.35 / 1.17 / 0.99s`.
+
+## Iteration 52 Campaign result presentation
+
+- The victory mark is an original raster emblem with genuine transparency,
+  bright Cyan/Gold energy and a compact crown-like silhouette. It scales in
+  over the frozen clear scene and must remain legible without copying another
+  game's logo or branded shape.
+- Celebration uses exactly 16 Builder-owned spark Images. Reward presentation
+  uses exactly five Builder-owned rows and the existing semantic Coin, Heart,
+  Shield and Booster icons. No result particle or reward row is instantiated
+  at runtime.
+- Clear separates the bright celebratory beat from the dark-alloy reward card;
+  reward rows appear one at a time and navigation returns only afterward.
+- Failure pages retain the dark modal frame. Continue stays the primary
+  recovery action, `GIVE UP` and `TRY AGAIN` use the Coral danger surface and
+  Lobby remains secondary. Every button keeps a visible themed card and icon.
+- Human portrait/mobile/WebGL review owns emblem scale, firework satisfaction,
+  reveal pace, text density, touch comfort and whether the hierarchy reads
+  clearly under the frozen gameplay background.

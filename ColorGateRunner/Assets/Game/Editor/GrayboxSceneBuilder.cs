@@ -59,6 +59,11 @@ namespace ColorGateRunner.Editor
             Theme01UiSkinBuilder.EnsureAndConfigure();
             Sprite[] colorEmblems =
                 Theme01UiSkinBuilder.LoadColorEmblems();
+            Sprite victoryEmblem = Theme01UiSkinBuilder.LoadVictoryEmblem();
+            Sprite coinIcon = Theme01UiSkinBuilder.LoadIcon("Coin");
+            Sprite heartIcon = Theme01UiSkinBuilder.LoadIcon("Heart");
+            Sprite shieldIcon = Theme01UiSkinBuilder.LoadIcon("Shield");
+            Sprite boosterIcon = Theme01UiSkinBuilder.LoadIcon("Booster");
             string frontendPath = SelectFrontendScenePath(
                 EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
@@ -377,17 +382,39 @@ namespace ColorGateRunner.Editor
             Button clearContinueButton;
             Button replayButton;
             Button clearLobbyButton;
+            GameObject clearCelebrationRoot;
+            CanvasGroup clearCelebrationGroup;
+            RectTransform clearVictoryEmblem;
+            Button clearSkipButton;
+            GameObject clearRewardRoot;
+            CanvasGroup clearRewardGroup;
+            RectTransform[] clearFireworkSparks;
+            CanvasGroup[] clearFireworkSparkGroups;
+            GameObject[] clearRewardRows;
+            CanvasGroup[] clearRewardRowGroups;
+            Image[] clearRewardRowIcons;
+            Text[] clearRewardRowTexts;
             CreateResultUi(
-                "StageClearPanel",
-                "STAGE CLEAR",
                 flowRoots[4].transform,
-                true,
+                victoryEmblem,
                 out clearPanel,
                 out clearTitle,
                 out clearDetails,
                 out clearContinueButton,
                 out replayButton,
-                out clearLobbyButton);
+                out clearLobbyButton,
+                out clearCelebrationRoot,
+                out clearCelebrationGroup,
+                out clearVictoryEmblem,
+                out clearSkipButton,
+                out clearRewardRoot,
+                out clearRewardGroup,
+                out clearFireworkSparks,
+                out clearFireworkSparkGroups,
+                out clearRewardRows,
+                out clearRewardRowGroups,
+                out clearRewardRowIcons,
+                out clearRewardRowTexts);
 
             GameObject failPanel;
             Text failTitle;
@@ -401,6 +428,17 @@ namespace ColorGateRunner.Editor
             GameObject insufficientCoinsPopup;
             Text insufficientCoinsMessage;
             Button insufficientCoinsCloseButton;
+            GameObject failureContinueRoot;
+            GameObject failureExitConfirmationRoot;
+            Text failureExitMessage;
+            Button failureExitConfirmButton;
+            Button failureExitCancelButton;
+            GameObject failureConsequenceRoot;
+            Text failureConsequenceTitle;
+            Text failureConsequenceMessage;
+            Button failureConsequenceContinueButton;
+            GameObject failureFinalChoiceRoot;
+            Text failureFinalMessage;
             CreateFailureUi(
                 flowRoots[5].transform,
                 out failPanel,
@@ -414,7 +452,51 @@ namespace ColorGateRunner.Editor
                 out failLobbyButton,
                 out insufficientCoinsPopup,
                 out insufficientCoinsMessage,
-                out insufficientCoinsCloseButton);
+                out insufficientCoinsCloseButton,
+                out failureContinueRoot,
+                out failureExitConfirmationRoot,
+                out failureExitMessage,
+                out failureExitConfirmButton,
+                out failureExitCancelButton,
+                out failureConsequenceRoot,
+                out failureConsequenceTitle,
+                out failureConsequenceMessage,
+                out failureConsequenceContinueButton,
+                out failureFinalChoiceRoot,
+                out failureFinalMessage);
+
+            StageResultSequenceView resultSequenceView =
+                controller.gameObject.AddComponent<StageResultSequenceView>();
+            resultSequenceView.Configure(
+                clearCelebrationRoot,
+                clearCelebrationGroup,
+                clearVictoryEmblem,
+                clearSkipButton,
+                clearRewardRoot,
+                clearRewardGroup,
+                clearFireworkSparks,
+                clearFireworkSparkGroups,
+                clearRewardRows,
+                clearRewardRowGroups,
+                clearRewardRowIcons,
+                clearRewardRowTexts,
+                coinIcon,
+                heartIcon,
+                shieldIcon,
+                boosterIcon,
+                failureContinueRoot,
+                failureExitConfirmationRoot,
+                failureExitMessage,
+                failureExitConfirmButton,
+                failureExitCancelButton,
+                failureConsequenceRoot,
+                failureConsequenceTitle,
+                failureConsequenceMessage,
+                failureConsequenceContinueButton,
+                failureFinalChoiceRoot,
+                failureFinalMessage,
+                retryButton,
+                failLobbyButton);
 
             CreatePauseUi(
                 canvas.transform,
@@ -533,6 +615,7 @@ namespace ColorGateRunner.Editor
                 insufficientCoinsPopup,
                 insufficientCoinsMessage,
                 insufficientCoinsCloseButton);
+            controller.ConfigureResultSequence(resultSequenceView);
             controller.ConfigurePause(
                 pauseButton,
                 pauseOverlayRoot,
@@ -3311,59 +3394,179 @@ namespace ColorGateRunner.Editor
         }
 
         private static void CreateResultUi(
-            string name,
-            string title,
             Transform parent,
-            bool includeNext,
+            Sprite victorySprite,
             out GameObject panel,
             out Text titleText,
             out Text details,
             out Button next,
             out Button replay,
-            out Button select)
+            out Button select,
+            out GameObject celebrationRoot,
+            out CanvasGroup celebrationGroup,
+            out RectTransform victoryEmblem,
+            out Button skipButton,
+            out GameObject rewardRoot,
+            out CanvasGroup rewardGroup,
+            out RectTransform[] fireworkSparks,
+            out CanvasGroup[] fireworkSparkGroups,
+            out GameObject[] rewardRows,
+            out CanvasGroup[] rewardRowGroups,
+            out Image[] rewardRowIcons,
+            out Text[] rewardRowTexts)
         {
             panel = CreatePanel(
-                name,
+                "StageClearPanel",
                 parent,
-                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+                new Color(0.015f, 0.025f, 0.055f, 0.97f));
+
+            celebrationRoot = CreateUiObject(
+                "ClearCelebrationRoot",
+                panel.transform);
+            Stretch(celebrationRoot.GetComponent<RectTransform>());
+            celebrationGroup = celebrationRoot.AddComponent<CanvasGroup>();
+
+            fireworkSparks = new RectTransform[16];
+            fireworkSparkGroups = new CanvasGroup[16];
+            Color[] sparkColors =
+            {
+                CyanColor,
+                WarpGoldColor,
+                new Color(0.95f, 0.22f, 0.82f, 1f)
+            };
+            for (int index = 0; index < fireworkSparks.Length; index++)
+            {
+                GameObject spark = CreateUiObject(
+                    $"VictorySpark_{index}",
+                    celebrationRoot.transform);
+                RectTransform rect = spark.GetComponent<RectTransform>();
+                rect.anchorMin = new Vector2(0.5f, 0.58f);
+                rect.anchorMax = rect.anchorMin;
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = new Vector2(
+                    index % 3 == 0 ? 14f : 9f,
+                    index % 3 == 0 ? 34f : 22f);
+                Image sparkImage = spark.AddComponent<Image>();
+                sparkImage.color = sparkColors[index % sparkColors.Length];
+                sparkImage.raycastTarget = false;
+                fireworkSparks[index] = rect;
+                fireworkSparkGroups[index] = spark.AddComponent<CanvasGroup>();
+            }
+
+            GameObject emblemObject = CreateUiObject(
+                "VictoryEmblem",
+                celebrationRoot.transform);
+            victoryEmblem = emblemObject.GetComponent<RectTransform>();
+            SetAnchors(
+                victoryEmblem,
+                new Vector2(0.19f, 0.38f),
+                new Vector2(0.81f, 0.76f));
+            Image emblemImage = emblemObject.AddComponent<Image>();
+            emblemImage.sprite = victorySprite;
+            emblemImage.preserveAspect = true;
+            emblemImage.raycastTarget = false;
+
             titleText = CreateText(
                 "StageClearTitle",
+                celebrationRoot.transform,
+                "STAGE CLEAR",
+                62,
+                new Vector2(0.08f, 0.77f),
+                new Vector2(0.92f, 0.89f));
+            titleText.color = new Color(0.83f, 0.98f, 1f, 1f);
+
+            GameObject skipObject = CreateUiObject(
+                "ClearSkipButton",
+                celebrationRoot.transform);
+            Stretch(skipObject.GetComponent<RectTransform>());
+            Image skipImage = skipObject.AddComponent<Image>();
+            skipImage.color = new Color(1f, 1f, 1f, 0.001f);
+            skipButton = skipObject.AddComponent<Button>();
+            skipButton.targetGraphic = skipImage;
+            Text skipLabel = CreateText(
+                "ClearSkipLabel",
+                skipObject.transform,
+                "TAP TO CONTINUE",
+                22,
+                new Vector2(0.2f, 0.08f),
+                new Vector2(0.8f, 0.14f));
+            skipLabel.color = new Color(0.68f, 0.84f, 0.92f, 1f);
+
+            rewardRoot = CreateAnchoredPanel(
+                "ClearRewardCard",
                 panel.transform,
-                title,
-                58,
-                new Vector2(0.1f, 0.76f),
-                new Vector2(0.9f, 0.90f));
+                new Vector2(0.065f, 0.19f),
+                new Vector2(0.935f, 0.86f),
+                Color.white);
+            rewardGroup = rewardRoot.AddComponent<CanvasGroup>();
+            CreateText(
+                "ClearRewardHeading",
+                rewardRoot.transform,
+                "REWARDS",
+                38,
+                new Vector2(0.08f, 0.83f),
+                new Vector2(0.92f, 0.96f));
             details = CreateText(
                 "StageClearDetails",
-                panel.transform,
+                rewardRoot.transform,
                 string.Empty,
-                32,
-                new Vector2(0.1f, 0.46f),
-                new Vector2(0.9f, 0.74f));
-            Text nextLabel;
+                24,
+                new Vector2(0.08f, 0.68f),
+                new Vector2(0.92f, 0.83f));
+            details.color = new Color(0.76f, 0.88f, 0.96f, 1f);
+
+            rewardRows = new GameObject[5];
+            rewardRowGroups = new CanvasGroup[5];
+            rewardRowIcons = new Image[5];
+            rewardRowTexts = new Text[5];
+            for (int index = 0; index < rewardRows.Length; index++)
+            {
+                float top = 0.655f - index * 0.115f;
+                GameObject row = CreateAnchoredPanel(
+                    $"ClearRewardRow_{index}",
+                    rewardRoot.transform,
+                    new Vector2(0.11f, top - 0.095f),
+                    new Vector2(0.89f, top),
+                    new Color(0.08f, 0.15f, 0.25f, 0.92f));
+                rewardRows[index] = row;
+                rewardRowGroups[index] = row.AddComponent<CanvasGroup>();
+                rewardRowIcons[index] = Theme01UiSkinBuilder.AddStandaloneIcon(
+                    $"ClearRewardIcon_{index}",
+                    row.transform,
+                    "Coin",
+                    new Vector2(0.04f, 0.13f),
+                    new Vector2(0.22f, 0.87f));
+                rewardRowTexts[index] = CreateText(
+                    $"ClearRewardText_{index}",
+                    row.transform,
+                    string.Empty,
+                    27,
+                    new Vector2(0.24f, 0f),
+                    new Vector2(0.94f, 1f));
+                rewardRowTexts[index].alignment = TextAnchor.MiddleLeft;
+            }
+
             next = CreateButton(
                 "ClearContinueButton",
                 panel.transform,
-                "CONTINUE",
-                new Vector2(0.16f, 0.31f),
-                new Vector2(0.84f, 0.41f),
-                out nextLabel);
-            Text replayLabel;
+                "NEXT STAGE",
+                new Vector2(0.13f, 0.09f),
+                new Vector2(0.87f, 0.17f),
+                out Text _);
             replay = CreateButton(
                 "ReplayButton",
                 panel.transform,
                 "REPLAY",
-                new Vector2(0.16f, 0.19f),
-                new Vector2(0.84f, 0.29f),
-                out replayLabel);
-            Text selectLabel;
+                new Vector2(0.13f, 0.09f),
+                new Vector2(0.87f, 0.17f),
+                out Text _);
             select = CreateButton(
                 "ClearLobbyButton",
                 panel.transform,
                 "LOBBY",
-                new Vector2(0.16f, 0.07f),
-                new Vector2(0.84f, 0.17f),
-                out selectLabel);
+                new Vector2(0.25f, 0.015f),
+                new Vector2(0.75f, 0.075f),
+                out Text _);
         }
 
         private static void CreateFailureUi(
@@ -3379,73 +3582,176 @@ namespace ColorGateRunner.Editor
             out Button select,
             out GameObject insufficientCoinsPopup,
             out Text insufficientCoinsMessage,
-            out Button insufficientCoinsCloseButton)
+            out Button insufficientCoinsCloseButton,
+            out GameObject continueRoot,
+            out GameObject exitConfirmationRoot,
+            out Text exitMessage,
+            out Button exitConfirm,
+            out Button exitCancel,
+            out GameObject consequenceRoot,
+            out Text consequenceTitle,
+            out Text consequenceMessage,
+            out Button consequenceContinue,
+            out GameObject finalChoiceRoot,
+            out Text finalMessage)
         {
             panel = CreatePanel(
                 "StageFailedPanel",
                 parent,
-                new Color(0.04f, 0.05f, 0.08f, 0.96f));
+                new Color(0.02f, 0.025f, 0.055f, 0.97f));
+            continueRoot = CreateAnchoredPanel(
+                "FailureOfferCard",
+                panel.transform,
+                new Vector2(0.06f, 0.18f),
+                new Vector2(0.94f, 0.88f),
+                Color.white);
             title = CreateText(
                 "StageFailedTitle",
-                panel.transform,
+                continueRoot.transform,
                 "STAGE FAILED",
-                58,
-                new Vector2(0.1f, 0.72f),
-                new Vector2(0.9f, 0.88f));
+                54,
+                new Vector2(0.08f, 0.80f),
+                new Vector2(0.92f, 0.94f));
+            title.color = new Color(1f, 0.52f, 0.68f, 1f);
             details = CreateText(
                 "StageFailedDetails",
-                panel.transform,
+                continueRoot.transform,
                 string.Empty,
-                32,
-                new Vector2(0.1f, 0.57f),
-                new Vector2(0.9f, 0.70f));
+                30,
+                new Vector2(0.08f, 0.61f),
+                new Vector2(0.92f, 0.79f));
             continueStatus = CreateText(
                 "FailContinueStatusText",
-                panel.transform,
+                continueRoot.transform,
                 string.Empty,
-                24,
-                new Vector2(0.1f, 0.50f),
-                new Vector2(0.9f, 0.56f));
+                22,
+                new Vector2(0.08f, 0.51f),
+                new Vector2(0.92f, 0.60f));
+            continueStatus.color = new Color(0.72f, 0.86f, 0.95f, 1f);
             Text ticketLabel;
             ticketContinueButton = CreateButton(
                 "TicketContinueButton",
-                panel.transform,
+                continueRoot.transform,
                 "CONTINUE TICKET x1",
-                new Vector2(0.16f, 0.405f),
-                new Vector2(0.84f, 0.495f),
+                new Vector2(0.12f, 0.385f),
+                new Vector2(0.88f, 0.485f),
                 out ticketLabel);
             Text rewardedLabel;
             rewardedContinueButton = CreateButton(
                 "RewardedContinueButton",
-                panel.transform,
+                continueRoot.transform,
                 "WATCH AD TO CONTINUE",
-                new Vector2(0.16f, 0.31f),
-                new Vector2(0.84f, 0.40f),
+                new Vector2(0.12f, 0.265f),
+                new Vector2(0.88f, 0.365f),
                 out rewardedLabel);
             Text coinLabel;
             coinContinueButton = CreateButton(
                 "CoinContinueButton",
-                panel.transform,
+                continueRoot.transform,
                 "CONTINUE 900 COINS",
-                new Vector2(0.16f, 0.215f),
-                new Vector2(0.84f, 0.305f),
+                new Vector2(0.12f, 0.145f),
+                new Vector2(0.88f, 0.245f),
                 out coinLabel);
             Text retryLabel;
             retry = CreateButton(
                 "RetryButton",
                 panel.transform,
-                "RETRY",
-                new Vector2(0.16f, 0.12f),
-                new Vector2(0.84f, 0.21f),
+                "GIVE UP",
+                new Vector2(0.13f, 0.09f),
+                new Vector2(0.87f, 0.17f),
                 out retryLabel);
             Text selectLabel;
             select = CreateButton(
                 "FailLobbyButton",
                 panel.transform,
                 "LOBBY",
-                new Vector2(0.16f, 0.025f),
-                new Vector2(0.84f, 0.115f),
+                new Vector2(0.25f, 0.015f),
+                new Vector2(0.75f, 0.075f),
                 out selectLabel);
+
+            exitConfirmationRoot = CreateAnchoredPanel(
+                "FailureExitConfirmation",
+                panel.transform,
+                new Vector2(0.08f, 0.29f),
+                new Vector2(0.92f, 0.71f),
+                Color.white);
+            CreateText(
+                "FailureExitTitle",
+                exitConfirmationRoot.transform,
+                "LEAVE THIS ATTEMPT?",
+                40,
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.91f));
+            exitMessage = CreateText(
+                "FailureExitMessage",
+                exitConfirmationRoot.transform,
+                string.Empty,
+                25,
+                new Vector2(0.08f, 0.34f),
+                new Vector2(0.92f, 0.70f));
+            exitConfirm = CreateButton(
+                "FailureExitConfirmButton",
+                exitConfirmationRoot.transform,
+                "GIVE UP",
+                new Vector2(0.08f, 0.08f),
+                new Vector2(0.48f, 0.28f),
+                out Text _);
+            exitCancel = CreateButton(
+                "FailureExitCancelButton",
+                exitConfirmationRoot.transform,
+                "KEEP PLAYING",
+                new Vector2(0.52f, 0.08f),
+                new Vector2(0.92f, 0.28f),
+                out Text _);
+
+            consequenceRoot = CreateAnchoredPanel(
+                "FailureConsequenceCard",
+                panel.transform,
+                new Vector2(0.08f, 0.29f),
+                new Vector2(0.92f, 0.71f),
+                Color.white);
+            consequenceTitle = CreateText(
+                "FailureConsequenceTitle",
+                consequenceRoot.transform,
+                string.Empty,
+                40,
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.91f));
+            consequenceMessage = CreateText(
+                "FailureConsequenceMessage",
+                consequenceRoot.transform,
+                string.Empty,
+                25,
+                new Vector2(0.08f, 0.32f),
+                new Vector2(0.92f, 0.70f));
+            consequenceContinue = CreateButton(
+                "FailureConsequenceContinueButton",
+                consequenceRoot.transform,
+                "CONTINUE",
+                new Vector2(0.18f, 0.08f),
+                new Vector2(0.82f, 0.28f),
+                out Text _);
+
+            finalChoiceRoot = CreateAnchoredPanel(
+                "FailureFinalChoice",
+                panel.transform,
+                new Vector2(0.08f, 0.29f),
+                new Vector2(0.92f, 0.73f),
+                Color.white);
+            CreateText(
+                "FailureFinalTitle",
+                finalChoiceRoot.transform,
+                "TRY AGAIN?",
+                44,
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.91f));
+            finalMessage = CreateText(
+                "FailureFinalMessage",
+                finalChoiceRoot.transform,
+                string.Empty,
+                25,
+                new Vector2(0.08f, 0.18f),
+                new Vector2(0.92f, 0.70f));
 
             insufficientCoinsPopup = CreateAnchoredPanel(
                 "InsufficientCoinsPopup",
@@ -3475,6 +3781,9 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.80f, 0.29f),
                 out Text _);
             insufficientCoinsPopup.SetActive(false);
+            exitConfirmationRoot.SetActive(false);
+            consequenceRoot.SetActive(false);
+            finalChoiceRoot.SetActive(false);
         }
 
         private static void CreatePauseUi(

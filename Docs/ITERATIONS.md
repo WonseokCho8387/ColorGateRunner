@@ -3088,3 +3088,59 @@ Human feedback required
 - Future repositories should copy or install the generic Skill and add only a
   local adapter; they should not inherit Color Gate Runner paths, Unity rules
   or its regression suite.
+
+## Iteration 52 — Campaign Result Experience
+
+### Play / Analyze
+
+- The prior Campaign result panels exposed all actions at once and did not
+  provide a satisfying success beat or a deliberate failure decision path.
+- The approved target was a familiar mobile puzzle-game hierarchy without
+  copying branded assets: celebration before rewards on success, and a clear
+  Continue-or-Give-Up funnel on failure.
+- Heart wording needed to reflect the existing economy contract. The Heart is
+  already consumed at Stage start, so Give Up must explain retention rather
+  than charge another Heart.
+
+### Design / Implementation
+
+- Added a pure Campaign result state machine with clear celebration/reward
+  pages and failure Continue/confirmation/consequence/final-choice pages.
+- Added a Builder-owned presentation view with one original victory emblem,
+  16 fixed firework sparks and five fixed reward rows. Clear rows are built
+  only from rewards successfully committed by the Product transaction.
+- Failure now displays Continue cost through the existing economy authority
+  and calculates the post-Continue gate count after retiring the failed gate.
+  Give Up requires confirmation, an empty-by-default stable-ID consequence
+  queue allows future event-loss pages, and the final page offers Try Again or
+  Lobby with the already-updated Heart wallet.
+- Preserved the existing Campaign attempt, Continue, Retry, navigation and
+  Experiment result authorities. The result presentation allocates no runtime
+  GameObjects and does not create a second economy or progression path.
+
+### Validation / Learning
+
+- Campaign Builder passes 5 and 6 completed successfully. Full EditMode passed
+  `465/465`; full PlayMode passed `257/257`.
+- Two Direct3D 11 Q2 runs at `1080 x 1920` each passed `1/1`. The failure
+  Continue and final-choice PNGs were byte-identical across runs, retained
+  their danger cards and action icons, and emitted no RenderTexture creation
+  warning.
+- The final read-only fresh-context checker returned `PASS` with no severity
+  finding after inspecting the unique A/B artifacts and final regression data.
+- A same-path image preview cache initially made alternating buttons appear
+  absent even though the raw PNG contained them. Unique capture paths, exact
+  hashes, pixel checks and runtime skin assertions separated preview state
+  from rendered-artifact state.
+- Package, ProjectSettings and Product-save hashes remained exact. Campaign
+  and Step 10 simulations were not applicable because no deterministic
+  gameplay input, timing, generation or judgment changed.
+
+### Deferred / Human Review
+
+- Review the victory emblem scale, firework satisfaction and reward-row timing
+  on portrait mobile and WebGL. Automation cannot decide whether the sequence
+  feels celebratory or whether the copy is comfortable to read at device size.
+- Future event penalties may enqueue consequence pages through the new queue;
+  no event system, Shop, audio, haptics, analytics, ad provider or IAP flow was
+  introduced in this iteration.

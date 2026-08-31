@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `644d507019aba64d133493092bfafc77e6906e3d`
-- Base commit: `fix: refine flicker timing and booster access`
+- Implementation base HEAD: `8790868105f6ba40a6f3ca273626c67abff53421`
+- Base commit: `chore: add reusable quality graph workflow`
 - Authoritative completion HEAD: the commit named
-  `chore: add reusable quality graph workflow`; its exact hash is recorded
-  in the Iteration 51 final report because a commit cannot contain
+  `feat: improve campaign result experience`; its exact hash is recorded
+  in the Iteration 52 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,14 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 51 — Reusable Quality Graph Workflow**.
+- Current completed iteration: **Iteration 52 — Campaign Result Experience**.
+- Campaign Clear now opens with an original victory emblem and a fixed-pool
+  firework celebration, then reveals only rewards actually committed by the
+  clear transaction. Campaign failure first presents Continue cost and the
+  number of gates that remain after the failed gate is retired, routes Give Up
+  through an explicit consumed-Heart confirmation and an extensible
+  consequence queue, then offers Try Again or Lobby. Leaving does not spend a
+  second Heart; Experiment retains its prior diagnostic result flow.
 - The project now routes development through an explicit environment preflight,
   risk-sized deterministic validation and fresh-context QC. The generic
   `quality-graph` Skill is versioned under `Tools/AgentSkills`; this repository
@@ -297,14 +304,14 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `457/457`
-- PlayMode: `255/255`
-- Post-Builder PlayMode: `255/255` (latest Builder-affecting iteration)
+- EditMode: `465/465`
+- PlayMode: `257/257`
+- Post-Builder PlayMode: `257/257` (latest Builder-affecting iteration)
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, UI skin, unique roots, EventSystem and Build Settings
   passed
-- Campaign Builder: the latest Scene-affecting two-pass validation remains
-  Iteration 49; Iterations 50–51 changed no Scene or Campaign Builder structure. The active
+- Campaign Builder: the latest Scene-affecting two-pass validation is
+  Iteration 52. The active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
@@ -413,6 +420,38 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 52 validation result
+
+- Added a pure Campaign result state machine and an extensible failure
+  consequence queue. Campaign success now separates celebration from the
+  committed reward list; Campaign failure separates Continue, Give Up
+  confirmation, future consequences and final Retry/Lobby choice. Experiment
+  continues to use its existing result behavior.
+- The Builder-owned result presentation uses one original victory emblem, a
+  fixed 16-spark celebration pool and five fixed reward rows. It performs no
+  runtime instantiation. Theme 1 danger/action button skins and semantic icons
+  remain attached throughout the failure sequence.
+- Heart ownership remains unchanged: a finite Heart is consumed at Stage
+  start, refunded only by a successful clear and never charged again by Give
+  Up, final Retry or Lobby selection.
+- Campaign Builder passes 5 and 6 both completed successfully. Full EditMode
+  passed `465/465`; full PlayMode passed `257/257`.
+- Two graphics-capable Q2 runs at `1080 x 1920` on Direct3D 11 each passed
+  `1/1`. Their Continue Offer PNGs were byte-identical at SHA-256
+  `114848C2ACBF940BA11F656DB0EB8B8B46A756CBD8E87A588E2EEB6F322F6F1F`;
+  their Final Choice PNGs were byte-identical at SHA-256
+  `6C7C8F549CFD46435E5984897DFC0C61160FF9029B06770ECD98B943B90F17D4`.
+  Both captures contain the expected danger card and action icon pixels, and
+  the two logs contain no RenderTexture creation warning.
+- A read-only fresh-context checker independently inspected the final diff,
+  tests and unique A/B artifacts and returned `PASS` with no severity finding.
+- Package files, ProjectSettings and the user-authored Product save retain
+  their authoritative SHA-256 values. Campaign and Step 10 simulations were
+  not rerun because result presentation does not change content, timing,
+  movement, generation or judgment.
+- Automated evidence cannot certify celebration satisfaction, reveal pacing,
+  portrait-device readability, touch comfort or WebGL/mobile presentation.
 
 ## Iteration 51 validation result
 
