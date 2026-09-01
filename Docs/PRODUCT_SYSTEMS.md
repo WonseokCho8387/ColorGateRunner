@@ -1090,3 +1090,16 @@ The local product foundation is complete when:
   store iteration must replace that state only after real provider readiness,
   pending-order persistence, receipt validation and idempotent grant/confirm
   behavior are implemented and separately approved.
+
+### Iteration 54 Shop/Journey read projections
+
+- Shop presentation now adds product-specific hero asset IDs and semantic
+  reward rows, but quantities still originate only from
+  `CommerceProductCatalog`. No provider, order, receipt or grant boundary is
+  added.
+- Journey presentation derives 18 even-Stage previews through the existing
+  `StageClearRewardPolicy` and compares them with current Catalog/progression
+  state. Collected and current labels are display state only.
+- Journey never calls the milestone grant service and never writes Product
+  save. Existing automatic clear transactions remain the sole reward authority;
+  unavailable future Stages are truthfully Coming Soon.

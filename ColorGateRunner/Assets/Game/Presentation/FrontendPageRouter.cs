@@ -6,7 +6,10 @@ namespace ColorGateRunner.Presentation
     {
         AccountChoice = 0,
         Lobby = 1,
-        Shop = 2
+        Shop = 2,
+        Leaderboard = 3,
+        Journey = 4,
+        Collection = 5
     }
 
     public enum FrontendModal
@@ -138,7 +141,8 @@ namespace ColorGateRunner.Presentation
                     ? FrontendBackResult.ModalClosed
                     : FrontendBackResult.Ignored;
             }
-            if (CurrentPage == FrontendPage.Shop)
+            if (IsLobbyDestination(CurrentPage) &&
+                CurrentPage != FrontendPage.Lobby)
             {
                 return TryShowPage(FrontendPage.Lobby)
                     ? FrontendBackResult.ReturnedToLobby
@@ -168,6 +172,16 @@ namespace ColorGateRunner.Presentation
         private static bool IsValidPage(FrontendPage page) =>
             page == FrontendPage.AccountChoice ||
             page == FrontendPage.Lobby ||
-            page == FrontendPage.Shop;
+            page == FrontendPage.Shop ||
+            page == FrontendPage.Leaderboard ||
+            page == FrontendPage.Journey ||
+            page == FrontendPage.Collection;
+
+        internal static bool IsLobbyDestination(FrontendPage page) =>
+            page == FrontendPage.Lobby ||
+            page == FrontendPage.Shop ||
+            page == FrontendPage.Leaderboard ||
+            page == FrontendPage.Journey ||
+            page == FrontendPage.Collection;
     }
 }

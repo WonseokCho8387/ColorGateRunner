@@ -68,13 +68,21 @@ namespace ColorGateRunner.Editor
                 out Button lobbyBack,
                 out Button lobbySettings,
                 out GameObject shopPage,
+                out GameObject leaderboardPage,
+                out GameObject journeyPage,
+                out GameObject collectionPage,
                 out Button shopNavigation,
                 out Button leaderboardNavigation,
                 out Button homeNavigation,
                 out Button journeyNavigation,
                 out Button collectionNavigation,
                 out GameObject shopNavigationSelection,
+                out GameObject leaderboardNavigationSelection,
                 out GameObject homeNavigationSelection,
+                out GameObject journeyNavigationSelection,
+                out GameObject collectionNavigationSelection,
+                out LobbyPagePager lobbyPagePager,
+                out JourneyPageView journeyPageView,
                 out GameObject currencySlot,
                 out GameObject eventSlot,
                 out GameObject notificationSlot,
@@ -132,6 +140,9 @@ namespace ColorGateRunner.Editor
                 titleRoot,
                 lobbyRoot,
                 shopPage,
+                leaderboardPage,
+                journeyPage,
+                collectionPage,
                 popupRoot,
                 loadingRoot,
                 transitionBlocker,
@@ -157,7 +168,12 @@ namespace ColorGateRunner.Editor
                 journeyNavigation,
                 collectionNavigation,
                 shopNavigationSelection,
+                leaderboardNavigationSelection,
                 homeNavigationSelection,
+                journeyNavigationSelection,
+                collectionNavigationSelection,
+                lobbyPagePager,
+                journeyPageView,
                 currencySlot,
                 eventSlot,
                 notificationSlot,
@@ -174,7 +190,10 @@ namespace ColorGateRunner.Editor
 
             titleRoot.SetActive(true);
             lobbyRoot.SetActive(false);
-            shopPage.SetActive(false);
+            shopPage.SetActive(true);
+            leaderboardPage.SetActive(true);
+            journeyPage.SetActive(true);
+            collectionPage.SetActive(true);
             popupRoot.SetActive(false);
             settingsPanel.gameObject.SetActive(false);
             loadingRoot.SetActive(false);
@@ -186,7 +205,11 @@ namespace ColorGateRunner.Editor
             notificationSlot.SetActive(false);
             lobbyTheme.SetActive(true);
             shopNavigationSelection.SetActive(false);
+            leaderboardNavigationSelection.SetActive(false);
             homeNavigationSelection.SetActive(true);
+            journeyNavigationSelection.SetActive(false);
+            collectionNavigationSelection.SetActive(false);
+            lobbyPagePager.SetPage(FrontendPage.Lobby, false);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -310,7 +333,9 @@ namespace ColorGateRunner.Editor
             {
                 "FrontendCamera", "FrontendCanvas", "SafeAreaRoot",
                 "SharedHeaderRoot", "AccountChoicePageRoot", "LobbyPageRoot",
-                "ShopPageRoot", "LobbyBottomNavigationBar",
+                "LobbyPageViewport", "ShopPageRoot", "LeaderboardPageRoot",
+                "JourneyPageRoot", "CollectionPageRoot",
+                "LobbyBottomNavigationBar",
                 "PopupRoot", "LoadingRoot", "TransitionBlockerRoot",
                 "DevelopmentDebugRoot", "EventSystem",
                 "GuestStartButton", "GoogleProviderButton",
@@ -567,13 +592,21 @@ namespace ColorGateRunner.Editor
             out Button back,
             out Button settings,
             out GameObject shopPage,
+            out GameObject leaderboardPage,
+            out GameObject journeyPage,
+            out GameObject collectionPage,
             out Button shopNavigation,
             out Button leaderboardNavigation,
             out Button homeNavigation,
             out Button journeyNavigation,
             out Button collectionNavigation,
             out GameObject shopNavigationSelection,
+            out GameObject leaderboardNavigationSelection,
             out GameObject homeNavigationSelection,
+            out GameObject journeyNavigationSelection,
+            out GameObject collectionNavigationSelection,
+            out LobbyPagePager lobbyPagePager,
+            out JourneyPageView journeyPageView,
             out GameObject currencySlot,
             out GameObject eventSlot,
             out GameObject notificationSlot,
@@ -581,8 +614,24 @@ namespace ColorGateRunner.Editor
             out LobbyProgressionPanel progressionPanel,
             LobbyThemeVisualCatalog themeVisualCatalog)
         {
-            themeRoot = CreateFlowRoot("LobbyThemeRoot", parent);
+            GameObject viewportObject = new GameObject(
+                "LobbyPageViewport",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(RectMask2D),
+                typeof(LobbyPagePager));
+            viewportObject.transform.SetParent(parent, false);
+            Stretch(viewportObject.GetComponent<RectTransform>());
+            Image viewportImage = viewportObject.GetComponent<Image>();
+            viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+            viewportImage.raycastTarget = true;
+            lobbyPagePager = viewportObject.GetComponent<LobbyPagePager>();
+
+            themeRoot = CreateFlowRoot(
+                "LobbyThemeRoot",
+                viewportObject.transform);
             themeRoot.transform.SetAsFirstSibling();
+            themeRoot.AddComponent<LobbyPageSwipeForwarder>();
             progressionPanel = themeRoot.AddComponent<LobbyProgressionPanel>();
             Image background = CreatePanel(
                 "LobbyThemeBackground",
@@ -807,7 +856,25 @@ namespace ColorGateRunner.Editor
                 themeVisualCatalog,
                 visuals);
 
-            shopPage = CreateShopPage(parent);
+            shopPage = CreateShopPage(
+                viewportObject.transform,
+                lobbyPagePager);
+            leaderboardPage = CreateComingSoonPage(
+                viewportObject.transform,
+                "LeaderboardPageRoot",
+                "RANK",
+                "COMPETITIVE CIRCUITS ARE BEING CALIBRATED",
+                lobbyPagePager);
+            journeyPage = CreateJourneyPage(
+                viewportObject.transform,
+                lobbyPagePager,
+                out journeyPageView);
+            collectionPage = CreateComingSoonPage(
+                viewportObject.transform,
+                "CollectionPageRoot",
+                "COLLECTION",
+                "NEW COLLECTIONS ARE BEING ASSEMBLED",
+                lobbyPagePager);
             CreateLobbyNavigation(
                 parent,
                 out shopNavigation,
@@ -816,10 +883,343 @@ namespace ColorGateRunner.Editor
                 out journeyNavigation,
                 out collectionNavigation,
                 out shopNavigationSelection,
-                out homeNavigationSelection);
+                out leaderboardNavigationSelection,
+                out homeNavigationSelection,
+                out journeyNavigationSelection,
+                out collectionNavigationSelection);
+
+            lobbyPagePager.Configure(
+                viewportObject.GetComponent<RectTransform>(),
+                new[]
+                {
+                    shopPage.GetComponent<RectTransform>(),
+                    leaderboardPage.GetComponent<RectTransform>(),
+                    themeRoot.GetComponent<RectTransform>(),
+                    journeyPage.GetComponent<RectTransform>(),
+                    collectionPage.GetComponent<RectTransform>()
+                },
+                new[]
+                {
+                    shopNavigation,
+                    leaderboardNavigation,
+                    homeNavigation,
+                    journeyNavigation,
+                    collectionNavigation
+                },
+                new[]
+                {
+                    shopNavigationSelection,
+                    leaderboardNavigationSelection,
+                    homeNavigationSelection,
+                    journeyNavigationSelection,
+                    collectionNavigationSelection
+                });
+            LobbyPageSwipeForwarder[] forwarders =
+                viewportObject.GetComponentsInChildren<
+                    LobbyPageSwipeForwarder>(true);
+            for (int index = 0; index < forwarders.Length; index++)
+            {
+                forwarders[index].Configure(lobbyPagePager);
+            }
         }
 
-        private static GameObject CreateShopPage(Transform parent)
+        private static GameObject CreateComingSoonPage(
+            Transform parent,
+            string rootName,
+            string titleText,
+            string messageText,
+            LobbyPagePager pagePager)
+        {
+            GameObject root = CreateFlowRoot(rootName, parent);
+            root.AddComponent<LobbyPageSwipeForwarder>().Configure(pagePager);
+            Image background = CreatePanel(
+                rootName.Replace("Root", "Background"),
+                root.transform,
+                Vector2.zero,
+                Vector2.one,
+                FromHex(0x07152A)).GetComponent<Image>();
+            background.raycastTarget = true;
+            Image glow = CreatePanel(
+                "ComingSoonGlow",
+                root.transform,
+                new Vector2(0.08f, 0.29f),
+                new Vector2(0.92f, 0.72f),
+                new Color(0.05f, 0.58f, 0.78f, 0.18f))
+                .GetComponent<Image>();
+            glow.raycastTarget = false;
+            Text title = CreateText(
+                "ComingSoonPageTitle",
+                root.transform,
+                titleText,
+                38,
+                new Vector2(0.12f, 0.58f),
+                new Vector2(0.88f, 0.67f));
+            title.color = FromHex(0xE8FCFF);
+            Text status = CreateText(
+                "ComingSoonStatus",
+                root.transform,
+                "COMING SOON",
+                28,
+                new Vector2(0.16f, 0.48f),
+                new Vector2(0.84f, 0.56f));
+            status.color = FromHex(0x67E8F9);
+            Text message = CreateText(
+                "ComingSoonMessage",
+                root.transform,
+                messageText,
+                15,
+                new Vector2(0.14f, 0.41f),
+                new Vector2(0.86f, 0.48f));
+            message.color = new Color(0.75f, 0.88f, 0.95f, 0.82f);
+            return root;
+        }
+
+        private static GameObject CreateJourneyPage(
+            Transform parent,
+            LobbyPagePager pagePager,
+            out JourneyPageView journeyPageView)
+        {
+            GameObject root = CreateFlowRoot("JourneyPageRoot", parent);
+            Image background = CreatePanel(
+                "JourneyBackground",
+                root.transform,
+                Vector2.zero,
+                Vector2.one,
+                FromHex(0x07152A)).GetComponent<Image>();
+            background.raycastTarget = false;
+            Image glow = CreatePanel(
+                "JourneyHeaderGlow",
+                root.transform,
+                new Vector2(0f, 0.72f),
+                Vector2.one,
+                new Color(0.17f, 0.18f, 0.62f, 0.34f))
+                .GetComponent<Image>();
+            glow.raycastTarget = false;
+            Text title = CreateText(
+                "JourneyTitleText",
+                root.transform,
+                "NEON JOURNEY",
+                34,
+                new Vector2(0.14f, 0.78f),
+                new Vector2(0.86f, 0.85f));
+            title.color = FromHex(0xE8FCFF);
+            Text progress = CreateText(
+                "JourneyProgressText",
+                root.transform,
+                "0 / 18  •  NEXT STAGE 2",
+                15,
+                new Vector2(0.10f, 0.735f),
+                new Vector2(0.90f, 0.78f));
+            progress.color = FromHex(0x7DDAFF);
+
+            GameObject scrollObject = new GameObject(
+                "JourneyScrollView",
+                typeof(RectTransform),
+                typeof(ScrollRect),
+                typeof(LobbyPageSwipeForwarder));
+            scrollObject.transform.SetParent(root.transform, false);
+            SetAnchors(
+                scrollObject.GetComponent<RectTransform>(),
+                new Vector2(0.035f, 0.125f),
+                new Vector2(0.965f, 0.73f));
+            scrollObject.GetComponent<LobbyPageSwipeForwarder>()
+                .Configure(pagePager);
+
+            GameObject viewportObject = new GameObject(
+                "Viewport",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(RectMask2D));
+            viewportObject.transform.SetParent(scrollObject.transform, false);
+            Stretch(viewportObject.GetComponent<RectTransform>());
+            Image viewportImage = viewportObject.GetComponent<Image>();
+            viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+
+            GameObject contentObject = new GameObject(
+                "Content",
+                typeof(RectTransform));
+            contentObject.transform.SetParent(viewportObject.transform, false);
+            RectTransform contentRect = contentObject.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.offsetMin = Vector2.zero;
+            contentRect.offsetMax = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(0f, 4200f);
+
+            Image path = CreatePanel(
+                "JourneyPath",
+                contentRect,
+                new Vector2(0.492f, 0.035f),
+                new Vector2(0.508f, 0.965f),
+                FromHex(0x155E75)).GetComponent<Image>();
+            path.raycastTarget = false;
+
+            string[] chapterNames =
+            {
+                "CHAPTER 1  •  COLOR COURTYARD",
+                "CHAPTER 2  •  NEON GARDEN",
+                "CHAPTER 3  •  SKY FESTIVAL"
+            };
+            for (int chapter = 0; chapter < chapterNames.Length; chapter++)
+            {
+                float y = 0.012f + (chapter * 0.31f);
+                Text chapterLabel = CreateText(
+                    $"JourneyChapter_{chapter + 1}",
+                    contentRect,
+                    chapterNames[chapter],
+                    20,
+                    new Vector2(0.12f, y),
+                    new Vector2(0.88f, y + 0.035f));
+                chapterLabel.color = chapter == 0
+                    ? FromHex(0x67E8F9)
+                    : chapter == 1
+                        ? FromHex(0xC084FC)
+                        : FromHex(0x5EEAD4);
+            }
+
+            var milestoneViews = new JourneyMilestoneView[
+                JourneyMilestonePresentation.TotalMilestones];
+            for (int index = 0; index < milestoneViews.Length; index++)
+            {
+                milestoneViews[index] = CreateJourneyMilestone(
+                    contentRect,
+                    index);
+            }
+
+            ScrollRect scroll = scrollObject.GetComponent<ScrollRect>();
+            scroll.viewport = viewportObject.GetComponent<RectTransform>();
+            scroll.content = contentRect;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Elastic;
+            scroll.elasticity = 0.08f;
+            scroll.inertia = true;
+            scroll.decelerationRate = 0.12f;
+            scroll.scrollSensitivity = 42f;
+            journeyPageView = root.AddComponent<JourneyPageView>();
+            journeyPageView.Configure(
+                scroll,
+                contentRect,
+                progress,
+                milestoneViews);
+            glow.transform.SetAsLastSibling();
+            title.transform.SetAsLastSibling();
+            progress.transform.SetAsLastSibling();
+            return root;
+        }
+
+        private static JourneyMilestoneView CreateJourneyMilestone(
+            Transform parent,
+            int index)
+        {
+            float centerY = 0.065f + (index * (0.87f / 17f));
+            bool left = index % 2 == 0;
+            Vector2 min = new Vector2(left ? 0.035f : 0.545f, centerY - 0.021f);
+            Vector2 max = new Vector2(left ? 0.455f : 0.965f, centerY + 0.021f);
+            GameObject root = CreatePanel(
+                $"JourneyMilestoneCard_{index + 1}",
+                parent,
+                min,
+                max,
+                Color.white);
+            Image card = root.GetComponent<Image>();
+            card.raycastTarget = false;
+
+            Image nodeGlow = CreatePanel(
+                "MilestoneNodeGlow",
+                parent,
+                new Vector2(0.478f, centerY - 0.006f),
+                new Vector2(0.522f, centerY + 0.006f),
+                FromHex(0x67E8F9)).GetComponent<Image>();
+            nodeGlow.raycastTarget = false;
+            nodeGlow.rectTransform.localEulerAngles =
+                new Vector3(0f, 0f, 45f);
+
+            Text stage = CreateText(
+                "StageText",
+                root.transform,
+                $"STAGE {(index + 1) * 2}",
+                20,
+                new Vector2(0.07f, 0.55f),
+                new Vector2(0.62f, 0.90f));
+            stage.alignment = TextAnchor.MiddleLeft;
+            Text state = CreateText(
+                "StateText",
+                root.transform,
+                "LOCKED",
+                12,
+                new Vector2(0.58f, 0.57f),
+                new Vector2(0.94f, 0.88f));
+            state.alignment = TextAnchor.MiddleRight;
+            state.color = FromHex(0xA5F3FC);
+
+            CreateJourneyRewardChip(
+                root.transform,
+                "CoinReward",
+                "Coin",
+                new Vector2(0.06f, 0.08f),
+                new Vector2(0.34f, 0.52f),
+                out Text coinText);
+            GameObject shieldRoot = CreateJourneyRewardChip(
+                root.transform,
+                "ShieldReward",
+                "Shield",
+                new Vector2(0.36f, 0.08f),
+                new Vector2(0.64f, 0.52f),
+                out Text shieldText);
+            GameObject boosterRoot = CreateJourneyRewardChip(
+                root.transform,
+                "BoosterReward",
+                "Booster",
+                new Vector2(0.66f, 0.08f),
+                new Vector2(0.94f, 0.52f),
+                out Text boosterText);
+
+            JourneyMilestoneView view = root.AddComponent<JourneyMilestoneView>();
+            view.Configure(
+                card,
+                nodeGlow,
+                stage,
+                state,
+                coinText,
+                shieldRoot,
+                shieldText,
+                boosterRoot,
+                boosterText);
+            return view;
+        }
+
+        private static GameObject CreateJourneyRewardChip(
+            Transform parent,
+            string name,
+            string iconName,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            out Text amount)
+        {
+            GameObject root = CreateFlowRoot(name, parent);
+            SetAnchors(root.GetComponent<RectTransform>(), anchorMin, anchorMax);
+            Theme01UiSkinBuilder.AddStandaloneIcon(
+                "Icon",
+                root.transform,
+                iconName,
+                new Vector2(0f, 0.08f),
+                new Vector2(0.48f, 0.92f));
+            amount = CreateText(
+                "Amount",
+                root.transform,
+                "0",
+                13,
+                new Vector2(0.45f, 0f),
+                Vector2.one);
+            amount.alignment = TextAnchor.MiddleLeft;
+            return root;
+        }
+
+        private static GameObject CreateShopPage(
+            Transform parent,
+            LobbyPagePager pagePager)
         {
             GameObject root = CreateFlowRoot("ShopPageRoot", parent);
             root.transform.SetSiblingIndex(1);
@@ -911,6 +1311,9 @@ namespace ColorGateRunner.Editor
             scroll.inertia = true;
             scroll.decelerationRate = 0.12f;
             scroll.scrollSensitivity = 42f;
+            LobbyPageSwipeForwarder forwarder =
+                scrollObject.AddComponent<LobbyPageSwipeForwarder>();
+            forwarder.Configure(pagePager);
             ShopPageView shopPageView = root.AddComponent<ShopPageView>();
             shopPageView.Configure(scroll, contentRect);
 
@@ -971,8 +1374,8 @@ namespace ColorGateRunner.Editor
                 Color.white);
             LayoutElement element = root.AddComponent<LayoutElement>();
             element.preferredHeight = card.Section == ShopProductSection.Featured
-                ? 245f
-                : 180f;
+                ? 280f
+                : 220f;
 
             Color accent = card.Section == ShopProductSection.Featured
                 ? FromHex(0xFF7A1A)
@@ -988,27 +1391,33 @@ namespace ColorGateRunner.Editor
             Image iconBack = CreatePanel(
                 "RewardIconBack",
                 root.transform,
-                new Vector2(0.04f, 0.20f),
-                new Vector2(0.28f, 0.80f),
+                new Vector2(0.025f, 0.08f),
+                new Vector2(0.34f, 0.92f),
                 new Color(accent.r, accent.g, accent.b, 0.22f))
                 .GetComponent<Image>();
             iconBack.raycastTarget = false;
-            Theme01UiSkinBuilder.AddStandaloneIcon(
-                "RewardIcon",
-                root.transform,
-                card.Section == ShopProductSection.CoinVault
-                    ? "Coin"
-                    : "Booster",
-                new Vector2(0.075f, 0.27f),
-                new Vector2(0.245f, 0.73f));
+            var heroObject = new GameObject(
+                "PackageHeroIcon",
+                typeof(RectTransform),
+                typeof(Image));
+            heroObject.transform.SetParent(root.transform, false);
+            SetAnchors(
+                heroObject.GetComponent<RectTransform>(),
+                new Vector2(0.035f, 0.10f),
+                new Vector2(0.33f, 0.90f));
+            Image hero = heroObject.GetComponent<Image>();
+            hero.sprite = Theme01UiSkinBuilder.LoadShopHeroIcon(
+                card.HeroIconName);
+            hero.preserveAspect = true;
+            hero.raycastTarget = false;
 
             Text badge = CreateText(
                 "BadgeText",
                 root.transform,
                 card.Badge,
                 13,
-                new Vector2(0.31f, 0.69f),
-                new Vector2(0.53f, 0.88f));
+                new Vector2(0.36f, 0.71f),
+                new Vector2(0.59f, 0.90f));
             badge.alignment = TextAnchor.MiddleLeft;
             badge.color = accent;
             Text title = CreateText(
@@ -1016,29 +1425,58 @@ namespace ColorGateRunner.Editor
                 root.transform,
                 card.Title,
                 25,
-                new Vector2(0.31f, 0.42f),
+                new Vector2(0.36f, 0.45f),
                 new Vector2(0.94f, 0.72f));
             title.alignment = TextAnchor.MiddleLeft;
-            Text rewards = CreateText(
-                "RewardSummaryText",
-                root.transform,
-                card.RewardSummary,
-                14,
-                new Vector2(0.31f, 0.19f),
-                new Vector2(0.68f, 0.46f));
-            rewards.alignment = TextAnchor.MiddleLeft;
-            rewards.color = FromHex(0xB9D9E8);
+            CreateShopRewardChips(root.transform, card.RewardItems);
 
             Button action = CreateButton(
                 "ShopUnavailablePurchaseButton",
                 root.transform,
                 card.ActionLabel,
-                new Vector2(0.70f, 0.14f),
-                new Vector2(0.95f, 0.42f),
+                new Vector2(0.73f, 0.10f),
+                new Vector2(0.96f, 0.39f),
                 FromHex(0x334155),
                 out Text actionLabel);
             action.interactable = false;
             actionLabel.fontSize = 13;
+        }
+
+        private static void CreateShopRewardChips(
+            Transform parent,
+            IReadOnlyList<ShopRewardItemModel> rewardItems)
+        {
+            int count = rewardItems.Count;
+            float areaMin = 0.36f;
+            float areaMax = 0.71f;
+            float width = (areaMax - areaMin) / Mathf.Max(1, count);
+            for (int index = 0; index < count; index++)
+            {
+                ShopRewardItemModel reward = rewardItems[index];
+                float left = areaMin + (index * width);
+                float right = left + width;
+                GameObject chip = CreateFlowRoot(
+                    $"RewardChip_{reward.IconName}",
+                    parent);
+                SetAnchors(
+                    chip.GetComponent<RectTransform>(),
+                    new Vector2(left, 0.08f),
+                    new Vector2(right, 0.43f));
+                Theme01UiSkinBuilder.AddStandaloneIcon(
+                    "Icon",
+                    chip.transform,
+                    reward.IconName,
+                    new Vector2(0.08f, 0.34f),
+                    new Vector2(0.92f, 0.98f));
+                Text amount = CreateText(
+                    "Amount",
+                    chip.transform,
+                    reward.Amount,
+                    12,
+                    new Vector2(0f, 0f),
+                    new Vector2(1f, 0.38f));
+                amount.color = FromHex(0xE8FCFF);
+            }
         }
 
         private static void CreateLobbyNavigation(
@@ -1049,7 +1487,10 @@ namespace ColorGateRunner.Editor
             out Button journey,
             out Button collection,
             out GameObject shopSelection,
-            out GameObject homeSelection)
+            out GameObject leaderboardSelection,
+            out GameObject homeSelection,
+            out GameObject journeySelection,
+            out GameObject collectionSelection)
         {
             GameObject bar = CreatePanel(
                 "LobbyBottomNavigationBar",
@@ -1065,20 +1506,17 @@ namespace ColorGateRunner.Editor
                 out shopSelection);
             leaderboard = CreateNavigationButton(
                 "LeaderboardNavigationButton", bar.transform, "RANK", 1,
-                out GameObject leaderboardSelection);
+                out leaderboardSelection);
             home = CreateNavigationButton(
                 "HomeNavigationButton", bar.transform, "HOME", 2,
                 out homeSelection);
             journey = CreateNavigationButton(
                 "JourneyNavigationButton", bar.transform, "JOURNEY", 3,
-                out GameObject journeySelection);
+                out journeySelection);
             collection = CreateNavigationButton(
                 "CollectionNavigationButton", bar.transform, "COLLECTION", 4,
-                out GameObject collectionSelection);
+                out collectionSelection);
 
-            leaderboard.interactable = false;
-            journey.interactable = false;
-            collection.interactable = false;
             leaderboardSelection.SetActive(false);
             journeySelection.SetActive(false);
             collectionSelection.SetActive(false);

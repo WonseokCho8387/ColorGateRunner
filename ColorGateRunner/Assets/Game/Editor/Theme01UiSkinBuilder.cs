@@ -27,6 +27,14 @@ namespace ColorGateRunner.Editor
             "Red", "Blue", "Green", "Yellow", "Purple", "Cyan"
         };
 
+        private static readonly string[] ShopHeroIconNames =
+        {
+            "ShopCoinStack", "ShopCoinPouchSmall", "ShopCoinPouchLarge",
+            "ShopCoinChestSmall", "ShopCoinChestLarge", "ShopCoinCart",
+            "ShopBundlePouch", "ShopBundleBox", "ShopBundleChest",
+            "ShopBundleChestLarge", "ShopBundleCart"
+        };
+
         internal static void EnsureAndConfigure()
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -41,6 +49,14 @@ namespace ColorGateRunner.Editor
             }
 
             ConfigureSprite("VictoryEmblem", false, 512f);
+
+            for (int index = 0; index < ShopHeroIconNames.Length; index++)
+            {
+                ConfigureSprite(
+                    "Shop/" + ShopHeroIconNames[index],
+                    false,
+                    512f);
+            }
 
             for (int index = 0; index < ColorEmblemNames.Length; index++)
             {
@@ -75,6 +91,17 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Theme01 victory emblem is missing: VictoryEmblem");
+            }
+            return result;
+        }
+
+        internal static Sprite LoadShopHeroIcon(string iconName)
+        {
+            Sprite result = LoadSprite("Shop/" + iconName);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme01 Shop hero icon is missing: {iconName}");
             }
             return result;
         }
@@ -344,7 +371,7 @@ namespace ColorGateRunner.Editor
             importer.filterMode = FilterMode.Bilinear;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
-            importer.maxTextureSize = 256;
+            importer.maxTextureSize = pixelsPerUnit >= 512f ? 512 : 256;
             importer.SaveAndReimport();
         }
     }

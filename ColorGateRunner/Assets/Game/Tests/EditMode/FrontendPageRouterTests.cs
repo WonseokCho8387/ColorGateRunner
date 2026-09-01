@@ -38,17 +38,45 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ShopBack_ReturnsToLobbyWithoutExitModal()
+        public void EveryNonHomeLobbyPage_BackReturnsHomeWithoutExitModal()
         {
-            var router = new FrontendPageRouter(FrontendPage.Lobby);
+            FrontendPage[] destinations =
+            {
+                FrontendPage.Shop,
+                FrontendPage.Leaderboard,
+                FrontendPage.Journey,
+                FrontendPage.Collection
+            };
+            for (int index = 0; index < destinations.Length; index++)
+            {
+                var router = new FrontendPageRouter(FrontendPage.Lobby);
+                Assert.That(router.TryShowPage(destinations[index]), Is.True);
+                Assert.That(
+                    router.HandleBack(),
+                    Is.EqualTo(FrontendBackResult.ReturnedToLobby));
+                Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Lobby));
+                Assert.That(router.CurrentModal, Is.EqualTo(FrontendModal.None));
+            }
+        }
 
-            Assert.That(router.TryShowPage(FrontendPage.Shop), Is.True);
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Shop));
-            Assert.That(
-                router.HandleBack(),
-                Is.EqualTo(FrontendBackResult.ReturnedToLobby));
-            Assert.That(router.CurrentPage, Is.EqualTo(FrontendPage.Lobby));
-            Assert.That(router.CurrentModal, Is.EqualTo(FrontendModal.None));
+        [Test]
+        public void LobbyPageOrder_MatchesPersistentNavigationOrder()
+        {
+            FrontendPage[] expected =
+            {
+                FrontendPage.Shop,
+                FrontendPage.Leaderboard,
+                FrontendPage.Lobby,
+                FrontendPage.Journey,
+                FrontendPage.Collection
+            };
+            for (int index = 0; index < expected.Length; index++)
+            {
+                Assert.That(LobbyPageOrder.FromIndex(index),
+                    Is.EqualTo(expected[index]));
+                Assert.That(LobbyPageOrder.ToIndex(expected[index]),
+                    Is.EqualTo(index));
+            }
         }
 
         [Test]

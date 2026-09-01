@@ -3229,3 +3229,50 @@ Human feedback required
 - Rank, Journey and Collection pages, final product illustrations, localized
   provider prices, Unity IAP initialization, receipts, grants, Shop entry from
   insufficient-Coin flows, audio and animation remain separate iterations.
+
+## Iteration 54 — Lobby Pager, Shop Art and Journey Progression
+
+### Play / Analyze
+
+- The five destinations were legible but three were disabled, so the bottom
+  navigation did not yet behave like one continuous mobile surface. Shop cards
+  also relied on text and generic summaries, making package volume difficult to
+  judge at a glance.
+- Existing automatic Lobby milestones already owned reward timing and Product
+  transactions. Journey therefore needed to expose that history and future
+  path without adding a second Claim economy.
+
+### Design / Implementation
+
+- Added a fixed-shell, five-page horizontal pager in the exact Shop, Rank,
+  Home, Journey, Collection order. Swipe arbitration locks to one axis, moves
+  at most one adjacent page and preserves vertical Shop/Journey scrolling.
+- Added truthful Rank and Collection Coming Soon surfaces. All non-Home Back
+  paths return Home.
+- Added original transparent Shop illustrations with an escalating pouch,
+  box, chest and overflowing-cart silhouette. Each of 11 products has a unique
+  hero mapping, while existing semantic Coin, Shield, Booster, Continue and
+  Heart glyphs show exact included amounts. Store actions remain offline.
+- Added an 18-node Stage 2-36 Journey path using the existing automatic
+  milestone reward policy. It presents Collected, Current, Locked and Coming
+  Soon states and never grants, claims or saves.
+
+### Validation / Learning
+
+- Frontend Builder passed twice. Full EditMode passed `473/473`; full PlayMode
+  passed `259` cases with one intentional opt-in visual ignore.
+- Direct3D 11 visual QC passed `1/1` at `1080 x 1920` with eight captures. The
+  captures cover the Shop's top, large bundle and Coin Vault depths plus the
+  current and Coming Soon Journey positions.
+- A fresh-context checker returned `PASS` with no finding. Package,
+  ProjectSettings and Product implementation files have no diff. The actual
+  Product save predates validation and remained unchanged.
+- Keeping Journey as a projection makes automatic rewards discoverable without
+  creating an ambiguous Claim state or duplicate persistence authority.
+
+### Deferred / Human Review
+
+- Portrait-device and WebGL review still owns swipe distance, vertical/horizontal
+  gesture comfort, Shop density, icon appeal and Journey scroll feel.
+- Rank, Collection, live store prices/purchases, receipts, grants, animation,
+  audio, haptics and Journey chapter rewards remain separate iterations.

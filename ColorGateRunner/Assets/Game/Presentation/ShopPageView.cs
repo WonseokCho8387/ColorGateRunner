@@ -10,6 +10,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private RectTransform contentRoot;
 
         internal RectTransform ContentRoot => contentRoot;
+        internal ScrollRect ScrollRect => scrollRect;
 
         internal void Configure(
             ScrollRect configuredScrollRect,
@@ -24,6 +25,12 @@ namespace ColorGateRunner.Presentation
             scrollRect.content == contentRoot;
 
         private void OnEnable()
+        {
+            RefreshLayout();
+            StartCoroutine(RefreshLayoutNextFrame());
+        }
+
+        internal void OnPageShown()
         {
             RefreshLayout();
             StartCoroutine(RefreshLayoutNextFrame());

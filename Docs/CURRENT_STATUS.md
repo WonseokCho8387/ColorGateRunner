@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `3825d61351d416ff849b12801269cade0276dfb8`
-- Base commit: `fix: hide heart refund result copy`
+- Implementation base HEAD: `5f86a9033ed1b28d52749fcdb7159501a54bd47f`
+- Base commit: `feat: add lobby navigation and shop layout`
 - Authoritative completion HEAD: the commit named
-  `feat: add lobby navigation and shop layout`; its exact hash is recorded
-  in the Iteration 53 final report because a commit cannot contain
+  `feat: add lobby pager and journey progression`; its exact hash is recorded
+  in the Iteration 54 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,17 +23,25 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 53 — Lobby Navigation and Shop Layout**.
+- Current completed iteration: **Iteration 54 — Lobby Pager, Shop Art and Journey Progression**.
 - Frontend now uses a persistent five-tab portrait navigation shell inspired
   by the approved information hierarchy while retaining original Theme 1 neon
-  surfaces and geometric glyphs. Home and Shop are actionable; Rank, Journey
-  and Collection remain visible but truthfully disabled until their systems
-  exist. Shop Back returns to Home without opening the app-exit confirmation.
+  surfaces and geometric glyphs. Its horizontal order is Shop, Rank, Home,
+  Journey and Collection. Tabs and one-page swipes navigate the same pager;
+  vertical Shop and Journey scrolling does not page. Back from every non-Home
+  destination returns Home without opening the app-exit confirmation.
 - Shop is a vertical catalog preview over the shared Profile / Coin / Heart /
   Settings shell. It displays all 11 existing local catalog definitions as
-  five Featured Circuit bundles followed by six Coin Vault packs. Every action
-  is disabled and labeled `STORE OFFLINE`; no price, order, receipt or grant is
-  simulated.
+  five Featured Circuit bundles followed by six Coin Vault packs. Original
+  pouch, box, chest and overflowing-cart art communicates package volume, and
+  semantic reward glyphs expose exact quantities. Every action is disabled and
+  labeled `STORE OFFLINE`; no price, order, receipt or grant is simulated.
+- Journey is a read-only vertical projection of the existing automatic Lobby
+  milestone policy. It shows 18 Stage 2-36 rewards as Collected, Current,
+  Locked or Coming Soon; with the current 26-Stage Catalog, Stages 28-36 are
+  truthful Coming Soon entries. It has no Claim action and writes no save.
+- Rank and Collection open as truthful `COMING SOON` pages rather than disabled
+  tabs or simulated systems.
 - Campaign Clear now opens with an original victory emblem and a fixed-pool
   firework celebration, then reveals only rewards actually committed by the
   clear transaction. Campaign failure first presents Continue cost and the
@@ -356,18 +364,17 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 702, profile/Guest ID
+- Schema 3, revision 706, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
-  with 6 records, 48,600 Coins, 8 Shields, 8 Boosters, 4 Hearts and 0 Continue
+  with 6 records, 48,600 Coins, 8 Shields, 8 Boosters, 5 Hearts and 0 Continue
   Tickets.
 - SHA-256:
-  `CBC96750762F099247510F3F30A1172CD999B503A724B526E771A258443B8D4C`.
-- This user-authored play state was written while the interactive Editor was
-  open, before Iteration 52A automated validation began. Its `LastWriteUtc` is
-  `2026-08-31T09:17:26.3776645Z`; the targeted test began at `09:50:47Z` and
-  the full PlayMode suite began at `09:54:04Z`, so validation did not restore
-  or mutate this file. Developer Console mutations still occur only after an
-  explicit Apply, Reset, or Unlock action.
+  `B8904C3088FC02973B34CD0653EB7D2F2873F0996692CBB51C23D33AFD5BD113`.
+- This user-authored play state was written before Iteration 54 validation. Its
+  `LastWriteUtc` is `2026-09-01T09:01:14.1002799Z`; the first Iteration 54
+  Builder began after `09:07Z`, and the file remained byte- and timestamp-exact
+  through final validation. Developer Console mutations still occur only after
+  an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 
@@ -446,6 +453,28 @@ All three entries are expected to be enabled and unique.
   baseline.
 
 ## Latest Iteration Result and History
+
+## Iteration 54 validation result
+
+- Added the five-page horizontal Lobby pager, truthful Rank/Collection Coming
+  Soon pages, package-volume Shop art and the read-only Journey milestone path.
+- Frontend Builder completed two consecutive final passes. Full EditMode passed
+  `473/473`; full PlayMode passed `259` cases with one opt-in visual capture
+  intentionally ignored and no failures.
+- A graphics-capable Direct3D 11 run at `1080 x 1920` passed `1/1` and produced
+  eight captures covering Home, three Shop depths, Rank, two Journey positions
+  and Collection. Original package art is cleanly cropped, reward glyphs and
+  quantities are visible, and Stages 28-36 identify unavailable content as
+  `COMING SOON`.
+- The fresh-context independent checker returned `PASS` with no finding after
+  reviewing pager arbitration, Shop/Journey projection rules, tests, Builder
+  evidence and rendered captures. No checker repair was required.
+- Missing Script/reference, unique generated root, one EventSystem and Build
+  Settings checks passed through the Builder. Package and ProjectSettings have
+  no diff. Product save timestamp predates validation and remained unchanged.
+- Campaign and Step 10 simulations and Player builds were omitted because no
+  deterministic gameplay, balance, timing, generation or judgment input
+  changed and the user owns Android/WebGL builds.
 
 ## Iteration 52A validation result
 

@@ -985,6 +985,22 @@ not reusable art assets or an exact visual copy.
   Shop resets the scroll position; Back returns to Home.
 - Rank, Journey and Collection layouts remain later iterations. Their visible
   tabs communicate the intended product structure but never open placeholders.
+
+## Implemented UX slice — Iteration 54 Lobby pager and Journey
+
+- The shared Lobby shell owns one horizontal viewport ordered Shop, Rank,
+  Home, Journey and Collection. The Profile/Coin/Heart/Settings header and
+  bottom navigation remain fixed while page content moves beneath them.
+- A committed horizontal drag requests only the adjacent page. A committed
+  vertical drag remains owned by the active Shop or Journey ScrollRect. Tab
+  taps may select any destination directly, and Back from any non-Home page
+  restores Home.
+- Rank and Collection are navigable `COMING SOON` pages with no fake service
+  state. Shop remains a disabled catalog preview.
+- Journey uses a vertical alternating milestone path, focuses the current/next
+  automatic reward and labels catalog-external future stages Coming Soon. It
+  has no Claim button or navigation side effect.
+
 ## Iteration 21 failure offer hierarchy
 
 - Campaign failure actions are ordered by owned Continue Ticket, real

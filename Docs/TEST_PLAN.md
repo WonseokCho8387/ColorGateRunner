@@ -1015,3 +1015,24 @@ fairness, or polish.
   unchanged. Campaign and Step 10 simulations and Player builds are excluded
   because no deterministic gameplay, balance, timing, judgment or release
   artifact changes.
+
+### Iteration 54 Lobby pager, Shop art and Journey progression
+
+- EditMode must prove the exact five-page order, Back-to-Home routing, all 11
+  unique Shop hero mappings and semantic reward quantities, plus 18 Journey
+  milestones and their Collected/Current/Locked/Coming Soon state boundaries.
+- PlayMode must prove all five tabs navigate, horizontal drag moves exactly one
+  adjacent page, vertical drag does not page, Rank/Collection are truthful,
+  Journey exposes 18 views and Shop exposes 11 hero images without enabling a
+  store action.
+- Frontend Builder runs twice. Generated references, one generated root, one
+  EventSystem, no Missing Script/reference and Build Settings order remain
+  mandatory.
+- Visual QC runs on D3D11 at `1080 x 1920` and captures Home, three Shop
+  depths, Rank, two Journey positions and Collection. It checks clipping,
+  overlap, package-volume hierarchy and truthful unavailable states, but not
+  device gesture feel or commercial appeal.
+- Final evidence: Builder `2/2`; EditMode `473/473`; PlayMode `259` passed,
+  zero failed and one opt-in visual capture ignored; graphics capture `1/1`;
+  fresh-context checker `PASS`. Campaign/Step 10 simulations and Player builds
+  are excluded because gameplay inputs and release artifacts do not change.

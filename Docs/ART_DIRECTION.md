@@ -937,3 +937,18 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Human portrait/mobile/WebGL review owns emblem scale, firework satisfaction,
   reveal pace, text density, touch comfort and whether the hierarchy reads
   clearly under the frozen gameplay background.
+
+## Iteration 54 Shop volume and Journey path
+
+- Shop hero illustrations are original transparent neon sci-fi assets that
+  retain Theme 1 Cyan, Gold, Coral and dark-alloy materials. Reward scale must
+  read from silhouette before copy: pouch, box, chest, then an overflowing
+  treasure cart for the largest offers.
+- Product cards pair the hero with existing semantic Coin, Shield, Booster,
+  Continue and Heart glyphs plus exact amounts. Decorative art must not replace
+  or obscure the authoritative contents.
+- Journey uses a restrained central Cyan rail, small diamond nodes and
+  alternating dark-alloy reward cards. Current uses bright Cyan, collected
+  uses green, locked is subdued and Coming Soon remains visibly unavailable.
+- Fixed header and navigation surfaces own the foreground. Scroll content may
+  pass beneath them but must not cover their copy or controls.

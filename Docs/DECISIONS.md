@@ -1724,3 +1724,17 @@ Status: Approved and implemented.
   initialization, Firebase, networking, analytics or real-money purchasing.
 - Home and Shop share one top wallet and bottom navigation shell. Device Back
   from Shop returns Home; app-exit confirmation remains a Home-only behavior.
+
+## Iteration 54 — Lobby destinations form one pager and Journey stays automatic
+
+- The persistent bottom destination order is Shop, Rank, Home, Journey and
+  Collection. A horizontal swipe moves at most one adjacent page; tab taps may
+  jump directly. Vertical page scrolling wins after vertical direction lock.
+- Rank and Collection are navigable truthful Coming Soon pages. They expose no
+  placeholder success, network result or reward.
+- Shop hero art communicates relative volume with pouch, box, chest and
+  overflowing-cart silhouettes. Exact contents remain derived from the local
+  commerce catalog and every purchase action remains `STORE OFFLINE`.
+- Journey is a read-only presentation of the existing automatic even-Stage
+  milestone policy. It never introduces Claim, pending reward, a new ledger or
+  a Product save write. Catalog-external milestones remain Coming Soon.

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using ColorGateRunner.Core;
 using ColorGateRunner.Presentation;
 using ColorGateRunner.Product;
@@ -173,7 +174,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator LobbyNavigation_HomeAndShopShareShellWithTruthfulLocks()
+        public IEnumerator LobbyNavigation_AllTabsShareShellAndDeferredPagesAreTruthful()
         {
             yield return LoadFrontendThroughBoot(() =>
                 CreateGraph(new ExistingGuestSaveService(true)));
@@ -183,13 +184,13 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendPage.Lobby));
             Assert.That(controller.HomeNavigationSelection.activeSelf, Is.True);
             Assert.That(controller.ShopNavigationSelection.activeSelf, Is.False);
-            Assert.That(controller.ShopPageRoot.activeSelf, Is.False);
+            Assert.That(controller.ShopPageRoot.activeSelf, Is.True);
             Assert.That(controller.LeaderboardNavigationButton.interactable,
-                Is.False);
+                Is.True);
             Assert.That(controller.JourneyNavigationButton.interactable,
-                Is.False);
+                Is.True);
             Assert.That(controller.CollectionNavigationButton.interactable,
-                Is.False);
+                Is.True);
             Assert.That(
                 controller.CollectionNavigationButton
                     .GetComponentInChildren<Text>().text,
@@ -202,7 +203,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendPage.Shop));
             Assert.That(controller.LobbyPageRoot.activeSelf, Is.True);
             Assert.That(controller.ShopPageRoot.activeSelf, Is.True);
-            Assert.That(controller.LobbyThemeRoot.activeSelf, Is.False);
+            Assert.That(controller.LobbyThemeRoot.activeSelf, Is.True);
             Assert.That(controller.ShopNavigationSelection.activeSelf, Is.True);
             Assert.That(controller.HomeNavigationSelection.activeSelf, Is.False);
             Transform content = controller.ShopPageRoot.transform
@@ -223,6 +224,35 @@ namespace ColorGateRunner.Tests.PlayMode
                 }
             }
             Assert.That(productCards, Is.EqualTo(11));
+            Assert.That(
+                content.GetComponentsInChildren<Image>(true).Count(image =>
+                    image.name == "PackageHeroIcon"),
+                Is.EqualTo(11));
+
+            controller.LeaderboardNavigationButton.onClick.Invoke();
+            yield return null;
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Leaderboard));
+            Assert.That(
+                controller.LeaderboardPageRoot.GetComponentsInChildren<Text>(true)
+                    .Any(text => text.text == "COMING SOON"),
+                Is.True);
+
+            controller.JourneyNavigationButton.onClick.Invoke();
+            yield return null;
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Journey));
+            Assert.That(controller.JourneyPageView.MilestoneViews.Length,
+                Is.EqualTo(18));
+
+            controller.CollectionNavigationButton.onClick.Invoke();
+            yield return null;
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Collection));
+            Assert.That(
+                controller.CollectionPageRoot.GetComponentsInChildren<Text>(true)
+                    .Any(text => text.text == "COMING SOON"),
+                Is.True);
 
             controller.HandleBack();
             yield return null;
@@ -234,8 +264,44 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator LobbyPager_HorizontalSwipeMovesExactlyOnePage()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+
+            FrontendSceneController controller = RequireController();
+            LobbyPagePager pager = controller.LobbyPagePager;
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                position = new Vector2(900f, 900f)
+            };
+            pager.BeginDrag(pointer);
+            pointer.position = new Vector2(200f, 900f);
+            pager.Drag(pointer);
+            pager.EndDrag(pointer);
+            yield return null;
+
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Journey));
+            Assert.That(pager.CurrentIndex, Is.EqualTo(3));
+
+            for (int frame = 0; frame < 24; frame++)
+            {
+                yield return null;
+            }
+            pointer.position = new Vector2(500f, 700f);
+            pager.BeginDrag(pointer);
+            pointer.position = new Vector2(520f, 1100f);
+            pager.Drag(pointer);
+            pager.EndDrag(pointer);
+            yield return null;
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Journey));
+        }
+
+        [UnityTest]
         [Category("VisualQC")]
-        public IEnumerator LobbyAndShopVisualCapture_WritesPortraitEvidence()
+        public IEnumerator LobbyPagesVisualCapture_WritesPortraitEvidence()
         {
             if (Environment.GetEnvironmentVariable(
                     "COLOR_GATE_RUNNER_CAPTURE_FRONTEND") != "1")
@@ -264,14 +330,36 @@ namespace ColorGateRunner.Tests.PlayMode
             string shopPath = Path.Combine(
                 artifactDirectory,
                 "LobbyShop-1080x1920.png");
+            string shopLargePath = Path.Combine(
+                artifactDirectory,
+                "LobbyShop-LargeBundle-1080x1920.png");
+            string shopCoinVaultPath = Path.Combine(
+                artifactDirectory,
+                "LobbyShop-CoinVault-1080x1920.png");
+            string rankPath = Path.Combine(
+                artifactDirectory,
+                "LobbyRank-1080x1920.png");
+            string journeyPath = Path.Combine(
+                artifactDirectory,
+                "LobbyJourney-1080x1920.png");
+            string journeyComingSoonPath = Path.Combine(
+                artifactDirectory,
+                "LobbyJourney-ComingSoon-1080x1920.png");
+            string collectionPath = Path.Combine(
+                artifactDirectory,
+                "LobbyCollection-1080x1920.png");
 
-            if (File.Exists(homePath))
+            string[] paths =
             {
-                File.Delete(homePath);
-            }
-            if (File.Exists(shopPath))
+                homePath, shopPath, shopLargePath, shopCoinVaultPath,
+                rankPath, journeyPath, journeyComingSoonPath, collectionPath
+            };
+            for (int index = 0; index < paths.Length; index++)
             {
-                File.Delete(shopPath);
+                if (File.Exists(paths[index]))
+                {
+                    File.Delete(paths[index]);
+                }
             }
 
             Canvas.ForceUpdateCanvases();
@@ -287,8 +375,45 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return new WaitForEndOfFrame();
             CaptureFrame(shopPath);
 
-            Assert.That(new FileInfo(homePath).Length, Is.GreaterThan(1024));
-            Assert.That(new FileInfo(shopPath).Length, Is.GreaterThan(1024));
+            ShopPageView shopView =
+                controller.ShopPageRoot.GetComponent<ShopPageView>();
+            shopView.ScrollRect.verticalNormalizedPosition = 0.52f;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(shopLargePath);
+            shopView.ScrollRect.verticalNormalizedPosition = 0f;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(shopCoinVaultPath);
+
+            controller.LeaderboardNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(rankPath);
+
+            controller.JourneyNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(journeyPath);
+
+            controller.JourneyPageView.ScrollRect.verticalNormalizedPosition = 1f;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(journeyComingSoonPath);
+
+            controller.CollectionNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(collectionPath);
+
+            for (int index = 0; index < paths.Length; index++)
+            {
+                Assert.That(new FileInfo(paths[index]).Length,
+                    Is.GreaterThan(1024));
+            }
         }
 
         [UnityTest]

@@ -18,6 +18,8 @@ namespace ColorGateRunner.Presentation
             string title,
             string badge,
             string rewardSummary,
+            string heroIconName,
+            IReadOnlyList<ShopRewardItemModel> rewardItems,
             ShopProductSection section,
             bool accountLimited)
         {
@@ -25,6 +27,8 @@ namespace ColorGateRunner.Presentation
             Title = title;
             Badge = badge;
             RewardSummary = rewardSummary;
+            HeroIconName = heroIconName;
+            RewardItems = rewardItems;
             Section = section;
             AccountLimited = accountLimited;
         }
@@ -33,9 +37,23 @@ namespace ColorGateRunner.Presentation
         public string Title { get; }
         public string Badge { get; }
         public string RewardSummary { get; }
+        public string HeroIconName { get; }
+        public IReadOnlyList<ShopRewardItemModel> RewardItems { get; }
         public ShopProductSection Section { get; }
         public bool AccountLimited { get; }
         public string ActionLabel => "STORE OFFLINE";
+    }
+
+    public sealed class ShopRewardItemModel
+    {
+        internal ShopRewardItemModel(string iconName, string amount)
+        {
+            IconName = iconName;
+            Amount = amount;
+        }
+
+        public string IconName { get; }
+        public string Amount { get; }
     }
 
     public static class ShopCatalogPresentation
@@ -103,8 +121,57 @@ namespace ColorGateRunner.Presentation
                 title,
                 badge,
                 FormatReward(definition.Reward),
+                ResolveHeroIcon(definition.ProductId),
+                CreateRewardItems(definition.Reward),
                 section,
                 definition.AccountLimited);
+
+        private static string ResolveHeroIcon(string productId) =>
+            productId switch
+            {
+                "coins_1000" => "ShopCoinStack",
+                "coins_5000" => "ShopCoinPouchSmall",
+                "coins_10000" => "ShopCoinPouchLarge",
+                "coins_25000" => "ShopCoinChestSmall",
+                "coins_50000" => "ShopCoinChestLarge",
+                "coins_100000" => "ShopCoinCart",
+                "bundle_starter" => "ShopBundlePouch",
+                "bundle_small" => "ShopBundleBox",
+                "bundle_medium" => "ShopBundleChest",
+                "bundle_large" => "ShopBundleChestLarge",
+                "bundle_xlarge" => "ShopBundleCart",
+                _ => throw new ArgumentOutOfRangeException(nameof(productId))
+            };
+
+        private static IReadOnlyList<ShopRewardItemModel> CreateRewardItems(
+            CommerceReward reward)
+        {
+            var items = new List<ShopRewardItemModel>(5);
+            AddReward(items, "Coin", reward.Coins);
+            AddReward(items, "Shield", reward.Shields);
+            AddReward(items, "Booster", reward.Boosters);
+            AddReward(items, "Continue", reward.ContinueTickets);
+            if (reward.UnlimitedHeartsDuration > TimeSpan.Zero)
+            {
+                items.Add(new ShopRewardItemModel(
+                    "Heart",
+                    FormatDuration(reward.UnlimitedHeartsDuration)));
+            }
+            return items;
+        }
+
+        private static void AddReward(
+            List<ShopRewardItemModel> items,
+            string iconName,
+            int amount)
+        {
+            if (amount > 0)
+            {
+                items.Add(new ShopRewardItemModel(
+                    iconName,
+                    amount.ToString("N0")));
+            }
+        }
 
         private static string ResolveBundleTitle(string productId) =>
             productId switch

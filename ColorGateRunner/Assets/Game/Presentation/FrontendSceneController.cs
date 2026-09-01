@@ -12,6 +12,9 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject titlePageRoot;
         [SerializeField] private GameObject lobbyPageRoot;
         [SerializeField] private GameObject shopPageRoot;
+        [SerializeField] private GameObject leaderboardPageRoot;
+        [SerializeField] private GameObject journeyPageRoot;
+        [SerializeField] private GameObject collectionPageRoot;
         [SerializeField] private GameObject popupRoot;
         [SerializeField] private GameObject loadingRoot;
         [SerializeField] private GameObject transitionBlockerRoot;
@@ -37,7 +40,12 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button journeyNavigationButton;
         [SerializeField] private Button collectionNavigationButton;
         [SerializeField] private GameObject shopNavigationSelection;
+        [SerializeField] private GameObject leaderboardNavigationSelection;
         [SerializeField] private GameObject homeNavigationSelection;
+        [SerializeField] private GameObject journeyNavigationSelection;
+        [SerializeField] private GameObject collectionNavigationSelection;
+        [SerializeField] private LobbyPagePager lobbyPagePager;
+        [SerializeField] private JourneyPageView journeyPageView;
         [SerializeField] private GameObject currencySlotRoot;
         [SerializeField] private GameObject eventModuleSlotRoot;
         [SerializeField] private GameObject notificationSlotRoot;
@@ -72,6 +80,9 @@ namespace ColorGateRunner.Presentation
         internal GameObject TitlePageRoot => titlePageRoot;
         internal GameObject LobbyPageRoot => lobbyPageRoot;
         internal GameObject ShopPageRoot => shopPageRoot;
+        internal GameObject LeaderboardPageRoot => leaderboardPageRoot;
+        internal GameObject JourneyPageRoot => journeyPageRoot;
+        internal GameObject CollectionPageRoot => collectionPageRoot;
         internal GameObject PopupRoot => popupRoot;
         internal GameObject LoadingRoot => loadingRoot;
         internal GameObject TransitionBlockerRoot => transitionBlockerRoot;
@@ -106,6 +117,8 @@ namespace ColorGateRunner.Presentation
             shopNavigationSelection;
         internal GameObject HomeNavigationSelection =>
             homeNavigationSelection;
+        internal LobbyPagePager LobbyPagePager => lobbyPagePager;
+        internal JourneyPageView JourneyPageView => journeyPageView;
         internal SettingsPanelController SettingsPanel => settingsPanel;
         internal Button ModalConfirmButton => modalConfirmButton;
         internal Button ModalCancelButton => modalCancelButton;
@@ -174,6 +187,9 @@ namespace ColorGateRunner.Presentation
             GameObject titleRoot,
             GameObject lobbyRoot,
             GameObject shopRoot,
+            GameObject leaderboardRoot,
+            GameObject journeyRoot,
+            GameObject collectionRoot,
             GameObject popup,
             GameObject loading,
             GameObject transitionBlocker,
@@ -199,7 +215,12 @@ namespace ColorGateRunner.Presentation
             Button journeyNavigation,
             Button collectionNavigation,
             GameObject shopSelection,
+            GameObject leaderboardSelection,
             GameObject homeSelection,
+            GameObject journeySelection,
+            GameObject collectionSelection,
+            LobbyPagePager pagePager,
+            JourneyPageView configuredJourneyPageView,
             GameObject currencySlot,
             GameObject eventSlot,
             GameObject notificationSlot,
@@ -217,6 +238,9 @@ namespace ColorGateRunner.Presentation
             titlePageRoot = titleRoot;
             lobbyPageRoot = lobbyRoot;
             shopPageRoot = shopRoot;
+            leaderboardPageRoot = leaderboardRoot;
+            journeyPageRoot = journeyRoot;
+            collectionPageRoot = collectionRoot;
             popupRoot = popup;
             loadingRoot = loading;
             transitionBlockerRoot = transitionBlocker;
@@ -242,7 +266,12 @@ namespace ColorGateRunner.Presentation
             journeyNavigationButton = journeyNavigation;
             collectionNavigationButton = collectionNavigation;
             shopNavigationSelection = shopSelection;
+            leaderboardNavigationSelection = leaderboardSelection;
             homeNavigationSelection = homeSelection;
+            journeyNavigationSelection = journeySelection;
+            collectionNavigationSelection = collectionSelection;
+            lobbyPagePager = pagePager;
+            journeyPageView = configuredJourneyPageView;
             currencySlotRoot = currencySlot;
             eventModuleSlotRoot = eventSlot;
             notificationSlotRoot = notificationSlot;
@@ -286,8 +315,13 @@ namespace ColorGateRunner.Presentation
         {
             return titlePageRoot != null && lobbyPageRoot != null &&
                 shopPageRoot != null &&
+                leaderboardPageRoot != null && journeyPageRoot != null &&
+                collectionPageRoot != null &&
                 shopPageRoot.GetComponent<ShopPageView>() != null &&
                 shopPageRoot.GetComponent<ShopPageView>().HasRequiredReferences() &&
+                journeyPageView != null &&
+                journeyPageView.HasRequiredReferences() &&
+                lobbyPagePager != null && lobbyPagePager.HasRequiredReferences() &&
                 popupRoot != null && loadingRoot != null &&
                 transitionBlockerRoot != null &&
                 developmentDebugRoot != null &&
@@ -306,7 +340,10 @@ namespace ColorGateRunner.Presentation
                 journeyNavigationButton != null &&
                 collectionNavigationButton != null &&
                 shopNavigationSelection != null &&
+                leaderboardNavigationSelection != null &&
                 homeNavigationSelection != null &&
+                journeyNavigationSelection != null &&
+                collectionNavigationSelection != null &&
                 currencySlotRoot != null && eventModuleSlotRoot != null &&
                 notificationSlotRoot != null && lobbyThemeRoot != null &&
                 lobbyProgressionPanel != null &&
@@ -400,6 +437,9 @@ namespace ColorGateRunner.Presentation
                     Debug.LogError(acknowledgement.Error.Diagnostic);
                 }
             }
+            journeyPageView.Bind(
+                appRoot.Graph.Progression,
+                _campaignLobby.TotalStageCount);
         }
 
         private void ApplyContext(FrontendDisplayContext context)
@@ -461,7 +501,10 @@ namespace ColorGateRunner.Presentation
             lobbyBackButton.onClick.AddListener(ShowAccountUnavailable);
             lobbySettingsButton.onClick.AddListener(ShowSettings);
             shopNavigationButton.onClick.AddListener(ShowShop);
+            leaderboardNavigationButton.onClick.AddListener(ShowLeaderboard);
             homeNavigationButton.onClick.AddListener(ShowLobby);
+            journeyNavigationButton.onClick.AddListener(ShowJourney);
+            collectionNavigationButton.onClick.AddListener(ShowCollection);
             modalConfirmButton.onClick.AddListener(ConfirmModal);
             modalCancelButton.onClick.AddListener(CancelModal);
             settingsPanel.ApplySucceeded += CloseSettings;
@@ -469,6 +512,7 @@ namespace ColorGateRunner.Presentation
             _router.PageEntered += ApplyPage;
             _router.ModalChanged += ApplyModal;
             _router.TransitionChanged += ApplyTransition;
+            lobbyPagePager.PageRequested += RequestLobbyPage;
             _listenersBound = true;
         }
 
@@ -486,7 +530,10 @@ namespace ColorGateRunner.Presentation
             lobbyBackButton.onClick.RemoveListener(ShowAccountUnavailable);
             lobbySettingsButton.onClick.RemoveListener(ShowSettings);
             shopNavigationButton.onClick.RemoveListener(ShowShop);
+            leaderboardNavigationButton.onClick.RemoveListener(ShowLeaderboard);
             homeNavigationButton.onClick.RemoveListener(ShowLobby);
+            journeyNavigationButton.onClick.RemoveListener(ShowJourney);
+            collectionNavigationButton.onClick.RemoveListener(ShowCollection);
             modalConfirmButton.onClick.RemoveListener(ConfirmModal);
             modalCancelButton.onClick.RemoveListener(CancelModal);
             settingsPanel.ApplySucceeded -= CloseSettings;
@@ -494,6 +541,7 @@ namespace ColorGateRunner.Presentation
             _router.PageEntered -= ApplyPage;
             _router.ModalChanged -= ApplyModal;
             _router.TransitionChanged -= ApplyTransition;
+            lobbyPagePager.PageRequested -= RequestLobbyPage;
             _listenersBound = false;
         }
 
@@ -538,9 +586,29 @@ namespace ColorGateRunner.Presentation
             _router.TryShowPage(FrontendPage.Shop);
         }
 
+        private void ShowLeaderboard()
+        {
+            _router.TryShowPage(FrontendPage.Leaderboard);
+        }
+
         private void ShowLobby()
         {
             _router.TryShowPage(FrontendPage.Lobby);
+        }
+
+        private void ShowJourney()
+        {
+            _router.TryShowPage(FrontendPage.Journey);
+        }
+
+        private void ShowCollection()
+        {
+            _router.TryShowPage(FrontendPage.Collection);
+        }
+
+        private void RequestLobbyPage(FrontendPage page)
+        {
+            _router.TryShowPage(page);
         }
 
         private void ShowSettings()
@@ -628,13 +696,25 @@ namespace ColorGateRunner.Presentation
         private void ApplyPage(FrontendPage page)
         {
             titlePageRoot.SetActive(page == FrontendPage.AccountChoice);
-            bool shellVisible = page == FrontendPage.Lobby ||
-                page == FrontendPage.Shop;
+            bool shellVisible = FrontendPageRouter.IsLobbyDestination(page);
             lobbyPageRoot.SetActive(shellVisible);
-            lobbyThemeRoot.SetActive(page == FrontendPage.Lobby && _productReady);
-            shopPageRoot.SetActive(page == FrontendPage.Shop && _productReady);
-            shopNavigationSelection.SetActive(page == FrontendPage.Shop);
-            homeNavigationSelection.SetActive(page == FrontendPage.Lobby);
+            lobbyThemeRoot.SetActive(shellVisible && _productReady);
+            shopPageRoot.SetActive(shellVisible && _productReady);
+            leaderboardPageRoot.SetActive(shellVisible && _productReady);
+            journeyPageRoot.SetActive(shellVisible && _productReady);
+            collectionPageRoot.SetActive(shellVisible && _productReady);
+            if (shellVisible)
+            {
+                lobbyPagePager.SetPage(page, true);
+                if (page == FrontendPage.Shop)
+                {
+                    shopPageRoot.GetComponent<ShopPageView>().OnPageShown();
+                }
+                else if (page == FrontendPage.Journey)
+                {
+                    journeyPageView.OnPageShown();
+                }
+            }
         }
 
         private void ApplyTransition(bool transitioning)
