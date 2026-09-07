@@ -81,6 +81,8 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return Capture("08-Clear-Celebration-Impact.png");
             _controller.Tick(0.46f);
             yield return Capture("08B-Clear-Celebration-Fireworks.png");
+            _controller.Tick(0.38f);
+            yield return Capture("08C-Clear-Celebration-Finale.png");
             _controller.HandleGameplayTap();
             _controller.Tick(
                 StageResultSequenceView.CelebrationExitDuration + 0.01f);

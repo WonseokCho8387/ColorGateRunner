@@ -12,8 +12,12 @@ namespace ColorGateRunner.Presentation
 
         private const float EmblemEntryDuration = 0.7f;
         private const float SkipPromptFadeDuration = 0.18f;
-        private const float FireworkBurstDuration = 0.78f;
-        private const int SparksPerBurst = 8;
+        private const float FireworkBurstDuration = 0.72f;
+        private const float FireworkBurstInterval = 0.55f;
+        private const float FirstFireworkBurstAt = 0.28f;
+        private const float FireworkCoreDuration = 0.3f;
+        private const int FireworkBurstCount = 3;
+        private const int SparksPerBurst = 12;
         private const float RewardRevealInterval = 0.22f;
         private const float RewardRevealDuration = 0.18f;
 
@@ -28,6 +32,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private CanvasGroup clearRewardGroup;
         [SerializeField] private RectTransform[] fireworkSparks;
         [SerializeField] private CanvasGroup[] fireworkSparkGroups;
+        [SerializeField] private RectTransform[] fireworkBurstCores;
+        [SerializeField] private CanvasGroup[] fireworkBurstCoreGroups;
         [SerializeField] private GameObject[] rewardRows;
         [SerializeField] private CanvasGroup[] rewardRowGroups;
         [SerializeField] private Image[] rewardRowIcons;
@@ -78,8 +84,35 @@ namespace ColorGateRunner.Presentation
         internal float ClearRewardAlpha => clearRewardGroup.alpha;
         internal float ClearSkipPromptAlpha => clearSkipPromptGroup.alpha;
         internal int FireworkSparkCount => fireworkSparks?.Length ?? 0;
+        internal int FireworkBurstCoreCount =>
+            fireworkBurstCores?.Length ?? 0;
         internal int VictoryEmblemEchoCount =>
             victoryEmblemEchoes?.Length ?? 0;
+        internal bool FireworkSpritesAssigned
+        {
+            get
+            {
+                for (int index = 0; index < fireworkSparks.Length; index++)
+                {
+                    Image image = fireworkSparks[index].GetComponent<Image>();
+                    if (image == null || image.sprite == null)
+                    {
+                        return false;
+                    }
+                }
+
+                for (int index = 0; index < fireworkBurstCores.Length; index++)
+                {
+                    Image image =
+                        fireworkBurstCores[index].GetComponent<Image>();
+                    if (image == null || image.sprite == null)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
         internal int VisibleFireworkSparkCount
         {
             get
@@ -88,6 +121,23 @@ namespace ColorGateRunner.Presentation
                 for (int index = 0; index < fireworkSparkGroups.Length; index++)
                 {
                     if (fireworkSparkGroups[index].alpha > 0.01f)
+                    {
+                        result++;
+                    }
+                }
+                return result;
+            }
+        }
+        internal int VisibleFireworkBurstCoreCount
+        {
+            get
+            {
+                int result = 0;
+                for (int index = 0;
+                    index < fireworkBurstCoreGroups.Length;
+                    index++)
+                {
+                    if (fireworkBurstCoreGroups[index].alpha > 0.01f)
                     {
                         result++;
                     }
@@ -129,6 +179,8 @@ namespace ColorGateRunner.Presentation
             CanvasGroup rewardGroup,
             RectTransform[] sparks,
             CanvasGroup[] sparkGroups,
+            RectTransform[] burstCores,
+            CanvasGroup[] burstCoreGroups,
             GameObject[] rows,
             CanvasGroup[] rowGroups,
             Image[] rowIcons,
@@ -162,6 +214,8 @@ namespace ColorGateRunner.Presentation
             clearRewardGroup = rewardGroup;
             fireworkSparks = sparks;
             fireworkSparkGroups = sparkGroups;
+            fireworkBurstCores = burstCores;
+            fireworkBurstCoreGroups = burstCoreGroups;
             rewardRows = rows;
             rewardRowGroups = rowGroups;
             rewardRowIcons = rowIcons;
@@ -198,8 +252,12 @@ namespace ColorGateRunner.Presentation
                 clearSkipPromptGroup == null ||
                 clearRewardRoot == null || clearRewardGroup == null ||
                 fireworkSparks == null || fireworkSparkGroups == null ||
-                fireworkSparks.Length != 24 ||
+                fireworkSparks.Length != 36 ||
                 fireworkSparkGroups.Length != fireworkSparks.Length ||
+                fireworkBurstCores == null ||
+                fireworkBurstCoreGroups == null ||
+                fireworkBurstCores.Length != FireworkBurstCount ||
+                fireworkBurstCoreGroups.Length != fireworkBurstCores.Length ||
                 rewardRows == null || rewardRowGroups == null ||
                 rewardRowIcons == null || rewardRowTexts == null ||
                 rewardRows.Length != 5 ||
@@ -236,7 +294,19 @@ namespace ColorGateRunner.Presentation
             for (int index = 0; index < fireworkSparks.Length; index++)
             {
                 if (fireworkSparks[index] == null ||
-                    fireworkSparkGroups[index] == null)
+                    fireworkSparkGroups[index] == null ||
+                    fireworkSparks[index].GetComponent<Image>()?.sprite == null)
+                {
+                    return false;
+                }
+            }
+
+            for (int index = 0; index < fireworkBurstCores.Length; index++)
+            {
+                if (fireworkBurstCores[index] == null ||
+                    fireworkBurstCoreGroups[index] == null ||
+                    fireworkBurstCores[index].GetComponent<Image>()?.sprite ==
+                        null)
                 {
                     return false;
                 }
@@ -579,7 +649,8 @@ namespace ColorGateRunner.Presentation
             {
                 int burst = index / SparksPerBurst;
                 int spark = index % SparksPerBurst;
-                float burstStart = 0.30f + burst * 0.36f;
+                float burstStart = FirstFireworkBurstAt +
+                    burst * FireworkBurstInterval;
                 float phase = (elapsed - burstStart) /
                     FireworkBurstDuration;
                 if (phase < 0f || phase > 1f)
@@ -588,25 +659,60 @@ namespace ColorGateRunner.Presentation
                     continue;
                 }
 
-                float angle = spark * Mathf.PI * 0.25f +
-                    burst * 0.14f;
-                Vector2 origin = burst switch
-                {
-                    0 => new Vector2(-195f, 25f),
-                    1 => new Vector2(195f, 55f),
-                    _ => new Vector2(0f, 128f)
-                };
-                float radius = Mathf.SmoothStep(0f, 205f, phase);
+                float angle = spark * Mathf.PI * 2f / SparksPerBurst +
+                    burst * 0.11f;
+                Vector2 origin = FireworkOrigin(burst);
+                float radius = Mathf.SmoothStep(28f, 285f, phase);
+                Vector2 direction = new Vector2(
+                    Mathf.Cos(angle),
+                    Mathf.Sin(angle));
+                float fall = phase * phase * 48f;
                 fireworkSparks[index].anchoredPosition = origin +
-                    new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+                    direction * radius + Vector2.down * fall;
                 fireworkSparks[index].localRotation =
-                    Quaternion.Euler(0f, 0f, index * 23f + phase * 180f);
+                    Quaternion.Euler(
+                        0f,
+                        0f,
+                        angle * Mathf.Rad2Deg - 90f);
+                float pulse = Mathf.Sin(phase * Mathf.PI);
                 fireworkSparks[index].localScale = Vector3.one *
-                    Mathf.Lerp(0.7f, 1.18f, Mathf.Sin(phase * Mathf.PI));
+                    Mathf.Lerp(0.82f, 1.35f, pulse);
                 fireworkSparkGroups[index].alpha =
-                    Mathf.Sin(phase * Mathf.PI) *
-                    Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(phase * 5f));
+                    Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(phase * 10f)) *
+                    (1f - Mathf.SmoothStep(0f, 1f,
+                        Mathf.Clamp01((phase - 0.5f) * 2f)));
             }
+
+            for (int burst = 0; burst < fireworkBurstCores.Length; burst++)
+            {
+                float burstStart = FirstFireworkBurstAt +
+                    burst * FireworkBurstInterval;
+                float phase = (elapsed - burstStart) /
+                    FireworkCoreDuration;
+                if (phase < 0f || phase > 1f)
+                {
+                    fireworkBurstCoreGroups[burst].alpha = 0f;
+                    continue;
+                }
+
+                fireworkBurstCores[burst].anchoredPosition =
+                    FireworkOrigin(burst);
+                fireworkBurstCores[burst].localScale = Vector3.one *
+                    Mathf.Lerp(0.45f, 1.5f,
+                        Mathf.SmoothStep(0f, 1f, phase));
+                fireworkBurstCoreGroups[burst].alpha =
+                    Mathf.Sin(phase * Mathf.PI);
+            }
+        }
+
+        private static Vector2 FireworkOrigin(int burst)
+        {
+            return burst switch
+            {
+                0 => new Vector2(-255f, 62f),
+                1 => new Vector2(255f, 92f),
+                _ => new Vector2(0f, 205f)
+            };
         }
 
         private void CacheClearButtonVisibility()

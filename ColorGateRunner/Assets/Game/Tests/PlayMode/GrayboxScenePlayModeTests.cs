@@ -1777,7 +1777,13 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.True);
             Assert.That(
                 _controller.ResultSequenceView.FireworkSparkCount,
-                Is.EqualTo(24));
+                Is.EqualTo(36));
+            Assert.That(
+                _controller.ResultSequenceView.FireworkBurstCoreCount,
+                Is.EqualTo(3));
+            Assert.That(
+                _controller.ResultSequenceView.FireworkSpritesAssigned,
+                Is.True);
             Assert.That(
                 _controller.ResultSequenceView.VictoryEmblemEchoCount,
                 Is.EqualTo(2));
@@ -1838,6 +1844,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(CampaignResultPage.ClearCelebration));
             Assert.That(
                 _controller.ResultSequenceView.VisibleFireworkSparkCount,
+                Is.GreaterThan(0));
+            Assert.That(
+                _controller.ResultSequenceView.VisibleFireworkBurstCoreCount,
                 Is.GreaterThan(0));
 
             _controller.Tick(

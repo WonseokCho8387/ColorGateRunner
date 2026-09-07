@@ -30,6 +30,8 @@ namespace ColorGateRunner.Editor
             "Assets/Game/Art/Gameplay/Theme01/Models";
         internal const string Theme01TexturesFolder =
             "Assets/Game/Art/Gameplay/Theme01/Textures";
+        internal const string ResultVfxFolder =
+            "Assets/Game/Art/UI/ResultVfx";
         internal const int GatePoolSize = 6;
         internal const int TrackPoolSize = 6;
         internal const int IceRunwayPanelCount = 50;
@@ -60,6 +62,10 @@ namespace ColorGateRunner.Editor
             Sprite[] colorEmblems =
                 Theme01UiSkinBuilder.LoadColorEmblems();
             Sprite victoryEmblem = Theme01UiSkinBuilder.LoadVictoryEmblem();
+            Sprite fireworkStreak = LoadResultVfxSprite(
+                "VictoryFireworkStreak");
+            Sprite fireworkBurst = LoadResultVfxSprite(
+                "VictoryFireworkBurst");
             Sprite coinIcon = Theme01UiSkinBuilder.LoadIcon("Coin");
             Sprite heartIcon = Theme01UiSkinBuilder.LoadIcon("Heart");
             Sprite shieldIcon = Theme01UiSkinBuilder.LoadIcon("Shield");
@@ -393,6 +399,8 @@ namespace ColorGateRunner.Editor
             CanvasGroup clearRewardGroup;
             RectTransform[] clearFireworkSparks;
             CanvasGroup[] clearFireworkSparkGroups;
+            RectTransform[] clearFireworkBurstCores;
+            CanvasGroup[] clearFireworkBurstCoreGroups;
             GameObject[] clearRewardRows;
             CanvasGroup[] clearRewardRowGroups;
             Image[] clearRewardRowIcons;
@@ -400,6 +408,8 @@ namespace ColorGateRunner.Editor
             CreateResultUi(
                 flowRoots[4].transform,
                 victoryEmblem,
+                fireworkStreak,
+                fireworkBurst,
                 out clearPanel,
                 out clearTitle,
                 out clearDetails,
@@ -417,6 +427,8 @@ namespace ColorGateRunner.Editor
                 out clearRewardGroup,
                 out clearFireworkSparks,
                 out clearFireworkSparkGroups,
+                out clearFireworkBurstCores,
+                out clearFireworkBurstCoreGroups,
                 out clearRewardRows,
                 out clearRewardRowGroups,
                 out clearRewardRowIcons,
@@ -485,6 +497,8 @@ namespace ColorGateRunner.Editor
                 clearRewardGroup,
                 clearFireworkSparks,
                 clearFireworkSparkGroups,
+                clearFireworkBurstCores,
+                clearFireworkBurstCoreGroups,
                 clearRewardRows,
                 clearRewardRowGroups,
                 clearRewardRowIcons,
@@ -3405,6 +3419,8 @@ namespace ColorGateRunner.Editor
         private static void CreateResultUi(
             Transform parent,
             Sprite victorySprite,
+            Sprite fireworkStreakSprite,
+            Sprite fireworkBurstSprite,
             out GameObject panel,
             out Text titleText,
             out Text details,
@@ -3422,6 +3438,8 @@ namespace ColorGateRunner.Editor
             out CanvasGroup rewardGroup,
             out RectTransform[] fireworkSparks,
             out CanvasGroup[] fireworkSparkGroups,
+            out RectTransform[] fireworkBurstCores,
+            out CanvasGroup[] fireworkBurstCoreGroups,
             out GameObject[] rewardRows,
             out CanvasGroup[] rewardRowGroups,
             out Image[] rewardRowIcons,
@@ -3438,9 +3456,12 @@ namespace ColorGateRunner.Editor
             Stretch(celebrationRoot.GetComponent<RectTransform>());
             celebrationGroup = celebrationRoot.AddComponent<CanvasGroup>();
 
-            fireworkSparks = new RectTransform[24];
-            fireworkSparkGroups = new CanvasGroup[24];
-            Color[] sparkColors =
+            const int fireworkBurstCount = 3;
+            const int fireworkSparksPerBurst = 12;
+            fireworkSparks = new RectTransform[
+                fireworkBurstCount * fireworkSparksPerBurst];
+            fireworkSparkGroups = new CanvasGroup[fireworkSparks.Length];
+            Color[] burstColors =
             {
                 CyanColor,
                 WarpGoldColor,
@@ -3448,21 +3469,51 @@ namespace ColorGateRunner.Editor
             };
             for (int index = 0; index < fireworkSparks.Length; index++)
             {
-                GameObject spark = CreateUiObject(
+                int burst = index / fireworkSparksPerBurst;
+                int sparkInBurst = index % fireworkSparksPerBurst;
+                GameObject sparkObject = CreateUiObject(
                     $"VictorySpark_{index}",
                     celebrationRoot.transform);
-                RectTransform rect = spark.GetComponent<RectTransform>();
+                RectTransform rect =
+                    sparkObject.GetComponent<RectTransform>();
                 rect.anchorMin = new Vector2(0.5f, 0.58f);
                 rect.anchorMax = rect.anchorMin;
                 rect.pivot = new Vector2(0.5f, 0.5f);
-                rect.sizeDelta = new Vector2(
-                    index % 3 == 0 ? 14f : 9f,
-                    index % 3 == 0 ? 34f : 22f);
-                Image sparkImage = spark.AddComponent<Image>();
-                sparkImage.color = sparkColors[index % sparkColors.Length];
+                float sparkSize = sparkInBurst % 3 == 0 ? 112f : 86f;
+                rect.sizeDelta = new Vector2(sparkSize, sparkSize);
+                Image sparkImage = sparkObject.AddComponent<Image>();
+                sparkImage.sprite = fireworkStreakSprite;
+                sparkImage.preserveAspect = true;
+                sparkImage.color = sparkInBurst % 4 == 0
+                    ? new Color(0.92f, 1f, 1f, 1f)
+                    : burstColors[burst];
                 sparkImage.raycastTarget = false;
                 fireworkSparks[index] = rect;
-                fireworkSparkGroups[index] = spark.AddComponent<CanvasGroup>();
+                fireworkSparkGroups[index] =
+                    sparkObject.AddComponent<CanvasGroup>();
+            }
+
+            fireworkBurstCores = new RectTransform[fireworkBurstCount];
+            fireworkBurstCoreGroups = new CanvasGroup[fireworkBurstCount];
+            for (int burst = 0; burst < fireworkBurstCount; burst++)
+            {
+                GameObject coreObject = CreateUiObject(
+                    $"VictoryBurstCore_{burst}",
+                    celebrationRoot.transform);
+                RectTransform coreRect =
+                    coreObject.GetComponent<RectTransform>();
+                coreRect.anchorMin = new Vector2(0.5f, 0.58f);
+                coreRect.anchorMax = coreRect.anchorMin;
+                coreRect.pivot = new Vector2(0.5f, 0.5f);
+                coreRect.sizeDelta = new Vector2(205f, 205f);
+                Image coreImage = coreObject.AddComponent<Image>();
+                coreImage.sprite = fireworkBurstSprite;
+                coreImage.preserveAspect = true;
+                coreImage.color = burstColors[burst];
+                coreImage.raycastTarget = false;
+                fireworkBurstCores[burst] = coreRect;
+                fireworkBurstCoreGroups[burst] =
+                    coreObject.AddComponent<CanvasGroup>();
             }
 
             victoryEmblemEchoes = new RectTransform[2];
@@ -4314,6 +4365,58 @@ namespace ColorGateRunner.Editor
                 }
             }
             return null;
+        }
+
+        private static Sprite LoadResultVfxSprite(string name)
+        {
+            string path = $"{ResultVfxFolder}/{name}.png";
+            AssetDatabase.ImportAsset(
+                path,
+                ImportAssetOptions.ForceSynchronousImport);
+            TextureImporter importer =
+                AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException(
+                    $"Result VFX texture is missing: {path}");
+            }
+
+            bool changed =
+                importer.textureType != TextureImporterType.Sprite ||
+                importer.spriteImportMode != SpriteImportMode.Single ||
+                importer.mipmapEnabled ||
+                importer.alphaSource != TextureImporterAlphaSource.FromInput ||
+                !importer.alphaIsTransparency ||
+                !importer.sRGBTexture ||
+                importer.wrapMode != TextureWrapMode.Clamp ||
+                importer.filterMode != FilterMode.Bilinear ||
+                importer.maxTextureSize != 512 ||
+                importer.textureCompression !=
+                    TextureImporterCompression.CompressedHQ;
+            if (changed)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.spritePixelsPerUnit = 100f;
+                importer.mipmapEnabled = false;
+                importer.alphaSource = TextureImporterAlphaSource.FromInput;
+                importer.alphaIsTransparency = true;
+                importer.sRGBTexture = true;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.maxTextureSize = 512;
+                importer.textureCompression =
+                    TextureImporterCompression.CompressedHQ;
+                importer.SaveAndReimport();
+            }
+
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite == null)
+            {
+                throw new InvalidOperationException(
+                    $"Result VFX texture did not import as a Sprite: {path}");
+            }
+            return sprite;
         }
 
         private static Material CreateOrUpdateMappedLitMaterial(

@@ -1085,3 +1085,26 @@ fairness, or polish.
   opt-in visual ignore; D3D11 `1/1` with 14 captures. Product save remains
   byte-exact; Package and ProjectSettings have no feature diff. A fresh-context
   read-only Quality Graph checker returned `PASS` with no blocking finding.
+
+### Iteration 57 Campaign victory firework visibility
+
+- Scene/Builder validation requires exactly 36 fixed streak objects and three
+  fixed flash cores, with every Image referencing the normalized transparent
+  VFX Sprite. Campaign Builder runs its two-pass command and retains all unique
+  root, EventSystem, Build Settings and missing-reference checks.
+- PlayMode must retain the Iteration 56 hold/skip/crossfade contract, prove a
+  radial burst and its flash core are simultaneously active, and keep rewards
+  hidden until the existing transition.
+- D3D11 visual QC at `1080 x 1920` captures impact, expansion and final-burst
+  beats before rewards. It may reject invisible or rectangular-placeholder
+  sparks, missing/error materials, clipping or a missing late burst, but cannot
+  certify subjective celebration impact.
+- Campaign and Step 10 simulations remain omitted because Core rules, authored
+  Stage data, movement, generation, judgment and Experiment inputs do not
+  change.
+- Final evidence: Campaign Builder `2/2`; focused PlayMode `1/1`; EditMode
+  `480/480`; PlayMode `262` passed, zero failed and one intentional opt-in
+  visual ignore out of `263`; D3D11 `1/1` with 15 captures. Product save is
+  byte- and timestamp-exact; Package and ProjectSettings have no feature diff.
+  A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking finding.

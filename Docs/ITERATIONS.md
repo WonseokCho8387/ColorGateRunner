@@ -3378,3 +3378,46 @@ Human feedback required
   a visual-child-only `0.16–0.20s` retargetable form change while gameplay
   color, HUD, collider, root pose and judgment update immediately. New models,
   animation rigs, audio and haptics are not part of this iteration.
+
+## Iteration 57 — Victory Firework Visibility
+
+### Play / Analyze
+
+- The longer victory hold was working, but its 24 narrow UI rectangles read as
+  small confetti and could disappear into the emblem before the reward page.
+- Timing tests could prove the objects were active but could not prove that the
+  rendered result was recognizable as fireworks.
+
+### Design / Implementation
+
+- Kept the approved `2.35s` hold, `0.1s` skip threshold and `0.25s` crossfade
+  unchanged. Replaced the rectangular presentation with two original
+  transparent VFX sprites: a tintable tapered streak and a tintable burst core.
+- Expanded the fixed Builder-owned pool to three 12-streak radial bursts with
+  three flash cores. They begin at `0.28 / 0.83 / 1.38s`; the last trail ends at
+  `2.10s`, before the automatic reward transition.
+- Added sprite-import normalization, required-reference checks and a third
+  pre-reward visual capture. Runtime allocation, result transactions and all
+  gameplay authorities remain unchanged.
+
+### Validation / Learning
+
+- Campaign Builder completed its two-pass command. Focused PlayMode passed
+  `1/1`; full EditMode passed `480/480`; full PlayMode passed `262`, failed zero
+  and ignored one opt-in graphics capture out of `263` discovered tests.
+- D3D11 visual QC passed `1/1` at `1080 x 1920`. Three inspected celebration
+  captures show Cyan impact, Gold/multicolor expansion and the final Magenta
+  radial afterglow without missing/error materials, clipping or reward overlap.
+- The developer Product save remained byte- and timestamp-exact at SHA-256
+  `37DACA59E52D6742D145AE97FF8F4595E2058931C951B4AFF12B1BA6C405C706`.
+  Package and ProjectSettings feature changes are absent.
+- A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking finding after inspecting the diff, generated references, tests,
+  captures and protected state.
+
+### Deferred / Human Review
+
+- Portrait mobile and WebGL play still own subjective impact, visibility in
+  motion, repeated-clear pacing and touch comfort.
+- Runner transformation remains the next separate R&D iteration; it was not
+  implemented while repairing the victory fireworks.

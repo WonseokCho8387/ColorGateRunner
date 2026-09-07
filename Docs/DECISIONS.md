@@ -1770,3 +1770,16 @@ Status: Approved and implemented.
 - Celebration visuals are fixed Builder-owned UI objects: 24 sparks and two
   emblem echoes. Runtime instantiation, audio, haptics and runner geometric
   transformation are excluded from this decision.
+
+## Iteration 57 firework legibility boundary
+
+- Victory timing remains owned by the Iteration 56 contract: `2.35s` automatic
+  hold, `0.1s` skip threshold and `0.25s` shared crossfade.
+- Fireworks use two original transparent, tintable UI sprites. The Campaign
+  Builder owns exactly 36 streak objects and three flash cores arranged as
+  three 12-streak radial bursts; runtime instantiation is prohibited.
+- The final burst must begin early enough to remain visible before the reward
+  transition. Timing/activity tests are necessary but rendered D3D11 evidence
+  owns missing-sprite, rectangular-placeholder and perceptibility failures.
+- This repair does not authorize Product, reward, failure-flow, gameplay,
+  audio, haptic or runner-transformation changes.

@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `133dd2bfec6ce906d1d95a58d16987a576fb5a21`
-- Base commit: `feat: add journey chapters and league loop`
+- Implementation base HEAD: `b02e8cbf7e4ddc98d824775e24cd598c71c1f189`
+- Base commit: `feat: improve victory celebration pacing`
 - Authoritative completion HEAD: the commit named
-  `feat: improve victory celebration pacing`; its exact hash is recorded
-  in the Iteration 56 final report because a commit cannot contain
+  `fix: make victory fireworks visible`; its exact hash is recorded
+  in the Iteration 57 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,13 +23,14 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 56 — Victory Celebration Pacing**.
+- Current completed iteration: **Iteration 57 — Victory Firework Visibility**.
 - Campaign Clear now holds its victory beat for `2.35s`, then crossfades to
   the reward page over `0.25s`. A tap is ignored during only the first `0.1s`;
   afterward it skips through the same crossfade rather than hard-cutting.
-  The Builder-owned celebration uses 24 fixed sparks as three staggered
-  eight-spark bursts plus two restrained emblem echoes. No runtime object is
-  instantiated and the committed reward transaction remains unchanged.
+  The Builder-owned celebration uses 36 fixed sprite streaks as three
+  staggered 12-spark radial bursts, three fixed flash cores and two restrained
+  emblem echoes. No runtime object is instantiated and the committed reward
+  transaction remains unchanged.
 - Journey now contains three fixed chapters: Color Courtyard, Neon Garden and
   Sky Festival. They unlock at automatic Lobby milestones `0 / 6 / 12`, expose
   one `IN USE` state, and let the user persist any unlocked Lobby theme through
@@ -356,14 +357,14 @@ below where their contracts differ.
   ignored in the headless full suite (`263` total discovered)
 - Post-Builder PlayMode: same `262` passes plus one intentional graphics-test
   ignore
-- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 14 Campaign states,
-  including two distinct celebration beats and the reward page
+- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 15 Campaign states,
+  including three distinct celebration beats and the reward page
 - Fresh-context read-only Quality Graph checker: `PASS`, with no blocking
   finding after inspecting the final diff, evidence and protected state
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
   unique roots, EventSystem and Build Settings passed
-- Campaign Builder: Iteration 56 completed two consecutive passes successfully.
+- Campaign Builder: Iteration 57 completed two consecutive passes successfully.
   The active Campaign Spline path, generated full-route road, deterministic
   24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
@@ -385,14 +386,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 717, profile/Guest ID
-  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
-  with 8 records, 47,700 Coins, 8 Shields, 8 Boosters, 5 Hearts and 0 Continue
-  Tickets; selected Lobby theme is `sky-festival`.
+- Schema 3, revision 723, profile/Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-02`
+  with one record, 47,700 Coins, 8 Shields, 8 Boosters, 4 Hearts and 0 Continue
+  Tickets; selected Lobby theme is empty.
 - SHA-256:
-  `D6208775428F5CFE56716C625C023BC8045437703131A86A292883D94B49EB32`.
-- This user-authored play state was written after Iteration 55 validation. Its
-  `LastWriteUtc` is `2026-09-07T09:18:44.9098971Z`; Iteration 56 validation
+  `37DACA59E52D6742D145AE97FF8F4595E2058931C951B4AFF12B1BA6C405C706`.
+- This user-authored reset/play state was written after Iteration 56. Its file
+  timestamp is `2026-09-07T14:04:29.8893440Z`; Iteration 57 validation
   preserved it byte- and timestamp-exact. Developer Console mutations still
   occur only after an explicit Apply, Reset, or Unlock action.
 
