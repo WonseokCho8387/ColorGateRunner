@@ -313,47 +313,92 @@ namespace ColorGateRunner.Presentation
 
         internal bool HasRequiredReferences()
         {
-            return titlePageRoot != null && lobbyPageRoot != null &&
-                shopPageRoot != null &&
-                leaderboardPageRoot != null && journeyPageRoot != null &&
-                collectionPageRoot != null &&
-                shopPageRoot.GetComponent<ShopPageView>() != null &&
-                shopPageRoot.GetComponent<ShopPageView>().HasRequiredReferences() &&
-                journeyPageView != null &&
-                journeyPageView.HasRequiredReferences() &&
-                lobbyPagePager != null && lobbyPagePager.HasRequiredReferences() &&
-                popupRoot != null && loadingRoot != null &&
-                transitionBlockerRoot != null &&
-                developmentDebugRoot != null &&
-                titleProfileText != null && titleAccountText != null &&
-                titleVersionText != null && titleStartButton != null &&
-                titleAccountButton != null && titleSettingsButton != null &&
-                titleLegalRoot != null && lobbyProfileText != null &&
-                lobbyStageText != null &&
-                lobbyStageTitleText != null &&
-                lobbyStageMechanicText != null &&
-                lobbyProgressText != null && lobbyPlayButton != null &&
-                lobbyBackButton != null && lobbySettingsButton != null &&
-                shopNavigationButton != null &&
-                leaderboardNavigationButton != null &&
-                homeNavigationButton != null &&
-                journeyNavigationButton != null &&
-                collectionNavigationButton != null &&
-                shopNavigationSelection != null &&
-                leaderboardNavigationSelection != null &&
-                homeNavigationSelection != null &&
-                journeyNavigationSelection != null &&
-                collectionNavigationSelection != null &&
-                currencySlotRoot != null && eventModuleSlotRoot != null &&
-                notificationSlotRoot != null && lobbyThemeRoot != null &&
-                lobbyProgressionPanel != null &&
-                lobbyProgressionPanel.HasRequiredReferences() &&
-                modalTitleText != null && modalMessageText != null &&
-                modalConfirmButton != null && modalConfirmText != null &&
-                modalCancelButton != null && modalCancelText != null &&
-                settingsPanel != null && settingsPanel.HasRequiredReferences() &&
-                !string.IsNullOrWhiteSpace(campaignScenePath) &&
-                campaignScenePath != gameObject.scene.path;
+            return string.IsNullOrEmpty(FindMissingReferenceGroup());
+        }
+
+        internal string FindMissingReferenceGroup()
+        {
+            if (titlePageRoot == null || lobbyPageRoot == null ||
+                shopPageRoot == null ||
+                leaderboardPageRoot == null || journeyPageRoot == null ||
+                collectionPageRoot == null)
+            {
+                return "page roots";
+            }
+            ShopPageView shopView =
+                shopPageRoot.GetComponent<ShopPageView>();
+            if (shopView == null || !shopView.HasRequiredReferences())
+            {
+                return "shop page";
+            }
+            if (journeyPageView == null ||
+                !journeyPageView.HasRequiredReferences())
+            {
+                return "journey page: " +
+                    (journeyPageView == null
+                        ? "missing view"
+                        : journeyPageView.FindMissingReferenceGroup());
+            }
+            if (lobbyPagePager == null ||
+                !lobbyPagePager.HasRequiredReferences())
+            {
+                return "lobby pager";
+            }
+            if (popupRoot == null || loadingRoot == null ||
+                transitionBlockerRoot == null ||
+                developmentDebugRoot == null)
+            {
+                return "overlay roots";
+            }
+            if (titleProfileText == null || titleAccountText == null ||
+                titleVersionText == null || titleStartButton == null ||
+                titleAccountButton == null || titleSettingsButton == null ||
+                titleLegalRoot == null)
+            {
+                return "title controls";
+            }
+            if (lobbyProfileText == null || lobbyStageText == null ||
+                lobbyStageTitleText == null ||
+                lobbyStageMechanicText == null ||
+                lobbyProgressText == null || lobbyPlayButton == null ||
+                lobbyBackButton == null || lobbySettingsButton == null)
+            {
+                return "lobby controls";
+            }
+            if (shopNavigationButton == null ||
+                leaderboardNavigationButton == null ||
+                homeNavigationButton == null ||
+                journeyNavigationButton == null ||
+                collectionNavigationButton == null ||
+                shopNavigationSelection == null ||
+                leaderboardNavigationSelection == null ||
+                homeNavigationSelection == null ||
+                journeyNavigationSelection == null ||
+                collectionNavigationSelection == null)
+            {
+                return "navigation";
+            }
+            if (currencySlotRoot == null || eventModuleSlotRoot == null ||
+                notificationSlotRoot == null || lobbyThemeRoot == null ||
+                lobbyProgressionPanel == null ||
+                !lobbyProgressionPanel.HasRequiredReferences())
+            {
+                return "lobby progression";
+            }
+            if (modalTitleText == null || modalMessageText == null ||
+                modalConfirmButton == null || modalConfirmText == null ||
+                modalCancelButton == null || modalCancelText == null ||
+                settingsPanel == null ||
+                !settingsPanel.HasRequiredReferences())
+            {
+                return "modal or settings";
+            }
+            if (string.IsNullOrWhiteSpace(campaignScenePath) ||
+                campaignScenePath == gameObject.scene.path)
+            {
+                return "campaign destination";
+            }
+            return string.Empty;
         }
 
         internal int ActivePrimaryPageCount()
@@ -404,7 +449,8 @@ namespace ColorGateRunner.Presentation
                         appRoot.Graph.ProductSession,
                         appRoot.Graph.Progression,
                         StageCatalog.Current),
-                    StageCatalog.Current).Read();
+                    StageCatalog.Current,
+                    appRoot.Graph.Profile.Current.ProfileId).Read();
             }
             catch (Exception exception)
             {
@@ -439,7 +485,8 @@ namespace ColorGateRunner.Presentation
             }
             journeyPageView.Bind(
                 appRoot.Graph.Progression,
-                _campaignLobby.TotalStageCount);
+                _campaignLobby.TotalStageCount,
+                _campaignLobby.IsLeague);
         }
 
         private void ApplyContext(FrontendDisplayContext context)
@@ -455,15 +502,30 @@ namespace ColorGateRunner.Presentation
             lobbyProfileText.text = context.DisplayName;
             if (_campaignLobby != null)
             {
-                lobbyStageText.text =
-                    $"STAGE {_campaignLobby.DisplayNumber}";
-                lobbyStageTitleText.text = _campaignLobby.Title;
+                lobbyStageText.text = _campaignLobby.IsLeague
+                    ? "LEAGUE RUN"
+                    : $"STAGE {_campaignLobby.DisplayNumber}";
+                lobbyStageTitleText.text = _campaignLobby.IsLeague
+                    ? $"REPLAY · STAGE {_campaignLobby.DisplayNumber}"
+                    : _campaignLobby.Title;
+                lobbyStageTitleText.fontSize = _campaignLobby.IsLeague
+                    ? 18
+                    : 22;
                 lobbyStageMechanicText.text =
                     $"{_campaignLobby.MechanicLabel}   " +
                     _campaignLobby.DifficultyLabel;
-                lobbyProgressText.text =
-                    $"{_campaignLobby.ClearedCount} / " +
-                    $"{_campaignLobby.TotalStageCount} CLEARED";
+                lobbyProgressText.text = _campaignLobby.IsLeague
+                    ? "ALL LIVE STAGES CLEARED"
+                    : $"{_campaignLobby.ClearedCount} / " +
+                        $"{_campaignLobby.TotalStageCount} CLEARED";
+                Text playLabel = lobbyPlayButton.GetComponentInChildren<Text>(
+                    true);
+                if (playLabel != null)
+                {
+                    playLabel.text = _campaignLobby.IsLeague
+                        ? "LEAGUE RUN"
+                        : "PLAY";
+                }
             }
             titleSettingsButton.gameObject.SetActive(false);
             titleAccountButton.gameObject.SetActive(
@@ -513,6 +575,7 @@ namespace ColorGateRunner.Presentation
             _router.ModalChanged += ApplyModal;
             _router.TransitionChanged += ApplyTransition;
             lobbyPagePager.PageRequested += RequestLobbyPage;
+            journeyPageView.ChapterSelectionRequested += SelectLobbyTheme;
             _listenersBound = true;
         }
 
@@ -542,7 +605,32 @@ namespace ColorGateRunner.Presentation
             _router.ModalChanged -= ApplyModal;
             _router.TransitionChanged -= ApplyTransition;
             lobbyPagePager.PageRequested -= RequestLobbyPage;
+            journeyPageView.ChapterSelectionRequested -= SelectLobbyTheme;
             _listenersBound = false;
+        }
+
+        private void SelectLobbyTheme(string themeId)
+        {
+            if (_appRoot == null)
+            {
+                return;
+            }
+            ProductMutationResult result =
+                _appRoot.Graph.ProductSession.SelectLobbyTheme(themeId);
+            if (!result.Succeeded)
+            {
+                modalMessageText.text = result.Error.Diagnostic;
+                _router.TryShowModal(FrontendModal.SaveError);
+                return;
+            }
+            lobbyProgressionPanel.Bind(
+                _appRoot.Graph.Progression,
+                _appRoot.Graph.ProductSession.GetHeartState(),
+                DateTime.UtcNow);
+            journeyPageView.Bind(
+                _appRoot.Graph.Progression,
+                _campaignLobby.TotalStageCount,
+                _campaignLobby.IsLeague);
         }
 
         private void ChooseGuest()
@@ -643,7 +731,9 @@ namespace ColorGateRunner.Presentation
             }
 
             _queuedStageId = _campaignLobby.StageId;
-            if (!_campaignLaunchHost.TryQueueCampaignLaunch(_queuedStageId))
+            if (!_campaignLaunchHost.TryQueueCampaignLaunch(
+                    _queuedStageId,
+                    _campaignLobby.RunKind))
             {
                 _queuedStageId = null;
                 _router.CompleteSceneTransition();

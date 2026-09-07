@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `5f86a9033ed1b28d52749fcdb7159501a54bd47f`
-- Base commit: `feat: add lobby navigation and shop layout`
+- Implementation base HEAD: `b7e19d498d56e66f3f6b0ec60941002aaed1edf5`
+- Base commit: `feat: add lobby pager and journey progression`
 - Authoritative completion HEAD: the commit named
-  `feat: add lobby pager and journey progression`; its exact hash is recorded
-  in the Iteration 54 final report because a commit cannot contain
+  `feat: add journey chapters and league loop`; its exact hash is recorded
+  in the Iteration 55 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,21 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 54 — Lobby Pager, Shop Art and Journey Progression**.
+- Current completed iteration: **Iteration 55 — Journey Chapters, Lobby Themes and League Loop**.
+- Journey now contains three fixed chapters: Color Courtyard, Neon Garden and
+  Sky Festival. They unlock at automatic Lobby milestones `0 / 6 / 12`, expose
+  one `IN USE` state, and let the user persist any unlocked Lobby theme through
+  the existing atomic Product save transaction. Legacy schema-3 saves without
+  a selection resolve the latest unlocked chapter without a load-time write.
+- The Home hero was opened up around the layered theme artwork. All three
+  chapters now own complete Background / Midground / Ambient art, while wallet,
+  progression, inventory and Stage action stay on fixed foreground surfaces.
+- Journey inserts a League terminal immediately after the last live even-Stage
+  milestone. It stays locked until every Stage in the current Catalog is
+  cleared, then Home enters deterministic endless replay. Each profile sees a
+  stable shuffle bag containing every authored Stage once per cycle with no
+  immediate repeat across a cycle boundary. Adding a new uncleared Catalog
+  Stage automatically returns that profile to authored progression.
 - Frontend now uses a persistent five-tab portrait navigation shell inspired
   by the approved information hierarchy while retaining original Theme 1 neon
   surfaces and geometric glyphs. Its horizontal order is Shop, Rank, Home,
@@ -331,19 +345,20 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `468/468`
-- PlayMode: `258/258` passed, with the opt-in graphics capture test intentionally
+- EditMode: `480/480`
+- PlayMode: `261/261` passed, with the opt-in graphics capture test intentionally
   ignored in the headless full suite
-- Post-Builder PlayMode: same `258` passes plus one intentional graphics-test
+- Post-Builder PlayMode: same `261` passes plus one intentional graphics-test
   ignore
-- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing both Home and Shop
-- Independent UI QC: initial `COLLECT`/`COLLECTION` naming mismatch repaired;
-  focused follow-up verdict `RESOLVED / PASS`
+- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 13 Frontend states,
+  including all three Home themes, League locked/active and League Home
+- Fresh-context read-only Quality Graph checker: `PASS`, with no blocking
+  finding after inspecting the final diff, evidence and protected state
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
   unique roots, EventSystem and Build Settings passed
-- Campaign Builder: the latest Scene-affecting two-pass validation is
-  Iteration 52. The active
+- Campaign Builder: Iteration 55 completed its two-build command successfully.
+  The active
   Campaign Spline path, generated full-route road, deterministic 24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
@@ -364,17 +379,16 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 706, profile/Guest ID
+- Schema 3, revision 708, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-26`
   with 6 records, 48,600 Coins, 8 Shields, 8 Boosters, 5 Hearts and 0 Continue
   Tickets.
 - SHA-256:
-  `B8904C3088FC02973B34CD0653EB7D2F2873F0996692CBB51C23D33AFD5BD113`.
-- This user-authored play state was written before Iteration 54 validation. Its
-  `LastWriteUtc` is `2026-09-01T09:01:14.1002799Z`; the first Iteration 54
-  Builder began after `09:07Z`, and the file remained byte- and timestamp-exact
-  through final validation. Developer Console mutations still occur only after
-  an explicit Apply, Reset, or Unlock action.
+  `2FB4AA24CACB39FD3C3E036E407642203915E70A0C1D9CA897C4F600CE2FA6B5`.
+- This user-authored play state was written after Iteration 54 validation. Its
+  `LastWriteUtc` is `2026-09-01T10:24:40.1996073Z`; Iteration 55 validation
+  preserved it byte- and timestamp-exact. Developer Console mutations still
+  occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
 

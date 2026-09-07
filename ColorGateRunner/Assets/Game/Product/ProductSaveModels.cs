@@ -168,6 +168,7 @@ namespace ColorGateRunner.Product
     {
         public int AppliedMilestoneCount;
         public int PresentedMilestoneCount;
+        public string SelectedLobbyThemeId = string.Empty;
 
         public static LocalLobbyProgressData CreateDefaults()
         {
@@ -179,7 +180,8 @@ namespace ColorGateRunner.Product
             return new LocalLobbyProgressData
             {
                 AppliedMilestoneCount = AppliedMilestoneCount,
-                PresentedMilestoneCount = PresentedMilestoneCount
+                PresentedMilestoneCount = PresentedMilestoneCount,
+                SelectedLobbyThemeId = SelectedLobbyThemeId
             };
         }
     }

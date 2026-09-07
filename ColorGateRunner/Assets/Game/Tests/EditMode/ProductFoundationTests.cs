@@ -1211,6 +1211,92 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(HeartStatePolicy.MaximumHearts));
         }
 
+        [Test]
+        public void LobbyThemeSelection_IsAtomicAndRejectsLockedTheme()
+        {
+            LocalSaveData data = CreateValidData();
+            data.LobbyProgress.AppliedMilestoneCount = 6;
+            data.LobbyProgress.SelectedLobbyThemeId =
+                LobbyChapterPolicy.ColorCourtyardId;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult selected =
+                pipeline.Session.SelectLobbyTheme(
+                    LobbyChapterPolicy.NeonGardenId);
+            ProductMutationResult locked =
+                pipeline.Session.SelectLobbyTheme(
+                    LobbyChapterPolicy.SkyFestivalId);
+            save.FailWrites = true;
+            ProductMutationResult failed =
+                pipeline.Session.SelectLobbyTheme(
+                    LobbyChapterPolicy.ColorCourtyardId);
+
+            Assert.That(selected.Succeeded, Is.True);
+            Assert.That(locked.Succeeded, Is.False);
+            Assert.That(failed.Succeeded, Is.False);
+            Assert.That(
+                pipeline.Progression.Lobby.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.NeonGardenId));
+            Assert.That(
+                save.Stored.LobbyProgress.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.NeonGardenId));
+        }
+
+        [Test]
+        public void MissingLobbyThemeField_ResolvesWithoutSaveMigrationWrite()
+        {
+            LocalSaveData data = CreateValidData();
+            data.LobbyProgress.AppliedMilestoneCount = 12;
+            data.LobbyProgress.SelectedLobbyThemeId = null;
+
+            DecodeResult result = SaveDocumentPolicy.PrepareForLoad(data);
+
+            Assert.That(result.Status, Is.EqualTo(DecodeStatus.Success));
+            Assert.That(result.Dirty, Is.False);
+            Assert.That(result.Data.LobbyProgress.SelectedLobbyThemeId,
+                Is.Empty);
+            Assert.That(
+                LobbyChapterPolicy.ResolveSelectedThemeId(
+                    result.Data.LobbyProgress.SelectedLobbyThemeId,
+                    result.Data.LobbyProgress.AppliedMilestoneCount),
+                Is.EqualTo(LobbyChapterPolicy.SkyFestivalId));
+        }
+
+        [Test]
+        public void Stage24FirstClear_AutoSelectsSkyFestivalInSameCommit()
+        {
+            LocalSaveData data = CreateValidData();
+            data.CampaignProgress.LegacyMigrationCompleted = true;
+            data.LobbyProgress.AppliedMilestoneCount = 11;
+            data.LobbyProgress.PresentedMilestoneCount = 11;
+            data.LobbyProgress.SelectedLobbyThemeId =
+                LobbyChapterPolicy.NeonGardenId;
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            ProductMutationResult result =
+                pipeline.Session.RecordStageClear(
+                    new StageClearProgressRequest(
+                        24,
+                        "stage-24",
+                        "stage-25",
+                        CreateStageRecord("stage-24", true, 1)));
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(
+                pipeline.Progression.Lobby.AppliedMilestoneCount,
+                Is.EqualTo(12));
+            Assert.That(
+                pipeline.Progression.Lobby.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.SkyFestivalId));
+            Assert.That(
+                save.Stored.LobbyProgress.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.SkyFestivalId));
+        }
+
         private AppInitializationPipeline CreatePipeline(
             MutableClock clock,
             CountingIdGenerator ids,

@@ -952,3 +952,22 @@ This section supersedes Iteration 47's separate additive frame trace.
   uses green, locked is subdued and Coming Soon remains visibly unavailable.
 - Fixed header and navigation surfaces own the foreground. Scroll content may
   pass beneath them but must not cover their copy or controls.
+
+## Iteration 55 chapter artwork and Home hierarchy
+
+- Each Lobby chapter owns a complete three-layer portrait set: opaque
+  Background, transparent hero Midground and transparent Ambient foreground.
+  Color Courtyard remains crystalline sci-fi, Neon Garden combines luminous
+  botanical energy with dark alloy and Sky Festival uses floating-city,
+  lantern and ribbon silhouettes.
+- Home reserves most of the center for chapter art. Theme title and automatic
+  progress stay near the top; the Stage action remains a compact translucent
+  lower card. Shield/Booster copy uses its own thin chip and must never share
+  the Stage-title row.
+- Chapter preview cards use the Background crop only, plus clear Locked,
+  `USE LOBBY` and `IN USE` states. League uses the existing dark-alloy/Cyan
+  Journey rail with a restrained violet identity rather than inventing a new
+  world theme.
+- Decorative theme layers never receive raycasts and remain behind wallet,
+  Settings, Stage action and bottom navigation. Human portrait/mobile/WebGL
+  review owns final crop appeal, perceived depth and readability on device.

@@ -244,6 +244,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendPage.Journey));
             Assert.That(controller.JourneyPageView.MilestoneViews.Length,
                 Is.EqualTo(18));
+            Assert.That(controller.JourneyPageView.ChapterViews.Length,
+                Is.EqualTo(3));
+            Assert.That(controller.JourneyPageView.LeagueView, Is.Not.Null);
 
             controller.CollectionNavigationButton.onClick.Invoke();
             yield return null;
@@ -311,7 +314,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Screen.SetResolution(1080, 1920, false);
             yield return LoadFrontendThroughBoot(() =>
-                CreateGraph(new ExistingGuestSaveService(true)));
+                CreateGraph(new RoundtripSaveService(12)));
             FrontendSceneController controller = RequireController();
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
@@ -327,6 +330,15 @@ namespace ColorGateRunner.Tests.PlayMode
             string homePath = Path.Combine(
                 artifactDirectory,
                 "LobbyHome-1080x1920.png");
+            string homeNeonGardenPath = Path.Combine(
+                artifactDirectory,
+                "LobbyHome-NeonGarden-1080x1920.png");
+            string homeColorCourtyardPath = Path.Combine(
+                artifactDirectory,
+                "LobbyHome-ColorCourtyard-1080x1920.png");
+            string homeLeaguePath = Path.Combine(
+                artifactDirectory,
+                "LobbyHome-League-1080x1920.png");
             string shopPath = Path.Combine(
                 artifactDirectory,
                 "LobbyShop-1080x1920.png");
@@ -342,6 +354,12 @@ namespace ColorGateRunner.Tests.PlayMode
             string journeyPath = Path.Combine(
                 artifactDirectory,
                 "LobbyJourney-1080x1920.png");
+            string journeyLeaguePath = Path.Combine(
+                artifactDirectory,
+                "LobbyJourney-League-1080x1920.png");
+            string journeyLeagueActivePath = Path.Combine(
+                artifactDirectory,
+                "LobbyJourney-LeagueActive-1080x1920.png");
             string journeyComingSoonPath = Path.Combine(
                 artifactDirectory,
                 "LobbyJourney-ComingSoon-1080x1920.png");
@@ -351,8 +369,12 @@ namespace ColorGateRunner.Tests.PlayMode
 
             string[] paths =
             {
-                homePath, shopPath, shopLargePath, shopCoinVaultPath,
-                rankPath, journeyPath, journeyComingSoonPath, collectionPath
+                homePath, homeNeonGardenPath, homeColorCourtyardPath,
+                homeLeaguePath,
+                shopPath, shopLargePath, shopCoinVaultPath,
+                rankPath, journeyPath, journeyLeaguePath,
+                journeyLeagueActivePath,
+                journeyComingSoonPath, collectionPath
             };
             for (int index = 0; index < paths.Length; index++)
             {
@@ -365,6 +387,17 @@ namespace ColorGateRunner.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             yield return new WaitForEndOfFrame();
             CaptureFrame(homePath);
+
+            controller.JourneyPageView.ChapterViews[1]
+                .SelectButton.onClick.Invoke();
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(homeNeonGardenPath);
+            controller.JourneyPageView.ChapterViews[0]
+                .SelectButton.onClick.Invoke();
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(homeColorCourtyardPath);
 
             controller.ShopNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++)
@@ -398,6 +431,12 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return new WaitForEndOfFrame();
             CaptureFrame(journeyPath);
 
+            controller.JourneyPageView.ScrollRect.verticalNormalizedPosition =
+                0.76f;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(journeyLeaguePath);
+
             controller.JourneyPageView.ScrollRect.verticalNormalizedPosition = 1f;
             Canvas.ForceUpdateCanvases();
             yield return new WaitForEndOfFrame();
@@ -408,6 +447,23 @@ namespace ColorGateRunner.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             yield return new WaitForEndOfFrame();
             CaptureFrame(collectionPath);
+
+            yield return DestroyAllAppRoots();
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new CompletedCampaignSaveService()));
+            controller = RequireController();
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
+            Canvas.ForceUpdateCanvases();
+            CaptureFrame(homeLeaguePath);
+
+            controller.JourneyNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            controller.JourneyPageView.ScrollRect.verticalNormalizedPosition =
+                0.76f;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+            CaptureFrame(journeyLeagueActivePath);
 
             for (int index = 0; index < paths.Length; index++)
             {
@@ -480,6 +536,67 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.LobbyPlayButton.gameObject.activeSelf,
                 Is.True);
             Assert.That(controller.LobbyPlayButton.interactable, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator JourneyChapterSelection_ChangesAndPersistsLobbyArt()
+        {
+            var save = new RoundtripSaveService(12);
+            AppServiceGraph graph = null;
+            yield return LoadFrontendThroughBoot(() =>
+            {
+                graph = CreateGraph(save);
+                return graph;
+            });
+            FrontendSceneController controller = RequireController();
+            LobbyProgressionPanel panel = controller.LobbyProgressionPanel;
+
+            Assert.That(panel.ActiveThemeId,
+                Is.EqualTo(LobbyChapterPolicy.SkyFestivalId));
+            Assert.That(
+                controller.JourneyPageView.ChapterViews[2].SelectButtonText.text,
+                Is.EqualTo("IN USE"));
+
+            controller.JourneyPageView.ChapterViews[0]
+                .SelectButton.onClick.Invoke();
+            yield return null;
+
+            Assert.That(panel.ActiveThemeId,
+                Is.EqualTo(LobbyChapterPolicy.ColorCourtyardId));
+            Assert.That(
+                graph.Progression.Lobby.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.ColorCourtyardId));
+            Assert.That(
+                save.Stored.LobbyProgress.SelectedLobbyThemeId,
+                Is.EqualTo(LobbyChapterPolicy.ColorCourtyardId));
+        }
+
+        [UnityTest]
+        public IEnumerator CompletedCatalog_HomeLaunchesStableLeagueRun()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new CompletedCampaignSaveService()));
+            FrontendSceneController controller = RequireController();
+            var loader = new DeferredSceneLoader();
+            controller.SetSceneLoaderForTests(loader);
+
+            Assert.That(controller.LobbyStageText.text,
+                Is.EqualTo("LEAGUE RUN"));
+            Assert.That(controller.LobbyProgressText.text,
+                Is.EqualTo("ALL LIVE STAGES CLEARED"));
+            Assert.That(
+                controller.LobbyPlayButton.GetComponentInChildren<Text>().text,
+                Is.EqualTo("LEAGUE RUN"));
+
+            controller.LobbyPlayButton.onClick.Invoke();
+            yield return null;
+
+            Assert.That(loader.LoadCount, Is.EqualTo(1));
+            Assert.That(AppRoot.TryGetActive(out AppRoot root), Is.True);
+            Assert.That(root.TryConsumeCampaignLaunch(
+                out CampaignLaunchRequest request), Is.True);
+            Assert.That(request.RunKind, Is.EqualTo(CampaignRunKind.League));
+            Assert.That(request.StageId, Does.StartWith("stage-"));
         }
 
         [UnityTest]
@@ -1304,6 +1421,36 @@ namespace ColorGateRunner.Tests.PlayMode
                     SaveReplacementResult.Recoverable);
         }
 
+        private sealed class CompletedCampaignSaveService : ILocalSaveService
+        {
+            public LocalSaveLoadResult Load()
+            {
+                LocalSaveData data =
+                    new ExistingGuestSaveService(true).Load().Data;
+                data.CampaignProgress.LegacyMigrationCompleted = true;
+                data.CampaignProgress.HighestUnlockedStageId = "stage-26";
+                for (int stage = 1; stage <= 26; stage++)
+                {
+                    data.CampaignProgress.StageRecords.Add(
+                        new LocalStageProgressData
+                        {
+                            StageId = $"stage-{stage:00}",
+                            Cleared = true,
+                            BestTime = 10f,
+                            BestNoItemTime = 10f,
+                            ClearCount = 1
+                        });
+                }
+                data.LobbyProgress.AppliedMilestoneCount = 13;
+                data.LobbyProgress.PresentedMilestoneCount = 13;
+                return LocalSaveLoadResult.Success(data, false, false);
+            }
+
+            public LocalSaveWriteResult Save(LocalSaveData data) =>
+                LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
+        }
+
         private sealed class RecordingSceneLoader : ISceneTransitionLoader
         {
             private readonly SceneTransitionResult _result;
@@ -1352,10 +1499,15 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             private LocalSaveData _data;
 
-            public RoundtripSaveService()
+            public RoundtripSaveService(int appliedMilestones = 0)
             {
                 _data = new ExistingGuestSaveService(true).Load().Data.Clone();
+                _data.LobbyProgress.AppliedMilestoneCount = appliedMilestones;
+                _data.LobbyProgress.PresentedMilestoneCount =
+                    appliedMilestones;
             }
+
+            public LocalSaveData Stored => _data;
 
             public LocalSaveLoadResult Load() =>
                 LocalSaveLoadResult.Success(

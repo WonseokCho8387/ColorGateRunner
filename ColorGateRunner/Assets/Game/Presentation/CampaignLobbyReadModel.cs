@@ -12,7 +12,8 @@ namespace ColorGateRunner.Presentation
             string mechanicLabel,
             string difficultyLabel,
             int clearedCount,
-            int totalStageCount)
+            int totalStageCount,
+            CampaignRunKind runKind)
         {
             StageId = stageId;
             DisplayNumber = displayNumber;
@@ -21,6 +22,7 @@ namespace ColorGateRunner.Presentation
             DifficultyLabel = difficultyLabel;
             ClearedCount = clearedCount;
             TotalStageCount = totalStageCount;
+            RunKind = runKind;
         }
 
         internal string StageId { get; }
@@ -30,21 +32,28 @@ namespace ColorGateRunner.Presentation
         internal string DifficultyLabel { get; }
         internal int ClearedCount { get; }
         internal int TotalStageCount { get; }
+        internal CampaignRunKind RunKind { get; }
+        internal bool IsLeague => RunKind == CampaignRunKind.League;
     }
 
     internal sealed class FrontendCampaignProgressReader
     {
         private readonly IStageProgressReader _progress;
         private readonly IStageCatalog _catalog;
+        private readonly string _profileId;
 
         internal FrontendCampaignProgressReader(
             IStageProgressReader progress,
-            IStageCatalog catalog)
+            IStageCatalog catalog,
+            string profileId = "guest")
         {
             _progress = progress ??
                 throw new ArgumentNullException(nameof(progress));
             _catalog = catalog ??
                 throw new ArgumentNullException(nameof(catalog));
+            _profileId = string.IsNullOrWhiteSpace(profileId)
+                ? "guest"
+                : profileId;
         }
 
         internal CampaignLobbyReadModel Read()
@@ -56,21 +65,43 @@ namespace ColorGateRunner.Presentation
             }
 
             bool[] cleared = new bool[_catalog.Count];
+            string[] stageIds = new string[_catalog.Count];
             int clearedCount = 0;
+            int replayClearCount = 0;
             for (int index = 0; index < cleared.Length; index++)
             {
-                bool isCleared =
-                    _progress.LoadRecord(index + 1).Cleared;
+                StageDefinition definition = _catalog.GetByIndex(index);
+                StageRecord record =
+                    _progress.LoadRecord(definition.DisplayNumber);
+                bool isCleared = record.Cleared;
                 cleared[index] = isCleared;
+                stageIds[index] = definition.StageId;
                 if (isCleared)
                 {
                     clearedCount++;
+                    replayClearCount += Math.Max(0, record.ClearCount - 1);
                 }
             }
 
-            int displayNumber = LobbyProgression.SelectCurrentStage(
-                _progress.LoadHighestUnlocked(),
-                cleared);
+            bool leagueActive = LobbyProgression.AreAllStagesCleared(cleared);
+            int displayNumber;
+            CampaignRunKind runKind;
+            if (leagueActive)
+            {
+                string stageId = LeagueStageSelector.SelectStageId(
+                    _profileId,
+                    stageIds,
+                    replayClearCount);
+                displayNumber = _catalog.GetById(stageId).DisplayNumber;
+                runKind = CampaignRunKind.League;
+            }
+            else
+            {
+                displayNumber = LobbyProgression.SelectCurrentStage(
+                    _progress.LoadHighestUnlocked(),
+                    cleared);
+                runKind = CampaignRunKind.Authored;
+            }
             StageDefinition stage =
                 _catalog.GetByDisplayNumber(displayNumber);
             return new CampaignLobbyReadModel(
@@ -80,7 +111,8 @@ namespace ColorGateRunner.Presentation
                 GetMechanicLabel(stage.PrimaryMechanic),
                 GetDifficultyLabel(stage.Difficulty),
                 clearedCount,
-                _catalog.Count);
+                _catalog.Count,
+                runKind);
         }
 
         private static string GetMechanicLabel(

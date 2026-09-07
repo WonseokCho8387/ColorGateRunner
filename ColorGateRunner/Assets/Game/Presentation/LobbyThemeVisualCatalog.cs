@@ -65,6 +65,29 @@ namespace ColorGateRunner.Presentation
             return true;
         }
 
+        internal bool TryGetById(
+            string themeId,
+            out LobbyThemeVisualDefinition definition)
+        {
+            if (themes != null)
+            {
+                for (int index = 0; index < themes.Length; index++)
+                {
+                    LobbyThemeVisualDefinition candidate = themes[index];
+                    if (candidate != null && string.Equals(
+                            candidate.ThemeId,
+                            themeId,
+                            StringComparison.Ordinal))
+                    {
+                        definition = candidate;
+                        return true;
+                    }
+                }
+            }
+            definition = null;
+            return false;
+        }
+
         internal void Configure(LobbyThemeVisualDefinition[] definitions)
         {
             themes = definitions ?? Array.Empty<LobbyThemeVisualDefinition>();

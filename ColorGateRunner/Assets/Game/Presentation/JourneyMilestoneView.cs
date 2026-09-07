@@ -46,6 +46,33 @@ namespace ColorGateRunner.Presentation
             shieldRoot != null && shieldText != null &&
             boosterRoot != null && boosterText != null;
 
+        internal void SetVerticalPosition(float centerY, float halfHeight)
+        {
+            SetVertical(
+                cardBackground.rectTransform,
+                centerY,
+                halfHeight);
+            SetVertical(
+                nodeGlow.rectTransform,
+                centerY,
+                halfHeight * 0.28f);
+        }
+
+        private static void SetVertical(
+            RectTransform rect,
+            float centerY,
+            float halfHeight)
+        {
+            rect.anchorMin = new Vector2(
+                rect.anchorMin.x,
+                centerY - halfHeight);
+            rect.anchorMax = new Vector2(
+                rect.anchorMax.x,
+                centerY + halfHeight);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
         internal void Bind(JourneyMilestoneCardModel model)
         {
             stageText.text = $"STAGE {model.StageNumber}";

@@ -145,9 +145,14 @@ namespace ColorGateRunner.Presentation
                 _graph.Account.IsProviderAvailable(provider);
         }
 
-        internal bool TryQueueCampaignLaunch(string stageId)
+        internal bool TryQueueCampaignLaunch(
+            string stageId,
+            CampaignRunKind runKind = CampaignRunKind.Authored)
         {
-            return IsPrimary && _campaignLaunch.TrySet(stageId);
+            return IsPrimary && _campaignLaunch.TrySet(
+                stageId,
+                false,
+                runKind);
         }
 
 #if UNITY_EDITOR
@@ -179,9 +184,11 @@ namespace ColorGateRunner.Presentation
             return IsPrimary && _campaignLaunch.TryCancel(stageId);
         }
 
-        bool ICampaignLaunchHost.TryQueueCampaignLaunch(string stageId)
+        bool ICampaignLaunchHost.TryQueueCampaignLaunch(
+            string stageId,
+            CampaignRunKind runKind)
         {
-            return TryQueueCampaignLaunch(stageId);
+            return TryQueueCampaignLaunch(stageId, runKind);
         }
 
         bool ICampaignLaunchHost.TryCancelCampaignLaunch(string stageId)

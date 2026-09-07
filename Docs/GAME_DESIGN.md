@@ -920,3 +920,21 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   `6 / 8 / 10` quota is reached after Booster reach.
 - Experiment Lab Hidden and Flicker timing and Booster restrictions remain
   unchanged.
+
+## Iteration 55 chapter and League progression contract
+
+- Lobby chapters change presentation, not mechanics. Color Courtyard is
+  available from the start, Neon Garden unlocks with Lobby milestone 6 and Sky
+  Festival with milestone 12. A user may reselect any unlocked chapter.
+- Clearing the current last live Stage does not create an unavailable numbered
+  Stage. When every live Catalog entry is cleared, Home and Campaign results
+  enter League and replay existing authored Stages indefinitely.
+- Each League cycle contains every live Stage exactly once in deterministic
+  shuffled order. The next cycle cannot begin with the previous cycle's final
+  Stage. The selected sequence is stable for the same profile, Catalog and
+  replay-clear history.
+- League reuses the selected Stage's exact authored mechanic, colors, speed,
+  timing, item availability, rewards and judgments. It adds no adaptive
+  difficulty, skip, score multiplier or League-only economy.
+- Adding a new live Stage makes the all-cleared predicate false until that Stage
+  is cleared, returning the player to ordinary authored progression.

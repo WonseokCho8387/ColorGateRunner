@@ -22,6 +22,7 @@ namespace ColorGateRunner.Presentation
 
         private Vector3 _midgroundBaseScale = Vector3.one;
         private bool _midgroundScaleCaptured;
+        private string _activeThemeId = string.Empty;
 
         internal Text CoinText => coinText;
         internal Text HeartText => heartText;
@@ -34,6 +35,7 @@ namespace ColorGateRunner.Presentation
         internal Image ThemeArtworkForeground => themeArtworkForeground;
         internal LobbyThemeVisualCatalog ThemeVisualCatalog =>
             themeVisualCatalog;
+        internal string ActiveThemeId => _activeThemeId;
 
         internal int ActiveUpgradeVisualCount()
         {
@@ -67,14 +69,16 @@ namespace ColorGateRunner.Presentation
                 progression.Lobby.AppliedMilestoneCount,
                 0,
                 18);
-            int themeIndex = Mathf.Min(2, applied / 6);
             int localApplied = applied == 18 ? 6 : applied % 6;
             coinText.text = $"COINS {progression.Economy.Coins}";
             RefreshHeart(hearts, utcNow);
             inventoryText.text =
                 $"SHIELD {progression.Economy.ShieldCount}   " +
                 $"BOOSTER {progression.Economy.BoosterCount}";
-            ApplyThemeVisual(themeIndex);
+            string selectedThemeId = LobbyChapterPolicy.ResolveSelectedThemeId(
+                progression.Lobby.SelectedLobbyThemeId,
+                applied);
+            ApplyThemeVisual(selectedThemeId);
             for (int index = 0; index < upgradeVisuals.Length; index++)
             {
                 upgradeVisuals[index].SetActive(index < localApplied);
@@ -116,16 +120,17 @@ namespace ColorGateRunner.Presentation
             }
         }
 
-        private void ApplyThemeVisual(int themeIndex)
+        internal void ApplyThemeVisual(string themeId)
         {
-            if (!themeVisualCatalog.TryGet(
-                    themeIndex,
+            if (!themeVisualCatalog.TryGetById(
+                    themeId,
                     out LobbyThemeVisualDefinition definition))
             {
                 throw new InvalidOperationException(
-                    $"Lobby theme {themeIndex} is not configured.");
+                    $"Lobby theme {themeId} is not configured.");
             }
 
+            _activeThemeId = definition.ThemeId;
             themeText.text = definition.DisplayName;
             themeBackground.color = definition.BackgroundTint;
             SetArtwork(themeArtworkBackground, definition.Background);

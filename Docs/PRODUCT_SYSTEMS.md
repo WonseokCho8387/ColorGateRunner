@@ -1103,3 +1103,21 @@ The local product foundation is complete when:
 - Journey never calls the milestone grant service and never writes Product
   save. Existing automatic clear transactions remain the sole reward authority;
   unavailable future Stages are truthfully Coming Soon.
+
+### Iteration 55 Lobby chapter selection and League derivation
+
+- Schema 3 adds the optional `SelectedLobbyThemeId` string inside existing
+  Lobby progress data; the schema number and all existing keys stay unchanged.
+  Null or missing legacy values normalize to empty without making the load
+  dirty. Unknown non-empty IDs are repaired to empty for the next normal save.
+- `LobbyChapterPolicy` owns stable IDs, unlock milestones and latest-unlocked
+  resolution. `LocalProductSession.SelectLobbyTheme` clones, validates unlock,
+  saves and publishes atomically; locked selection and save failure expose no
+  partial public state.
+- The existing first-clear transaction applies Stage progress, economy reward,
+  Lobby milestone and any newly unlocked chapter selection to one candidate
+  before one save. Duplicate clear ingestion cannot advance selection again.
+- League stores no flag, season, bag or random cursor. Eligibility is derived
+  from clear records for every live Catalog Stage, while deterministic replay
+  position derives from aggregate repeat clear counts. This lets a Catalog
+  append leave League without a persistence migration.

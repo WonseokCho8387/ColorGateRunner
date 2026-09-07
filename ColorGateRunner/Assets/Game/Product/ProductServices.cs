@@ -390,6 +390,32 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        public ProductMutationResult SelectLobbyTheme(string themeId)
+        {
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (!LobbyChapterPolicy.IsUnlocked(
+                    themeId,
+                    _current.LobbyProgress.AppliedMilestoneCount))
+            {
+                return InvalidProgression(
+                    "The requested Lobby theme is unknown or locked.");
+            }
+            if (string.Equals(
+                    _current.LobbyProgress.SelectedLobbyThemeId,
+                    themeId,
+                    StringComparison.Ordinal))
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            LocalSaveData candidate = _current.Clone();
+            candidate.LobbyProgress.SelectedLobbyThemeId = themeId;
+            return Commit(candidate);
+        }
+
         public ProductMutationResult ConsumeStartItems(
             bool shield,
             bool booster)
@@ -1014,6 +1040,8 @@ namespace ColorGateRunner.Product
             }
 
             int milestone = displayNumber / 2;
+            int previousApplied =
+                candidate.LobbyProgress.AppliedMilestoneCount;
             bool applied = ApplyTransaction(
                 candidate.Economy,
                 $"lobby-milestone:{milestone:00}",
@@ -1025,6 +1053,11 @@ namespace ColorGateRunner.Product
                 candidate.LobbyProgress.AppliedMilestoneCount = Math.Max(
                     candidate.LobbyProgress.AppliedMilestoneCount,
                     milestone);
+                candidate.LobbyProgress.SelectedLobbyThemeId =
+                    LobbyChapterPolicy.ResolveAfterMilestoneApplied(
+                        candidate.LobbyProgress.SelectedLobbyThemeId,
+                        previousApplied,
+                        candidate.LobbyProgress.AppliedMilestoneCount);
             }
         }
 

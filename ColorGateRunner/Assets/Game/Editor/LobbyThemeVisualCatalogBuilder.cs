@@ -14,12 +14,42 @@ namespace ColorGateRunner.Editor
             "Assets/Game/Art/Lobby/Theme01/ColorCourtyard_Reactor.png";
         internal const string AmbientPath =
             "Assets/Game/Art/Lobby/Theme01/ColorCourtyard_Ambient.png";
+        internal const string NeonGardenBackgroundPath =
+            "Assets/Game/Art/Lobby/Theme02/NeonGarden_Background.png";
+        internal const string NeonGardenReactorPath =
+            "Assets/Game/Art/Lobby/Theme02/NeonGarden_Reactor.png";
+        internal const string NeonGardenAmbientPath =
+            "Assets/Game/Art/Lobby/Theme02/NeonGarden_Ambient.png";
+        internal const string SkyFestivalBackgroundPath =
+            "Assets/Game/Art/Lobby/Theme03/SkyFestival_Background.png";
+        internal const string SkyFestivalBeaconPath =
+            "Assets/Game/Art/Lobby/Theme03/SkyFestival_Beacon.png";
+        internal const string SkyFestivalAmbientPath =
+            "Assets/Game/Art/Lobby/Theme03/SkyFestival_Ambient.png";
 
         internal static LobbyThemeVisualCatalog EnsureAndConfigure()
         {
             Sprite background = ImportSprite(BackgroundPath, false);
             Sprite reactor = ImportSprite(ReactorPath, true);
             Sprite ambient = ImportSprite(AmbientPath, true);
+            Sprite neonGardenBackground = ImportSprite(
+                NeonGardenBackgroundPath,
+                false);
+            Sprite neonGardenReactor = ImportSprite(
+                NeonGardenReactorPath,
+                true);
+            Sprite neonGardenAmbient = ImportSprite(
+                NeonGardenAmbientPath,
+                true);
+            Sprite skyFestivalBackground = ImportSprite(
+                SkyFestivalBackgroundPath,
+                false);
+            Sprite skyFestivalBeacon = ImportSprite(
+                SkyFestivalBeaconPath,
+                true);
+            Sprite skyFestivalAmbient = ImportSprite(
+                SkyFestivalAmbientPath,
+                true);
 
             LobbyThemeVisualCatalog catalog =
                 AssetDatabase.LoadAssetAtPath<LobbyThemeVisualCatalog>(
@@ -44,16 +74,16 @@ namespace ColorGateRunner.Editor
                     "neon-garden",
                     "NEON GARDEN",
                     new Color(0.17f, 0.10f, 0.27f, 1f),
-                    null,
-                    null,
-                    null),
+                    neonGardenBackground,
+                    neonGardenReactor,
+                    neonGardenAmbient),
                 new LobbyThemeVisualDefinition(
                     "sky-festival",
                     "SKY FESTIVAL",
                     new Color(0.08f, 0.23f, 0.25f, 1f),
-                    null,
-                    null,
-                    null)
+                    skyFestivalBackground,
+                    skyFestivalBeacon,
+                    skyFestivalAmbient)
             });
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
@@ -73,20 +103,38 @@ namespace ColorGateRunner.Editor
                     $"Lobby artwork is missing or invalid: {path}");
             }
 
-            importer.textureType = TextureImporterType.Sprite;
-            importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = 100f;
-            importer.mipmapEnabled = false;
-            importer.alphaSource = hasTransparency
+            TextureImporterAlphaSource alphaSource = hasTransparency
                 ? TextureImporterAlphaSource.FromInput
                 : TextureImporterAlphaSource.None;
-            importer.alphaIsTransparency = hasTransparency;
-            importer.sRGBTexture = true;
-            importer.wrapMode = TextureWrapMode.Clamp;
-            importer.filterMode = FilterMode.Bilinear;
-            importer.maxTextureSize = 2048;
-            importer.textureCompression = TextureImporterCompression.CompressedHQ;
-            importer.SaveAndReimport();
+            bool requiresUpdate =
+                importer.textureType != TextureImporterType.Sprite ||
+                importer.spriteImportMode != SpriteImportMode.Single ||
+                importer.spritePixelsPerUnit != 100f ||
+                importer.mipmapEnabled ||
+                importer.alphaSource != alphaSource ||
+                importer.alphaIsTransparency != hasTransparency ||
+                !importer.sRGBTexture ||
+                importer.wrapMode != TextureWrapMode.Clamp ||
+                importer.filterMode != FilterMode.Bilinear ||
+                importer.maxTextureSize != 2048 ||
+                importer.textureCompression !=
+                    TextureImporterCompression.CompressedHQ;
+            if (requiresUpdate)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.spritePixelsPerUnit = 100f;
+                importer.mipmapEnabled = false;
+                importer.alphaSource = alphaSource;
+                importer.alphaIsTransparency = hasTransparency;
+                importer.sRGBTexture = true;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.maxTextureSize = 2048;
+                importer.textureCompression =
+                    TextureImporterCompression.CompressedHQ;
+                importer.SaveAndReimport();
+            }
 
             Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (sprite == null)

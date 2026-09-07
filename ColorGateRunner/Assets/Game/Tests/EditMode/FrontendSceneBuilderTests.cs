@@ -118,7 +118,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void LobbyThemeCatalog_HasCompleteThemeOneAndFutureFallbacks()
+        public void LobbyThemeCatalog_HasThreeCompleteChapterThemes()
         {
             LobbyThemeVisualCatalog catalog =
                 AssetDatabase.LoadAssetAtPath<LobbyThemeVisualCatalog>(
@@ -143,11 +143,25 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(catalog.TryGet(
                 1,
                 out LobbyThemeVisualDefinition themeTwo), Is.True);
-            Assert.That(themeTwo.HasCompleteArtwork, Is.False);
+            Assert.That(themeTwo.ThemeId, Is.EqualTo("neon-garden"));
+            Assert.That(themeTwo.HasCompleteArtwork, Is.True);
+            Assert.That(AssetDatabase.GetAssetPath(themeTwo.Background),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.NeonGardenBackgroundPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeTwo.Midground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.NeonGardenReactorPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeTwo.Foreground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.NeonGardenAmbientPath));
             Assert.That(catalog.TryGet(
                 2,
                 out LobbyThemeVisualDefinition themeThree), Is.True);
-            Assert.That(themeThree.HasCompleteArtwork, Is.False);
+            Assert.That(themeThree.ThemeId, Is.EqualTo("sky-festival"));
+            Assert.That(themeThree.HasCompleteArtwork, Is.True);
+            Assert.That(AssetDatabase.GetAssetPath(themeThree.Background),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.SkyFestivalBackgroundPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeThree.Midground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.SkyFestivalBeaconPath));
+            Assert.That(AssetDatabase.GetAssetPath(themeThree.Foreground),
+                Is.EqualTo(LobbyThemeVisualCatalogBuilder.SkyFestivalAmbientPath));
 
             AssertSpriteImporter(
                 LobbyThemeVisualCatalogBuilder.BackgroundPath,
@@ -158,13 +172,45 @@ namespace ColorGateRunner.Tests.EditMode
             AssertSpriteImporter(
                 LobbyThemeVisualCatalogBuilder.AmbientPath,
                 true);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.NeonGardenBackgroundPath,
+                false);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.NeonGardenReactorPath,
+                true);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.NeonGardenAmbientPath,
+                true);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.SkyFestivalBackgroundPath,
+                false);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.SkyFestivalBeaconPath,
+                true);
+            AssertSpriteImporter(
+                LobbyThemeVisualCatalogBuilder.SkyFestivalAmbientPath,
+                true);
         }
 
         [Test]
         public void LobbyThemeOne_AmbientContainsRealTransparentPixels()
         {
-            string absolutePath = Path.GetFullPath(
+            AssertContainsTransparentAndOpaquePixels(
                 LobbyThemeVisualCatalogBuilder.AmbientPath);
+            AssertContainsTransparentAndOpaquePixels(
+                LobbyThemeVisualCatalogBuilder.NeonGardenReactorPath);
+            AssertContainsTransparentAndOpaquePixels(
+                LobbyThemeVisualCatalogBuilder.NeonGardenAmbientPath);
+            AssertContainsTransparentAndOpaquePixels(
+                LobbyThemeVisualCatalogBuilder.SkyFestivalBeaconPath);
+            AssertContainsTransparentAndOpaquePixels(
+                LobbyThemeVisualCatalogBuilder.SkyFestivalAmbientPath);
+        }
+
+        private static void AssertContainsTransparentAndOpaquePixels(
+            string path)
+        {
+            string absolutePath = Path.GetFullPath(path);
             Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             try
             {
@@ -178,7 +224,7 @@ namespace ColorGateRunner.Tests.EditMode
                     transparent += pixels[index].a < 16 ? 1 : 0;
                     opaque += pixels[index].a > 240 ? 1 : 0;
                 }
-                Assert.That(transparent, Is.GreaterThan(pixels.Length / 2));
+                Assert.That(transparent, Is.GreaterThan(pixels.Length / 8));
                 Assert.That(opaque, Is.GreaterThan(100));
             }
             finally

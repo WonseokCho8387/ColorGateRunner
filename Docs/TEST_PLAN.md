@@ -1036,3 +1036,31 @@ fairness, or polish.
   zero failed and one opt-in visual capture ignored; graphics capture `1/1`;
   fresh-context checker `PASS`. Campaign/Step 10 simulations and Player builds
   are excluded because gameplay inputs and release artifacts do not change.
+
+### Iteration 55 Journey chapters, theme selection and League loop
+
+- EditMode must prove chapter unlock boundaries `0 / 6 / 12`, latest-unlocked
+  legacy fallback without a dirty load, atomic selection/save failure rollback,
+  same-transaction chapter auto-selection and complete three-theme Sprite
+  imports. League selection must be stable, visit every live Stage once per
+  cycle and avoid an immediate boundary repeat.
+- PlayMode must prove chapter selection changes and persists Home art, Journey
+  has exactly three chapter views plus one League terminal, and a fully cleared
+  live Catalog launches a stable `CampaignRunKind.League` request. Ordinary
+  authored progression and all existing Campaign result behavior remain in the
+  full suite.
+- Frontend/Boot Builder runs twice after the final layout change. Campaign
+  Builder runs its two-pass command because the integrated Campaign controller
+  changes. Missing Script/reference, unique roots, EventSystem and Build
+  Settings checks remain mandatory.
+- Two full 520-row Campaign simulations must retain the approved Summary / JSON
+  / CSV hashes. Step 10 is omitted while Experiment inputs stay unchanged.
+- D3D11 visual QC at `1080 x 1920` captures all three Home themes, Shop depths,
+  truthful placeholder pages, Journey chapter/Coming Soon positions, League
+  locked/active and League Home. It can reject clipping or overlap but cannot
+  certify theme appeal, touch comfort or replay variety.
+- Final evidence: EditMode `480/480`; PlayMode `261` passed, zero failed and one
+  opt-in visual ignore; D3D11 `1/1` with 13 captures; two byte-identical 520-row
+  Campaign runs retaining all three approved hashes; developer save byte- and
+  timestamp-exact; no Package or ProjectSettings feature diff; fresh-context
+  read-only Quality Graph checker `PASS` with no blocking finding.

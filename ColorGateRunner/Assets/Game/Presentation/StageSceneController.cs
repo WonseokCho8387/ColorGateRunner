@@ -224,6 +224,7 @@ namespace ColorGateRunner.Presentation
         private bool[] _pausedEffectWasPlaying;
         private string _pauseSceneLoadError = string.Empty;
         private bool _enteredFromFrontendLaunch;
+        private CampaignRunKind _campaignRunKind = CampaignRunKind.Authored;
         private bool _preRunReturnTransitioning;
         private string _preRunReturnError = string.Empty;
         private StartItemKind? _pendingStartItemPurchase;
@@ -395,6 +396,7 @@ namespace ColorGateRunner.Presentation
         internal string FrontendScenePath => frontendScenePath;
         internal Button PreRunBackButton => backButton;
         internal bool EnteredFromFrontendLaunch => _enteredFromFrontendLaunch;
+        internal CampaignRunKind ActiveCampaignRunKind => _campaignRunKind;
         internal bool PreRunReturnTransitioning => _preRunReturnTransitioning;
         internal string PreRunReturnError => _preRunReturnError;
         internal GateBreakEffectPool GateBreakEffects => gateBreakEffects;
@@ -891,7 +893,8 @@ namespace ColorGateRunner.Presentation
         private bool TrySelectStageById(
             string stageId,
             bool enteredFromFrontendLaunch,
-            bool bypassUnlock)
+            bool bypassUnlock,
+            CampaignRunKind runKind = CampaignRunKind.Authored)
         {
             StageDefinition definition;
             try
@@ -910,6 +913,7 @@ namespace ColorGateRunner.Presentation
             _selectedStageNumber = displayNumber;
             _selectedStageId = definition.StageId;
             _enteredFromFrontendLaunch = enteredFromFrontendLaunch;
+            _campaignRunKind = runKind;
             _preRunReturnTransitioning = false;
             _preRunReturnError = string.Empty;
             _session = new StageSession(definition);
@@ -939,7 +943,8 @@ namespace ColorGateRunner.Presentation
             return TrySelectStageById(
                 request.StageId,
                 true,
-                request.BypassUnlock);
+                request.BypassUnlock,
+                request.RunKind);
         }
 
         internal void HandlePreRunBack()
@@ -1495,6 +1500,7 @@ namespace ColorGateRunner.Presentation
         internal void ShowLobby()
         {
             _enteredFromFrontendLaunch = false;
+            _campaignRunKind = CampaignRunKind.Authored;
             _preRunReturnTransitioning = false;
             _preRunReturnError = string.Empty;
             backButton.interactable = true;
@@ -2339,13 +2345,20 @@ namespace ColorGateRunner.Presentation
                 LeaveResultFlow();
                 return;
             }
-            if (!TryGetUnlockedNextStage(out StageDefinition next))
+            if (!TryGetResultContinuation(
+                    out StageDefinition next,
+                    out CampaignRunKind runKind,
+                    out _))
             {
                 return;
             }
             bool enteredFromFrontend = _enteredFromFrontendLaunch;
             ResetRunPresentation();
-            if (!TrySelectStageById(next.StageId, enteredFromFrontend, false))
+            if (!TrySelectStageById(
+                    next.StageId,
+                    enteredFromFrontend,
+                    false,
+                    runKind))
             {
                 _clearSaveError = "NEXT STAGE UNAVAILABLE";
                 ApplyUiFlow(MobileUiFlow.ClearResult);
@@ -3068,7 +3081,10 @@ namespace ColorGateRunner.Presentation
                 else if (_clearDelayRemaining <= 0f && _session != null)
                 {
                     clearPanel.SetActive(true);
-                    clearTitleText.text = "STAGE CLEAR";
+                    clearTitleText.text = _campaignRunKind ==
+                        CampaignRunKind.League
+                            ? "LEAGUE RUN CLEAR"
+                            : "STAGE CLEAR";
                     StageRecord record =
                         _progressStore.LoadRecord(_selectedStageNumber);
                     clearDetailsText.text =
@@ -3079,11 +3095,16 @@ namespace ColorGateRunner.Presentation
                         (string.IsNullOrWhiteSpace(_clearSaveError)
                             ? string.Empty
                             : $"\n{_clearSaveError}");
-                    clearContinueButton.gameObject.SetActive(
-                        TryGetUnlockedNextStage(out _));
+                    bool hasContinuation = TryGetResultContinuation(
+                        out _,
+                        out _,
+                        out string continuationLabel);
+                    clearContinueButton.gameObject.SetActive(hasContinuation);
                     replayButton.gameObject.SetActive(false);
                     clearLobbyButton.gameObject.SetActive(true);
-                    SetButtonLabel(clearContinueButton, "NEXT STAGE");
+                    SetButtonLabel(
+                        clearContinueButton,
+                        continuationLabel);
                     SetButtonLabel(clearLobbyButton, "LOBBY");
                     _campaignResultFlow.BeginClear();
                     resultSequenceView.PlayCampaignClear(
@@ -3138,6 +3159,61 @@ namespace ColorGateRunner.Presentation
             }
             next = StageCatalog.GetByDisplayNumber(_selectedStageNumber + 1);
             return next.DisplayNumber <= _highestUnlocked;
+        }
+
+        private bool TryGetResultContinuation(
+            out StageDefinition next,
+            out CampaignRunKind runKind,
+            out string label)
+        {
+            if (_campaignRunKind == CampaignRunKind.Authored &&
+                TryGetUnlockedNextStage(out next))
+            {
+                runKind = CampaignRunKind.Authored;
+                label = "NEXT STAGE";
+                return true;
+            }
+            if (TryGetLeagueStage(out next))
+            {
+                runKind = CampaignRunKind.League;
+                label = _campaignRunKind == CampaignRunKind.League
+                    ? "NEXT LEAGUE RUN"
+                    : "ENTER LEAGUE";
+                return true;
+            }
+            next = null;
+            runKind = CampaignRunKind.Authored;
+            label = string.Empty;
+            return false;
+        }
+
+        private bool TryGetLeagueStage(out StageDefinition selected)
+        {
+            selected = null;
+            bool[] cleared = LoadClearedStages();
+            if (!LobbyProgression.AreAllStagesCleared(cleared) ||
+                !AppRoot.TryGetActive(out AppRoot root) ||
+                root.Graph?.Profile?.Current == null)
+            {
+                return false;
+            }
+
+            string[] stageIds = new string[StageCatalog.Count];
+            int replayClearCount = 0;
+            for (int index = 0; index < stageIds.Length; index++)
+            {
+                StageDefinition stage = StageCatalog.GetByIndex(index);
+                StageRecord record = _progressStore.LoadRecord(
+                    stage.DisplayNumber);
+                stageIds[index] = stage.StageId;
+                replayClearCount += Math.Max(0, record.ClearCount - 1);
+            }
+            string selectedId = LeagueStageSelector.SelectStageId(
+                root.Graph.Profile.Current.ProfileId,
+                stageIds,
+                replayClearCount);
+            selected = StageCatalog.GetById(selectedId);
+            return true;
         }
 
         private string FormatExperimentResultDetails()

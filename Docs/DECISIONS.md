@@ -1738,3 +1738,24 @@ Status: Approved and implemented.
 - Journey is a read-only presentation of the existing automatic even-Stage
   milestone policy. It never introduces Claim, pending reward, a new ledger or
   a Product save write. Catalog-external milestones remain Coming Soon.
+
+## Iteration 55 — Chapters select presentation; League reuses authored Stages
+
+- Lobby chapters are fixed local presentation definitions keyed by stable theme
+  IDs. Unlock authority remains the automatic Lobby milestone count at `0 / 6 /
+  12`; a chapter selection never grants a reward or changes Campaign access.
+- Explicit unlocked selection is saved atomically through `LocalProductSession`.
+  A first clear that crosses a chapter boundary applies its milestone reward and
+  selects the newly unlocked chapter in the same candidate save. Missing legacy
+  selection resolves latest-unlocked in memory without a load-time write.
+- League is active only when every stable ID in the live Stage Catalog has a
+  clear record. Catalog expansion therefore exits League naturally until the
+  new content is cleared; no separate season or maximum-level flag is stored.
+- League chooses from the authored Catalog with an explicit deterministic seed
+  built from profile ID, live Stage IDs and aggregate replay clear count. One
+  shuffle bag contains every Stage once and forbids an immediate repeat across
+  cycle boundaries. Presentation does not use Unity random state.
+- A League run uses the normal Campaign start, Heart, item, judgment, clear,
+  reward and retry transactions. Only the next Stage selection and League copy
+  differ. Ranking, seasons, League rewards and remote configuration are not
+  implied by this foundation.

@@ -445,6 +445,18 @@ namespace ColorGateRunner.Product
                 data.LobbyProgress = LocalLobbyProgressData.CreateDefaults();
                 dirty = true;
             }
+            if (data.LobbyProgress.SelectedLobbyThemeId == null)
+            {
+                data.LobbyProgress.SelectedLobbyThemeId = string.Empty;
+            }
+            else if (!string.IsNullOrWhiteSpace(
+                    data.LobbyProgress.SelectedLobbyThemeId) &&
+                !LobbyChapterPolicy.IsKnownTheme(
+                    data.LobbyProgress.SelectedLobbyThemeId))
+            {
+                data.LobbyProgress.SelectedLobbyThemeId = string.Empty;
+                dirty = true;
+            }
 
             ProductError error = ValidateCurrent(data);
             if (error.IsError)
@@ -535,7 +547,12 @@ namespace ColorGateRunner.Product
                 lobby.AppliedMilestoneCount > 18 ||
                 lobby.PresentedMilestoneCount < 0 ||
                 lobby.PresentedMilestoneCount >
-                    lobby.AppliedMilestoneCount)
+                    lobby.AppliedMilestoneCount ||
+                lobby.SelectedLobbyThemeId == null ||
+                (!string.IsNullOrWhiteSpace(
+                    lobby.SelectedLobbyThemeId) &&
+                !LobbyChapterPolicy.IsKnownTheme(
+                    lobby.SelectedLobbyThemeId)))
             {
                 return false;
             }

@@ -820,3 +820,20 @@ mask mechanic readability changes.
 - **Learn:** catalog append compatibility should avoid eager save migration;
   test-build trust depends on coupling source generation, stale-output removal
   and platform dependency repair to the packaging command itself.
+
+## Iteration 55 — turn finite completion into a derived replay loop
+
+- **Play:** Journey rewards ended without a chapter-scale visual change, and
+  clearing the last live Stage left no honest next-play state.
+- **Analyze:** milestone count, stable Stage IDs and clear counts already held
+  the required truth; storing a separate League flag or random cursor would add
+  migration and desynchronization risk.
+- **Design:** make chapter choice a small atomic presentation preference, derive
+  League eligibility from the live Catalog, and derive a shuffle-bag position
+  from persisted replay clears.
+- **Validate:** test unlock/rollback/shuffle invariants, rebuild Frontend and
+  Campaign, retain Campaign hashes, and render locked plus active League states
+  on D3D11.
+- **Learn:** an endless endgame can remain reproducible and catalog-aware when
+  it is derived from existing durable facts instead of becoming a parallel
+  progression system.

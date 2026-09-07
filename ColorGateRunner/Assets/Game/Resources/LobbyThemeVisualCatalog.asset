@@ -22,12 +22,12 @@ MonoBehaviour:
   - themeId: neon-garden
     displayName: NEON GARDEN
     backgroundTint: {r: 0.17, g: 0.1, b: 0.27, a: 1}
-    background: {fileID: 0}
-    midground: {fileID: 0}
-    foreground: {fileID: 0}
+    background: {fileID: 21300000, guid: 7373d3a97aba22040b81950b69739564, type: 3}
+    midground: {fileID: 21300000, guid: 4a4314317b2036e43b9bfe79010c9fd2, type: 3}
+    foreground: {fileID: 21300000, guid: 10a3652247704ae4b967ae4b0af89605, type: 3}
   - themeId: sky-festival
     displayName: SKY FESTIVAL
     backgroundTint: {r: 0.08, g: 0.23, b: 0.25, a: 1}
-    background: {fileID: 0}
-    midground: {fileID: 0}
-    foreground: {fileID: 0}
+    background: {fileID: 21300000, guid: 9123ee29b31b21e4985a0aa11731a082, type: 3}
+    midground: {fileID: 21300000, guid: c469938695c75f341b077a2c2158be3e, type: 3}
+    foreground: {fileID: 21300000, guid: 27148e17cbe4e6a4f80af1768db6a5c2, type: 3}

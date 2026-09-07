@@ -1095,3 +1095,22 @@ not reusable art assets or an exact visual copy.
 - Stage 23 is the current final Stage, so its Clear follows the existing final-
   Stage Lobby fallback. Flicker Stage 24 remains unavailable and is never
   exposed as a placeholder action.
+
+## Implemented UX slice — Iteration 55 Journey chapters and League
+
+- Journey contains three fixed chapter cards backed by the Lobby theme
+  catalog. Locked cards have no usable action; the selected unlocked card reads
+  `IN USE`, and `USE LOBBY` persists before the shared Home rebind changes art.
+- The Journey path inserts one League terminal directly after the last even-
+  Stage milestone supported by the live Catalog. It displays `LEAGUE LOCKED`
+  until all live Stages are cleared and `LEAGUE ACTIVE` afterward.
+- Home uses the same complete-catalog predicate. Before completion, `PLAY`
+  launches the authored current Stage. After completion it shows `LEAGUE RUN`,
+  the deterministic replay Stage and `ALL LIVE STAGES CLEARED`.
+- Campaign Clear continues to the authored next Stage while one exists. Once
+  the live Catalog is complete, the result action selects the next deterministic
+  League run. Retry remains on the current attempt; Lobby remains the shared
+  Frontend destination.
+- Chapter selection and League add no Scene name/index constants. Boot,
+  Frontend and Campaign continue to use the existing serialized transition
+  destinations and AppRoot launch request.

@@ -61,5 +61,21 @@ namespace ColorGateRunner.Core
                 clearedStages.Length == StageCatalog.Count &&
                 clearedStages[StageCatalog.Count - 1];
         }
+
+        public static bool AreAllStagesCleared(bool[] clearedStages)
+        {
+            if (clearedStages == null || clearedStages.Length == 0)
+            {
+                return false;
+            }
+            for (int index = 0; index < clearedStages.Length; index++)
+            {
+                if (!clearedStages[index])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

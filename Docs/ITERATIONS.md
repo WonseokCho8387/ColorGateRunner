@@ -3276,3 +3276,61 @@ Human feedback required
   gesture comfort, Shop density, icon appeal and Journey scroll feel.
 - Rank, Collection, live store prices/purchases, receipts, grants, animation,
   audio, haptics and Journey chapter rewards remain separate iterations.
+
+## Iteration 55 — Journey Chapters, Lobby Themes and League Loop
+
+### Play / Analyze
+
+- Journey exposed only reward nodes, while reaching later content did not
+  produce a chapter change or a visibly different Home. Finishing the live
+  Catalog also had no truthful long-tail play state.
+- The existing automatic milestone transaction, layered Lobby catalog and
+  stable Stage IDs already supplied the necessary authorities. The missing
+  pieces were persisted presentation selection and a deterministic replay
+  policy, not a second progression or reward system.
+
+### Design / Implementation
+
+- Added three fixed chapter definitions unlocked at Lobby milestones `0 / 6 /
+  12`. Missing legacy selection resolves the latest unlocked chapter without
+  rewriting schema-3 save data; explicit selection and chapter-crossing auto-
+  selection use the existing clone-save-publish transaction.
+- Added complete original layered artwork for Neon Garden and Sky Festival and
+  reworked Home so the hero remains dominant. Inventory moved to its own thin
+  chip after rendered QC found it overlapping the Stage title.
+- Added chapter cards and a dynamically positioned League terminal to Journey.
+  The terminal follows the last live even-Stage reward and truthfully reports
+  locked or active state.
+- Added a pure seeded League shuffle bag. It visits every live Stage once per
+  cycle, avoids an immediate boundary repeat, derives its index from persisted
+  clear counts and returns to authored progression if a new uncleared Stage is
+  appended. Campaign launch, clear, reward, Heart and retry paths remain the
+  existing Product-backed flow.
+
+### Validation / Learning
+
+- Frontend/Boot Builder passed twice after the final visual repair; Campaign
+  Builder completed its built-in two-pass generation. Full EditMode passed
+  `480/480`; full PlayMode passed `261` with one intentional opt-in visual
+  ignore.
+- Two 520-row Campaign simulations were byte-identical and retained approved
+  Summary / JSON / CSV hashes. Step 10 was omitted because Experiment inputs
+  and behavior did not change.
+- D3D11 visual QC passed `1/1` at `1080 x 1920` with 13 captures. It found and
+  drove the one inventory/title overlap repair, then confirmed all three Home
+  themes, League locked/active and the one-line League Home hierarchy.
+- A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking finding after inspecting the final diff, deterministic evidence,
+  rendered captures and protected state.
+- The developer Product save remained SHA-256
+  `2FB4AA24CACB39FD3C3E036E407642203915E70A0C1D9CA897C4F600CE2FA6B5`
+  with its exact original timestamp. Package and ProjectSettings changes were
+  absent from the final feature diff.
+
+### Deferred / Human Review
+
+- Portrait mobile and WebGL play still own theme appeal, artwork cropping,
+  Journey scroll feel and the perceived variety of repeated League Stages.
+- Chapter-specific gameplay rules, seasonal League scoring/ranking/rewards,
+  remote rotation, new authored Stages, Rank/Collection implementation and
+  live Shop services remain separate iterations.
