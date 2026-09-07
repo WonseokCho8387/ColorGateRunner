@@ -3421,3 +3421,53 @@ Human feedback required
   motion, repeated-clear pacing and touch comfort.
 - Runner transformation remains the next separate R&D iteration; it was not
   implemented while repairing the victory fireworks.
+
+## Iteration 58 — Modular Runner Transformation Prototype
+
+### Play / Analyze
+
+- The instant color/material change remained mechanically responsive, but the
+  Cyber Orb read as one object being retinted rather than a vehicle changing
+  modes.
+- A full Transformer-style rig or separate model set would delay feedback and
+  add modeling, animation and state risk before the visual premise was proven.
+
+### Design / Implementation
+
+- Added one presentation-only form view bound by the Campaign Builder to 12
+  existing Cyber Orb children. Red spreads and reinforces the rear silhouette,
+  Blue restores the imported base pose and Green narrows the shell while
+  raising and extending the side fins.
+- Gameplay color, emissive material and HUD still update in the same tap.
+  Child positions, rotations and scales use a `0.18s` eased transition; rapid
+  taps snapshot the current pose and retarget directly to the newest color.
+- Yellow, Purple and Cyan intentionally use Blue/base geometry. Player root,
+  SphereCollider, Rigidbody, Spline movement, steering and gate judgment were
+  not changed. No FBX, rig, stat, sound or haptic work was added.
+
+### Validation / Learning
+
+- Campaign Builder completed two consecutive passes. Focused PlayMode passed
+  `1/1`; full EditMode passed `480/480`; full PlayMode passed `263`, failed zero
+  and ignored one opt-in graphics capture out of `264` discovered tests.
+- D3D11 visual QC passed `1/1` at `1080 x 1920` with 19 captures. Inspected Red,
+  midpoint, Blue and Green frames show continuous attached parts, correct
+  materials and distinct final silhouettes without magenta output.
+- The developer Product save remained byte- and timestamp-exact at SHA-256
+  `37DACA59E52D6742D145AE97FF8F4595E2058931C951B4AFF12B1BA6C405C706`.
+  Package and ProjectSettings feature changes are absent.
+- Fresh-context QC initially rejected the inherited `0.12s` color-HUD pose
+  tween because the approved contract required same-tap feedback. The targeted
+  repair snaps the HUD in the input call while leaving only the runner children
+  animated; repair PlayMode passed `1/1` and checker re-review returned `PASS`.
+- Keeping the authoritative response instant while visual children catch up
+  preserves the reaction game. Current-pose retargeting removes animation
+  queues and makes repeated taps continuous.
+
+### Deferred / Human Review
+
+- Portrait mobile and WebGL play still own in-motion silhouette readability,
+  perceived transformation quality and whether `0.18s` feels too subtle or
+  too busy during rapid input.
+- Dedicated Yellow/Purple/Cyan forms, new modeling/rigs, mechanical panels,
+  particles, audio, haptics and color-specific stats remain separate work.

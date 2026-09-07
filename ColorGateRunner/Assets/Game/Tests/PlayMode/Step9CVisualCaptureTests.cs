@@ -53,6 +53,21 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
             yield return Capture("04-Gameplay-ThreeColor.png");
+            _controller.enabled = false;
+            _controller.ApplySplineLabPlayerColor(RunnerColor.Red);
+            _controller.RunnerFormView.SnapToColor(RunnerColor.Red);
+            yield return Capture("04A-Runner-Red-Power.png");
+            _controller.ApplySplineLabPlayerColor(RunnerColor.Blue);
+            _controller.RunnerFormView.Tick(
+                RunnerFormView.TransitionDuration * 0.5f);
+            yield return Capture("04B-Runner-Transform-Midpoint.png");
+            _controller.RunnerFormView.Tick(
+                RunnerFormView.TransitionDuration * 0.5f);
+            yield return Capture("04C-Runner-Blue-Stable.png");
+            _controller.ApplySplineLabPlayerColor(RunnerColor.Green);
+            _controller.RunnerFormView.Tick(
+                RunnerFormView.TransitionDuration);
+            yield return Capture("04D-Runner-Green-Wing.png");
 
             yield return LoadCleanScene();
             SelectItemEnabledStage();

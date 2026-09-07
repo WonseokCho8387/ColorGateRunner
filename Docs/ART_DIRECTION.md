@@ -984,3 +984,19 @@ This section supersedes Iteration 47's separate additive frame trace.
   existing semantic icons and no runtime particle object is created. Human
   device/WebGL review owns perceived impact, skip discoverability and whether
   the celebration duration feels satisfying after repeated clears.
+
+## Iteration 58 modular runner forms
+
+- Reuse the existing Cyber Orb meshes as one readable transforming vehicle.
+  Red spreads the rear bumper, fins and thrusters into a heavier power form;
+  Blue restores the compact imported base form; Green raises and extends the
+  side parts while narrowing the body into an agile wing form.
+- Form motion lasts `0.18s` and begins from the currently rendered pose. It
+  must remain continuous under rapid input and must not detach a part, expose
+  a missing/error material or visually shift the collision/movement root.
+- Geometry is secondary to instant gameplay feedback: the glass/accent color
+  and bottom color-order HUD change immediately, while the silhouette catches
+  up. Yellow, Purple and Cyan deliberately use the Blue silhouette for now.
+- Human portrait/mobile/WebGL review owns silhouette readability in motion,
+  whether the three forms feel meaningfully distinct, and whether a later
+  modeled transformation is worth its production and latency cost.

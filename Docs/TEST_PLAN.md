@@ -1108,3 +1108,27 @@ fairness, or polish.
   byte- and timestamp-exact; Package and ProjectSettings have no feature diff.
   A fresh-context read-only Quality Graph checker returned `PASS` with no
   blocking finding.
+
+### Iteration 58 modular runner transformation prototype
+
+- Campaign Builder validation requires exactly one valid `RunnerFormView`
+  bound to 12 unique existing Cyber Orb children. The Campaign Builder runs
+  twice and retains generated-root, required-reference, EventSystem and Build
+  Settings checks.
+- PlayMode must prove Red starts snapped to its power pose, logical color and
+  emissive material change immediately, Blue/Green visuals transition for
+  `0.18s`, and a rapid second tap retargets from the current pose without a
+  queue. Player root pose and SphereCollider values must remain unchanged.
+- Full EditMode and post-Builder PlayMode are required. Campaign and Step 10
+  simulations are omitted because Core rules, Stage data, movement,
+  generation, judgment and Experiment inputs do not change.
+- D3D11 visual QC at `1080 x 1920` captures Red, a transition midpoint, Blue
+  and Green. It may reject detached parts, missing/error materials or an
+  indistinguishable final silhouette, but cannot certify feel in motion.
+- Final evidence: Campaign Builder `2/2`; focused PlayMode `1/1`; EditMode
+  `480/480`; PlayMode `263` passed, zero failed and one intentional opt-in
+  visual ignore out of `264`; D3D11 `1/1` with 19 captures. Product save is
+  byte- and timestamp-exact; Package and ProjectSettings have no feature diff.
+  A fresh-context checker first rejected the inherited `0.12s` HUD pose lag;
+  the targeted same-tap repair passed PlayMode `1/1`, and checker re-review
+  returned `PASS` with no remaining finding.

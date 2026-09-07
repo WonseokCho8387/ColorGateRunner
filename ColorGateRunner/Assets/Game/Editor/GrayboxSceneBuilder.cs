@@ -197,6 +197,7 @@ namespace ColorGateRunner.Editor
                     runnerGlass,
                     out playerRenderer,
                     out RunnerColorView runnerColorView,
+                    out RunnerFormView runnerFormView,
                     out RunnerSteeringView runnerSteeringView);
             Rigidbody playerBody = playerObject.GetComponent<Rigidbody>();
             TrailRenderer trail = CreatePlayerTrail(playerObject.transform, blue);
@@ -548,6 +549,7 @@ namespace ColorGateRunner.Editor
                 playerObject.transform,
                 playerRenderer,
                 runnerColorView,
+                runnerFormView,
                 runnerSteeringView,
                 playerBody,
                 camera,
@@ -1196,6 +1198,15 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Runner glass color presentation is incomplete.");
+            }
+            RunnerFormView[] formViews =
+                generatedRoot.GetComponentsInChildren<RunnerFormView>(true);
+            if (formViews.Length != 1 ||
+                !formViews[0].HasRequiredReferences ||
+                formViews[0].PartCount != RunnerFormView.RequiredPartCount)
+            {
+                throw new InvalidOperationException(
+                    "Runner modular form presentation is incomplete.");
             }
             if (leftThruster.position.z >= colorShell.position.z ||
                 rightThruster.position.z >= colorShell.position.z ||
@@ -1982,6 +1993,7 @@ namespace ColorGateRunner.Editor
             Material glassMaterial,
             out Renderer colorRenderer,
             out RunnerColorView colorView,
+            out RunnerFormView formView,
             out RunnerSteeringView steeringView)
         {
             GameObject player = new GameObject(
@@ -2015,6 +2027,46 @@ namespace ColorGateRunner.Editor
             colorView = player.AddComponent<RunnerColorView>();
             colorView.Configure(colorRenderer, hullRenderer);
             colorView.ApplyMaterial(colorMaterial);
+            Transform[] formParts =
+            {
+                FindNamedTransform(artwork.transform, "ColorShell"),
+                FindNamedTransform(artwork.transform, "SideRing_L"),
+                FindNamedTransform(artwork.transform, "SideRing_R"),
+                FindNamedTransform(artwork.transform, "SideGlow_L"),
+                FindNamedTransform(artwork.transform, "SideGlow_R"),
+                FindNamedTransform(artwork.transform, "SideFin_L"),
+                FindNamedTransform(artwork.transform, "SideFin_R"),
+                FindNamedTransform(artwork.transform, "RearBumper"),
+                FindNamedTransform(artwork.transform, "RearThruster_L"),
+                FindNamedTransform(artwork.transform, "RearThruster_R"),
+                FindNamedTransform(artwork.transform, "RearThrusterGlow_L"),
+                FindNamedTransform(artwork.transform, "RearThrusterGlow_R")
+            };
+            RunnerFormPartRole[] formRoles =
+            {
+                RunnerFormPartRole.ColorShell,
+                RunnerFormPartRole.SideRingLeft,
+                RunnerFormPartRole.SideRingRight,
+                RunnerFormPartRole.SideGlowLeft,
+                RunnerFormPartRole.SideGlowRight,
+                RunnerFormPartRole.SideFinLeft,
+                RunnerFormPartRole.SideFinRight,
+                RunnerFormPartRole.RearBumper,
+                RunnerFormPartRole.RearThrusterLeft,
+                RunnerFormPartRole.RearThrusterRight,
+                RunnerFormPartRole.RearThrusterGlowLeft,
+                RunnerFormPartRole.RearThrusterGlowRight
+            };
+            for (int index = 0; index < formParts.Length; index++)
+            {
+                if (formParts[index] == null)
+                {
+                    throw new InvalidOperationException(
+                        $"CyberOrbRunner requires form part {formRoles[index]}.");
+                }
+            }
+            formView = player.AddComponent<RunnerFormView>();
+            formView.Configure(artwork.transform, formParts, formRoles);
             steeringView = player.AddComponent<RunnerSteeringView>();
             steeringView.Configure(artwork.transform);
             Rigidbody body = player.GetComponent<Rigidbody>();

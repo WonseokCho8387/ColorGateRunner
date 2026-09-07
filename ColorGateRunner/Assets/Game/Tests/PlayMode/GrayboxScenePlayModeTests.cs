@@ -258,6 +258,11 @@ namespace ColorGateRunner.Tests.PlayMode
             RunnerColorView colorView = _controller.RunnerColorView;
             Assert.That(colorView, Is.Not.Null);
             Assert.That(colorView.HasRequiredReferences, Is.True);
+            RunnerFormView formView = _controller.RunnerFormView;
+            Assert.That(formView, Is.Not.Null);
+            Assert.That(formView.HasRequiredReferences, Is.True);
+            Assert.That(formView.PartCount,
+                Is.EqualTo(RunnerFormView.RequiredPartCount));
             Assert.That(colorView.GlassShell.transform.name, Is.EqualTo("HullShell"));
             Assert.That(
                 colorView.GlassShell.sharedMaterial.IsKeywordEnabled("_EMISSION"),
@@ -2959,19 +2964,86 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void CurrentColorHud_UpdatesAfterTap()
+        public void CurrentColorHud_UpdatesInSameTap()
         {
             StartPlaying(false, false);
             float redScale = _controller.GetColorTile(0).transform.localScale.x;
 
             _controller.HandleGameplayTap();
-            _controller.Tick(0.13f);
 
             Assert.That(_controller.GetColorTile(0).transform.localScale.x,
                 Is.LessThan(redScale));
             Assert.That(_controller.GetColorTile(1).transform.localScale.x,
                 Is.GreaterThan(
                     _controller.GetColorTile(0).transform.localScale.x));
+        }
+
+        [Test]
+        public void RunnerForm_ColorIsImmediateAndRapidTapRetargetsVisualOnly()
+        {
+            _store.HighestUnlocked = 5;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(5);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+
+            RunnerFormView form = _controller.RunnerFormView;
+            SphereCollider collider =
+                _controller.PlayerTransform.GetComponent<SphereCollider>();
+            Vector3 rootPosition = _controller.PlayerTransform.position;
+            Quaternion rootRotation = _controller.PlayerTransform.rotation;
+            Vector3 colliderCenter = collider.center;
+            float colliderRadius = collider.radius;
+            Vector3 redFin = form.GetPartLocalPosition(
+                RunnerFormPartRole.SideFinLeft);
+            float redHudScale =
+                _controller.GetColorTile(0).transform.localScale.x;
+            float blueHudScale =
+                _controller.GetColorTile(1).transform.localScale.x;
+
+            Assert.That(_controller.Session.CurrentColor,
+                Is.EqualTo(RunnerColor.Red));
+            Assert.That(form.TargetColor, Is.EqualTo(RunnerColor.Red));
+            Assert.That(form.IsTransitioning, Is.False);
+
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.Session.CurrentColor,
+                Is.EqualTo(RunnerColor.Blue));
+            Assert.That(_controller.PlayerRenderer.sharedMaterial,
+                Is.SameAs(_controller.GetPresentationMaterial(RunnerColor.Blue)));
+            Assert.That(form.TargetColor, Is.EqualTo(RunnerColor.Blue));
+            Assert.That(form.IsTransitioning, Is.True);
+            Assert.That(_controller.GetColorTile(0).transform.localScale.x,
+                Is.LessThan(redHudScale));
+            Assert.That(_controller.GetColorTile(1).transform.localScale.x,
+                Is.GreaterThan(blueHudScale));
+            form.Tick(0.06f);
+            Vector3 blueMidpoint = form.GetPartLocalPosition(
+                RunnerFormPartRole.SideFinLeft);
+
+            _controller.HandleGameplayTap();
+
+            Assert.That(_controller.Session.CurrentColor,
+                Is.EqualTo(RunnerColor.Green));
+            Assert.That(_controller.PlayerRenderer.sharedMaterial,
+                Is.SameAs(_controller.GetPresentationMaterial(RunnerColor.Green)));
+            Assert.That(form.TargetColor, Is.EqualTo(RunnerColor.Green));
+            Assert.That(form.GetPartLocalPosition(
+                RunnerFormPartRole.SideFinLeft), Is.EqualTo(blueMidpoint));
+            form.Tick(RunnerFormView.TransitionDuration + 0.01f);
+
+            Assert.That(form.IsTransitioning, Is.False);
+            Assert.That(form.TargetColor, Is.EqualTo(RunnerColor.Green));
+            Assert.That(form.GetPartLocalPosition(
+                RunnerFormPartRole.SideFinLeft), Is.Not.EqualTo(redFin));
+            Assert.That(_controller.PlayerTransform.position,
+                Is.EqualTo(rootPosition));
+            Assert.That(Quaternion.Angle(
+                _controller.PlayerTransform.rotation,
+                rootRotation), Is.LessThan(0.001f));
+            Assert.That(collider.center, Is.EqualTo(colliderCenter));
+            Assert.That(collider.radius, Is.EqualTo(colliderRadius));
         }
 
         [Test]

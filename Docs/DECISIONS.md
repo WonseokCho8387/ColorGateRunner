@@ -1783,3 +1783,19 @@ Status: Approved and implemented.
   owns missing-sprite, rectangular-placeholder and perceptibility failures.
 - This repair does not authorize Product, reward, failure-flow, gameplay,
   audio, haptic or runner-transformation changes.
+
+## Iteration 58 modular runner transformation boundary
+
+- Runner form is presentation-only. Core color, material and HUD update in the
+  same input call; a fixed `0.18s` ease may move, rotate and scale only selected
+  children below the existing artwork root.
+- Red owns a broad power silhouette, Blue owns the imported base/stable pose
+  and Green owns a lighter wing silhouette. Yellow, Purple and Cyan reuse the
+  Blue geometry until a later approved art slice.
+- Repeated input has no animation queue. Each tap snapshots the current child
+  pose and retargets directly to the latest logical color.
+- The Player root, SphereCollider, Rigidbody, Spline pose, steering view and
+  judgment remain independent authorities and may not be animated by the form
+  view. The Campaign Builder owns the exact 12-part binding.
+- This prototype does not authorize new models, rigs, stats, audio, haptics or
+  color-specific gameplay behavior.

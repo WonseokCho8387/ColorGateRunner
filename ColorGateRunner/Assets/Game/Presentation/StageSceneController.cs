@@ -24,7 +24,6 @@ namespace ColorGateRunner.Presentation
         private const float NormalFov = 60f;
         private const float BoosterCameraBlendIn = 0.22f;
         private const float BoosterCameraBlendOut = 0.35f;
-        private const float ColorStackTransitionDuration = 0.12f;
         private const float CameraFollowHalfLife = 0.3f;
         private const float CameraMaximumYawLag = 24f;
         private const float CameraMaximumPitchLag = 16f;
@@ -38,6 +37,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Transform player;
         [SerializeField] private Renderer playerRenderer;
         [SerializeField] private RunnerColorView runnerColorView;
+        [SerializeField] private RunnerFormView runnerFormView;
         [SerializeField] private RunnerSteeringView runnerSteeringView;
         [SerializeField] private Rigidbody playerBody;
         [SerializeField] private Camera gameplayCamera;
@@ -215,9 +215,6 @@ namespace ColorGateRunner.Presentation
         private RunnerColor _lastStackColor;
         private int _lastStackActiveCount;
         private bool _colorStackInitialized;
-        private float _colorStackTransitionRemaining;
-        private Vector2[] _colorStackStartPositions;
-        private Vector3[] _colorStackStartScales;
         private UnityAction[] _stageButtonListeners;
         private GameplayPauseCoordinator _pauseCoordinator;
         private ISceneTransitionLoader _sceneTransitionLoader;
@@ -314,6 +311,7 @@ namespace ColorGateRunner.Presentation
         internal Transform PlayerTransform => player;
         internal Renderer PlayerRenderer => playerRenderer;
         internal RunnerColorView RunnerColorView => runnerColorView;
+        internal RunnerFormView RunnerFormView => runnerFormView;
         internal RunnerSteeringView RunnerSteeringView => runnerSteeringView;
         internal Camera GameplayCamera => gameplayCamera;
         internal int GatePoolSize => gates == null ? 0 : gates.Length;
@@ -466,8 +464,6 @@ namespace ColorGateRunner.Presentation
             _cameraStartRotation = gameplayCamera.transform.rotation;
             _cameraFollowOffset = _cameraStartPosition - _playerStartPosition;
             _normalTrackMaterial = trackPool.GetSegment(0).SurfaceMaterial;
-            _colorStackStartPositions = new Vector2[colorTiles.Length];
-            _colorStackStartScales = new Vector3[colorTiles.Length];
             AddListeners();
             if (!TryEnterExternalCampaignLaunch())
             {
@@ -497,10 +493,10 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            runnerFormView.Tick(deltaTime);
             TickGateReactions(deltaTime);
             resultSequenceView.Tick(deltaTime);
             TickOutcomePresentation(deltaTime);
-            TickColorStackAnimation(deltaTime);
             TickContinueGoFlash(deltaTime);
 
             if (splineTrackLab != null && splineTrackLab.Active)
@@ -1722,6 +1718,7 @@ namespace ColorGateRunner.Presentation
         internal void ApplySplineLabPlayerColor(RunnerColor color)
         {
             ApplyPlayerMaterial(GetMaterial(color));
+            runnerFormView.Retarget(color);
         }
 
         internal void StartDevelopmentExperiment(
@@ -1785,6 +1782,8 @@ namespace ColorGateRunner.Presentation
                 player == null || playerRenderer == null ||
                 runnerColorView == null ||
                 !runnerColorView.HasRequiredReferences ||
+                runnerFormView == null ||
+                !runnerFormView.HasRequiredReferences ||
                 runnerSteeringView == null ||
                 !runnerSteeringView.HasRequiredReference ||
                 gameplayCamera == null || playerBody == null ||
@@ -1904,6 +1903,7 @@ namespace ColorGateRunner.Presentation
             Transform playerTransform,
             Renderer runnerRenderer,
             RunnerColorView colorView,
+            RunnerFormView formView,
             RunnerSteeringView steeringView,
             Rigidbody runnerBody,
             Camera camera,
@@ -1999,6 +1999,7 @@ namespace ColorGateRunner.Presentation
             player = playerTransform;
             playerRenderer = runnerRenderer;
             runnerColorView = colorView;
+            runnerFormView = formView;
             runnerSteeringView = steeringView;
             playerBody = runnerBody;
             gameplayCamera = camera;
@@ -3279,8 +3280,8 @@ namespace ColorGateRunner.Presentation
                 _cameraStartRotation);
             gameplayCamera.fieldOfView = NormalFov;
             _colorStackInitialized = false;
-            _colorStackTransitionRemaining = 0f;
             ApplyPlayerMaterial(redMaterial);
+            runnerFormView.SnapToColor(RunnerColor.Red);
             campaignSplinePath.ResetRoute();
             splineCityPool.ResetPool();
             trackPool.gameObject.SetActive(true);
@@ -3458,6 +3459,10 @@ namespace ColorGateRunner.Presentation
                 _session.FlowState == StageFlowState.Failed
                 ? failureMaterial
                 : GetMaterial(_session.CurrentColor));
+            if (_session.FlowState != StageFlowState.Failed)
+            {
+                runnerFormView.Retarget(_session.CurrentColor);
+            }
             echoShellVisual.SetActive(_session.EchoActive);
             if (_session.EchoActive)
             {
@@ -3807,6 +3812,7 @@ namespace ColorGateRunner.Presentation
 
             player.localScale = Vector3.one;
             ApplyPlayerMaterial(GetMaterial(_session.CurrentColor));
+            runnerFormView.SnapToColor(_session.CurrentColor);
             if (!playerBody.isKinematic)
             {
                 playerBody.linearVelocity = Vector3.zero;
@@ -4179,7 +4185,7 @@ namespace ColorGateRunner.Presentation
             else if (_lastStackColor != GetHudCurrentColor() ||
                 _lastStackActiveCount != activeCount)
             {
-                RetargetColorStack(activeCount);
+                SnapColorStack(activeCount);
             }
             _lastStackColor = GetHudCurrentColor();
             _lastStackActiveCount = activeCount;
@@ -4193,6 +4199,10 @@ namespace ColorGateRunner.Presentation
                 _experimentSession.Failed
                     ? failureMaterial
                     : GetMaterial(_experimentSession.CurrentColor));
+            if (!_experimentSession.Failed)
+            {
+                runnerFormView.Retarget(_experimentSession.CurrentColor);
+            }
             stageHudText.text = _experimentSession.Failed
                 ? "EXPERIMENT FAILED"
                 : _experimentSession.Completed
@@ -4246,48 +4256,6 @@ namespace ColorGateRunner.Presentation
                 tile.localScale = Vector3.one * GetColorStackScale(
                     slot,
                     activeCount);
-            }
-            _colorStackTransitionRemaining = 0f;
-        }
-
-        private void RetargetColorStack(int activeCount)
-        {
-            for (int index = 0; index < activeCount; index++)
-            {
-                RectTransform tile = (RectTransform)colorTiles[index].transform;
-                _colorStackStartPositions[index] = tile.anchoredPosition;
-                _colorStackStartScales[index] = tile.localScale;
-            }
-            _colorStackTransitionRemaining = ColorStackTransitionDuration;
-        }
-
-        private void TickColorStackAnimation(float deltaTime)
-        {
-            if (_colorStackTransitionRemaining <= 0f ||
-                (_session == null && _experimentSession == null))
-            {
-                return;
-            }
-
-            _colorStackTransitionRemaining = Mathf.Max(
-                0f,
-                _colorStackTransitionRemaining - deltaTime);
-            float progress = 1f -
-                (_colorStackTransitionRemaining / ColorStackTransitionDuration);
-            int activeCount = GetHudActiveColorCount();
-            for (int index = 0; index < activeCount; index++)
-            {
-                RunnerColor color = GetHudColorAt(index);
-                int slot = GetHudStackSlot(color);
-                RectTransform tile = (RectTransform)colorTiles[index].transform;
-                tile.anchoredPosition = Vector2.Lerp(
-                    _colorStackStartPositions[index],
-                    GetColorStackPosition(slot, activeCount),
-                    progress);
-                tile.localScale = Vector3.Lerp(
-                    _colorStackStartScales[index],
-                    Vector3.one * GetColorStackScale(slot, activeCount),
-                    progress);
             }
         }
 

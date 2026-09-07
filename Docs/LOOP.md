@@ -850,3 +850,17 @@ mask mechanic readability changes.
   fireworks and reward captures on D3D11.
 - **Learn:** a skippable celebration can preserve responsiveness without
   sacrificing impact when every exit retains a visible transition.
+
+## Iteration 58 — separate transformation fantasy from input truth
+
+- **Play:** instant color swaps were responsive but made the Cyber Orb feel
+  like one object receiving a tint rather than a machine changing modes.
+- **Analyze:** delaying the logical color to match a long transformation would
+  weaken a fast reaction game, while separate models or animation rigs would
+  add art and state risk before the idea was proven.
+- **Design:** change color/material/HUD immediately, then retarget only 12
+  existing child parts over `0.18s` into power, stable or wing silhouettes.
+- **Validate:** interrupt the animation with another tap, assert root/collider
+  invariance, rebuild twice and inspect Red/midpoint/Blue/Green on D3D11.
+- **Learn:** responsive gameplay and transformation fantasy can coexist when
+  presentation follows authoritative state and remains safely interruptible.

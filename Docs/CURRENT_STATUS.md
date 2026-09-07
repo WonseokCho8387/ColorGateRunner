@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `b02e8cbf7e4ddc98d824775e24cd598c71c1f189`
-- Base commit: `feat: improve victory celebration pacing`
+- Implementation base HEAD: `9bad134f74eacbe4cc55427da33ef17872bfb5ea`
+- Base commit: `fix: make victory fireworks visible`
 - Authoritative completion HEAD: the commit named
-  `fix: make victory fireworks visible`; its exact hash is recorded
-  in the Iteration 57 final report because a commit cannot contain
+  `feat: add modular runner transformations`; its exact hash is recorded
+  in the Iteration 58 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,14 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 57 — Victory Firework Visibility**.
+- Current completed iteration: **Iteration 58 — Modular Runner Transformation Prototype**.
+- Campaign Red, Blue and Green now share one imported Cyber Orb while 12
+  existing visual child parts form distinct power, stable and agile/wing
+  silhouettes. The logical color, emissive material and HUD still change in
+  the input call; only those children ease for `0.18s`. A new tap retargets
+  from the current pose with no queue. Yellow, Purple and Cyan intentionally
+  retain the Blue/base geometry in this first slice. Player root, collider,
+  Rigidbody, Spline pose, steering and judgment ownership are unchanged.
 - Campaign Clear now holds its victory beat for `2.35s`, then crossfades to
   the reward page over `0.25s`. A tap is ignored during only the first `0.1s`;
   afterward it skips through the same crossfade rather than hard-cutting.
@@ -353,23 +360,25 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `480/480`
-- PlayMode: `262/262` passed, with one opt-in graphics capture test intentionally
-  ignored in the headless full suite (`263` total discovered)
-- Post-Builder PlayMode: same `262` passes plus one intentional graphics-test
+- PlayMode: `263/263` passed, with one opt-in graphics capture test intentionally
+  ignored in the headless full suite (`264` total discovered)
+- Post-Builder PlayMode: same `263` passes plus one intentional graphics-test
   ignore
-- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 15 Campaign states,
-  including three distinct celebration beats and the reward page
-- Fresh-context read-only Quality Graph checker: `PASS`, with no blocking
-  finding after inspecting the final diff, evidence and protected state
+- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 19 Campaign states,
+  including Red, mid-transition, Blue and Green runner forms
+- Fresh-context read-only Quality Graph checker: initial `FAIL` found the old
+  `0.12s` HUD pose lag; targeted repair and PlayMode `1/1` evidence produced a
+  final `PASS` with no remaining finding
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
   unique roots, EventSystem and Build Settings passed
-- Campaign Builder: Iteration 57 completed two consecutive passes successfully.
+- Campaign Builder: Iteration 58 completed two consecutive passes successfully.
   The active Campaign Spline path, generated full-route road, deterministic
   24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
-  Spline Lab, bounded camera/runner steering, adaptive color strip, quick
+  Spline Lab, one valid 12-part modular runner form, bounded camera/runner
+  steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
 - Stage Catalog Builder: the latest two consecutive Iteration 50 passes completed;
   revision 16 Resource contains 26 valid stages
@@ -393,7 +402,7 @@ All three entries are expected to be enabled and unique.
 - SHA-256:
   `37DACA59E52D6742D145AE97FF8F4595E2058931C951B4AFF12B1BA6C405C706`.
 - This user-authored reset/play state was written after Iteration 56. Its file
-  timestamp is `2026-09-07T14:04:29.8893440Z`; Iteration 57 validation
+  timestamp is `2026-09-07T14:04:29.8893440Z`; Iteration 58 validation
   preserved it byte- and timestamp-exact. Developer Console mutations still
   occur only after an explicit Apply, Reset, or Unlock action.
 
