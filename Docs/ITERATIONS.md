@@ -3334,3 +3334,47 @@ Human feedback required
 - Chapter-specific gameplay rules, seasonal League scoring/ranking/rewards,
   remote rotation, new authored Stages, Rank/Collection implementation and
   live Shop services remain separate iterations.
+
+## Iteration 56 — Victory Celebration Pacing
+
+### Play / Analyze
+
+- The victory emblem appeared, scaled once and yielded to rewards so quickly
+  that the existing sparks often did not register as a celebration.
+- The result view coupled a short animation timer to a hard page swap, and an
+  immediate full-screen tap could remove the entire clear beat.
+
+### Design / Implementation
+
+- Extended the automatic celebration hold to `2.35s` and routed it through a
+  `0.25s` celebration-to-reward crossfade. Skip is rejected before `0.1s` and
+  uses that same crossfade afterward.
+- Expanded the fixed Builder-owned spark pool from 16 to 24 for three
+  staggered bursts. Added two fixed Cyan/Gold emblem echoes plus overshoot,
+  settle and restrained idle motion without runtime allocation.
+- Kept the reward surface opaque after the crossfade while its existing rows
+  reveal sequentially. Campaign transactions, failure pages, Experiment,
+  navigation and deterministic gameplay inputs are unchanged.
+
+### Validation / Learning
+
+- Campaign Builder passed twice. Focused repaired PlayMode passed `1/1`; final
+  EditMode passed `480/480`; final PlayMode passed 262, failed zero and ignored
+  one opt-in graphics-only test.
+- D3D11 visual QC passed `1/1` at `1080 x 1920` with 14 captures. Separate
+  impact and fireworks images show the celebration before the opaque reward
+  page, without magenta materials, clipping or overlap.
+- The revision-717 developer Product save remained byte-exact at SHA-256
+  `D6208775428F5CFE56716C625C023BC8045437703131A86A292883D94B49EB32`.
+  Package and ProjectSettings feature changes are absent.
+- A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking finding.
+
+### Deferred / Human Review
+
+- Portrait mobile and WebGL play still own perceived impact, repeated-clear
+  pacing, skip discoverability and touch comfort.
+- Runner transformation remains a separate R&D iteration. A safe candidate is
+  a visual-child-only `0.16–0.20s` retargetable form change while gameplay
+  color, HUD, collider, root pose and judgment update immediately. New models,
+  animation rigs, audio and haptics are not part of this iteration.

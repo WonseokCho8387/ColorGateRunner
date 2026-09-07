@@ -837,3 +837,16 @@ mask mechanic readability changes.
 - **Learn:** an endless endgame can remain reproducible and catalog-aware when
   it is derived from existing durable facts instead of becoming a parallel
   progression system.
+
+## Iteration 56 — let the win land before rewards
+
+- **Play:** the previous clear emblem scaled once and disappeared before its
+  sparks could register, making a successful run feel abruptly terminated.
+- **Analyze:** one short timer owned both celebration visibility and the hard
+  swap to rewards; an immediate global tap could erase the entire beat.
+- **Design:** hold a richer fixed-pool emblem/firework timeline, unlock skip at
+  `0.1s`, and converge manual and automatic exits through one crossfade.
+- **Validate:** fix timing boundaries in PlayMode and inspect distinct impact,
+  fireworks and reward captures on D3D11.
+- **Learn:** a skippable celebration can preserve responsiveness without
+  sacrificing impact when every exit retains a visible transition.

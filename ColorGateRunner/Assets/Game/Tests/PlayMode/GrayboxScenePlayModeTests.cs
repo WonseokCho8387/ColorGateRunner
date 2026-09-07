@@ -1775,13 +1775,85 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(
                 _controller.ResultSequenceView.ClearCelebrationRoot.activeSelf,
                 Is.True);
+            Assert.That(
+                _controller.ResultSequenceView.FireworkSparkCount,
+                Is.EqualTo(24));
+            Assert.That(
+                _controller.ResultSequenceView.VictoryEmblemEchoCount,
+                Is.EqualTo(2));
 
             _controller.HandleGameplayTap();
 
             Assert.That(_controller.ResultPage,
-                Is.EqualTo(CampaignResultPage.ClearRewards));
+                Is.EqualTo(CampaignResultPage.ClearCelebration));
+            Assert.That(
+                _controller.ResultSequenceView.ClearRewardRoot.activeSelf,
+                Is.False);
+
+            _controller.Tick(
+                StageResultSequenceView.MinimumClearSkipDelay + 0.01f);
+            Assert.That(
+                _controller.ResultSequenceView.CanSkipClearCelebration,
+                Is.True);
+            Assert.That(
+                _controller.ResultSequenceView.ClearSkipPromptAlpha,
+                Is.GreaterThan(0f));
+
+            _controller.HandleGameplayTap();
+            Assert.That(
+                _controller.ResultSequenceView.ClearExitTransitioning,
+                Is.True);
             Assert.That(_controller.ResultSequenceView.ClearRewardRoot.activeSelf,
                 Is.True);
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearCelebration));
+
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration * 0.5f);
+            Assert.That(
+                _controller.ResultSequenceView.ClearCelebrationAlpha,
+                Is.InRange(0.35f, 0.65f));
+            Assert.That(
+                _controller.ResultSequenceView.ClearRewardAlpha,
+                Is.InRange(0.35f, 0.65f));
+
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration * 0.6f);
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearRewards));
+            Assert.That(
+                _controller.ResultSequenceView.ClearCelebrationRoot.activeSelf,
+                Is.False);
+        }
+
+        [Test]
+        public void ClearCelebration_AutoHoldsThroughStaggeredFireworks()
+        {
+            ClearStage();
+            _controller.Tick(_controller.ClearPanelDelaySeconds + 0.01f);
+
+            _controller.Tick(0.5f);
+
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearCelebration));
+            Assert.That(
+                _controller.ResultSequenceView.VisibleFireworkSparkCount,
+                Is.GreaterThan(0));
+
+            _controller.Tick(
+                StageResultSequenceView.CelebrationHoldDuration - 0.49f);
+
+            Assert.That(
+                _controller.ResultSequenceView.ClearExitTransitioning,
+                Is.True);
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearCelebration));
+
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration + 0.01f);
+
+            Assert.That(_controller.ResultPage,
+                Is.EqualTo(CampaignResultPage.ClearRewards));
         }
 
         [Test]
@@ -2193,7 +2265,11 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ReplayButton.gameObject.activeSelf, Is.False);
             Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
                 Is.False);
+            _controller.Tick(
+                StageResultSequenceView.MinimumClearSkipDelay + 0.01f);
             _controller.HandleGameplayTap();
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration + 0.01f);
             _controller.Tick(2f);
             Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
                 Is.True);

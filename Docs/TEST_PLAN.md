@@ -1064,3 +1064,24 @@ fairness, or polish.
   Campaign runs retaining all three approved hashes; developer save byte- and
   timestamp-exact; no Package or ProjectSettings feature diff; fresh-context
   read-only Quality Graph checker `PASS` with no blocking finding.
+
+### Iteration 56 Campaign victory celebration pacing
+
+- PlayMode must prove an immediate result tap cannot skip, skip becomes
+  available at `0.1s`, manual and automatic exits both retain the `0.25s`
+  crossfade, and navigation remains hidden until sequential rewards complete.
+- Scene/Builder validation requires exactly 24 fixed sparks, two fixed emblem
+  echoes, complete references, no duplicate generated root, one EventSystem
+  and the approved Build Settings order. Campaign Builder runs twice.
+- D3D11 visual Q2 at `1080 x 1920` captures separate impact and fireworks
+  beats plus the reward page. It may reject missing materials, clipping,
+  invisible sparks or a hard visual discontinuity, but not certify satisfaction
+  or repeated-play pacing.
+- Full EditMode and post-Builder PlayMode are required. Campaign and Step 10
+  simulations are omitted because no Core rule, authored Stage data, movement,
+  generation, judgment or Experiment input changes.
+- Final evidence: Campaign Builder `2/2`; focused repaired PlayMode `1/1`;
+  EditMode `480/480`; PlayMode `262` passed, zero failed and one intentional
+  opt-in visual ignore; D3D11 `1/1` with 14 captures. Product save remains
+  byte-exact; Package and ProjectSettings have no feature diff. A fresh-context
+  read-only Quality Graph checker returned `PASS` with no blocking finding.

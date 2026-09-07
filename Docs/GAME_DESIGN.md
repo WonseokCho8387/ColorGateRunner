@@ -938,3 +938,11 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   difficulty, skip, score multiplier or League-only economy.
 - Adding a new live Stage makes the all-cleared predicate false until that Stage
   is cleared, returning the player to ordinary authored progression.
+
+## Campaign victory result timing
+
+- A Campaign clear first presents a non-gameplay celebration for `2.35s`, then
+  crossfades to the committed reward list over `0.25s`.
+- A tap may skip the hold after `0.1s`; taps before that threshold are ignored.
+  Skipping changes presentation time only and never changes rewards, records,
+  Heart refund, next-Stage selection or League selection.

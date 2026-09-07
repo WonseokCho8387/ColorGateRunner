@@ -1058,7 +1058,11 @@ namespace ColorGateRunner.Tests.PlayMode
                 Does.Contain("STAGE 8 COMPLETE"));
             Assert.That(campaign.ClearDetailsText.text,
                 Does.Contain("TIME"));
+            campaign.Tick(
+                StageResultSequenceView.MinimumClearSkipDelay + 0.01f);
             campaign.HandleGameplayTap();
+            campaign.Tick(
+                StageResultSequenceView.CelebrationExitDuration + 0.01f);
             campaign.Tick(2f);
             Assert.That(campaign.ResultSequenceView.VisibleRewardRowCount,
                 Is.EqualTo(3));

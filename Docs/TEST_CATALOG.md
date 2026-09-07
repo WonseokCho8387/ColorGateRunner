@@ -1148,3 +1148,16 @@ Source: `ColorGateRunner/Assets/Game/Tests/PlayMode/Step9CVisualCaptureTests.cs`
   resolved direction vectors.
 - Focused Campaign EditMode passes `15/15`, focused Flicker PlayMode `13/13`,
   and full current suites pass EditMode `457/457` and PlayMode `255/255`.
+
+## Iteration 56 current coverage
+
+- `ClearAnimation_PrecedesClearPanel` fixes the pre-`0.1s` no-op, skip unlock,
+  active crossfade midpoint, 24-spark/two-echo Scene shape and reward-page
+  completion.
+- `ClearCelebration_AutoHoldsThroughStaggeredFireworks` fixes a visible spark
+  burst during the hold and the automatic `2.35s + 0.25s` transition path.
+- `CampaignClear_HidesReplayAndNextOpensPreRunDirectly` and the Product-backed
+  Frontend result test preserve delayed button restore, next-Stage routing and
+  committed reward rows under the new skip contract.
+- Full current suites pass EditMode `480/480` and PlayMode `262/262`, with one
+  separate opt-in graphics capture intentionally ignored headlessly.

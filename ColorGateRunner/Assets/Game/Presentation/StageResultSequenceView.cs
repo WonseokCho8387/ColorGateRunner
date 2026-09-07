@@ -6,14 +6,24 @@ namespace ColorGateRunner.Presentation
 {
     internal sealed class StageResultSequenceView : MonoBehaviour
     {
-        private const float CelebrationDuration = 1.05f;
+        internal const float MinimumClearSkipDelay = 0.1f;
+        internal const float CelebrationHoldDuration = 2.35f;
+        internal const float CelebrationExitDuration = 0.25f;
+
+        private const float EmblemEntryDuration = 0.7f;
+        private const float SkipPromptFadeDuration = 0.18f;
+        private const float FireworkBurstDuration = 0.78f;
+        private const int SparksPerBurst = 8;
         private const float RewardRevealInterval = 0.22f;
         private const float RewardRevealDuration = 0.18f;
 
         [SerializeField] private GameObject clearCelebrationRoot;
         [SerializeField] private CanvasGroup clearCelebrationGroup;
         [SerializeField] private RectTransform victoryEmblem;
+        [SerializeField] private RectTransform[] victoryEmblemEchoes;
+        [SerializeField] private CanvasGroup[] victoryEmblemEchoGroups;
         [SerializeField] private Button clearSkipButton;
+        [SerializeField] private CanvasGroup clearSkipPromptGroup;
         [SerializeField] private GameObject clearRewardRoot;
         [SerializeField] private CanvasGroup clearRewardGroup;
         [SerializeField] private RectTransform[] fireworkSparks;
@@ -45,6 +55,8 @@ namespace ColorGateRunner.Presentation
         private float _rewardElapsed;
         private int _rewardCount;
         private bool _clearAnimating;
+        private bool _clearExitTransitioning;
+        private float _clearExitStartedAt;
         private bool _restoreNext;
         private bool _restoreReplay;
         private bool _restoreLobby;
@@ -58,6 +70,31 @@ namespace ColorGateRunner.Presentation
         internal Button ClearSkipButton => clearSkipButton;
         internal GameObject ClearCelebrationRoot => clearCelebrationRoot;
         internal GameObject ClearRewardRoot => clearRewardRoot;
+        internal bool CanSkipClearCelebration =>
+            _clearAnimating && !_clearExitTransitioning &&
+            _celebrationElapsed >= MinimumClearSkipDelay;
+        internal bool ClearExitTransitioning => _clearExitTransitioning;
+        internal float ClearCelebrationAlpha => clearCelebrationGroup.alpha;
+        internal float ClearRewardAlpha => clearRewardGroup.alpha;
+        internal float ClearSkipPromptAlpha => clearSkipPromptGroup.alpha;
+        internal int FireworkSparkCount => fireworkSparks?.Length ?? 0;
+        internal int VictoryEmblemEchoCount =>
+            victoryEmblemEchoes?.Length ?? 0;
+        internal int VisibleFireworkSparkCount
+        {
+            get
+            {
+                int result = 0;
+                for (int index = 0; index < fireworkSparkGroups.Length; index++)
+                {
+                    if (fireworkSparkGroups[index].alpha > 0.01f)
+                    {
+                        result++;
+                    }
+                }
+                return result;
+            }
+        }
         internal GameObject FailureContinueRoot => failureContinueRoot;
         internal GameObject FailureExitConfirmationRoot =>
             failureExitConfirmationRoot;
@@ -84,7 +121,10 @@ namespace ColorGateRunner.Presentation
             GameObject celebrationRoot,
             CanvasGroup celebrationGroup,
             RectTransform emblem,
+            RectTransform[] emblemEchoes,
+            CanvasGroup[] emblemEchoGroups,
             Button skipButton,
+            CanvasGroup skipPromptGroup,
             GameObject rewardRoot,
             CanvasGroup rewardGroup,
             RectTransform[] sparks,
@@ -114,7 +154,10 @@ namespace ColorGateRunner.Presentation
             clearCelebrationRoot = celebrationRoot;
             clearCelebrationGroup = celebrationGroup;
             victoryEmblem = emblem;
+            victoryEmblemEchoes = emblemEchoes;
+            victoryEmblemEchoGroups = emblemEchoGroups;
             clearSkipButton = skipButton;
+            clearSkipPromptGroup = skipPromptGroup;
             clearRewardRoot = rewardRoot;
             clearRewardGroup = rewardGroup;
             fireworkSparks = sparks;
@@ -147,9 +190,15 @@ namespace ColorGateRunner.Presentation
         {
             if (clearCelebrationRoot == null || clearCelebrationGroup == null ||
                 victoryEmblem == null || clearSkipButton == null ||
+                victoryEmblemEchoes == null ||
+                victoryEmblemEchoGroups == null ||
+                victoryEmblemEchoes.Length != 2 ||
+                victoryEmblemEchoGroups.Length !=
+                    victoryEmblemEchoes.Length ||
+                clearSkipPromptGroup == null ||
                 clearRewardRoot == null || clearRewardGroup == null ||
                 fireworkSparks == null || fireworkSparkGroups == null ||
-                fireworkSparks.Length != 16 ||
+                fireworkSparks.Length != 24 ||
                 fireworkSparkGroups.Length != fireworkSparks.Length ||
                 rewardRows == null || rewardRowGroups == null ||
                 rewardRowIcons == null || rewardRowTexts == null ||
@@ -173,6 +222,15 @@ namespace ColorGateRunner.Presentation
                 failureRetryButton == null || failureLobbyButton == null)
             {
                 return false;
+            }
+
+            for (int index = 0; index < victoryEmblemEchoes.Length; index++)
+            {
+                if (victoryEmblemEchoes[index] == null ||
+                    victoryEmblemEchoGroups[index] == null)
+                {
+                    return false;
+                }
             }
 
             for (int index = 0; index < fireworkSparks.Length; index++)
@@ -201,6 +259,8 @@ namespace ColorGateRunner.Presentation
         internal void ResetView()
         {
             _clearAnimating = false;
+            _clearExitTransitioning = false;
+            _clearExitStartedAt = 0f;
             _celebrationElapsed = 0f;
             _rewardElapsed = 0f;
             _rewardCount = 0;
@@ -210,6 +270,8 @@ namespace ColorGateRunner.Presentation
             failureExitConfirmationRoot.SetActive(false);
             failureConsequenceRoot.SetActive(false);
             failureFinalChoiceRoot.SetActive(false);
+            clearSkipButton.interactable = false;
+            clearSkipPromptGroup.alpha = 0f;
         }
 
         internal void PlayCampaignClear(StageResultRewardLine[] rewards)
@@ -218,12 +280,24 @@ namespace ColorGateRunner.Presentation
             CacheClearButtonVisibility();
             SetClearButtonsVisible(false, false, false);
             _clearAnimating = true;
+            _clearExitTransitioning = false;
+            _clearExitStartedAt = 0f;
             _celebrationElapsed = 0f;
             _rewardElapsed = 0f;
             clearRewardRoot.SetActive(false);
             clearCelebrationRoot.SetActive(true);
             clearCelebrationGroup.alpha = 0f;
-            victoryEmblem.localScale = Vector3.one * 0.55f;
+            clearSkipButton.interactable = false;
+            clearSkipPromptGroup.alpha = 0f;
+            victoryEmblem.localScale = Vector3.one * 0.48f;
+            victoryEmblem.localRotation = Quaternion.Euler(0f, 0f, -8f);
+            for (int index = 0; index < victoryEmblemEchoes.Length; index++)
+            {
+                victoryEmblemEchoes[index].anchoredPosition =
+                    new Vector2(index == 0 ? -26f : 26f, 0f);
+                victoryEmblemEchoes[index].localScale = Vector3.one * 1.2f;
+                victoryEmblemEchoGroups[index].alpha = 0f;
+            }
             UpdateFireworks(0f);
         }
 
@@ -244,17 +318,12 @@ namespace ColorGateRunner.Presentation
             if (_clearAnimating)
             {
                 _celebrationElapsed += Mathf.Max(0f, deltaTime);
-                float progress = Mathf.Clamp01(
-                    _celebrationElapsed / CelebrationDuration);
-                clearCelebrationGroup.alpha = Mathf.SmoothStep(0f, 1f,
-                    Mathf.Clamp01(progress * 3f));
-                float punch = 1f + Mathf.Sin(progress * Mathf.PI) * 0.14f;
-                victoryEmblem.localScale = Vector3.one *
-                    Mathf.Lerp(0.55f, punch, Mathf.SmoothStep(0f, 1f, progress));
-                UpdateFireworks(progress);
-                if (_celebrationElapsed >= CelebrationDuration)
+                UpdateClearCelebration();
+                if (_clearAnimating && !_clearExitTransitioning &&
+                    _celebrationElapsed >= CelebrationHoldDuration)
                 {
-                    FinishClearCelebration();
+                    BeginClearExit(CelebrationHoldDuration);
+                    UpdateClearExit();
                 }
                 return;
             }
@@ -265,7 +334,10 @@ namespace ColorGateRunner.Presentation
             }
 
             _rewardElapsed += Mathf.Max(0f, deltaTime);
-            clearRewardGroup.alpha = Mathf.Clamp01(_rewardElapsed / 0.2f);
+            // The reward page already faded fully in during the celebration exit.
+            // Keep it opaque while the individual reward rows reveal so the page
+            // does not flash dark again on its first reward-frame tick.
+            clearRewardGroup.alpha = 1f;
             for (int index = 0; index < _rewardCount; index++)
             {
                 float local = Mathf.Clamp01(
@@ -382,40 +454,158 @@ namespace ColorGateRunner.Presentation
 
         private void SkipClearCelebration()
         {
-            if (_clearAnimating)
+            if (CanSkipClearCelebration)
+            {
+                BeginClearExit(_celebrationElapsed);
+            }
+        }
+
+        private void BeginClearExit(float startedAt)
+        {
+            if (_clearExitTransitioning)
+            {
+                return;
+            }
+
+            _clearExitTransitioning = true;
+            _clearExitStartedAt = startedAt;
+            clearSkipButton.interactable = false;
+            clearRewardRoot.SetActive(true);
+            clearRewardGroup.alpha = 0f;
+        }
+
+        private void UpdateClearCelebration()
+        {
+            UpdateEmblem(_celebrationElapsed);
+            UpdateFireworks(_celebrationElapsed);
+
+            if (!_clearExitTransitioning)
+            {
+                clearCelebrationGroup.alpha = Mathf.SmoothStep(
+                    0f,
+                    1f,
+                    Mathf.Clamp01(_celebrationElapsed / 0.16f));
+                bool canSkip =
+                    _celebrationElapsed >= MinimumClearSkipDelay;
+                clearSkipButton.interactable = canSkip;
+                clearSkipPromptGroup.alpha = canSkip
+                    ? Mathf.SmoothStep(
+                        0f,
+                        1f,
+                        Mathf.Clamp01(
+                            (_celebrationElapsed - MinimumClearSkipDelay) /
+                            SkipPromptFadeDuration))
+                    : 0f;
+                return;
+            }
+
+            UpdateClearExit();
+        }
+
+        private void UpdateClearExit()
+        {
+            float progress = Mathf.Clamp01(
+                (_celebrationElapsed - _clearExitStartedAt) /
+                CelebrationExitDuration);
+            float eased = Mathf.SmoothStep(0f, 1f, progress);
+            clearCelebrationGroup.alpha = 1f - eased;
+            clearRewardGroup.alpha = eased;
+            if (progress >= 1f)
             {
                 FinishClearCelebration();
+            }
+        }
+
+        private void UpdateEmblem(float elapsed)
+        {
+            float entry = Mathf.Clamp01(elapsed / EmblemEntryDuration);
+            float scale;
+            if (entry < 0.58f)
+            {
+                scale = Mathf.Lerp(
+                    0.48f,
+                    1.18f,
+                    Mathf.SmoothStep(0f, 1f, entry / 0.58f));
+            }
+            else
+            {
+                scale = Mathf.Lerp(
+                    1.18f,
+                    1f,
+                    Mathf.SmoothStep(0f, 1f, (entry - 0.58f) / 0.42f));
+            }
+            if (entry >= 1f)
+            {
+                scale += Mathf.Sin((elapsed - EmblemEntryDuration) * 4.5f) *
+                    0.018f;
+            }
+            victoryEmblem.localScale = Vector3.one * scale;
+            victoryEmblem.localRotation = Quaternion.Euler(
+                0f,
+                0f,
+                Mathf.Lerp(-8f, 0f, Mathf.SmoothStep(0f, 1f, entry)));
+
+            for (int index = 0; index < victoryEmblemEchoes.Length; index++)
+            {
+                float side = index == 0 ? -1f : 1f;
+                victoryEmblemEchoes[index].anchoredPosition = new Vector2(
+                    side * Mathf.Lerp(26f, 0f, entry),
+                    Mathf.Sin(elapsed * 3.8f + index) * 3f);
+                victoryEmblemEchoes[index].localScale = Vector3.one *
+                    (scale + 0.07f + index * 0.035f);
+                float entryEcho = Mathf.Sin(entry * Mathf.PI) * 0.42f;
+                float settledPulse = entry >= 1f
+                    ? 0.08f + Mathf.Sin(elapsed * 5f + index) * 0.025f
+                    : 0f;
+                victoryEmblemEchoGroups[index].alpha =
+                    Mathf.Clamp01(entryEcho + settledPulse);
             }
         }
 
         private void FinishClearCelebration()
         {
             _clearAnimating = false;
+            _clearExitTransitioning = false;
             clearCelebrationRoot.SetActive(false);
             clearRewardRoot.SetActive(true);
-            clearRewardGroup.alpha = 0f;
+            clearRewardGroup.alpha = 1f;
             _rewardElapsed = 0f;
             ClearCelebrationCompleted?.Invoke();
         }
 
-        private void UpdateFireworks(float progress)
+        private void UpdateFireworks(float elapsed)
         {
             for (int index = 0; index < fireworkSparks.Length; index++)
             {
-                float phase = Mathf.Repeat(progress * 1.65f -
-                    (index % 4) * 0.08f, 1f);
-                float angle = (index % 8) * Mathf.PI * 0.25f +
-                    (index >= 8 ? 0.2f : 0f);
-                Vector2 origin = index < 8
-                    ? new Vector2(-185f, 48f)
-                    : new Vector2(185f, 62f);
-                float radius = Mathf.SmoothStep(0f, 170f, phase);
+                int burst = index / SparksPerBurst;
+                int spark = index % SparksPerBurst;
+                float burstStart = 0.30f + burst * 0.36f;
+                float phase = (elapsed - burstStart) /
+                    FireworkBurstDuration;
+                if (phase < 0f || phase > 1f)
+                {
+                    fireworkSparkGroups[index].alpha = 0f;
+                    continue;
+                }
+
+                float angle = spark * Mathf.PI * 0.25f +
+                    burst * 0.14f;
+                Vector2 origin = burst switch
+                {
+                    0 => new Vector2(-195f, 25f),
+                    1 => new Vector2(195f, 55f),
+                    _ => new Vector2(0f, 128f)
+                };
+                float radius = Mathf.SmoothStep(0f, 205f, phase);
                 fireworkSparks[index].anchoredPosition = origin +
                     new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
                 fireworkSparks[index].localRotation =
-                    Quaternion.Euler(0f, 0f, index * 23f + progress * 180f);
+                    Quaternion.Euler(0f, 0f, index * 23f + phase * 180f);
+                fireworkSparks[index].localScale = Vector3.one *
+                    Mathf.Lerp(0.7f, 1.18f, Mathf.Sin(phase * Mathf.PI));
                 fireworkSparkGroups[index].alpha =
-                    Mathf.Sin(phase * Mathf.PI);
+                    Mathf.Sin(phase * Mathf.PI) *
+                    Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(phase * 5f));
             }
         }
 

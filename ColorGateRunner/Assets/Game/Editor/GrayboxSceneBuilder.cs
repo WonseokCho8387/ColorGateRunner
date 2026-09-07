@@ -385,7 +385,10 @@ namespace ColorGateRunner.Editor
             GameObject clearCelebrationRoot;
             CanvasGroup clearCelebrationGroup;
             RectTransform clearVictoryEmblem;
+            RectTransform[] clearVictoryEmblemEchoes;
+            CanvasGroup[] clearVictoryEmblemEchoGroups;
             Button clearSkipButton;
+            CanvasGroup clearSkipPromptGroup;
             GameObject clearRewardRoot;
             CanvasGroup clearRewardGroup;
             RectTransform[] clearFireworkSparks;
@@ -406,7 +409,10 @@ namespace ColorGateRunner.Editor
                 out clearCelebrationRoot,
                 out clearCelebrationGroup,
                 out clearVictoryEmblem,
+                out clearVictoryEmblemEchoes,
+                out clearVictoryEmblemEchoGroups,
                 out clearSkipButton,
+                out clearSkipPromptGroup,
                 out clearRewardRoot,
                 out clearRewardGroup,
                 out clearFireworkSparks,
@@ -471,7 +477,10 @@ namespace ColorGateRunner.Editor
                 clearCelebrationRoot,
                 clearCelebrationGroup,
                 clearVictoryEmblem,
+                clearVictoryEmblemEchoes,
+                clearVictoryEmblemEchoGroups,
                 clearSkipButton,
+                clearSkipPromptGroup,
                 clearRewardRoot,
                 clearRewardGroup,
                 clearFireworkSparks,
@@ -3405,7 +3414,10 @@ namespace ColorGateRunner.Editor
             out GameObject celebrationRoot,
             out CanvasGroup celebrationGroup,
             out RectTransform victoryEmblem,
+            out RectTransform[] victoryEmblemEchoes,
+            out CanvasGroup[] victoryEmblemEchoGroups,
             out Button skipButton,
+            out CanvasGroup skipPromptGroup,
             out GameObject rewardRoot,
             out CanvasGroup rewardGroup,
             out RectTransform[] fireworkSparks,
@@ -3426,8 +3438,8 @@ namespace ColorGateRunner.Editor
             Stretch(celebrationRoot.GetComponent<RectTransform>());
             celebrationGroup = celebrationRoot.AddComponent<CanvasGroup>();
 
-            fireworkSparks = new RectTransform[16];
-            fireworkSparkGroups = new CanvasGroup[16];
+            fireworkSparks = new RectTransform[24];
+            fireworkSparkGroups = new CanvasGroup[24];
             Color[] sparkColors =
             {
                 CyanColor,
@@ -3451,6 +3463,34 @@ namespace ColorGateRunner.Editor
                 sparkImage.raycastTarget = false;
                 fireworkSparks[index] = rect;
                 fireworkSparkGroups[index] = spark.AddComponent<CanvasGroup>();
+            }
+
+            victoryEmblemEchoes = new RectTransform[2];
+            victoryEmblemEchoGroups = new CanvasGroup[2];
+            Color[] echoColors =
+            {
+                new Color(0.1f, 0.95f, 1f, 0.8f),
+                new Color(1f, 0.72f, 0.12f, 0.72f)
+            };
+            for (int index = 0; index < victoryEmblemEchoes.Length; index++)
+            {
+                GameObject echoObject = CreateUiObject(
+                    $"VictoryEmblemEcho_{index}",
+                    celebrationRoot.transform);
+                RectTransform echoRect =
+                    echoObject.GetComponent<RectTransform>();
+                SetAnchors(
+                    echoRect,
+                    new Vector2(0.19f, 0.38f),
+                    new Vector2(0.81f, 0.76f));
+                Image echoImage = echoObject.AddComponent<Image>();
+                echoImage.sprite = victorySprite;
+                echoImage.preserveAspect = true;
+                echoImage.raycastTarget = false;
+                echoImage.color = echoColors[index];
+                victoryEmblemEchoes[index] = echoRect;
+                victoryEmblemEchoGroups[index] =
+                    echoObject.AddComponent<CanvasGroup>();
             }
 
             GameObject emblemObject = CreateUiObject(
@@ -3491,6 +3531,7 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.2f, 0.08f),
                 new Vector2(0.8f, 0.14f));
             skipLabel.color = new Color(0.68f, 0.84f, 0.92f, 1f);
+            skipPromptGroup = skipLabel.gameObject.AddComponent<CanvasGroup>();
 
             rewardRoot = CreateAnchoredPanel(
                 "ClearRewardCard",

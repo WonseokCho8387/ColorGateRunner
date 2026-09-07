@@ -1114,3 +1114,14 @@ not reusable art assets or an exact visual copy.
 - Chapter selection and League add no Scene name/index constants. Boot,
   Frontend and Campaign continue to use the existing serialized transition
   destinations and AppRoot launch request.
+
+## Implemented UX slice — Iteration 56 Campaign Clear pacing
+
+- `ClearCelebration` remains the first Campaign result page. It auto-advances
+  after a `2.35s` hold through a `0.25s` crossfade to `ClearRewards`.
+- Result-surface taps are ignored for the first `0.1s`. A later tap starts the
+  same crossfade; it never bypasses the reward page or changes the committed
+  reward transaction.
+- Navigation buttons remain hidden until the existing sequential reward-row
+  reveal completes. Experiment and every failure-result page retain their
+  previous routing.

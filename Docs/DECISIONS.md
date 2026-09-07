@@ -1759,3 +1759,14 @@ Status: Approved and implemented.
   reward and retry transactions. Only the next Stage selection and League copy
   differ. Ranking, seasons, League rewards and remote configuration are not
   implied by this foundation.
+
+## Iteration 56 victory presentation boundary
+
+- Victory pacing is owned by `StageResultSequenceView`; Campaign result state,
+  reward transactions and navigation remain separate authorities.
+- The automatic celebration hold is `2.35s`, followed by a `0.25s` crossfade.
+  User skip unlocks at `0.1s` and enters the same crossfade, so neither path
+  produces a hard cut or bypasses rewards.
+- Celebration visuals are fixed Builder-owned UI objects: 24 sparks and two
+  emblem echoes. Runtime instantiation, audio, haptics and runner geometric
+  transformation are excluded from this decision.

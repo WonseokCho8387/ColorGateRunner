@@ -971,3 +971,16 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Decorative theme layers never receive raycasts and remain behind wallet,
   Settings, Stage action and bottom navigation. Human portrait/mobile/WebGL
   review owns final crop appeal, perceived depth and readability on device.
+
+## Iteration 56 victory celebration pacing
+
+- Campaign Clear reserves a `2.35s` celebration beat before a `0.25s`
+  crossfade into rewards. The user may accelerate it after `0.1s`, but the
+  visual never hard-cuts between the two surfaces.
+- The original victory emblem uses a scale overshoot, settle and subtle idle
+  pulse with two complementary Cyan/Gold echo layers. Exactly 24 fixed sparks
+  appear as three staggered eight-spark bursts around the emblem.
+- The frozen gameplay background remains subordinate, reward rows retain their
+  existing semantic icons and no runtime particle object is created. Human
+  device/WebGL review owns perceived impact, skip discoverability and whether
+  the celebration duration feels satisfying after repeated clears.
