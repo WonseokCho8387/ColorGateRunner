@@ -19,7 +19,12 @@ namespace ColorGateRunner.Editor
         private static readonly string[] IconNames =
         {
             "Coin", "Heart", "Shield", "Booster", "Settings",
-            "Play", "Back", "Pause", "Retry", "Continue"
+            "Play", "Back", "Pause", "Retry", "Continue", "Profile"
+        };
+
+        private static readonly string[] NavigationIconNames =
+        {
+            "Shop", "Rank", "Home", "Journey", "Collection"
         };
 
         private static readonly string[] ColorEmblemNames =
@@ -46,6 +51,14 @@ namespace ColorGateRunner.Editor
             for (int index = 0; index < IconNames.Length; index++)
             {
                 ConfigureSprite("Icon" + IconNames[index], false);
+            }
+
+            for (int index = 0; index < NavigationIconNames.Length; index++)
+            {
+                ConfigureSprite(
+                    "Navigation/IconNav" + NavigationIconNames[index],
+                    false,
+                    512f);
             }
 
             ConfigureSprite("VictoryEmblem", false, 512f);
@@ -113,6 +126,17 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     $"Theme01 UI icon is missing: {iconName}");
+            }
+            return result;
+        }
+
+        internal static Sprite LoadNavigationIcon(string iconName)
+        {
+            Sprite result = LoadSprite("Navigation/IconNav" + iconName);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme01 navigation icon is missing: {iconName}");
             }
             return result;
         }
@@ -200,6 +224,31 @@ namespace ColorGateRunner.Editor
             rect.offsetMax = Vector2.zero;
             Image image = iconObject.GetComponent<Image>();
             image.sprite = LoadSprite("Icon" + iconName);
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            image.color = Color.white;
+            return image;
+        }
+
+        internal static Image AddNavigationIcon(
+            string name,
+            Transform parent,
+            string iconName,
+            Vector2 anchorMin,
+            Vector2 anchorMax)
+        {
+            var iconObject = new GameObject(
+                name,
+                typeof(RectTransform),
+                typeof(Image));
+            iconObject.transform.SetParent(parent, false);
+            RectTransform rect = iconObject.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            Image image = iconObject.GetComponent<Image>();
+            image.sprite = LoadNavigationIcon(iconName);
             image.preserveAspect = true;
             image.raycastTarget = false;
             image.color = Color.white;
@@ -306,9 +355,10 @@ namespace ColorGateRunner.Editor
             if (name.Contains("Play", StringComparison.Ordinal) ||
                 name.Contains("Start", StringComparison.Ordinal) ||
                 name.Contains("Resume", StringComparison.Ordinal)) return "Play";
+            if (name.Contains("Profile", StringComparison.Ordinal) ||
+                name.Contains("Account", StringComparison.Ordinal)) return "Profile";
             if (name.Contains("Back", StringComparison.Ordinal) ||
-                name.Contains("Lobby", StringComparison.Ordinal) ||
-                name.Contains("Account", StringComparison.Ordinal)) return "Back";
+                name.Contains("Lobby", StringComparison.Ordinal)) return "Back";
             return null;
         }
 

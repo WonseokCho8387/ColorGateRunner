@@ -3471,3 +3471,51 @@ Human feedback required
   too busy during rapid input.
 - Dedicated Yellow/Purple/Cyan forms, new modeling/rigs, mechanical panels,
   particles, audio, haptics and color-specific stats remain separate work.
+
+## Iteration 59 — Distinct Runner Forms and UI Art Pass
+
+### Play / Analyze
+
+- The first transform prototype proved the interaction, but Red and Green
+  still looked like different spreads of the same parts. Player-facing
+  navigation and several semantic cues also remained geometric placeholders.
+- The response rule was already correct: color, material and HUD must never
+  wait for a longer visual transformation.
+
+### Design / Implementation
+
+- Expanded the Cyber Orb from 12 to 22 Builder-bound parts. Red owns four
+  shoulder/ram parts, Blue three guard/crest parts and Green three blade/tail
+  parts. Non-target kits collapse to zero scale.
+- Replaced the single ease with a `0.24s` inward fold and overshooting deploy.
+  Rapid taps still snapshot the current pose and retarget with no queue; the
+  player root, collider, Rigidbody, Spline and judgment are untouched.
+- Replaced all five generated navigation glyphs, the Profile cue and the core
+  Coin/Heart/Shield/Booster cues with transparent image art. Regenerated seven
+  reusable surfaces and the existing action icons at higher source resolution;
+  visible labels remain live text.
+
+### Validation / Learning
+
+- Frontend and Campaign Builders each passed twice. Full EditMode passed
+  `480/480`; full PlayMode passed `264`, failed zero and intentionally ignored
+  one opt-in graphics capture out of `265` discovered tests.
+- Graphical D3D11 Frontend and Campaign capture tests each passed `1/1` at
+  `1080 x 1920`. Inspection covered all five Lobby destinations, the three
+  final runner forms, midpoint and Shield HUD with no magenta material,
+  missing image, detached part or obvious occlusion.
+- Product save and backup stayed byte-, timestamp- and SHA-exact at
+  `5B22763B8FCAC1A4E327C3AE5505A57971B05AA979B019E7EAB5FF1E27B4D930`
+  and `098917DFB620B42A955BD712414B46CC8E8C7CEFED6FA853DE2F986DB75F209C`.
+  Packages did not change; the pre-existing package-managed ProjectSettings
+  define difference remains excluded.
+- A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking finding.
+
+### Deferred / Human Review
+
+- Physical-phone and WebGL play still own rapid-input feel, icon recognition,
+  selected-tab weight and overall art cohesion in motion.
+- Yellow/Purple/Cyan forms, skeletal rigs, particles, audio, haptics,
+  color-specific stats and implementation of Rank/Collection remain separate
+  iterations.

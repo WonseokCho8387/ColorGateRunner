@@ -17,13 +17,24 @@ namespace ColorGateRunner.Presentation
         RearThrusterLeft,
         RearThrusterRight,
         RearThrusterGlowLeft,
-        RearThrusterGlowRight
+        RearThrusterGlowRight,
+        PowerShoulderLeft,
+        PowerShoulderRight,
+        PowerRamLeft,
+        PowerRamRight,
+        StableGuardLeft,
+        StableGuardRight,
+        StableCrest,
+        WingBladeLeft,
+        WingBladeRight,
+        WingTail
     }
 
     public sealed class RunnerFormView : MonoBehaviour
     {
-        internal const float TransitionDuration = 0.18f;
-        internal const int RequiredPartCount = 12;
+        internal const float TransitionDuration = 0.24f;
+        internal const float CollapsePhase = 0.36f;
+        internal const int RequiredPartCount = 22;
 
         [SerializeField] private Transform artworkRoot;
         [SerializeField] private Transform[] animatedParts;
@@ -38,6 +49,9 @@ namespace ColorGateRunner.Presentation
         private Vector3[] _targetPositions;
         private Quaternion[] _targetRotations;
         private Vector3[] _targetScales;
+        private Vector3[] _foldPositions;
+        private Quaternion[] _foldRotations;
+        private Vector3[] _foldScales;
         private float _transitionElapsed;
         private bool _hasTarget;
 
@@ -134,6 +148,7 @@ namespace ColorGateRunner.Presentation
             }
 
             BuildTargetPose(color);
+            BuildFoldPose();
             TargetColor = color;
             _hasTarget = true;
             _transitionElapsed = 0f;
@@ -152,21 +167,45 @@ namespace ColorGateRunner.Presentation
                 _transitionElapsed + Mathf.Max(0f, deltaTime));
             float progress = Mathf.Clamp01(
                 _transitionElapsed / TransitionDuration);
-            float eased = progress * progress * (3f - (2f * progress));
+            bool folding = progress < CollapsePhase;
+            float phaseProgress = folding
+                ? progress / CollapsePhase
+                : (progress - CollapsePhase) / (1f - CollapsePhase);
+            float eased = folding
+                ? SmoothStep(phaseProgress)
+                : EaseOutBack(phaseProgress);
             for (int index = 0; index < animatedParts.Length; index++)
             {
                 Transform part = animatedParts[index];
+                Vector3 fromPosition = folding
+                    ? _startPositions[index]
+                    : _foldPositions[index];
+                Vector3 toPosition = folding
+                    ? _foldPositions[index]
+                    : _targetPositions[index];
+                Quaternion fromRotation = folding
+                    ? _startRotations[index]
+                    : _foldRotations[index];
+                Quaternion toRotation = folding
+                    ? _foldRotations[index]
+                    : _targetRotations[index];
+                Vector3 fromScale = folding
+                    ? _startScales[index]
+                    : _foldScales[index];
+                Vector3 toScale = folding
+                    ? _foldScales[index]
+                    : _targetScales[index];
                 part.localPosition = Vector3.LerpUnclamped(
-                    _startPositions[index],
-                    _targetPositions[index],
+                    fromPosition,
+                    toPosition,
                     eased);
                 part.localRotation = Quaternion.SlerpUnclamped(
-                    _startRotations[index],
-                    _targetRotations[index],
+                    fromRotation,
+                    toRotation,
                     eased);
                 part.localScale = Vector3.LerpUnclamped(
-                    _startScales[index],
-                    _targetScales[index],
+                    fromScale,
+                    toScale,
                     eased);
             }
 
@@ -188,6 +227,24 @@ namespace ColorGateRunner.Presentation
                 if (partRoles[index] == role && animatedParts[index] != null)
                 {
                     return animatedParts[index].localPosition;
+                }
+            }
+
+            return Vector3.zero;
+        }
+
+        internal Vector3 GetPartLocalScale(RunnerFormPartRole role)
+        {
+            if (animatedParts == null || partRoles == null)
+            {
+                return Vector3.zero;
+            }
+
+            for (int index = 0; index < animatedParts.Length; index++)
+            {
+                if (partRoles[index] == role && animatedParts[index] != null)
+                {
+                    return animatedParts[index].localScale;
                 }
             }
 
@@ -216,6 +273,9 @@ namespace ColorGateRunner.Presentation
             _targetPositions = new Vector3[count];
             _targetRotations = new Quaternion[count];
             _targetScales = new Vector3[count];
+            _foldPositions = new Vector3[count];
+            _foldRotations = new Quaternion[count];
+            _foldScales = new Vector3[count];
             for (int index = 0; index < count; index++)
             {
                 Transform part = animatedParts[index];
@@ -242,6 +302,14 @@ namespace ColorGateRunner.Presentation
                         ref rotation,
                         ref scale);
                 }
+                else if (color == RunnerColor.Blue)
+                {
+                    ApplyStablePose(
+                        partRoles[index],
+                        ref position,
+                        ref rotation,
+                        ref scale);
+                }
                 else if (color == RunnerColor.Green)
                 {
                     ApplyWingPose(
@@ -251,10 +319,130 @@ namespace ColorGateRunner.Presentation
                         ref scale);
                 }
 
+                if (IsDedicatedRole(partRoles[index]) &&
+                    !IsRoleActiveForColor(partRoles[index], color))
+                {
+                    scale = Vector3.zero;
+                }
+
                 _targetPositions[index] = position;
                 _targetRotations[index] = rotation;
                 _targetScales[index] = scale;
             }
+        }
+
+        private void BuildFoldPose()
+        {
+            for (int index = 0; index < animatedParts.Length; index++)
+            {
+                RunnerFormPartRole role = partRoles[index];
+                Vector3 position = Vector3.Lerp(
+                    _startPositions[index],
+                    _targetPositions[index],
+                    0.5f);
+                position.x *= 0.48f;
+                position.y = Mathf.Lerp(position.y, 0.92f, 0.42f);
+                position.z = Mathf.Lerp(position.z, -0.38f, 0.34f);
+                _foldPositions[index] = position;
+                float direction = IsLeftRole(role) ? -1f : 1f;
+                _foldRotations[index] = Quaternion.Slerp(
+                    _startRotations[index],
+                    _targetRotations[index],
+                    0.5f) * Quaternion.Euler(0f, direction * 24f, direction * 11f);
+                _foldScales[index] = IsDedicatedRole(role)
+                    ? Vector3.zero
+                    : Vector3.Lerp(
+                        _startScales[index],
+                        _targetScales[index],
+                        0.5f) * 0.68f;
+            }
+        }
+
+        private static void ApplyStablePose(
+            RunnerFormPartRole role,
+            ref Vector3 position,
+            ref Quaternion rotation,
+            ref Vector3 scale)
+        {
+            switch (role)
+            {
+                case RunnerFormPartRole.ColorShell:
+                    scale = Vector3.Scale(scale, new Vector3(0.96f, 1.08f, 1f));
+                    break;
+                case RunnerFormPartRole.SideRingLeft:
+                case RunnerFormPartRole.SideGlowLeft:
+                    position += new Vector3(0.08f, 0.05f, 0.02f);
+                    break;
+                case RunnerFormPartRole.SideRingRight:
+                case RunnerFormPartRole.SideGlowRight:
+                    position += new Vector3(-0.08f, 0.05f, 0.02f);
+                    break;
+                case RunnerFormPartRole.SideFinLeft:
+                    position += new Vector3(0.11f, 0.08f, 0.12f);
+                    rotation *= Quaternion.Euler(0f, -12f, 5f);
+                    scale = Vector3.Scale(scale, new Vector3(0.82f, 1f, 0.80f));
+                    break;
+                case RunnerFormPartRole.SideFinRight:
+                    position += new Vector3(-0.11f, 0.08f, 0.12f);
+                    rotation *= Quaternion.Euler(0f, 12f, -5f);
+                    scale = Vector3.Scale(scale, new Vector3(0.82f, 1f, 0.80f));
+                    break;
+            }
+        }
+
+        private static bool IsDedicatedRole(RunnerFormPartRole role)
+        {
+            return role >= RunnerFormPartRole.PowerShoulderLeft;
+        }
+
+        private static bool IsRoleActiveForColor(
+            RunnerFormPartRole role,
+            RunnerColor color)
+        {
+            if (color == RunnerColor.Red)
+            {
+                return role >= RunnerFormPartRole.PowerShoulderLeft &&
+                    role <= RunnerFormPartRole.PowerRamRight;
+            }
+            if (color == RunnerColor.Blue)
+            {
+                return role >= RunnerFormPartRole.StableGuardLeft &&
+                    role <= RunnerFormPartRole.StableCrest;
+            }
+            if (color == RunnerColor.Green)
+            {
+                return role >= RunnerFormPartRole.WingBladeLeft &&
+                    role <= RunnerFormPartRole.WingTail;
+            }
+            return false;
+        }
+
+        private static bool IsLeftRole(RunnerFormPartRole role)
+        {
+            return role == RunnerFormPartRole.SideRingLeft ||
+                role == RunnerFormPartRole.SideGlowLeft ||
+                role == RunnerFormPartRole.SideFinLeft ||
+                role == RunnerFormPartRole.RearThrusterLeft ||
+                role == RunnerFormPartRole.RearThrusterGlowLeft ||
+                role == RunnerFormPartRole.PowerShoulderLeft ||
+                role == RunnerFormPartRole.PowerRamLeft ||
+                role == RunnerFormPartRole.StableGuardLeft ||
+                role == RunnerFormPartRole.WingBladeLeft;
+        }
+
+        private static float SmoothStep(float value)
+        {
+            value = Mathf.Clamp01(value);
+            return value * value * (3f - (2f * value));
+        }
+
+        private static float EaseOutBack(float value)
+        {
+            value = Mathf.Clamp01(value);
+            const float overshoot = 1.38f;
+            float shifted = value - 1f;
+            return 1f + ((overshoot + 1f) * shifted * shifted * shifted) +
+                (overshoot * shifted * shifted);
         }
 
         private static void ApplyPowerPose(
@@ -363,6 +551,9 @@ namespace ColorGateRunner.Presentation
             _targetPositions = null;
             _targetRotations = null;
             _targetScales = null;
+            _foldPositions = null;
+            _foldRotations = null;
+            _foldScales = null;
             _transitionElapsed = 0f;
             _hasTarget = false;
             IsTransitioning = false;

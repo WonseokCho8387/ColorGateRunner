@@ -1652,62 +1652,17 @@ namespace ColorGateRunner.Editor
             labelText.resizeTextMaxSize = 11;
             labelText.rectTransform.anchorMin = new Vector2(0f, 0f);
             labelText.rectTransform.anchorMax = new Vector2(1f, 0.42f);
-            CreateNavigationGlyph(button.transform, index);
-            return button;
-        }
-
-        private static void CreateNavigationGlyph(Transform parent, int index)
-        {
-            Color color = index == 2
-                ? FromHex(0xFDE68A)
-                : FromHex(0x67E8F9);
-            switch (index)
+            string[] iconNames =
             {
-                case 0:
-                    CreateGlyphRect(parent, "Roof", 0.25f, 0.57f, 0.75f, 0.70f, color);
-                    CreateGlyphRect(parent, "Store", 0.30f, 0.34f, 0.70f, 0.57f, color);
-                    break;
-                case 1:
-                    CreateGlyphRect(parent, "PodiumLeft", 0.27f, 0.35f, 0.39f, 0.54f, color);
-                    CreateGlyphRect(parent, "PodiumCenter", 0.43f, 0.35f, 0.57f, 0.72f, color);
-                    CreateGlyphRect(parent, "PodiumRight", 0.61f, 0.35f, 0.73f, 0.61f, color);
-                    break;
-                case 2:
-                    CreateGlyphRect(parent, "HomeRoof", 0.29f, 0.57f, 0.71f, 0.69f, color, 45f);
-                    CreateGlyphRect(parent, "HomeBody", 0.34f, 0.34f, 0.66f, 0.58f, color);
-                    break;
-                case 3:
-                    CreateGlyphRect(parent, "PathOne", 0.28f, 0.38f, 0.40f, 0.50f, color);
-                    CreateGlyphRect(parent, "PathTwo", 0.46f, 0.49f, 0.58f, 0.61f, color);
-                    CreateGlyphRect(parent, "PathThree", 0.62f, 0.60f, 0.74f, 0.72f, color);
-                    break;
-                default:
-                    CreateGlyphRect(parent, "CellOne", 0.31f, 0.51f, 0.47f, 0.68f, color);
-                    CreateGlyphRect(parent, "CellTwo", 0.53f, 0.51f, 0.69f, 0.68f, color);
-                    CreateGlyphRect(parent, "CellThree", 0.31f, 0.31f, 0.47f, 0.48f, color);
-                    CreateGlyphRect(parent, "CellFour", 0.53f, 0.31f, 0.69f, 0.48f, color);
-                    break;
-            }
-        }
-
-        private static void CreateGlyphRect(
-            Transform parent,
-            string name,
-            float minX,
-            float minY,
-            float maxX,
-            float maxY,
-            Color color,
-            float angle = 0f)
-        {
-            Image image = CreatePanel(
-                name,
-                parent,
-                new Vector2(minX, minY),
-                new Vector2(maxX, maxY),
-                color).GetComponent<Image>();
-            image.raycastTarget = false;
-            image.rectTransform.localEulerAngles = new Vector3(0f, 0f, angle);
+                "Shop", "Rank", "Home", "Journey", "Collection"
+            };
+            Theme01UiSkinBuilder.AddNavigationIcon(
+                "NavigationIcon",
+                button.transform,
+                iconNames[index],
+                new Vector2(0.08f, 0.38f),
+                new Vector2(0.92f, 0.98f));
+            return button;
         }
 
         private static void CreatePopup(

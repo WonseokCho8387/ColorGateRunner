@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `9bad134f74eacbe4cc55427da33ef17872bfb5ea`
-- Base commit: `fix: make victory fireworks visible`
+- Implementation base HEAD: `718aca24ac3bb98e438cc86bdbb80624cb0d4d25`
+- Base commit: `feat: add modular runner transformations`
 - Authoritative completion HEAD: the commit named
-  `feat: add modular runner transformations`; its exact hash is recorded
-  in the Iteration 58 final report because a commit cannot contain
+  `feat: polish runner forms and UI art`; its exact hash is recorded
+  in the Iteration 59 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,14 +23,22 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 58 — Modular Runner Transformation Prototype**.
-- Campaign Red, Blue and Green now share one imported Cyber Orb while 12
-  existing visual child parts form distinct power, stable and agile/wing
-  silhouettes. The logical color, emissive material and HUD still change in
-  the input call; only those children ease for `0.18s`. A new tap retargets
+- Current completed iteration: **Iteration 59 — Distinct Runner Forms and UI Art Pass**.
+- Campaign Red, Blue and Green share one imported Cyber Orb with 22 fixed
+  Builder-bound visual parts. Red deploys a broad shoulder/ram power kit,
+  Blue a compact guard/crest stable kit and Green a wide blade/tail wing kit.
+  A `0.24s` transition first folds shared parts inward, then deploys the
+  exclusive target kit with restrained overshoot. The logical color,
+  emissive material and HUD still change in the input call; a new tap retargets
   from the current pose with no queue. Yellow, Purple and Cyan intentionally
-  retain the Blue/base geometry in this first slice. Player root, collider,
-  Rigidbody, Spline pose, steering and judgment ownership are unchanged.
+  retain the Blue/base geometry. Player root, collider, Rigidbody, Spline
+  pose, steering and judgment ownership are unchanged.
+- Theme 1 now uses image assets for the five bottom destinations, Profile,
+  Coin, Heart, Shield and Booster. The former runtime rectangle navigation
+  glyphs and HUD Shield text symbol are gone. Existing action icons plus the
+  seven reusable panel/button/card surfaces were regenerated at higher source
+  resolution while all player copy remains live text. Developer-only UI and
+  truthful Rank/Collection Coming Soon content remain outside this polish pass.
 - Campaign Clear now holds its victory beat for `2.35s`, then crossfades to
   the reward page over `0.25s`. A tap is ignored during only the first `0.1s`;
   afterward it skips through the same crossfade rather than hard-cutting.
@@ -54,8 +62,8 @@ below where their contracts differ.
   Stage automatically returns that profile to authored progression.
 - Frontend now uses a persistent five-tab portrait navigation shell inspired
   by the approved information hierarchy while retaining original Theme 1 neon
-  surfaces and geometric glyphs. Its horizontal order is Shop, Rank, Home,
-  Journey and Collection. Tabs and one-page swipes navigate the same pager;
+  surfaces and transparent destination images. Its horizontal order is Shop,
+  Rank, Home, Journey and Collection. Tabs and one-page swipes navigate the same pager;
   vertical Shop and Journey scrolling does not page. Back from every non-Home
   destination returns Home without opening the app-exit confirmation.
 - Shop is a vertical catalog preview over the shared Profile / Coin / Heart /
@@ -217,9 +225,9 @@ below where their contracts differ.
   longer used by normal runtime presentation. Echo retains its concise
   mechanic marker, while Hidden and Flicker have no explanatory marker or text.
 - Frontend and Campaign now share an original Theme 1 UI skin: seven genuine-
-  alpha 9-slice panel/button/chip sprites and ten semantic resource/action
-  icons. Builder-created panels retain their existing hierarchy and text;
-  buttons gain primary, secondary and danger surfaces plus distinct hover,
+  alpha 9-slice panel/button/chip sprites, eleven semantic resource/action/
+  Profile icons and five navigation images. Builder-created panels retain
+  their existing hierarchy and text; buttons gain primary, secondary and danger surfaces plus distinct hover,
   press, selected and disabled states. Coin/Heart, Play, Settings, Back,
   Pause, Shield, Booster, Continue and Retry cues are non-blocking Images.
   Navigation, Product state, economy values and gameplay authority are
@@ -360,24 +368,25 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `480/480`
-- PlayMode: `263/263` passed, with one opt-in graphics capture test intentionally
-  ignored in the headless full suite (`264` total discovered)
-- Post-Builder PlayMode: same `263` passes plus one intentional graphics-test
+- PlayMode: `264/264` passed, with one opt-in graphics capture test intentionally
+  ignored in the headless full suite (`265` total discovered)
+- Post-Builder PlayMode: same `264` passes plus one intentional graphics-test
   ignore
-- D3D11 visual QC: `1/1` at `1080 x 1920`, capturing 19 Campaign states,
-  including Red, mid-transition, Blue and Green runner forms
-- Fresh-context read-only Quality Graph checker: initial `FAIL` found the old
-  `0.12s` HUD pose lag; targeted repair and PlayMode `1/1` evidence produced a
-  final `PASS` with no remaining finding
+- D3D11 visual QC: Frontend `1/1` with 13 captures and Campaign `1/1` with
+  19 captures at `1080 x 1920`. The inspected set includes all five Lobby
+  destinations, Red, mid-transition, Blue, Green and the Shield HUD state.
+- Fresh-context read-only Quality Graph checker: `PASS` with no blocking
+  finding after diff, Builder, full-suite, protected-state and rendered-image
+  review
 - Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
   generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
   unique roots, EventSystem and Build Settings passed
-- Campaign Builder: Iteration 58 completed two consecutive passes successfully.
+- Campaign Builder: Iteration 59 completed two consecutive passes successfully.
   The active Campaign Spline path, generated full-route road, deterministic
   24-slot city
   pool, ten-bank Fog band, capped weather particles and scoped tone volume,
   50-slot Spline Ice mesh pool and six Echo membranes passed alongside the
-  Spline Lab, one valid 12-part modular runner form, bounded camera/runner
+  Spline Lab, one valid 22-part modular runner form, bounded camera/runner
   steering, adaptive color strip, quick
   Continue, quick-buy/VFX contracts, fixed gate/legacy track pools and Build Settings
 - Stage Catalog Builder: the latest two consecutive Iteration 50 passes completed;
@@ -395,14 +404,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 723, profile/Guest ID
-  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-02`
-  with one record, 47,700 Coins, 8 Shields, 8 Boosters, 4 Hearts and 0 Continue
+- Schema 3, revision 738, profile/Guest ID
+  `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-05`
+  with four records, 45,900 Coins, 8 Shields, 8 Boosters, 0 Hearts and 0 Continue
   Tickets; selected Lobby theme is empty.
 - SHA-256:
-  `37DACA59E52D6742D145AE97FF8F4595E2058931C951B4AFF12B1BA6C405C706`.
-- This user-authored reset/play state was written after Iteration 56. Its file
-  timestamp is `2026-09-07T14:04:29.8893440Z`; Iteration 58 validation
+  `5B22763B8FCAC1A4E327C3AE5505A57971B05AA979B019E7EAB5FF1E27B4D930`.
+- This user-authored play state was written before Iteration 59 validation. Its
+  timestamp is `2026-09-08T14:55:03.3982907Z`; Iteration 59 validation
   preserved it byte- and timestamp-exact. Developer Console mutations still
   occur only after an explicit Apply, Reset, or Unlock action.
 

@@ -177,6 +177,40 @@ def build_runner():
          CYAN, collection, root, 0.02)
     cube("RunnerArrow", (0, 1.69, -0.10), (0.22, 0.035, 0.30), WHITE,
          collection, root, 0.03).rotation_euler.y = math.radians(45)
+
+    # Form-specific mechanical modules. Runtime collapses the outgoing kit
+    # into the core before deploying the next one, so the three Campaign
+    # colors differ by silhouette rather than by spacing alone.
+    for side in (-1, 1):
+        shoulder = cube(
+            "PowerShoulder_L" if side < 0 else "PowerShoulder_R",
+            (side * 1.11, 0.91, -0.67), (0.32, 0.30, 0.56),
+            DARK, collection, root, 0.10)
+        shoulder.rotation_euler.y = math.radians(side * 18)
+        ram = cube(
+            "PowerRam_L" if side < 0 else "PowerRam_R",
+            (side * 0.69, 0.47, -1.08), (0.43, 0.17, 0.34),
+            DARK, collection, root, 0.09)
+        ram.rotation_euler.z = math.radians(side * 7)
+
+        guard = cube(
+            "StableGuard_L" if side < 0 else "StableGuard_R",
+            (side * 0.77, 1.12, -0.68), (0.21, 0.49, 0.25),
+            DARK, collection, root, 0.09)
+        guard.rotation_euler.z = math.radians(side * 10)
+
+        wing = cube(
+            "WingBlade_L" if side < 0 else "WingBlade_R",
+            (side * 1.36, 1.09, -0.34), (0.58, 0.10, 0.88),
+            DARK, collection, root, 0.07)
+        wing.rotation_euler.y = math.radians(side * 28)
+        wing.rotation_euler.z = math.radians(side * -14)
+
+    cube("StableCrest", (0, 1.59, -0.48), (0.24, 0.25, 0.42),
+         DARK, collection, root, 0.08)
+    tail = cube("WingTail", (0, 1.48, 0.18), (0.18, 0.10, 0.62),
+                DARK, collection, root, 0.06)
+    tail.rotation_euler.x = math.radians(-9)
     return root
 
 

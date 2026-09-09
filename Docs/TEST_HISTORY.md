@@ -2291,3 +2291,28 @@ Any mismatch blocks implementation.
 - A fresh-context read-only Quality Graph checker returned `PASS` after
   inspecting the final implementation, generated Scene, evidence, rendered
   captures and protected state.
+
+## Iteration 59 — Distinct Runner Forms and UI Art Pass
+
+- Base HEAD: `718aca24ac3bb98e438cc86bdbb80624cb0d4d25`;
+  completion message `feat: polish runner forms and UI art`.
+- Frontend and Campaign Builders each completed two consecutive successful
+  passes with required references, unique generated roots, one EventSystem and
+  unchanged Build Settings order.
+- Full EditMode passed `480/480`; full PlayMode passed `264`, failed zero and
+  ignored only the opt-in graphics capture out of `265` discovered tests.
+- D3D11 Frontend and Campaign visual tests each passed `1/1` at
+  `1080 x 1920`. The inspected capture set showed all five navigation images,
+  the new semantic icons, distinct Red/Blue/Green kits, the fold midpoint and
+  the Shield HUD without missing/error material or detached geometry.
+- Campaign and Step 10 simulations were omitted under Tier 2 because Core,
+  Stage data, deterministic generation, balance, timing and judgment inputs
+  are unchanged. No Android or WebGL Player was built.
+- Product save and backup remained byte- and timestamp-exact at SHA-256
+  `5B22763B8FCAC1A4E327C3AE5505A57971B05AA979B019E7EAB5FF1E27B4D930`
+  and `098917DFB620B42A955BD712414B46CC8E8C7CEFED6FA853DE2F986DB75F209C`.
+  Package files were unchanged and the package-managed ProjectSettings define
+  difference was excluded.
+- Fresh-context read-only Quality Graph QC returned `PASS` with no blocking
+  finding. Device/WebGL feel and physical-phone icon readability remain human
+  review.

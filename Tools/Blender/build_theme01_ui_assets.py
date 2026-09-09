@@ -161,10 +161,18 @@ def icon_shape(name, x, y):
         result = over(result, (CYAN[0], CYAN[1], CYAN[2], clamp01(-arrow * 80.0)))
         accent = CYAN
     if distance < 9.0:
-        glow_alpha = clamp01(1.0 - max(distance, 0.0) / 0.09) * 0.30
+        # A dark offset silhouette and two material bands give the small
+        # semantic marks the same toy-like alloy depth as the painted art.
+        glow_alpha = clamp01(1.0 - max(distance, 0.0) / 0.105) * 0.34
         result = over(result, (accent[0], accent[1], accent[2], glow_alpha))
-        result = over(result, (accent[0], accent[1], accent[2], clamp01(-distance * 90.0)))
-        result = stroke(result, distance, 0.018, WHITE, 0.03)
+        if distance < 0.0:
+            vertical = clamp01(y + 0.5)
+            fill = mix(mix(NAVY_2, accent, 0.42), accent, vertical * 0.34)
+            result = over(result, (fill[0], fill[1], fill[2], clamp01(-distance * 120.0)))
+        result = stroke(result, distance + 0.020, 0.014, GOLD, 0.026)
+        result = stroke(result, distance, 0.012, WHITE, 0.032)
+        highlight = distance + 0.045 + ((y - 0.08) * 0.018)
+        result = stroke(result, highlight, 0.009, (1.0, 1.0, 1.0, 0.72), 0.0)
     return result
 
 
@@ -203,7 +211,7 @@ panels = {
 }
 for name, data in panels.items():
     accent, kind = data
-    write_png(os.path.join(root, name + ".png"), 128, lambda x, y, a=accent, k=kind: panel_pixel(x, y, a, k))
+    write_png(os.path.join(root, name + ".png"), 256, lambda x, y, a=accent, k=kind: panel_pixel(x, y, a, k))
 for name in ("Coin", "Heart", "Shield", "Booster", "Settings", "Play", "Back", "Pause", "Retry", "Continue"):
-    write_png(os.path.join(root, "Icon" + name + ".png"), 96, lambda x, y, n=name: icon_shape(n, x, y))
+    write_png(os.path.join(root, "Icon" + name + ".png"), 256, lambda x, y, n=name: icon_shape(n, x, y), supersample=3)
 print("Theme01 UI assets generated:", root)

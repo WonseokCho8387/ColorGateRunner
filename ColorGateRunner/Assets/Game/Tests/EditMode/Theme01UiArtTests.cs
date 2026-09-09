@@ -17,7 +17,12 @@ namespace ColorGateRunner.Tests.EditMode
         private static readonly string[] IconAssets =
         {
             "Coin", "Heart", "Shield", "Booster", "Settings",
-            "Play", "Back", "Pause", "Retry", "Continue"
+            "Play", "Back", "Pause", "Retry", "Continue", "Profile"
+        };
+
+        private static readonly string[] NavigationIconAssets =
+        {
+            "Shop", "Rank", "Home", "Journey", "Collection"
         };
 
         private static readonly string[] ColorEmblemAssets =
@@ -40,6 +45,15 @@ namespace ColorGateRunner.Tests.EditMode
                 string path = Theme01UiSkinBuilder.ArtFolder + "/Icon" +
                     IconAssets[index] + ".png";
                 AssertSprite(path, false);
+            }
+
+            for (int index = 0; index < NavigationIconAssets.Length; index++)
+            {
+                string path = Theme01UiSkinBuilder.ArtFolder +
+                    "/Navigation/IconNav" + NavigationIconAssets[index] +
+                    ".png";
+                AssertSprite(path, false);
+                AssertHasRealTransparency(path);
             }
 
             AssertHasRealTransparency(

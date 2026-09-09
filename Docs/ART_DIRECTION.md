@@ -1000,3 +1000,25 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Human portrait/mobile/WebGL review owns silhouette readability in motion,
   whether the three forms feel meaningfully distinct, and whether a later
   modeled transformation is worth its production and latency cost.
+
+## Iteration 59 distinct forms and production UI images
+
+- This section supersedes Iteration 58 where form count, silhouette and timing
+  differ. Red uses broad shoulder and forward ram armor, Blue uses compact
+  side guards and a center crest, and Green uses wide swept blades plus a tail.
+  Only the active color kit is visible; the other two kits collapse completely.
+- The `0.24s` motion reads as one mechanical action: shared pieces fold inward
+  for the first `36%`, then the target kit deploys with a restrained overshoot.
+  Gameplay color, emission and HUD remain immediate so presentation never
+  delays the reaction rule.
+- Theme 1 bottom navigation uses five transparent, high-detail destination
+  images instead of Builder-drawn rectangles. Profile, Coin, Heart, Shield and
+  Booster also use cohesive transparent images. Reusable panel, modal, card,
+  chip and action-button art is authored at higher resolution without baking
+  localized copy into the textures.
+- Rank and Collection remain truthful Coming Soon pages; their sparse content
+  is intentional product state, not a simulated feature. Developer-only and
+  experiment diagnostic UI are not part of this player-facing art pass.
+- Human portrait/mobile/WebGL review owns rapid-input transformation feel,
+  physical-phone icon recognition, selected-tab visual weight and final
+  cross-screen art cohesion.

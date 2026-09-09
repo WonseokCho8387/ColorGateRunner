@@ -110,6 +110,23 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(heart, Is.Not.Null);
             Assert.That(coin.raycastTarget, Is.False);
             Assert.That(heart.raycastTarget, Is.False);
+
+            Button[] navigationButtons =
+            {
+                controller.ShopNavigationButton,
+                controller.LeaderboardNavigationButton,
+                controller.HomeNavigationButton,
+                controller.JourneyNavigationButton,
+                controller.CollectionNavigationButton
+            };
+            for (int index = 0; index < navigationButtons.Length; index++)
+            {
+                Image navigationIcon = navigationButtons[index].transform
+                    .Find("NavigationIcon")?.GetComponent<Image>();
+                Assert.That(navigationIcon, Is.Not.Null, index.ToString());
+                Assert.That(navigationIcon.sprite, Is.Not.Null, index.ToString());
+                Assert.That(navigationIcon.raycastTarget, Is.False);
+            }
         }
 
         [UnityTest]

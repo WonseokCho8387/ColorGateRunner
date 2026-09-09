@@ -1161,7 +1161,17 @@ namespace ColorGateRunner.Editor
                 "RearChevronGlow_R",
                 "RearLightBar",
                 "SideFin_L",
-                "SideFin_R"
+                "SideFin_R",
+                "PowerShoulder_L",
+                "PowerShoulder_R",
+                "PowerRam_L",
+                "PowerRam_R",
+                "StableGuard_L",
+                "StableGuard_R",
+                "StableCrest",
+                "WingBlade_L",
+                "WingBlade_R",
+                "WingTail"
             };
             for (int index = 0; index < requiredParts.Length; index++)
             {
@@ -2040,7 +2050,17 @@ namespace ColorGateRunner.Editor
                 FindNamedTransform(artwork.transform, "RearThruster_L"),
                 FindNamedTransform(artwork.transform, "RearThruster_R"),
                 FindNamedTransform(artwork.transform, "RearThrusterGlow_L"),
-                FindNamedTransform(artwork.transform, "RearThrusterGlow_R")
+                FindNamedTransform(artwork.transform, "RearThrusterGlow_R"),
+                FindNamedTransform(artwork.transform, "PowerShoulder_L"),
+                FindNamedTransform(artwork.transform, "PowerShoulder_R"),
+                FindNamedTransform(artwork.transform, "PowerRam_L"),
+                FindNamedTransform(artwork.transform, "PowerRam_R"),
+                FindNamedTransform(artwork.transform, "StableGuard_L"),
+                FindNamedTransform(artwork.transform, "StableGuard_R"),
+                FindNamedTransform(artwork.transform, "StableCrest"),
+                FindNamedTransform(artwork.transform, "WingBlade_L"),
+                FindNamedTransform(artwork.transform, "WingBlade_R"),
+                FindNamedTransform(artwork.transform, "WingTail")
             };
             RunnerFormPartRole[] formRoles =
             {
@@ -2055,7 +2075,17 @@ namespace ColorGateRunner.Editor
                 RunnerFormPartRole.RearThrusterLeft,
                 RunnerFormPartRole.RearThrusterRight,
                 RunnerFormPartRole.RearThrusterGlowLeft,
-                RunnerFormPartRole.RearThrusterGlowRight
+                RunnerFormPartRole.RearThrusterGlowRight,
+                RunnerFormPartRole.PowerShoulderLeft,
+                RunnerFormPartRole.PowerShoulderRight,
+                RunnerFormPartRole.PowerRamLeft,
+                RunnerFormPartRole.PowerRamRight,
+                RunnerFormPartRole.StableGuardLeft,
+                RunnerFormPartRole.StableGuardRight,
+                RunnerFormPartRole.StableCrest,
+                RunnerFormPartRole.WingBladeLeft,
+                RunnerFormPartRole.WingBladeRight,
+                RunnerFormPartRole.WingTail
             };
             for (int index = 0; index < formParts.Length; index++)
             {
@@ -3342,22 +3372,12 @@ namespace ColorGateRunner.Editor
             fill.fillAmount = 0f;
             fill.rectTransform.anchorMax = new Vector2(0f, 1f);
 
-            shieldIcon = CreatePanel(
+            shieldIcon = Theme01UiSkinBuilder.AddStandaloneIcon(
                 "ShieldIcon",
                 panel.transform,
-                new Color(0.18f, 0.55f, 1f, 0.9f));
-            shieldIcon.GetComponent<Image>().raycastTarget = false;
-            SetAnchors(
-                shieldIcon.GetComponent<RectTransform>(),
+                "Shield",
                 new Vector2(0.86f, 0.56f),
-                new Vector2(0.94f, 0.94f));
-            CreateText(
-                "ShieldIconSymbol",
-                shieldIcon.transform,
-                "◇",
-                24,
-                Vector2.zero,
-                Vector2.one);
+                new Vector2(0.94f, 0.94f)).gameObject;
 
             boosterMeterRoot = CreatePanel(
                 "BoosterMeter",

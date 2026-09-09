@@ -74,7 +74,17 @@ namespace ColorGateRunner.Tests.EditMode
                 "RearChevronGlow_R",
                 "RearLightBar",
                 "SideFin_L",
-                "SideFin_R"
+                "SideFin_R",
+                "PowerShoulder_L",
+                "PowerShoulder_R",
+                "PowerRam_L",
+                "PowerRam_R",
+                "StableGuard_L",
+                "StableGuard_R",
+                "StableCrest",
+                "WingBlade_L",
+                "WingBlade_R",
+                "WingTail"
             };
             for (int index = 0; index < parts.Length; index++)
             {

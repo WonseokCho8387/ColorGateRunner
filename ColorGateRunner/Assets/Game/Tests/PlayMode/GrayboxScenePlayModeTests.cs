@@ -3047,6 +3047,40 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void RunnerForm_CampaignColorsUseExclusiveMechanicalKits()
+        {
+            StartPlaying(false, false);
+            RunnerFormView form = _controller.RunnerFormView;
+
+            form.SnapToColor(RunnerColor.Red);
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.PowerShoulderLeft).sqrMagnitude,
+                Is.GreaterThan(0.01f));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.StableGuardLeft), Is.EqualTo(Vector3.zero));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.WingBladeLeft), Is.EqualTo(Vector3.zero));
+
+            form.SnapToColor(RunnerColor.Blue);
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.PowerShoulderLeft), Is.EqualTo(Vector3.zero));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.StableGuardLeft).sqrMagnitude,
+                Is.GreaterThan(0.01f));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.WingBladeLeft), Is.EqualTo(Vector3.zero));
+
+            form.SnapToColor(RunnerColor.Green);
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.PowerShoulderLeft), Is.EqualTo(Vector3.zero));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.StableGuardLeft), Is.EqualTo(Vector3.zero));
+            Assert.That(form.GetPartLocalScale(
+                RunnerFormPartRole.WingBladeLeft).sqrMagnitude,
+                Is.GreaterThan(0.01f));
+        }
+
+        [Test]
         public void TwoColorStage_ShowsExactlyTwoColorTiles()
         {
             StartPlaying(false, false);
@@ -3314,6 +3348,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 .GetComponent<RectTransform>();
             RectTransform shield = FindTransform("ShieldIcon")
                 .GetComponent<RectTransform>();
+            Image shieldImage = shield.GetComponent<Image>();
             shield.gameObject.SetActive(true);
             Canvas.ForceUpdateCanvases();
 
@@ -3323,6 +3358,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(IsInside(buttonRect, safeArea), Is.True);
             Assert.That(Overlaps(buttonRect, stageHud), Is.False);
             Assert.That(Overlaps(buttonRect, shield), Is.False);
+            Assert.That(shieldImage.sprite, Is.Not.Null);
+            Assert.That(shield.Find("ShieldIconSymbol"), Is.Null);
             RunnerColor before = _controller.Session.CurrentColor;
 
             var click = new PointerEventData(EventSystem.current);

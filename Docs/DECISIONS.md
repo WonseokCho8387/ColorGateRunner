@@ -1799,3 +1799,19 @@ Status: Approved and implemented.
   view. The Campaign Builder owns the exact 12-part binding.
 - This prototype does not authorize new models, rigs, stats, audio, haptics or
   color-specific gameplay behavior.
+
+## Iteration 59 distinct form and UI image boundary
+
+- Red, Blue and Green may add fixed form-specific meshes to the existing Cyber
+  Orb FBX. Exactly one color kit is visible at a time; Yellow, Purple and Cyan
+  continue to reuse the Blue/base form until a separately approved slice.
+- Form presentation is a two-phase `0.24s` fold/deploy animation below the
+  existing artwork root. Logical color, material and HUD still update in the
+  input call, and rapid input retargets from the currently rendered pose.
+- The five player navigation destinations and Profile/Coin/Heart/Shield/
+  Booster cues use transparent image assets. Reusable buttons, panels and
+  action icons may be regenerated, but text remains live for localization and
+  accessibility rather than being baked into images.
+- Builder ownership, fixed runtime object counts and no-allocation transitions
+  remain mandatory. This slice does not add rigs, stats, audio, haptics,
+  color-specific rules, Rank/Collection systems or live commerce.
