@@ -512,12 +512,12 @@ namespace ColorGateRunner.Presentation
                     ? 18
                     : 22;
                 lobbyStageMechanicText.text =
-                    $"{_campaignLobby.MechanicLabel}   " +
+                    $"{_campaignLobby.MechanicLabel}  •  " +
                     _campaignLobby.DifficultyLabel;
                 lobbyProgressText.text = _campaignLobby.IsLeague
-                    ? "ALL LIVE STAGES CLEARED"
+                    ? "COMPLETE"
                     : $"{_campaignLobby.ClearedCount} / " +
-                        $"{_campaignLobby.TotalStageCount} CLEARED";
+                        _campaignLobby.TotalStageCount;
                 Text playLabel = lobbyPlayButton.GetComponentInChildren<Text>(
                     true);
                 if (playLabel != null)

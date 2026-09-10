@@ -1125,3 +1125,19 @@ not reusable art assets or an exact visual copy.
 - Navigation buttons remain hidden until the existing sequential reward-row
   reveal completes. Experiment and every failure-result page retain their
   previous routing.
+
+## Implemented UX slice — Iteration 60 Lobby shell and page visuals
+
+- The existing Shop, Rank, Home, Journey, Collection pager remains the sole
+  destination owner. A persistent authored resource rail and five-cell dock
+  render above every page; tab taps, one-page horizontal swipes, vertical
+  Shop/Journey scroll arbitration and Back-to-Home behavior are unchanged.
+- Home visibly presents only live account, Coin, Heart, chapter, current Stage,
+  mechanic, progress and Play information. Legacy inventory/progression views
+  remain bound under an inactive read-model root to preserve presentation
+  references without creating a second state model.
+- Shop and Journey use distinct portrait backgrounds and the same authored
+  header language. Their disconnected catalog and read-only automatic journey
+  contracts are unchanged.
+- Rank and Collection are navigable illustrated placeholders with truthful
+  `COMING SOON` copy and no interaction, persistence or simulated service.

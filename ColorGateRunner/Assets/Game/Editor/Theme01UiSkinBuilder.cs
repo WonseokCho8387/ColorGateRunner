@@ -40,6 +40,19 @@ namespace ColorGateRunner.Editor
             "ShopBundleChestLarge", "ShopBundleCart"
         };
 
+        private static readonly string[] FrontendBackgroundNames =
+        {
+            "ShopBackground", "JourneyBackground",
+            "RankBackground", "CollectionBackground"
+        };
+
+        private static readonly string[] FrontendOverlayNames =
+        {
+            "TopResourceBar", "BottomNavigationDock",
+            "NavigationSelection", "PageHeader",
+            "JourneyMilestoneNode", "LobbyStageCard"
+        };
+
         internal static void EnsureAndConfigure()
         {
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -69,6 +82,24 @@ namespace ColorGateRunner.Editor
                     "Shop/" + ShopHeroIconNames[index],
                     false,
                     512f);
+            }
+
+            for (int index = 0; index < FrontendBackgroundNames.Length; index++)
+            {
+                ConfigureSprite(
+                    "Frontend/" + FrontendBackgroundNames[index],
+                    false,
+                    100f,
+                    2048);
+            }
+
+            for (int index = 0; index < FrontendOverlayNames.Length; index++)
+            {
+                ConfigureSprite(
+                    "Frontend/" + FrontendOverlayNames[index],
+                    false,
+                    512f,
+                    2048);
             }
 
             for (int index = 0; index < ColorEmblemNames.Length; index++)
@@ -137,6 +168,17 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     $"Theme01 navigation icon is missing: {iconName}");
+            }
+            return result;
+        }
+
+        internal static Sprite LoadFrontendSprite(string spriteName)
+        {
+            Sprite result = LoadSprite("Frontend/" + spriteName);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"Theme01 Frontend sprite is missing: {spriteName}");
             }
             return result;
         }
@@ -384,7 +426,8 @@ namespace ColorGateRunner.Editor
         private static void ConfigureSprite(
             string name,
             bool sliced,
-            float pixelsPerUnit = 100f)
+            float pixelsPerUnit = 100f,
+            int maxTextureSize = 0)
         {
             string path = $"{ArtFolder}/{name}.png";
             TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -406,7 +449,9 @@ namespace ColorGateRunner.Editor
                     importer.spritePixelsPerUnit,
                     pixelsPerUnit) ||
                 importer.filterMode != FilterMode.Bilinear ||
-                importer.wrapMode != TextureWrapMode.Clamp;
+                importer.wrapMode != TextureWrapMode.Clamp ||
+                (maxTextureSize > 0 &&
+                    importer.maxTextureSize != maxTextureSize);
             if (!changed)
             {
                 return;
@@ -421,7 +466,9 @@ namespace ColorGateRunner.Editor
             importer.filterMode = FilterMode.Bilinear;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
-            importer.maxTextureSize = pixelsPerUnit >= 512f ? 512 : 256;
+            importer.maxTextureSize = maxTextureSize > 0
+                ? maxTextureSize
+                : pixelsPerUnit >= 512f ? 512 : 256;
             importer.SaveAndReimport();
         }
     }

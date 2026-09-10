@@ -3519,3 +3519,57 @@ Human feedback required
 - Yellow/Purple/Cyan forms, skeletal rigs, particles, audio, haptics,
   color-specific stats and implementation of Rank/Collection remain separate
   iterations.
+
+## Iteration 60 — Lobby Shell and Page Visual Refinement
+
+### Play / Analyze
+
+- The earlier icon pass improved individual cues, but the resource rail,
+  navigation cursor, Shop/Journey headers and page backgrounds still read as
+  Builder graybox. Rank and Collection were especially sparse, while Home
+  repeated inventory and progression details over the chapter illustration.
+- Player-facing state still had to remain live and truthful: this pass could
+  not invent Store, Rank or Collection behavior to fill visual space.
+
+### Design / Implementation
+
+- Added ten original Frontend images: four portrait destination environments,
+  persistent top and bottom chrome, selected-tab frame, shared page header,
+  Journey node and Home Stage card. All copy, account and economy values remain
+  live Unity text.
+- Rebuilt Home around the chapter art and compact lower action card. Guest,
+  Coin, Heart, theme, Stage, mechanic, progress and Play remain visible;
+  legacy inventory/progression objects stay bound in an inactive read-model
+  root. Stage title wrapping/truncation protects narrow portrait layouts.
+- Applied dedicated Shop/Journey environments and shared headers without
+  changing their ScrollRects or contracts. Rank and Collection now use
+  distinct illustrated environments with only `COMING SOON` copy.
+- Replaced the loose bottom row with one connected dock and a luminous authored
+  selection frame. Existing tab order, pager, swipe arbitration and Back
+  behavior remain unchanged.
+
+### Validation / Learning
+
+- Frontend Builder completed two consecutive final passes. Full EditMode
+  passed `480/480`; full post-Builder PlayMode passed `265`, failed zero and
+  intentionally ignored one opt-in visual capture out of `266` discovered
+  tests.
+- Graphical D3D11 Frontend capture passed `1/1` and produced 14 images. Direct
+  inspection covered all five destinations, three Shop depths, chapter/League
+  states and Home at `1080 x 1920` plus `720 x 1280`; no clipping, missing art,
+  false feature state or unclear active destination was found.
+- The developer Product save remained byte- and timestamp-exact at SHA-256
+  `A2E9A2C872753D8C70662E1A6972D8A2C6A6644270734A489E0741F43F769C59`.
+  Packages and Build Settings have no semantic diff; the pre-existing
+  package-managed ProjectSettings status has no content diff and remains
+  excluded.
+- A fresh-context read-only Quality Graph checker returned `PASS` with no
+  blocking or high-severity finding after inspecting the diff, ten source
+  images, imports, generated Scenes, test evidence and all 14 captures.
+
+### Deferred / Human Review
+
+- Physical-phone and WebGL play still own swipe/scroll comfort, hand-held icon
+  recognition, selected-tab weight and subjective cohesion/readability.
+- Real Rank, Collection and Store services, localized typography, responsive
+  tablet composition and further Journey content remain separate iterations.

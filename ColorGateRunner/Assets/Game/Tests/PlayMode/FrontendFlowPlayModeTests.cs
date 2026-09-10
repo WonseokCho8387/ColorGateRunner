@@ -130,6 +130,71 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator LobbyShell_UsesAuthoredPageArtAndContainedText()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+
+            FrontendSceneController controller = RequireController();
+            Transform lobby = controller.LobbyPageRoot.transform;
+            Image topBar = lobby.Find("LobbyTopResourceBar")
+                ?.GetComponent<Image>();
+            Image dock = lobby.Find("LobbyBottomNavigationBar")
+                ?.GetComponent<Image>();
+            Assert.That(topBar?.sprite?.name, Is.EqualTo("TopResourceBar"));
+            Assert.That(dock?.sprite?.name,
+                Is.EqualTo("BottomNavigationDock"));
+            Assert.That(
+                controller.HomeNavigationSelection.GetComponent<Image>()
+                    .sprite.name,
+                Is.EqualTo("NavigationSelection"));
+
+            Transform hidden = controller.LobbyThemeRoot.transform.Find(
+                "LobbyProgressReadModelRoot");
+            Assert.That(hidden, Is.Not.Null);
+            Assert.That(hidden.gameObject.activeInHierarchy, Is.False);
+            Assert.That(GameObject.Find("DevelopmentLabel"), Is.Null);
+            Assert.That(controller.LobbyProgressionPanel.CoinText.text,
+                Does.Not.Contain("COINS"));
+            Assert.That(controller.LobbyProgressionPanel.HeartText.text,
+                Does.Not.Contain("HEARTS"));
+            Assert.That(controller.LobbySettingsButton
+                    .GetComponentInChildren<Text>(true).text,
+                Is.Empty);
+
+            Image stageCard = controller.LobbyThemeRoot.transform
+                .Find("LobbyStageCard")?.GetComponent<Image>();
+            Assert.That(stageCard?.sprite?.name,
+                Is.EqualTo("LobbyStageCard"));
+            Text stageTitle = controller.LobbyStageTitleText;
+            Assert.That(stageTitle.horizontalOverflow,
+                Is.EqualTo(HorizontalWrapMode.Wrap));
+            Assert.That(stageTitle.verticalOverflow,
+                Is.EqualTo(VerticalWrapMode.Truncate));
+            Assert.That(stageTitle.rectTransform.anchorMin.x,
+                Is.GreaterThan(stageCard.rectTransform.anchorMin.x));
+            Assert.That(stageTitle.rectTransform.anchorMax.x,
+                Is.LessThan(stageCard.rectTransform.anchorMax.x));
+
+            Assert.That(controller.ShopPageRoot.transform
+                    .Find("ShopBackground")?.GetComponent<Image>()
+                    .sprite.name,
+                Is.EqualTo("ShopBackground"));
+            Assert.That(controller.LeaderboardPageRoot.transform
+                    .Find("LeaderboardPageBackground")?.GetComponent<Image>()
+                    .sprite.name,
+                Is.EqualTo("RankBackground"));
+            Assert.That(controller.JourneyPageRoot.transform
+                    .Find("JourneyBackground")?.GetComponent<Image>()
+                    .sprite.name,
+                Is.EqualTo("JourneyBackground"));
+            Assert.That(controller.CollectionPageRoot.transform
+                    .Find("CollectionPageBackground")?.GetComponent<Image>()
+                    .sprite.name,
+                Is.EqualTo("CollectionBackground"));
+        }
+
+        [UnityTest]
         public IEnumerator GuestChoicePersistsThenLobbyBackRequestsExit()
         {
             yield return LoadFrontendThroughBoot();
@@ -147,7 +212,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.LobbyThemeRoot.activeSelf, Is.True);
             Assert.That(controller.LobbyProgressionPanel, Is.Not.Null);
             Assert.That(controller.LobbyProgressionPanel.HeartText.text,
-                Is.EqualTo("HEARTS 5/5"));
+                Is.EqualTo("5/5"));
             Assert.That(GameObject.Find("LobbyTitle"), Is.Null);
             Assert.That(GameObject.Find("LobbyAccountText"), Is.Null);
             Assert.That(controller.LobbyStageMechanicText.text,
@@ -347,6 +412,9 @@ namespace ColorGateRunner.Tests.PlayMode
             string homePath = Path.Combine(
                 artifactDirectory,
                 "LobbyHome-1080x1920.png");
+            string homeNarrowPath = Path.Combine(
+                artifactDirectory,
+                "LobbyHome-720x1280.png");
             string homeNeonGardenPath = Path.Combine(
                 artifactDirectory,
                 "LobbyHome-NeonGarden-1080x1920.png");
@@ -386,7 +454,8 @@ namespace ColorGateRunner.Tests.PlayMode
 
             string[] paths =
             {
-                homePath, homeNeonGardenPath, homeColorCourtyardPath,
+                homePath, homeNarrowPath,
+                homeNeonGardenPath, homeColorCourtyardPath,
                 homeLeaguePath,
                 shopPath, shopLargePath, shopCoinVaultPath,
                 rankPath, journeyPath, journeyLeaguePath,
@@ -404,6 +473,14 @@ namespace ColorGateRunner.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             yield return new WaitForEndOfFrame();
             CaptureFrame(homePath);
+            Screen.SetResolution(720, 1280, false);
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
+            Canvas.ForceUpdateCanvases();
+            CaptureFrame(homeNarrowPath);
+            Screen.SetResolution(1080, 1920, false);
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
 
             controller.JourneyPageView.ChapterViews[1]
                 .SelectButton.onClick.Invoke();
@@ -503,8 +580,8 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(controller.Router.CurrentPage,
                 Is.EqualTo(FrontendPage.Lobby));
-            Assert.That(panel.CoinText.text, Is.EqualTo("COINS 950"));
-            Assert.That(panel.HeartText.text, Is.EqualTo("HEARTS 5/5"));
+            Assert.That(panel.CoinText.text, Is.EqualTo("950"));
+            Assert.That(panel.HeartText.text, Is.EqualTo("5/5"));
             Assert.That(panel.InventoryText.text,
                 Is.EqualTo("SHIELD 2   BOOSTER 1"));
             Assert.That(panel.ThemeText.text,
@@ -600,7 +677,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(controller.LobbyStageText.text,
                 Is.EqualTo("LEAGUE RUN"));
             Assert.That(controller.LobbyProgressText.text,
-                Is.EqualTo("ALL LIVE STAGES CLEARED"));
+                Is.EqualTo("COMPLETE"));
             Assert.That(
                 controller.LobbyPlayButton.GetComponentInChildren<Text>().text,
                 Is.EqualTo("LEAGUE RUN"));
@@ -978,7 +1055,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(returned.Router.CurrentPage,
                 Is.EqualTo(FrontendPage.Lobby));
             Assert.That(returned.LobbyProgressionPanel.CoinText.text,
-                Is.EqualTo("COINS 100"));
+                Is.EqualTo("100"));
             Assert.That(returned.LobbyProgressionPanel.NextUpgradeText.text,
                 Is.EqualTo("LOBBY 0/18   NEXT STAGE 2"));
         }

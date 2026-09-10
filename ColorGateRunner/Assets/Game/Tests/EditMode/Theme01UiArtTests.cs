@@ -30,6 +30,19 @@ namespace ColorGateRunner.Tests.EditMode
             "Red", "Blue", "Green", "Yellow", "Purple", "Cyan"
         };
 
+        private static readonly string[] FrontendBackgroundAssets =
+        {
+            "ShopBackground", "JourneyBackground",
+            "RankBackground", "CollectionBackground"
+        };
+
+        private static readonly string[] FrontendOverlayAssets =
+        {
+            "TopResourceBar", "BottomNavigationDock",
+            "NavigationSelection", "PageHeader",
+            "JourneyMilestoneNode", "LobbyStageCard"
+        };
+
         [Test]
         public void Theme01UiArt_ImportsTransparentSpritesAndSliceBorders()
         {
@@ -75,6 +88,26 @@ namespace ColorGateRunner.Tests.EditMode
                     importer.spritePixelsPerUnit,
                     Is.EqualTo(512f),
                     path);
+                AssertHasRealTransparency(path);
+            }
+
+            for (int index = 0;
+                index < FrontendBackgroundAssets.Length;
+                index++)
+            {
+                AssertSprite(
+                    Theme01UiSkinBuilder.ArtFolder +
+                    "/Frontend/" + FrontendBackgroundAssets[index] + ".png",
+                    false);
+            }
+
+            for (int index = 0;
+                index < FrontendOverlayAssets.Length;
+                index++)
+            {
+                string path = Theme01UiSkinBuilder.ArtFolder +
+                    "/Frontend/" + FrontendOverlayAssets[index] + ".png";
+                AssertSprite(path, false);
                 AssertHasRealTransparency(path);
             }
         }

@@ -127,13 +127,6 @@ namespace ColorGateRunner.Editor
             GameObject developmentDebug = CreateFlowRoot(
                 "DevelopmentDebugRoot",
                 canvas.transform);
-            CreateText(
-                "DevelopmentLabel",
-                developmentDebug.transform,
-                "DEV  •  GOOGLE LOGIN OFF",
-                9,
-                new Vector2(0.22f, 0.958f),
-                new Vector2(0.78f, 0.978f));
             CreateEventSystem(root.transform);
 
             controller.Configure(
@@ -652,20 +645,6 @@ namespace ColorGateRunner.Editor
                 Color.white).GetComponent<Image>();
             artworkBackground.raycastTarget = false;
             artworkBackground.preserveAspect = true;
-            CreatePanel(
-                "LobbyTopBar",
-                themeRoot.transform,
-                new Vector2(0.035f, 0.885f),
-                new Vector2(0.965f, 0.955f),
-                new Color(0.04f, 0.07f, 0.13f, 0.78f))
-                .GetComponent<Image>().raycastTarget = false;
-            CreatePanel(
-                "LobbyHeroPanel",
-                themeRoot.transform,
-                new Vector2(0.035f, 0.305f),
-                new Vector2(0.965f, 0.875f),
-                new Color(0.02f, 0.05f, 0.11f, 0.08f))
-                .GetComponent<Image>().raycastTarget = false;
             Image artworkMidground = CreatePanel(
                 "LobbyThemeArtworkMidground",
                 themeRoot.transform,
@@ -682,68 +661,79 @@ namespace ColorGateRunner.Editor
                 Color.white).GetComponent<Image>();
             artworkForeground.raycastTarget = false;
             artworkForeground.preserveAspect = true;
-            CreatePanel(
+            CreateFrontendImage(
                 "LobbyStageCard",
                 themeRoot.transform,
-                new Vector2(0.045f, 0.135f),
-                new Vector2(0.955f, 0.315f),
-                new Color(0.04f, 0.07f, 0.13f, 0.76f))
-                .GetComponent<Image>().raycastTarget = false;
+                "LobbyStageCard",
+                new Vector2(0.05f, 0.135f),
+                new Vector2(0.95f, 0.315f));
+
+            CreateFrontendImage(
+                "LobbyTopResourceBar",
+                parent,
+                "TopResourceBar",
+                new Vector2(0.035f, 0.875f),
+                new Vector2(0.965f, 0.955f));
 
             back = CreateButton(
                 "LobbyAccountButton",
                 parent,
                 "GUEST",
-                new Vector2(0.05f, 0.895f),
+                new Vector2(0.055f, 0.888f),
                 new Vector2(0.235f, 0.945f),
                 FromHex(0x253047),
                 out profile);
+            back.GetComponent<Image>().color = Color.clear;
             settings = CreateButton(
                 "LobbySettingsButton",
                 parent,
-                "SETTINGS",
-                new Vector2(0.78f, 0.895f),
-                new Vector2(0.95f, 0.945f),
+                string.Empty,
+                new Vector2(0.78f, 0.888f),
+                new Vector2(0.945f, 0.945f),
                 FromHex(0x253047),
                 out _);
+            settings.GetComponent<Image>().color = Color.clear;
             stage = CreateText(
                 "LobbyRecommendedStageText",
                 themeRoot.transform,
                 "STAGE 1",
-                20,
-                new Vector2(0.10f, 0.255f),
-                new Vector2(0.32f, 0.315f));
+                18,
+                new Vector2(0.11f, 0.252f),
+                new Vector2(0.34f, 0.292f));
             stage.alignment = TextAnchor.MiddleLeft;
             stageTitle = CreateText(
                 "LobbyStageTitleText",
                 themeRoot.transform,
                 "TWO-COLOR BASICS",
-                22,
-                new Vector2(0.32f, 0.255f),
-                new Vector2(0.90f, 0.315f));
-            stageTitle.alignment = TextAnchor.MiddleRight;
+                20,
+                new Vector2(0.11f, 0.216f),
+                new Vector2(0.89f, 0.258f));
+            stageTitle.alignment = TextAnchor.MiddleLeft;
+            stageTitle.horizontalOverflow = HorizontalWrapMode.Wrap;
+            stageTitle.verticalOverflow = VerticalWrapMode.Truncate;
+            stageTitle.resizeTextMinSize = 13;
             stageMechanic = CreateText(
                 "LobbyStageMechanicText",
                 themeRoot.transform,
-                "COLOR MATCH   NORMAL",
-                14,
-                new Vector2(0.10f, 0.215f),
-                new Vector2(0.58f, 0.255f));
+                "COLOR MATCH  •  NORMAL",
+                12,
+                new Vector2(0.11f, 0.194f),
+                new Vector2(0.62f, 0.218f));
             stageMechanic.alignment = TextAnchor.MiddleLeft;
             progress = CreateText(
                 "LobbyProgressText",
                 themeRoot.transform,
-                "0 / 20 CLEARED",
-                14,
-                new Vector2(0.58f, 0.215f),
-                new Vector2(0.90f, 0.255f));
+                "0 / 20",
+                12,
+                new Vector2(0.68f, 0.252f),
+                new Vector2(0.89f, 0.292f));
             progress.alignment = TextAnchor.MiddleRight;
             play = CreateButton(
                 "LobbyPlayCampaignButton",
                 themeRoot.transform,
                 "PLAY",
-                new Vector2(0.18f, 0.15f),
-                new Vector2(0.82f, 0.225f),
+                new Vector2(0.23f, 0.145f),
+                new Vector2(0.77f, 0.195f),
                 FromHex(0x22C55E),
                 out _);
             currencySlot = CreateFlowRoot("CurrencySlotRoot", parent);
@@ -754,65 +744,64 @@ namespace ColorGateRunner.Editor
             Text coins = CreateText(
                 "LobbyCoinText",
                 currencySlot.transform,
-                "COINS 0",
+                "0",
                 16,
-                new Vector2(0.255f, 0.895f),
-                new Vector2(0.48f, 0.945f));
+                new Vector2(0.32f, 0.888f),
+                new Vector2(0.47f, 0.945f));
+            coins.alignment = TextAnchor.MiddleLeft;
             Text hearts = CreateText(
                 "LobbyHeartText",
                 currencySlot.transform,
-                "HEARTS 5/5",
+                "5/5",
                 14,
-                new Vector2(0.50f, 0.895f),
-                new Vector2(0.765f, 0.945f));
+                new Vector2(0.57f, 0.888f),
+                new Vector2(0.72f, 0.945f));
+            hearts.alignment = TextAnchor.MiddleLeft;
             Theme01UiSkinBuilder.AddStandaloneIcon(
                 "LobbyCoinIcon",
                 currencySlot.transform,
                 "Coin",
-                new Vector2(0.245f, 0.901f),
-                new Vector2(0.285f, 0.939f));
+                new Vector2(0.27f, 0.898f),
+                new Vector2(0.315f, 0.938f));
             Theme01UiSkinBuilder.AddStandaloneIcon(
                 "LobbyHeartIcon",
                 currencySlot.transform,
                 "Heart",
-                new Vector2(0.49f, 0.901f),
-                new Vector2(0.53f, 0.939f));
-            CreatePanel(
-                "LobbyInventoryChip",
-                themeRoot.transform,
-                new Vector2(0.325f, 0.675f),
-                new Vector2(0.675f, 0.710f),
-                new Color(0.04f, 0.07f, 0.13f, 0.72f))
-                .GetComponent<Image>().raycastTarget = false;
+                new Vector2(0.52f, 0.898f),
+                new Vector2(0.565f, 0.938f));
+            GameObject hiddenProgressRoot = CreateFlowRoot(
+                "LobbyProgressReadModelRoot",
+                themeRoot.transform);
+            hiddenProgressRoot.SetActive(false);
             Text inventory = CreateText(
                 "LobbyInventoryText",
-                themeRoot.transform,
+                hiddenProgressRoot.transform,
                 "SHIELD 0   BOOSTER 0",
                 13,
-                new Vector2(0.34f, 0.675f),
-                new Vector2(0.66f, 0.710f));
+                Vector2.zero,
+                Vector2.one);
             inventory.alignment = TextAnchor.MiddleCenter;
             Text theme = CreateText(
                 "LobbyThemeText",
                 themeRoot.transform,
                 "COLOR COURTYARD",
-                26,
-                new Vector2(0.08f, 0.815f),
-                new Vector2(0.92f, 0.865f));
+                24,
+                new Vector2(0.12f, 0.805f),
+                new Vector2(0.88f, 0.855f));
             Text nextUpgrade = CreateText(
                 "LobbyNextUpgradeText",
-                themeRoot.transform,
+                hiddenProgressRoot.transform,
                 "LOBBY 0/18   NEXT STAGE 2",
                 14,
-                new Vector2(0.08f, 0.777f),
-                new Vector2(0.92f, 0.817f));
+                Vector2.zero,
+                Vector2.one);
             Text rewardSummary = CreateText(
                 "LobbyRewardSummaryText",
-                themeRoot.transform,
+                hiddenProgressRoot.transform,
                 "LOBBY UPGRADE + REWARD",
                 15,
-                new Vector2(0.12f, 0.735f),
-                new Vector2(0.88f, 0.770f));
+                Vector2.zero,
+                Vector2.one);
             var visuals = new GameObject[6];
             Color[] colors =
             {
@@ -835,7 +824,7 @@ namespace ColorGateRunner.Editor
                 Vector2 halfSize = new Vector2(0.014f, 0.009f);
                 visuals[index] = CreatePanel(
                     $"LobbyUpgradeVisual_{index + 1}",
-                    themeRoot.transform,
+                    hiddenProgressRoot.transform,
                     center - halfSize,
                     center + halfSize,
                     colors[index]);
@@ -873,7 +862,7 @@ namespace ColorGateRunner.Editor
                 viewportObject.transform,
                 "LeaderboardPageRoot",
                 "RANK",
-                "COMPETITIVE CIRCUITS ARE BEING CALIBRATED",
+                "RankBackground",
                 lobbyPagePager);
             journeyPage = CreateJourneyPage(
                 viewportObject.transform,
@@ -884,7 +873,7 @@ namespace ColorGateRunner.Editor
                 viewportObject.transform,
                 "CollectionPageRoot",
                 "COLLECTION",
-                "NEW COLLECTIONS ARE BEING ASSEMBLED",
+                "CollectionBackground",
                 lobbyPagePager);
             CreateLobbyNavigation(
                 parent,
@@ -938,50 +927,40 @@ namespace ColorGateRunner.Editor
             Transform parent,
             string rootName,
             string titleText,
-            string messageText,
+            string backgroundSpriteName,
             LobbyPagePager pagePager)
         {
             GameObject root = CreateFlowRoot(rootName, parent);
             root.AddComponent<LobbyPageSwipeForwarder>().Configure(pagePager);
-            Image background = CreatePanel(
+            Image background = CreateFrontendImage(
                 rootName.Replace("Root", "Background"),
                 root.transform,
+                backgroundSpriteName,
                 Vector2.zero,
-                Vector2.one,
-                FromHex(0x07152A)).GetComponent<Image>();
+                Vector2.one);
             background.raycastTarget = true;
-            Image glow = CreatePanel(
-                "ComingSoonGlow",
+            CreateFrontendImage(
+                "ComingSoonHeader",
                 root.transform,
-                new Vector2(0.08f, 0.29f),
-                new Vector2(0.92f, 0.72f),
-                new Color(0.05f, 0.58f, 0.78f, 0.18f))
-                .GetComponent<Image>();
-            glow.raycastTarget = false;
+                "PageHeader",
+                new Vector2(0.055f, 0.70f),
+                new Vector2(0.945f, 0.875f));
             Text title = CreateText(
                 "ComingSoonPageTitle",
                 root.transform,
                 titleText,
-                38,
-                new Vector2(0.12f, 0.58f),
-                new Vector2(0.88f, 0.67f));
+                30,
+                new Vector2(0.12f, 0.775f),
+                new Vector2(0.88f, 0.815f));
             title.color = FromHex(0xE8FCFF);
             Text status = CreateText(
                 "ComingSoonStatus",
                 root.transform,
                 "COMING SOON",
-                28,
-                new Vector2(0.16f, 0.48f),
-                new Vector2(0.84f, 0.56f));
+                17,
+                new Vector2(0.18f, 0.695f),
+                new Vector2(0.82f, 0.73f));
             status.color = FromHex(0x67E8F9);
-            Text message = CreateText(
-                "ComingSoonMessage",
-                root.transform,
-                messageText,
-                15,
-                new Vector2(0.14f, 0.41f),
-                new Vector2(0.86f, 0.48f));
-            message.color = new Color(0.75f, 0.88f, 0.95f, 0.82f);
             return root;
         }
 
@@ -992,36 +971,34 @@ namespace ColorGateRunner.Editor
             LobbyThemeVisualCatalog themeVisualCatalog)
         {
             GameObject root = CreateFlowRoot("JourneyPageRoot", parent);
-            Image background = CreatePanel(
+            Image background = CreateFrontendImage(
                 "JourneyBackground",
                 root.transform,
+                "JourneyBackground",
                 Vector2.zero,
-                Vector2.one,
-                FromHex(0x07152A)).GetComponent<Image>();
+                Vector2.one);
             background.raycastTarget = false;
-            Image glow = CreatePanel(
-                "JourneyHeaderGlow",
+            Image header = CreateFrontendImage(
+                "JourneyHeader",
                 root.transform,
-                new Vector2(0f, 0.72f),
-                Vector2.one,
-                new Color(0.17f, 0.18f, 0.62f, 0.34f))
-                .GetComponent<Image>();
-            glow.raycastTarget = false;
+                "PageHeader",
+                new Vector2(0.055f, 0.70f),
+                new Vector2(0.945f, 0.875f));
             Text title = CreateText(
                 "JourneyTitleText",
                 root.transform,
-                "NEON JOURNEY",
-                34,
-                new Vector2(0.14f, 0.78f),
-                new Vector2(0.86f, 0.85f));
+                "JOURNEY",
+                30,
+                new Vector2(0.14f, 0.775f),
+                new Vector2(0.86f, 0.815f));
             title.color = FromHex(0xE8FCFF);
             Text progress = CreateText(
                 "JourneyProgressText",
                 root.transform,
-                "0 / 18  •  NEXT STAGE 2",
-                15,
-                new Vector2(0.10f, 0.735f),
-                new Vector2(0.90f, 0.78f));
+                "0 / 18",
+                14,
+                new Vector2(0.20f, 0.705f),
+                new Vector2(0.80f, 0.735f));
             progress.color = FromHex(0x7DDAFF);
 
             GameObject scrollObject = new GameObject(
@@ -1033,7 +1010,7 @@ namespace ColorGateRunner.Editor
             SetAnchors(
                 scrollObject.GetComponent<RectTransform>(),
                 new Vector2(0.035f, 0.125f),
-                new Vector2(0.965f, 0.73f));
+                new Vector2(0.965f, 0.70f));
             scrollObject.GetComponent<LobbyPageSwipeForwarder>()
                 .Configure(pagePager);
 
@@ -1060,11 +1037,11 @@ namespace ColorGateRunner.Editor
             contentRect.sizeDelta = new Vector2(0f, 5200f);
 
             Image path = CreatePanel(
-                "JourneyPath",
+                "JourneyPathBar",
                 contentRect,
                 new Vector2(0.492f, 0.035f),
                 new Vector2(0.508f, 0.965f),
-                FromHex(0x155E75)).GetComponent<Image>();
+                Color.white).GetComponent<Image>();
             path.raycastTarget = false;
 
             var chapterViews = new JourneyChapterView[
@@ -1112,7 +1089,7 @@ namespace ColorGateRunner.Editor
                 milestoneViews,
                 chapterViews,
                 leagueView);
-            glow.transform.SetAsLastSibling();
+            header.transform.SetAsLastSibling();
             title.transform.SetAsLastSibling();
             progress.transform.SetAsLastSibling();
             return root;
@@ -1225,15 +1202,13 @@ namespace ColorGateRunner.Editor
             Image card = root.GetComponent<Image>();
             card.raycastTarget = false;
 
-            Image nodeGlow = CreatePanel(
+            Image nodeGlow = CreateFrontendImage(
                 "MilestoneNodeGlow",
                 parent,
-                new Vector2(0.478f, centerY - 0.006f),
-                new Vector2(0.522f, centerY + 0.006f),
-                FromHex(0x67E8F9)).GetComponent<Image>();
+                "JourneyMilestoneNode",
+                new Vector2(0.465f, centerY - 0.007f),
+                new Vector2(0.535f, centerY + 0.007f));
             nodeGlow.raycastTarget = false;
-            nodeGlow.rectTransform.localEulerAngles =
-                new Vector3(0f, 0f, 45f);
 
             Text stage = CreateText(
                 "StageText",
@@ -1322,37 +1297,35 @@ namespace ColorGateRunner.Editor
         {
             GameObject root = CreateFlowRoot("ShopPageRoot", parent);
             root.transform.SetSiblingIndex(1);
-            Image background = CreatePanel(
+            Image background = CreateFrontendImage(
                 "ShopBackground",
                 root.transform,
+                "ShopBackground",
                 Vector2.zero,
-                Vector2.one,
-                FromHex(0x07152A)).GetComponent<Image>();
+                Vector2.one);
             background.raycastTarget = false;
-            Image glow = CreatePanel(
-                "ShopHeaderGlow",
+            CreateFrontendImage(
+                "ShopHeader",
                 root.transform,
-                new Vector2(0f, 0.72f),
-                Vector2.one,
-                new Color(0.05f, 0.45f, 0.72f, 0.34f))
-                .GetComponent<Image>();
-            glow.raycastTarget = false;
+                "PageHeader",
+                new Vector2(0.055f, 0.70f),
+                new Vector2(0.945f, 0.875f));
 
             Text title = CreateText(
                 "ShopTitleText",
                 root.transform,
                 "NEON DEPOT",
-                34,
-                new Vector2(0.14f, 0.78f),
-                new Vector2(0.86f, 0.85f));
+                30,
+                new Vector2(0.14f, 0.775f),
+                new Vector2(0.86f, 0.815f));
             title.color = FromHex(0xE8FCFF);
             Text status = CreateText(
                 "ShopStatusText",
                 root.transform,
-                "CATALOG PREVIEW  •  PURCHASES NOT CONNECTED",
+                "STORE PREVIEW",
                 13,
-                new Vector2(0.10f, 0.735f),
-                new Vector2(0.90f, 0.78f));
+                new Vector2(0.20f, 0.705f),
+                new Vector2(0.80f, 0.735f));
             status.color = FromHex(0x7DDAFF);
 
             GameObject scrollObject = new GameObject(
@@ -1363,7 +1336,7 @@ namespace ColorGateRunner.Editor
             SetAnchors(
                 scrollObject.GetComponent<RectTransform>(),
                 new Vector2(0.035f, 0.125f),
-                new Vector2(0.965f, 0.73f));
+                new Vector2(0.965f, 0.70f));
 
             GameObject viewportObject = new GameObject(
                 "Viewport",
@@ -1438,25 +1411,23 @@ namespace ColorGateRunner.Editor
             Transform parent,
             ShopProductSection section)
         {
-            GameObject header = CreatePanel(
-                $"ShopSection_{section}",
+            GameObject header = CreateFrontendImage(
+                $"ShopSectionHeader_{section}",
                 parent,
+                "PageHeader",
                 Vector2.zero,
-                Vector2.one,
-                section == ShopProductSection.Featured
-                    ? FromHex(0xFF8A2A)
-                    : FromHex(0x7C3AED));
+                Vector2.one).gameObject;
             LayoutElement element = header.AddComponent<LayoutElement>();
-            element.preferredHeight = 72f;
+            element.preferredHeight = 58f;
             Text label = CreateText(
                 "Label",
                 header.transform,
                 section == ShopProductSection.Featured
-                    ? "FEATURED CIRCUITS"
+                    ? "FEATURED"
                     : "COIN VAULT",
-                26,
-                Vector2.zero,
-                Vector2.one);
+                21,
+                new Vector2(0.12f, 0.08f),
+                new Vector2(0.88f, 0.92f));
             label.color = Color.white;
         }
 
@@ -1591,12 +1562,12 @@ namespace ColorGateRunner.Editor
             out GameObject journeySelection,
             out GameObject collectionSelection)
         {
-            GameObject bar = CreatePanel(
+            GameObject bar = CreateFrontendImage(
                 "LobbyBottomNavigationBar",
                 parent,
+                "BottomNavigationDock",
                 new Vector2(0f, 0f),
-                new Vector2(1f, 0.125f),
-                FromHex(0x172554));
+                new Vector2(1f, 0.135f)).gameObject;
             Image barImage = bar.GetComponent<Image>();
             barImage.raycastTarget = true;
 
@@ -1630,12 +1601,12 @@ namespace ColorGateRunner.Editor
         {
             float left = index * 0.2f + 0.012f;
             float right = (index + 1) * 0.2f - 0.012f;
-            selection = CreatePanel(
+            selection = CreateFrontendImage(
                 name.Replace("Button", "Selection"),
                 parent,
+                "NavigationSelection",
                 new Vector2(left, 0.025f),
-                new Vector2(right, 0.975f),
-                FromHex(0x0E7490));
+                new Vector2(right, 0.975f)).gameObject;
             selection.GetComponent<Image>().raycastTarget = false;
 
             Button button = CreateButton(
@@ -1646,12 +1617,13 @@ namespace ColorGateRunner.Editor
                 new Vector2(right, 0.94f),
                 FromHex(0x1E3A8A),
                 out Text labelText);
+            button.GetComponent<Image>().color = Color.clear;
             labelText.fontSize = 11;
             labelText.resizeTextForBestFit = true;
             labelText.resizeTextMinSize = 8;
             labelText.resizeTextMaxSize = 11;
-            labelText.rectTransform.anchorMin = new Vector2(0f, 0f);
-            labelText.rectTransform.anchorMax = new Vector2(1f, 0.42f);
+            labelText.rectTransform.anchorMin = new Vector2(0f, 0.16f);
+            labelText.rectTransform.anchorMax = new Vector2(1f, 0.40f);
             string[] iconNames =
             {
                 "Shop", "Rank", "Home", "Journey", "Collection"
@@ -1660,7 +1632,7 @@ namespace ColorGateRunner.Editor
                 "NavigationIcon",
                 button.transform,
                 iconNames[index],
-                new Vector2(0.08f, 0.38f),
+                new Vector2(0.08f, 0.40f),
                 new Vector2(0.92f, 0.98f));
             return button;
         }
@@ -1822,6 +1794,28 @@ namespace ColorGateRunner.Editor
             image.color = color;
             Theme01UiSkinBuilder.ApplyPanel(image, name);
             return panel;
+        }
+
+        private static Image CreateFrontendImage(
+            string name,
+            Transform parent,
+            string spriteName,
+            Vector2 anchorMin,
+            Vector2 anchorMax)
+        {
+            GameObject imageObject = CreatePanel(
+                name,
+                parent,
+                anchorMin,
+                anchorMax,
+                Color.white);
+            Image image = imageObject.GetComponent<Image>();
+            image.sprite = Theme01UiSkinBuilder.LoadFrontendSprite(spriteName);
+            image.type = Image.Type.Simple;
+            image.preserveAspect = false;
+            image.color = Color.white;
+            image.raycastTarget = false;
+            return image;
         }
 
         private static Text CreateText(

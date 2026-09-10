@@ -8,11 +8,11 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `718aca24ac3bb98e438cc86bdbb80624cb0d4d25`
-- Base commit: `feat: add modular runner transformations`
+- Implementation base HEAD: `bc9f09da10d8e19015069e57846805c71929bf99`
+- Base commit: `feat: polish runner forms and UI art`
 - Authoritative completion HEAD: the commit named
-  `feat: polish runner forms and UI art`; its exact hash is recorded
-  in the Iteration 59 final report because a commit cannot contain
+  `feat: refine lobby shell and page visuals`; its exact hash is recorded
+  in the Iteration 60 final report because a commit cannot contain
   its own content-derived hash.
 - Branch at completion: `main`
 - Expected working tree: clean
@@ -23,7 +23,19 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 59 — Distinct Runner Forms and UI Art Pass**.
+- Current completed iteration: **Iteration 60 — Lobby Shell and Page Visual Refinement**.
+- The persistent Lobby shell now uses authored transparent top-resource,
+  bottom-dock and selected-tab art. Home keeps only the live Guest, Coin,
+  Heart, theme, current Stage, mechanic, progress and Play hierarchy visible;
+  legacy inventory and local milestone counters remain bound under an inactive
+  read-model root so existing state ownership is unchanged. Stage copy wraps
+  and truncates within the authored lower card at both `1080 x 1920` and
+  `720 x 1280`.
+- Shop and Journey use dedicated portrait environments plus a shared authored
+  header treatment. Journey retains its automatic read-only chapter,
+  milestone and League behavior. Rank and Collection use distinct illustrated
+  environments with only truthful `COMING SOON` copy; no leaderboard,
+  collection, store or reward behavior is simulated.
 - Campaign Red, Blue and Green share one imported Cyber Orb with 22 fixed
   Builder-bound visual parts. Red deploys a broad shoulder/ram power kit,
   Blue a compact guard/crest stable kit and Green a wide blade/tail wing kit.
@@ -368,19 +380,22 @@ below where their contracts differ.
 ### Automated validation
 
 - EditMode: `480/480`
-- PlayMode: `264/264` passed, with one opt-in graphics capture test intentionally
-  ignored in the headless full suite (`265` total discovered)
-- Post-Builder PlayMode: same `264` passes plus one intentional graphics-test
+- PlayMode: `265/265` passed, with one opt-in graphics capture test intentionally
+  ignored in the headless full suite (`266` total discovered)
+- Post-Builder PlayMode: same `265` passes plus one intentional graphics-test
   ignore
-- D3D11 visual QC: Frontend `1/1` with 13 captures and Campaign `1/1` with
-  19 captures at `1080 x 1920`. The inspected set includes all five Lobby
-  destinations, Red, mid-transition, Blue, Green and the Shield HUD state.
+- D3D11 visual QC: Frontend `1/1` with 14 captures at `1080 x 1920`, including
+  a separate Home capture at `720 x 1280`. The inspected set covers all five
+  Lobby destinations, three Shop depths, chapter/League variants and the
+  compact Home layout. Iteration 59 Campaign `1/1` with 19 captures remains
+  the latest gameplay visual evidence.
 - Fresh-context read-only Quality Graph checker: `PASS` with no blocking
   finding after diff, Builder, full-suite, protected-state and rendered-image
   review
-- Frontend Scene Builder: two consecutive passes completed; Boot and Frontend
-  generated references, five-tab navigation, Shop ScrollRect/catalog, UI skin,
-  unique roots, EventSystem and Build Settings passed
+- Frontend Scene Builder: two consecutive final passes completed; Boot and
+  Frontend generated references, authored shell/page sprites, five-tab
+  navigation, Shop/Journey ScrollRects, unique roots, EventSystem and Build
+  Settings passed
 - Campaign Builder: Iteration 59 completed two consecutive passes successfully.
   The active Campaign Spline path, generated full-route road, deterministic
   24-slot city
@@ -404,14 +419,14 @@ All three entries are expected to be enabled and unique.
 
 ### Developer save snapshot
 
-- Schema 3, revision 738, profile/Guest ID
+- Schema 3, revision 740, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-05`
-  with four records, 45,900 Coins, 8 Shields, 8 Boosters, 0 Hearts and 0 Continue
+  with four records, 45,900 Coins, 8 Shields, 8 Boosters, 5 Hearts and 0 Continue
   Tickets; selected Lobby theme is empty.
 - SHA-256:
-  `5B22763B8FCAC1A4E327C3AE5505A57971B05AA979B019E7EAB5FF1E27B4D930`.
-- This user-authored play state was written before Iteration 59 validation. Its
-  timestamp is `2026-09-08T14:55:03.3982907Z`; Iteration 59 validation
+  `A2E9A2C872753D8C70662E1A6972D8A2C6A6644270734A489E0741F43F769C59`.
+- This user-authored play state was written before Iteration 60 validation. Its
+  timestamp is `2026-09-09T05:08:20Z`; Iteration 60 validation
   preserved it byte- and timestamp-exact. Developer Console mutations still
   occur only after an explicit Apply, Reset, or Unlock action.
 

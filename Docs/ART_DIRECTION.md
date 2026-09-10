@@ -1022,3 +1022,23 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Human portrait/mobile/WebGL review owns rapid-input transformation feel,
   physical-phone icon recognition, selected-tab visual weight and final
   cross-screen art cohesion.
+
+## Iteration 60 Lobby shell and destination art
+
+- The persistent Lobby chrome uses one transparent dark-alloy/Cyan/Gold
+  resource rail, one connected five-cell navigation dock and one luminous
+  selected-tab frame. Icons and live text remain separate so account, wallet,
+  Heart and destination state can change without regenerating art.
+- Home gives the chapter illustration most of the portrait. The lower Stage
+  card contains Stage, title, mechanic, progress and Play only; legacy
+  inventory and local milestone counters no longer compete with that action.
+  Copy must remain contained at `720 x 1280` as well as `1080 x 1920`.
+- Shop reads as a neon equipment depot and Journey as an open celestial route.
+  Both reuse a shared header surface while their scrolling content, catalog
+  truth and automatic progression behavior remain unchanged.
+- Rank uses an empty holographic arena and Collection an empty crystal vault.
+  Their environmental art may imply future purpose, but only `COMING SOON` is
+  shown until real feature contracts exist.
+- Human mobile/WebGL review owns hand-held icon recognition, selected-tab
+  weight, swipe/scroll comfort and subjective cohesion across generated and
+  existing art.

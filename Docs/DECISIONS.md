@@ -1815,3 +1815,19 @@ Status: Approved and implemented.
 - Builder ownership, fixed runtime object counts and no-allocation transitions
   remain mandatory. This slice does not add rigs, stats, audio, haptics,
   color-specific rules, Rank/Collection systems or live commerce.
+
+## Iteration 60 Lobby information and placeholder boundary
+
+- Persistent Lobby chrome is authored image presentation over the existing
+  live Profile, Coin, Heart, Settings and pager bindings; no value or label is
+  baked into those textures.
+- Home prioritizes chapter art and the next playable Stage. Always-visible
+  inventory, local milestone counters and developer copy are removed from the
+  player-facing hierarchy, while their existing read references remain
+  inactive rather than becoming a new state path.
+- Shop and Journey may receive distinct environmental art without changing
+  their existing disconnected/read-only contracts. Rank and Collection remain
+  non-interactive and may show only truthful `COMING SOON` copy until separate
+  product iterations authorize functionality.
+- This visual pass does not authorize commerce, leaderboard, collection,
+  networking, reward or persistence changes.

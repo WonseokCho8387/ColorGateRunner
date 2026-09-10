@@ -41,7 +41,7 @@ namespace ColorGateRunner.Tests.EditMode
 
             Assert.That(LobbyProgressionPanel.FormatHeart(
                     new HeartStateSnapshot(5, false, default), now),
-                Is.EqualTo("HEARTS 5/5"));
+                Is.EqualTo("5/5"));
             Assert.That(LobbyProgressionPanel.FormatHeart(
                     new HeartStateSnapshot(
                         2,
@@ -49,14 +49,14 @@ namespace ColorGateRunner.Tests.EditMode
                         default,
                         now.AddMinutes(5)),
                     now),
-                Is.EqualTo("HEARTS 2/5  05:00"));
+                Is.EqualTo("2/5  05:00"));
             Assert.That(LobbyProgressionPanel.FormatHeart(
                     new HeartStateSnapshot(
                         0,
                         true,
                         now.AddHours(1)),
                     now),
-                Is.EqualTo("HEARTS UNLIMITED  1:00:00"));
+                Is.EqualTo("∞  1:00:00"));
         }
 
         [Test]

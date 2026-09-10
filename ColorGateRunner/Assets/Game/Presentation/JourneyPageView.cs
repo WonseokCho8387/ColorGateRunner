@@ -131,8 +131,8 @@ namespace ColorGateRunner.Presentation
             ApplyDynamicLayout(availableStageCount);
             progressText.text = applied >=
                 JourneyMilestonePresentation.TotalMilestones
-                ? "18 / 18  JOURNEY COMPLETE"
-                : $"{applied} / 18  •  NEXT STAGE {(applied + 1) * 2}";
+                ? "18 / 18  •  COMPLETE"
+                : $"{applied} / 18";
         }
 
         internal void Bind(

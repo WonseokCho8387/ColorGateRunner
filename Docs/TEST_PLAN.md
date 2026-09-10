@@ -1132,3 +1132,28 @@ fairness, or polish.
   A fresh-context checker first rejected the inherited `0.12s` HUD pose lag;
   the targeted same-tap repair passed PlayMode `1/1`, and checker re-review
   returned `PASS` with no remaining finding.
+
+### Iteration 60 Lobby shell and destination visual refinement
+
+- EditMode must prove all ten Frontend assets import as UI Sprites, backgrounds
+  retain the expected opaque role and overlays contain genuine transparent
+  pixels. Existing Theme 1 surface and icon tests remain mandatory.
+- PlayMode must prove the resource rail, dock, selected cursor, Stage card and
+  four destination backgrounds reference authored sprites; Home legacy
+  readouts and developer copy are not visible; live Coin/Heart data and Stage
+  text remain bound and contained. Existing five-tab, swipe, vertical-scroll,
+  Back, Shop-offline, Journey and Coming Soon tests remain mandatory.
+- Frontend Builder runs twice after the final layout change. Required
+  references, unique roots, one EventSystem, no Missing Script/reference and
+  exact Build Settings order remain mandatory.
+- D3D11 visual QC captures all five destinations, three Shop depths,
+  chapter/League states and Home at both `1080 x 1920` and `720 x 1280`.
+  It may reject clipping, overlap, missing art or an unclear selected tab, but
+  cannot certify touch comfort, art appeal or device/WebGL display quality.
+- Final evidence: Frontend Builder `2/2`; EditMode `480/480`; PlayMode `265`
+  passed, zero failed and one intentional opt-in visual ignore out of `266`;
+  D3D11 `1/1` with 14 captures; developer save byte- and timestamp-exact;
+  Package and ProjectSettings have no feature diff; fresh-context read-only
+  Quality Graph checker `PASS` with no blocking finding. Campaign and Step 10
+  simulations are omitted because gameplay, Stage data, timing, generation,
+  judgment and Experiment inputs do not change.

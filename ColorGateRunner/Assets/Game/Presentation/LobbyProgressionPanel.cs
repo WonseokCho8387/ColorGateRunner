@@ -70,7 +70,7 @@ namespace ColorGateRunner.Presentation
                 0,
                 18);
             int localApplied = applied == 18 ? 6 : applied % 6;
-            coinText.text = $"COINS {progression.Economy.Coins}";
+            coinText.text = progression.Economy.Coins.ToString("N0");
             RefreshHeart(hearts, utcNow);
             inventoryText.text =
                 $"SHIELD {progression.Economy.ShieldCount}   " +
@@ -176,16 +176,16 @@ namespace ColorGateRunner.Presentation
             };
             if (hearts.Unlimited)
             {
-                return $"HEARTS UNLIMITED  " +
+                return $"∞  " +
                     FormatRemaining(hearts.UnlimitedUntilUtc - now);
             }
             if (hearts.Count >= HeartStatePolicy.MaximumHearts ||
                 hearts.NextHeartAtUtc == default)
             {
-                return $"HEARTS {hearts.Count}/" +
+                return $"{hearts.Count}/" +
                     HeartStatePolicy.MaximumHearts;
             }
-            return $"HEARTS {hearts.Count}/" +
+            return $"{hearts.Count}/" +
                 $"{HeartStatePolicy.MaximumHearts}  " +
                 FormatRemaining(hearts.NextHeartAtUtc - now);
         }
