@@ -8,15 +8,17 @@ iterations but do not override this section.
 
 ### Repository
 
-- Implementation base HEAD: `bc9f09da10d8e19015069e57846805c71929bf99`
-- Base commit: `feat: polish runner forms and UI art`
-- Authoritative completion HEAD: the commit named
-  `feat: refine lobby shell and page visuals`; its exact hash is recorded
-  in the Iteration 60 final report because a commit cannot contain
-  its own content-derived hash.
-- Branch at completion: `main`
-- Expected working tree: clean
-- Push status at completion: not pushed
+- Snapshot date: `2026-09-12` KST
+- Branch: `main`
+- Implementation base HEAD: `d937b3a242b04df6d211de7dfe92abfca82175e3`
+- Base commit: `feat: refine lobby shell and page visuals`
+- The handoff-documentation commit is intentionally newer than the
+  implementation base; it changes only this file and `Docs/GPT_HANDOFF.md`.
+- Inspection began with no untracked files. Git reported
+  `ColorGateRunner/ProjectSettings/ProjectSettings.asset` as modified because
+  of working-copy normalization, but its Git blob and working bytes were
+  identical and its approved SHA-256 remained exact.
+- Push status: not pushed
 
 ### Current product state
 
@@ -49,8 +51,9 @@ below where their contracts differ.
   Coin, Heart, Shield and Booster. The former runtime rectangle navigation
   glyphs and HUD Shield text symbol are gone. Existing action icons plus the
   seven reusable panel/button/card surfaces were regenerated at higher source
-  resolution while all player copy remains live text. Developer-only UI and
-  truthful Rank/Collection Coming Soon content remain outside this polish pass.
+  resolution while all player copy remains live text. Rank and Collection are
+  included as illustrated, truthful Coming Soon destinations; the Developer
+  Console remains Editor-only.
 - Campaign Clear now holds its victory beat for `2.35s`, then crossfades to
   the reward page over `0.25s`. A tap is ignored during only the first `0.1s`;
   afterward it skips through the same crossfade rather than hard-cutting.
@@ -64,8 +67,10 @@ below where their contracts differ.
   the existing atomic Product save transaction. Legacy schema-3 saves without
   a selection resolve the latest unlocked chapter without a load-time write.
 - The Home hero was opened up around the layered theme artwork. All three
-  chapters now own complete Background / Midground / Ambient art, while wallet,
-  progression, inventory and Stage action stay on fixed foreground surfaces.
+  chapters own complete Background / Midground / Ambient art. The visible
+  foreground is limited to top resources, theme/progress, the current Stage
+  summary and its Play action; inventory and milestone read models remain
+  bound under an inactive compatibility root.
 - Journey inserts a League terminal immediately after the last live even-Stage
   milestone. It stays locked until every Stage in the current Catalog is
   cleared, then Home enters deterministic endless replay. Each profile sees a
@@ -195,22 +200,21 @@ below where their contracts differ.
 - Frontend Lobby uses three clear zones: persistent Profile / Coin / Heart /
   Settings controls at the top, the current Lobby theme and upgrade progress
   as the dominant center, and one compact Stage card with one primary `PLAY`
-  action at the bottom. Shield and Booster stock remain compact secondary
-  chips. Duplicate `LOBBY` and account labels are removed; milestone rewards
-  appear only as a pending banner. Hearts show `5/5`, next-recharge time, or
-  timed-unlimited remaining time from Product state. Frontend-origin result
-  actions return there; direct/development entry keeps Campaign Lobby fallback.
+  action at the bottom. Shield/Booster stock and pending-milestone counters are
+  not player-visible; their existing bindings live under inactive
+  `LobbyProgressReadModelRoot`. Duplicate `LOBBY` and account labels are
+  removed. Hearts show capacity, next-recharge time, or timed-unlimited
+  remaining time from Product state. Frontend-origin result actions return
+  there; direct/development entry keeps Campaign Lobby fallback.
 - The same top wallet and five-tab bottom navigation remain present on Home and
   Shop. The Home theme, progression and Stage card are hidden while Shop is
   active; Shop content uses a fixed portrait ScrollRect and resets to its top
   when opened.
-- Theme 1, `COLOR COURTYARD`, now uses original portrait artwork in three
-  Builder-owned layers: a dark futuristic courtyard background, a central
-  color-energy reactor and a transparent ambient energy frame. Six automatic
-  Lobby milestones light six surrounding energy nodes. The presentation uses
-  only a restrained unscaled-time pulse, never blocks UI input and does not
-  change the top wallet, Stage card or `PLAY` navigation. Theme 2 and 3 retain
-  palette fallbacks until their own art slices are approved.
+- Theme 1 `COLOR COURTYARD`, Theme 2 `NEON GARDEN` and Theme 3 `SKY FESTIVAL`
+  each use complete Builder-owned Background / Midground / Ambient portrait
+  art. Six automatic Lobby milestones drive each chapter's progression state.
+  The presentation never blocks UI input and does not change the top wallet,
+  Stage card or `PLAY` navigation.
 - Theme 1 Campaign presentation now uses Blender-authored FBX art for the
   spherical cyber vehicle, modular Left / Right / Top gate, neon track, city
   backdrop and Goal portal. Editable `.blend` source and Runner / Gate /
@@ -379,9 +383,12 @@ below where their contracts differ.
 
 ### Automated validation
 
-- EditMode: `480/480`
-- PlayMode: `265/265` passed, with one opt-in graphics capture test intentionally
-  ignored in the headless full suite (`266` total discovered)
+- Fresh headless verification on `2026-09-12` KST at implementation HEAD
+  `d937b3a242b04df6d211de7dfe92abfca82175e3`:
+  - EditMode: `480/480` passed, `0` failed, `0` skipped
+  - PlayMode: `265/265` available tests passed, `0` failed; the opt-in
+    `LobbyPagesVisualCapture_WritesPortraitEvidence` test was intentionally
+    ignored in headless mode (`266` total discovered)
 - Post-Builder PlayMode: same `265` passes plus one intentional graphics-test
   ignore
 - D3D11 visual QC: Frontend `1/1` with 14 captures at `1080 x 1920`, including
@@ -417,17 +424,33 @@ below where their contracts differ.
 
 All three entries are expected to be enabled and unique.
 
+### Android and WebGL player artifacts
+
+- The Test Build menu is implemented for Android and WebGL and rebuilds the
+  generated Catalog/Campaign/Frontend/Boot content before creating a Player.
+- Existing Android artifact:
+  `Builds/Test/Android/ColorGateRunner.apk`, `68,774,305` bytes, written
+  `2026-08-28T10:26:16Z`, SHA-256
+  `885E3CC8FE7693590AA3CF8DC543A488E3D53F48A804C786EFE73CB6109BFA91`.
+- Existing WebGL artifact: `Builds/Test/WebGL`, six files totaling
+  `155,566,553` bytes, newest file `2026-08-28T10:29:18Z`; `index.html`
+  SHA-256
+  `2B3ED6A0BA943D4FDF32606ED4ABAE1CBB252F5DCBF4A322F96A9B3204B78988`.
+- These artifacts predate Iterations 46–60 and do **not** represent the current
+  implementation HEAD. A current Android/WebGL build, Android installation and
+  HTTP-served WebGL smoke test have not yet been performed.
+
 ### Developer save snapshot
 
-- Schema 3, revision 740, profile/Guest ID
+- Schema 3, revision 742, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, highest unlocked Stage ID `stage-05`
-  with four records, 45,900 Coins, 8 Shields, 8 Boosters, 5 Hearts and 0 Continue
+  with four records, 45,900 Coins, 8 Shields, 8 Boosters, 4 Hearts and 0 Continue
   Tickets; selected Lobby theme is empty.
 - SHA-256:
-  `A2E9A2C872753D8C70662E1A6972D8A2C6A6644270734A489E0741F43F769C59`.
-- This user-authored play state was written before Iteration 60 validation. Its
-  timestamp is `2026-09-09T05:08:20Z`; Iteration 60 validation
-  preserved it byte- and timestamp-exact. Developer Console mutations still
+  `936ADE5FDE839A4F140001310FE82A5CAB70532D498350CEAADF36AAF130C75F`.
+- This user-authored play state was written at `2026-09-10T08:38:11Z`.
+  The `2026-09-12` snapshot verification preserved it byte- and timestamp-exact.
+  Developer Console mutations still
   occur only after an explicit Apply, Reset, or Unlock action.
 
 ### Campaign simulation baseline
@@ -462,21 +485,23 @@ All three entries are expected to be enabled and unique.
 - Shortlist SHA-256:
   `068334D359126233F454AD031E617047DDF48D8C30C095683DBE8FF866F0CCE6`
 
-### Persistence safety baseline
+### Persistence safety baseline and historical evidence
 
-- Campaign PlayerPrefs rollback snapshot contains Highest Unlocked plus Stage
-  Record keys 1–23 when present and must be restored exactly after tests.
+- Campaign PlayerPrefs rollback snapshots contain Highest Unlocked plus every
+  present authored Stage Record key and must be restored exactly after tests.
 - Actual Editor snapshot at Iteration 12 completion:
   - existing Campaign entries: `12`
   - canonical SHA-256:
     `B57BDC93138A3E1C376272C33FB042274E821B8BB9C0EC12A33B9480010C73CD`
-- The Editor Product save is schema 2, revision 23, profile/Guest ID
+- Historical Iteration 18 evidence: the Editor Product save was schema 2,
+  revision 23, profile/Guest ID
   `2dfe4f6ffa914e7a95e2fd30de5b6307`, with Highest Stage 13, 13 Stage
   records, 2,600 Coins, 4 Shields and 4 Boosters. Its SHA-256 is
   `39FB23837EE260E8F1B3CF7E1EF7EBE6389DC689A59CC3E68B6164516E180A18`
   and `LastWriteUtc` is `2026-08-11T03:21:03.1535325Z`. The hash and values
   were identical after Iteration 18 validation. Iteration 18 retained schema
-  2 and did not migrate or rewrite the actual Product save.
+  2 and did not migrate or rewrite the then-current Product save. It does not
+  override the schema-3 Developer save snapshot above.
 - Values deleted before Iteration 11 are unknown and must not be guessed.
 
 ### Package and ProjectSettings baseline
@@ -505,6 +530,28 @@ All three entries are expected to be enabled and unique.
 - Routine iterations must not redefine these values. Any intended Package or
   ProjectSettings change requires explicit approval and a new documented
   baseline.
+
+### Snapshot audit notes
+
+- No current gameplay or product defect is confirmed by the fresh automated
+  suite. Historical Clone, Stage 26 gate generation, Flicker direction/timing,
+  current-color gate break, Continue pool exhaustion and Lobby overflow issues
+  are fixed evidence, not open bugs.
+- `Docs/FRONTEND_FLOW.md` still has an old top-level Status paragraph that says
+  Journey, extra themes, Rank and Collection are pending/disabled. Its later
+  Iteration 54–60 sections and the actual Builder/code show the authoritative
+  state: Journey and all three themes are implemented; Rank and Collection are
+  navigable illustrated Coming Soon pages.
+- `Docs/TEST_PLAN.md` retains historical active-map text that refers to older
+  Catalog revisions, Stage ranges and PlayerPrefs key bounds. Its later
+  Iteration-specific acceptance history and this Authoritative Baseline match
+  Catalog revision 16 and Stages 1–26. This snapshot does not edit that file
+  because the approved documentation scope is limited to Current Status and
+  GPT Handoff.
+- `Docs/GAME_DESIGN.md`, `Docs/DECISIONS.md` and `Docs/ITERATIONS.md` contain
+  intentionally historical contracts and rejected/superseded ideas. Their
+  historical sections must not be interpreted as current implementation when
+  they conflict with this baseline.
 
 ## Latest Iteration Result and History
 
@@ -2004,13 +2051,14 @@ Authoritative Iteration 8 Result
   12, and `17.6%` at Stage 13. This mechanical drop is not auto-tuned and
   requires human difficulty review.
 
-Next Iteration
+Next Decision
 
-Perform portrait-device and WebGL human play of Stages 24–26. Confirm the
-frame-mesh dissolve stays attached through curves, the left/top/right order and
-emblem replacement read within `0.12s`, Bloom is controlled, the break color
-matches the committed gate and the 24-unit lock remains fair. Do not change
-timing, judgment or Stage values from automated evidence alone.
+Create fresh Android and WebGL test players from the current implementation
+HEAD, then run a focused portrait-device/WebGL smoke and visual-feel audit. The
+existing player artifacts predate Iterations 46–60, so choosing another feature
+iteration before validating the current integrated product would compound
+release-facing uncertainty. Do not begin Stage 27+, live commerce, ads or
+additional Lobby systems until that human evidence is reviewed.
 
 ---
 
@@ -2098,14 +2146,19 @@ Campaign Stages 6–11
 
 ---
 
-Known Issues
+Known Issues and Human Review
 
-Iteration 3 Clone Gate concept was rejected by human feedback and is
-superseded by the approved Echo Modifier contract below.
-
-Echo frequency, Echo/Shield readability, Camouflage reveal lead, and Stage
-6–11 pacing require human mobile play.
-
-Shield visual
-
-Campaign 2x speed feel and comfort require human mobile playtest
+- No reproducible current code defect is confirmed by the `2026-09-12`
+  automated suite.
+- The current Iteration 60 implementation has no matching Android/WebGL player
+  build, so installation, browser startup, touch/focus/audio, safe-area behavior
+  and device performance remain unverified.
+- Fog density/readability, Ice shimmer and steering response, Echo/Hidden/
+  Flicker comprehension and fairness, camera comfort, modular runner-form
+  distinctness, victory-firework timing, Lobby hierarchy, theme readability,
+  Shop package-volume comprehension and Journey/League clarity require human
+  portrait-device and WebGL review.
+- Rank and Collection are deliberately truthful Coming Soon destinations, not
+  missing or simulated backends. Live IAP, receipt validation, rewarded ads,
+  cloud/account providers, analytics/crash providers, notification delivery,
+  production audio and Stages 27+ remain deferred systems rather than bugs.
