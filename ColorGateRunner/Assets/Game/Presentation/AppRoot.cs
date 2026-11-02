@@ -14,6 +14,7 @@ namespace ColorGateRunner.Presentation
 
         private static AppRoot _active;
         private static Func<AppServiceGraph> _testGraphFactory;
+        private static bool _testPlaytestEnabled;
 
         private AppServiceGraph _graph;
         private readonly CampaignLaunchContext _campaignLaunch =
@@ -22,6 +23,7 @@ namespace ColorGateRunner.Presentation
 
         public bool IsPrimary => _active == this;
         public AppServiceGraph Graph => _graph;
+        public PlaytestSession Playtest { get; private set; }
         public LocalSettingsData CurrentSettings => _graph?.Settings?.Current;
         public bool AccountChoiceCompleted =>
             _graph?.Profile?.Current?.AccountChoiceCompleted == true;
@@ -37,9 +39,14 @@ namespace ColorGateRunner.Presentation
 
             _active = this;
             _ownsActiveSlot = true;
+            bool playtestEnabled = _testPlaytestEnabled;
+#if CGR_PLAYTEST
+            playtestEnabled = true;
+#endif
+            Playtest = playtestEnabled ? new PlaytestSession() : null;
             _graph = _testGraphFactory != null
                 ? _testGraphFactory()
-                : CreateProductionGraph();
+                : CreateProductionGraph(playtestEnabled);
             if (_graph == null)
             {
                 throw new InvalidOperationException(
@@ -149,9 +156,12 @@ namespace ColorGateRunner.Presentation
             string stageId,
             CampaignRunKind runKind = CampaignRunKind.Authored)
         {
+            if (Playtest != null &&
+                (stageId != Playtest.StageId || runKind != CampaignRunKind.Authored))
+                return false;
             return IsPrimary && _campaignLaunch.TrySet(
                 stageId,
-                false,
+                Playtest != null,
                 runKind);
         }
 
@@ -203,18 +213,21 @@ namespace ColorGateRunner.Presentation
         }
 
         internal static void SetTestGraphFactory(
-            Func<AppServiceGraph> factory)
+            Func<AppServiceGraph> factory,
+            bool playtestEnabled = false)
         {
             _testGraphFactory = factory;
+            _testPlaytestEnabled = playtestEnabled;
         }
 
         internal static void ClearTestState()
         {
             _testGraphFactory = null;
+            _testPlaytestEnabled = false;
             _active = null;
         }
 
-        private static AppServiceGraph CreateProductionGraph()
+        private static AppServiceGraph CreateProductionGraph(bool playtest = false)
         {
             var clock = new SystemClockService();
             var profile = new ProfileService(
@@ -230,7 +243,9 @@ namespace ColorGateRunner.Presentation
                 Application.platform == RuntimePlatform.WebGLPlayer
                     ? SaveReplacementPolicy.RecoverableOnly
                     : SaveReplacementPolicy.AtomicPreferred;
-            var save = new LocalSaveService(
+            ILocalSaveService save = playtest
+                ? new PlaytestMemorySaveService()
+                : new LocalSaveService(
                 new UnityJsonSaveDocumentSerializer(),
                 new SystemLocalSaveFileSystem(),
                 clock,
@@ -249,7 +264,7 @@ namespace ColorGateRunner.Presentation
                 settings,
                 save,
                 initialization,
-                true);
+                !playtest);
         }
 
         private ProductMutationResult MigrateLegacyCampaignIfRequired()

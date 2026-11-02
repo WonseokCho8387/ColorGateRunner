@@ -641,6 +641,8 @@ namespace ColorGateRunner.Editor
                 insufficientCoinsMessage,
                 insufficientCoinsCloseButton);
             controller.ConfigureResultSequence(resultSequenceView);
+            controller.ConfigurePlaytestGuide(
+                PlaytestUiBuilder.CreateGuide(flowRoots[2].transform));
             controller.ConfigurePause(
                 pauseButton,
                 pauseOverlayRoot,
@@ -4782,6 +4784,12 @@ namespace ColorGateRunner.Editor
                 (float)UnityEngine.Rendering.BlendMode.One);
             material.SetFloat("_ZWrite", 0f);
             material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            // URP revalidates the queue from this property during import/build.
+            // Keep the already-authored Transparent + 10 order after validation.
+            if (material.HasProperty("_QueueOffset"))
+            {
+                material.SetFloat("_QueueOffset", 10f);
+            }
             material.renderQueue =
                 (int)UnityEngine.Rendering.RenderQueue.Transparent + 10;
             EditorUtility.SetDirty(material);

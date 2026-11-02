@@ -481,6 +481,11 @@ namespace ColorGateRunner.Presentation
 
         internal void ShowExperimentFailure()
         {
+            ShowDirectFailure();
+        }
+
+        internal void ShowDirectFailure()
+        {
             failureContinueRoot.SetActive(true);
             failureExitConfirmationRoot.SetActive(false);
             failureConsequenceRoot.SetActive(false);

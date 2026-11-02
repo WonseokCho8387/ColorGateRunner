@@ -2316,3 +2316,56 @@ Any mismatch blocks implementation.
 - Fresh-context read-only Quality Graph QC returned `PASS` with no blocking
   finding. Device/WebGL feel and physical-phone icon readability remain human
   review.
+
+## itch.io Playtest v0.1 로컬 후보 — 2026-10-06
+
+Tier 2 / Q2. 승인된 baseline을 유지한 미커밋 후보이며 외부 게시 인증이 아니다.
+환경·최종 수치·패키지 식별자는 `CURRENT_STATUS.md`의 Uncommitted candidate에 있다.
+
+### Acceptance mapping
+
+- `PlaytestSessionTests`: 기존 8개 Stage 순서, 중복/미시작 완료 차단, 반복 Retry,
+  성공한 시도 안에서 입력→직접 일치→Stage 1 clear의 온보딩 기준, 메모리 저장 복제.
+- `PlaytestBuildTests`: 비개발 WebGL/빌드 단위 define/기존 Scene 순서 및 기존 개발
+  빌드 계약 보존. additive 재질 3개의 복제본을 실제 URP shader GUI로 재검증해
+  기존 렌더 순서 3010이 유지되는지 확인한다. 테스트는 원본 재질을 수정하지 않는다.
+- `PlaytestFlowPlayModeTests`: 한 동작 Retry 8회와 Heart 불변, 계정/PreRun 우회,
+  guide 비차단, 현재 경로 밖 launch 거부, 8단계 기존 판정과 Stage 6 제공 Shield,
+  celebration 중 Next 숨김/이후 표시 및 interactable, Next/Finish 버튼 callback,
+  최종 Frontend의 PLAY AGAIN, Product StageRecords 미기록, Campaign PlayerPrefs
+  1–26 불변. 테스트 전 스냅샷과 존재 여부를 저장하고 종료 시 정확히 복원한다.
+
+### Executed evidence
+
+- `Artifacts/Validation/ItchPreparation-20261004/`: 초기 기준선 보관, 집중 검증,
+  중단된 전체 PlayMode 로그, Campaign 재실행/동일한 3개 해시, 첫 후보 빌드와
+  브라우저 캡처, 패키징 validator의 정상/대소문자/절대 경로/경로 이탈/파일 수/
+  단일 파일 크기 mutation 검사. 중단 실행은 통과로 세지 않았고 개발 저장값은 일치했다.
+- `Artifacts/Validation/ItchPreparation-20261004/builders-qc-repair.log`: 최종 Builder
+  두 번 생성 및 구조 검증. Boot/Frontend/Campaign root, 참조, EventSystem,
+  Build Settings 검사는 기존 Builder 검증 및 전체 Scene 테스트를 재사용한다.
+- `Artifacts/Validation/ItchPreparation-20261006/`: 최종 집중 EditMode 8/8,
+  PlayMode 3/3; 성공한 WebGL 빌드 후 전체 EditMode 488/488,
+  PlayMode 268 passed / 기존 headless 그래픽 테스트 1 ignored.
+- 같은 폴더 `packed-materials.json`: UnityPy 1.25.4로 **실제 gzip WebGL 데이터**를
+  읽은 결과, 수정 전후 세 additive 재질의 패킹된 queue는 모두 3010.
+  `_QueueOffset=10`으로 빌드/URP 재검증 후 디스크의 3010도 유지한다.
+  검사 도구 의존성은 ignored Artifacts 안에만 설치했으며 Unity 패키지는 변경하지 않았다.
+- `final-source.json`: 최종 runtime/tooling 파일 해시. `protected-after.json`,
+  `campaign-prefs-after.json`: 실제 저장 데이터 보존 근거. 최종 ProjectSettings 해시는
+  승인 baseline과 동일하며 시작 시의 package-managed define 차이만 해소됐다.
+- `Artifacts/Release/ColorGateRunner-Playtest-v0.1-rc2.manifest.json`: ZIP의 실제 파일별
+  크기/해시, root index.html, 상대·대소문자 경로와 itch.io 제한 검사.
+
+### Rendered / independent / human scope
+
+Chromium WebGL 2.0의 시작·Countdown·Pause·Resume·불일치·Retry·색 전환 캡처와 로그를
+최종 폴더에 저장했다. 첫 후보의 390×844/844×390 레이아웃과 로컬 sandbox iframe,
+전체 화면 크기 전환은 앞 폴더의 캡처다. Fullscreen 전환 직후 자동화 좌표가 일시적으로
+일치하지 않아 실제 iframe 게임 전체 조작을 통과로 간주하지 않았다.
+
+독립 checker 최초 검토는 재질 디스크 순서/최종 manifest/테스트 검증 누락을 지적했고,
+한 차례 보완 후 **로컬 구현 후보 PASS**를 반환했다. 변경 파일 해시 35개와 ZIP 파일
+6개를 재검증했다. 이는 전체 브라우저 완주/실제 itch.io/모바일/오디오/포커스 이탈/
+초심자 이해·가독성·재미/UGS·개인정보의 통과가 아니다. FSR upscaling 미지원 및
+persistentDataPath 동기화 경고를 별도로 기록하며 모든 후처리가 실패했다고 단정하지 않는다.

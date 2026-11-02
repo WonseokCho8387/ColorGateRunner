@@ -15,6 +15,21 @@ Continue rules, or Experiment Lab behavior by itself.
 
 ## Purpose
 
+### itch.io playtest override (uncommitted candidate)
+
+Only the build-scoped `CGR_PLAYTEST` Player uses Boot → PlaytestEntry → Campaign
+Countdown. It reuses the existing Scenes, safe area, serialized destinations,
+pause coordinator and result presentation. Account, Lobby economy and PreRun
+item selection are bypassed. Failure offers Retry/Menu; clear reveals Next Stage
+after the existing celebration, with Finish Playtest at the final route stage.
+Menu offers continuation or Play Again after completion. Refresh resets this
+memory-only route. Stage 1 has a non-raycasting gameplay guide. No new mechanic
+or separate tutorial Scene is introduced. Ordinary builds retain their existing
+flow. See `ITCH_IO_IMPLEMENTATION_SPEC.md` for scope and `CURRENT_STATUS.md` for
+the actual candidate evidence and remaining human/release gates.
+
+### Ordinary product flow
+
 Build a commercial-ready shell around the existing deterministic campaign
 without turning every page into a separate Unity Scene or coupling UI to
 gameplay state.

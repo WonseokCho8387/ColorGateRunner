@@ -14,6 +14,18 @@ the commercial shell. Iteration 21 authorizes local idempotent reward grants
 but not a live purchase flow or receipt authority. Login, cloud save,
 advertising provider, analytics SDK and remote configuration remain excluded.
 
+### Playtest build override (uncommitted candidate)
+
+The build-scoped `CGR_PLAYTEST` symbol creates an AppRoot-owned `PlaytestSession`
+and a cloning `PlaytestMemorySaveService`. Legacy Campaign migration is disabled
+for this graph. The regular Product graph and file-save schema are unchanged.
+StageSceneController uses a non-writing Campaign store and unavailable item/continue
+gateways in this mode; provided Stage items remain part of the existing stage rules.
+No production progress or clear reward is committed. Refreshing the Player discards
+the route and temporary profile/settings. SDK consent and telemetry are not yet
+implemented; see `ITCH_IO_IMPLEMENTATION_SPEC.md` and the current candidate in
+`CURRENT_STATUS.md`. This exception does not enable analytics in ordinary builds.
+
 ### Editor Developer Console
 
 - `Tools > Color Gate Runner > Developer Console` is the single Editor-only

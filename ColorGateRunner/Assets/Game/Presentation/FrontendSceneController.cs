@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
 {
-    public sealed class FrontendSceneController : MonoBehaviour
+    public sealed partial class FrontendSceneController : MonoBehaviour
     {
         [SerializeField] private GameObject titlePageRoot;
         [SerializeField] private GameObject lobbyPageRoot;
@@ -143,6 +143,7 @@ namespace ColorGateRunner.Presentation
             ApplyPage(_router.CurrentPage);
             ApplyTransition(_router.IsTransitioning);
             ApplyModal(_router.CurrentModal);
+            ApplyPlaytestEntry();
             if (!_productReady)
             {
                 _router.TryShowModal(FrontendModal.BootRequired);

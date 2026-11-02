@@ -3573,3 +3573,36 @@ Human feedback required
   recognition, selected-tab weight and subjective cohesion/readability.
 - Real Rank, Collection and Store services, localized typography, responsive
   tablet composition and further Journey content remain separate iterations.
+
+---
+
+## itch.io Playtest v0.1 — 로컬 구현 후보 (2026-10-06, 미커밋·미게시)
+
+### Play / Analyze
+
+기존 WebGL 개발 빌드에서 Guest/Home/PreRun을 거쳐 첫 실패에 도달하는 흐름을
+확인했다. 외부 초심자에게 계정·경제·실패 후 선택이 핵심 규칙보다 먼저 노출됐다.
+감사 보고서 후 구현 진행 요청과 동의 기반 UGS 방향 승인을 받았다.
+
+### Design / Implementation
+
+`ITCH_IO_IMPLEMENTATION_SPEC.md`에 따라 빌드 단위의 플레이테스트 모드를 추가했다.
+기존 StageSession, Retry, 결과 화면과 Scene 이동을 재사용하고 세션 경로·임시 저장을
+AppRoot의 메모리 상태로 격리했다. Stage 1 안내, 실제 색 불일치, 무제한 Retry와
+8단계 종료를 구현했다. 일반 빌드, Stage 데이터·시드·판정·밸런스는 유지했다.
+UGS는 아직 미연결이며 SDK/동의 UI/이벤트 전송을 완료했다고 표시하지 않는다.
+
+### Validation
+
+최종 수치와 ZIP 식별자는 `CURRENT_STATUS.md`, 상세 인수 근거는 `TEST_HISTORY.md`에
+기록했다. 자동 시작의 Awake 순서 오류를 수정했고, 독립 검토 후 URP 재검증 시의
+재질 디스크 순서 불일치와 결과 버튼·후반 PlayerPrefs 검증의 누락을 보완했다.
+한 차례 보완 후 독립 checker는 **로컬 구현 후보 PASS**를 반환했다.
+
+### Learning / Deferred / Human Review
+
+패킹된 Player와 빌드 후 디스크 상태를 별도로 확인해야 했다. 실제 패킹된 재질은
+수정 전후 모두 3010이었으며 `_QueueOffset=10`은 디스크/Builder 일관성을 지킨다.
+Headless 전체 경로 테스트는 브라우저 전체 완주나 초심자의 이해를 증명하지 않는다.
+실제 itch.io, 모바일 기기, 오디오/포커스 이탈, 전체 브라우저 경로, 초심자 관찰,
+페이지 자료, UGS/개인정보 연결은 남아 있다. 커밋·push·외부 게시하지 않았다.

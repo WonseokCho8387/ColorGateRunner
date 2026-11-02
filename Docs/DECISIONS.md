@@ -1831,3 +1831,16 @@ Status: Approved and implemented.
   product iterations authorize functionality.
 - This visual pass does not authorize commerce, leaderboard, collection,
   networking, reward or persistence changes.
+
+## itch.io Playtest v0.1 구현 방향 (2026-10-06 기록)
+
+- 감사 보고서에 따라 구현을 진행하라는 사용자 요청을 플레이테스트 전용 진입·경로·
+  온보딩·재시도·WebGL 포장 범위에 적용한다. 일반 제품 흐름을 제거하지 않고,
+  해당 Player 빌드의 `CGR_PLAYTEST` 정의로 구분한다.
+- 기존 콘텐츠의 짧은 경로와 메모리 진행을 사용한다. 광고·구매·경제·새 게임 기믹을
+  추가하지 않는다. 구현 계약은 `ITCH_IO_IMPLEMENTATION_SPEC.md`에 둔다.
+- 사용자는 **동의 기반 UGS Analytics 및 개인정보 안내 준비**를 승인했다.
+  완전 익명으로 표현하지 않는다. 프로젝트/문의·게시 정보가 없는 현재 후보에서는
+  실제 수집을 켜거나 준비됐다고 표시하지 않는다. SDK·동의 UI·수신 검증은 미완료다.
+- 구현 진행 승인은 외부 게시·초대·커밋·push 승인이 아니다. 현재 후보는 Game Director의
+  검토와 남은 브라우저/기기/서비스 검증을 거쳐야 한다.

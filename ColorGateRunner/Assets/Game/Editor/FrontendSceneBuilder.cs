@@ -204,6 +204,10 @@ namespace ColorGateRunner.Editor
             collectionNavigationSelection.SetActive(false);
             lobbyPagePager.SetPage(FrontendPage.Lobby, false);
 
+            PlaytestEntryView playtestEntry = PlaytestUiBuilder.CreateEntry(safeArea.transform);
+            playtestEntry.transform.SetSiblingIndex(popupRoot.transform.GetSiblingIndex());
+            controller.ConfigurePlaytestEntry(playtestEntry);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = CreateFrontendSceneList(campaignPath);

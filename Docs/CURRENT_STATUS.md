@@ -1,5 +1,52 @@
 # Current Status
 
+## Uncommitted candidate — itch.io Playtest v0.1 (2026-10-06 KST)
+
+보고서에 따라 구현을 진행하라는 요청으로 만든 **로컬 검토 후보**다. 아래
+Authoritative Baseline의 승인된 HEAD를 대체하거나 게시 준비 완료를 의미하지 않는다.
+
+- 작업 HEAD: `e48448d81a28f2f4338a4f2db79e6f74ca90391a`; primary 프로젝트,
+  Unity `6000.5.1f1`; 최종 검증 시 Editor 종료/lock 없음. 커밋·push·업로드 없음.
+- `CGR_PLAYTEST`를 해당 WebGL Player 빌드에만 적용한다. Boot/Frontend/Campaign을
+  재사용하며 경로는 `01 → 02 → 03 → 06 → 09 → 21 → 18 → 24`다.
+  계정/경제/보유 아이템 선택을 우회하고 한 번의 Retry와 명시적 8단계 종료를 제공한다.
+- 진행·임시 Product 그래프는 메모리에만 존재한다. 기존 Stage 정의/시드/속도/판정과
+  Stage 6 제공 Shield는 유지한다. Stage 1 안내, 실제 색 불일치 설명, 입력+일치+클리어
+  기준의 온보딩 관찰 상태를 추가했다.
+- 최종 자동 검증: **EditMode 488 passed; PlayMode 268 passed + 1 existing ignored**.
+  집중 검증 EditMode 8 / PlayMode 3 passed. Builder 각 2회와 빌드 후 전체 회귀 통과.
+  Campaign 520행 재실행의 세 해시는 아래 승인 기준과 동일하다. Step 10은 관련
+  Core/Experiment/입력 시뮬레이션 변경이 없어 재실행하지 않았다.
+- 재질 재검증이 기존 렌더 순서 3010을 3000으로 되돌리는 디스크 변경을 발견했다.
+  additive 재질의 `_QueueOffset=10`을 Builder에 명시해 기존 3010을 유지한다.
+  URP shader validation 테스트 및 실제 WebGL 데이터의 재질 추출로 확인했다.
+  이전 후보에도 실제 패킹된 재질 순서는 3010이었다.
+- 배포 후보: `Artifacts/Release/ColorGateRunner-Playtest-v0.1-rc2.zip`.
+  ZIP **55,768,566 bytes**, 추출 **56,497,772 bytes / 6 files**, 최대 파일
+  **42,101,094 bytes**. SHA-256:
+  `637400d268db60be9be9a45ebc0c420dab0adc60e489f0e48794aaf1dd391cf5`.
+  루트 index.html/상대·대소문자 경로/ZIP 무결성/크기 제한 검사 통과.
+- Product 저장·백업은 사전 파일 해시와 수정 시각이 동일하고 Campaign PlayerPrefs도
+  정확히 일치한다. Package 변경 없음. 최종 ProjectSettings는 승인 해시와 일치한다
+  (작업 시작 시 허용된 package-managed WebGL define 차이는 사라짐).
+  빌드가 생성한 URP global settings/burst 파일은 근거 폴더에 보관 후 작업 전 상태로
+  복원했으며, generated YAML의 줄 끝 공백만 정규화했다.
+- Chromium WebGL 2.0 로컬 브라우저에서 진입/색 전환/실패/Retry/Pause/Resume 확인.
+  첫 후보에서 390×844·844×390 레이아웃과 로컬 iframe/전체 화면 크기 전환도 관찰했다.
+  실제 itch.io, 실물 모바일, 브라우저 전체 경로 클리어, 오디오, 포커스 이탈은
+  **NOT VERIFIED**. FSR upscaling 미지원과 persistentDataPath 동기화 경고가 남는다.
+- **UGS SDK·동의 UI·외부 이벤트 전송은 아직 구현/연결되지 않았다.** 동의 기반 UGS
+  방향은 승인됐으나 프로젝트 ID/환경과 개인정보 문의·게시 URL이 미정이다.
+  현재 화면은 수집 미연결을 명시한다. 초심자 관찰/전체 브라우저 경로/UGS 실제 수신/
+  배포 페이지 자료/제한 itch.io 검증은 외부 초대 전 남은 작업이다.
+- 명세: `ITCH_IO_IMPLEMENTATION_SPEC.md`; 페이지·개인정보 초안:
+  `ITCH_IO_PLAYTEST_PAGE.md`; 상세 검증: `TEST_HISTORY.md`의 같은 후보 항목.
+  실행 근거: `Artifacts/Validation/ItchPreparation-20261004/` 및
+  `Artifacts/Validation/ItchPreparation-20261006/`. 마지막 폴더의
+  `final-source.json`, `packed-materials.json`, `browser-evidence.json`을 사용한다.
+- 독립 checker는 한 차례 보완 후 **로컬 구현 후보 PASS**를 반환했다. 전체 브라우저
+  완주·서비스/기기·주관적 UX 검토 및 외부 게시 승인은 이 판정에 포함되지 않는다.
+
 ## Authoritative Baseline
 
 This section is the single current baseline for routine Codex iterations.

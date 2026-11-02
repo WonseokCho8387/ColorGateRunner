@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
 {
-    public sealed class StageSceneController : MonoBehaviour
+    public sealed partial class StageSceneController : MonoBehaviour
     {
         private const float CountdownDuration = 3f;
         private const float ContinueReadyDuration = 0.5f;
@@ -429,7 +429,11 @@ namespace ColorGateRunner.Presentation
             _pauseCoordinator = new GameplayPauseCoordinator();
             _sceneTransitionLoader ??= new UnitySceneTransitionLoader();
             _pausedEffectWasPlaying = new bool[attemptEffects.Length];
-            _progressStore = AppRoot.TryGetActive(out AppRoot appRoot) &&
+            AppRoot.TryGetActive(out AppRoot appRoot);
+            _playtest = appRoot?.Playtest;
+            _progressStore = _playtest != null
+                ? new PlaytestProgressStore()
+                : appRoot != null &&
                 appRoot.Graph?.Progression?.Campaign != null &&
                 appRoot.Graph.Progression.Campaign.LegacyMigrationCompleted
                     ? new ProductStageProgressStore(
@@ -437,14 +441,14 @@ namespace ColorGateRunner.Presentation
                         appRoot.Graph.Progression,
                         StageCatalog.Current)
                     : new PlayerPrefsStageProgressStore();
-            _startItemInventory = appRoot != null &&
+            _startItemInventory = _playtest == null && appRoot != null &&
                 appRoot.Graph?.ProductSession?.IsReady == true &&
                 appRoot.Graph.Progression?.Economy != null
                     ? new ProductStartItemInventoryGateway(
                         appRoot.Graph.ProductSession,
                         appRoot.Graph.Progression)
                     : new UnavailableStartItemInventoryGateway();
-            _continueEconomy = appRoot != null &&
+            _continueEconomy = _playtest == null && appRoot != null &&
                 appRoot.Graph?.ProductSession?.IsReady == true &&
                 appRoot.Graph.Progression?.Economy != null
                     ? new ProductContinueEconomyGateway(
@@ -646,6 +650,7 @@ namespace ColorGateRunner.Presentation
             }
             if (_session.TryToggleColor())
             {
+                _playtest?.RecordInput();
                 _telemetry.Record(
                     "tap",
                     _session,
@@ -892,6 +897,8 @@ namespace ColorGateRunner.Presentation
             bool bypassUnlock,
             CampaignRunKind runKind = CampaignRunKind.Authored)
         {
+            if (_playtest != null && stageId != _playtest.StageId)
+                return false;
             StageDefinition definition;
             try
             {
@@ -936,11 +943,13 @@ namespace ColorGateRunner.Presentation
                 return false;
             }
 
-            return TrySelectStageById(
+            bool selected = TrySelectStageById(
                 request.StageId,
                 true,
                 request.BypassUnlock,
                 request.RunKind);
+            if (selected && _playtest != null) _startPlaytestAfterAwake = true;
+            return selected;
         }
 
         internal void HandlePreRunBack()
@@ -1124,6 +1133,12 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            if (_playtest != null)
+            {
+                _shieldSelected = false;
+                _boosterSelected = false;
+                if (!_playtest.BeginAttempt()) return;
+            }
             string startTransactionId = Guid.NewGuid().ToString("N");
             StageStartAuthorizationResult authorization =
                 _startItemInventory.Authorize(
@@ -1202,6 +1217,12 @@ namespace ColorGateRunner.Presentation
             GateOutcome outcome = _session.ResolveGate(
                 plan,
                 _session.ElapsedPlayingSeconds);
+            if (_playtest != null)
+            {
+                if (outcome == GateOutcome.Matched) _playtest.RecordDirectMatch();
+                if (outcome == GateOutcome.Mismatched)
+                    CapturePlaytestFailure(gate, plan);
+            }
             if (outcome == GateOutcome.Matched ||
                 outcome == GateOutcome.Invulnerable ||
                 outcome == GateOutcome.Echoed)
@@ -1478,6 +1499,7 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            if (_playtest != null && !_playtest.Retry()) return;
             _session.RetryToSelection();
             _heartRefundToken = string.Empty;
             ResetRunPresentation();
@@ -1491,6 +1513,7 @@ namespace ColorGateRunner.Presentation
             selectedStageText.text =
                 $"STAGE {_selectedStageNumber}\n{_session.Stage.Title}";
             SynchronizeItemSelection();
+            if (_playtest != null) StartSelectedStage();
         }
 
         internal void ShowLobby()
@@ -2218,6 +2241,12 @@ namespace ColorGateRunner.Presentation
 
         internal void RequestFailureExit()
         {
+            if (_playtest != null)
+            {
+                if (_session?.FlowState == StageFlowState.Failed)
+                    RetryToItemSelection();
+                return;
+            }
             if (_experimentActive)
             {
                 RetryToItemSelection();
@@ -2306,7 +2335,7 @@ namespace ColorGateRunner.Presentation
 
         private void LeaveResultFlow()
         {
-            if (!_experimentActive && _session != null &&
+            if (_playtest == null && !_experimentActive && _session != null &&
                 _session.FlowState == StageFlowState.Failed &&
                 _campaignResultFlow?.CurrentPage !=
                 CampaignResultPage.FailureFinalChoice)
@@ -2341,6 +2370,11 @@ namespace ColorGateRunner.Presentation
 
         internal void OpenNextStagePreRun()
         {
+            if (_playtest != null)
+            {
+                OpenNextPlaytestStage();
+                return;
+            }
             if (_experimentActive || _session == null)
             {
                 LeaveResultFlow();
@@ -2904,6 +2938,11 @@ namespace ColorGateRunner.Presentation
             _clearRewardSummary = string.Empty;
             _clearRewardPreview = default;
             _clearRewardsEarned = false;
+            if (_playtest != null)
+            {
+                _playtest.CompleteStage(_selectedStageId);
+                return;
+            }
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
@@ -3041,6 +3080,11 @@ namespace ColorGateRunner.Presentation
                 }
                 else if (_failureDelayRemaining <= 0f && _session != null)
                 {
+                    if (_playtest != null)
+                    {
+                        ShowPlaytestFailure();
+                        return;
+                    }
                     failPanel.SetActive(true);
                     failTitleText.text = "STAGE FAILED";
                     int remaining = CampaignResultFlow.RemainingGatesAfterContinue(
@@ -3081,6 +3125,11 @@ namespace ColorGateRunner.Presentation
                 }
                 else if (_clearDelayRemaining <= 0f && _session != null)
                 {
+                    if (_playtest != null)
+                    {
+                        ShowPlaytestClear();
+                        return;
+                    }
                     clearPanel.SetActive(true);
                     clearTitleText.text = _campaignRunKind ==
                         CampaignRunKind.League
@@ -3474,6 +3523,7 @@ namespace ColorGateRunner.Presentation
                 (_session.FlowState == StageFlowState.Countdown &&
                 _shieldSelected && !_session.ContinueUsed));
             stageHudText.text = $"STAGE {_selectedStageNumber}";
+            SynchronizePlaytestGuide();
             progressText.text =
                 $"{_session.GatesPassed} / {_session.Stage.TargetGateCount}";
             progressFill.fillAmount = _session.Progress;
