@@ -3606,3 +3606,52 @@ UGS는 아직 미연결이며 SDK/동의 UI/이벤트 전송을 완료했다고 
 Headless 전체 경로 테스트는 브라우저 전체 완주나 초심자의 이해를 증명하지 않는다.
 실제 itch.io, 모바일 기기, 오디오/포커스 이탈, 전체 브라우저 경로, 초심자 관찰,
 페이지 자료, UGS/개인정보 연결은 남아 있다. 커밋·push·외부 게시하지 않았다.
+
+---
+
+## Iteration 61 — Neon Night UI Design System Foundation (2026-11-03)
+
+### Play / Analyze
+
+렌더 캡처 12장과 Builder 코드를 점검했다. 판타지 금장 일러스트, 개발용 평면 9-slice
+패널, 그레이박스에 가까운 게임플레이라는 세 시각 언어가 섞여 있었다. 기본
+`LegacyRuntime` 글꼴, 79종의 하드코딩 색, Home 카드 문구 겹침, Journey 버튼 넘침,
+탭 선택 프레임 겹침, Shop 카드 갈색 채움을 확인했다.
+
+### Design
+
+사용자가 사이버펑크·밤·네온 방향과 4단계 분할(61 기반 / 62 게임플레이 밤 도시 /
+63 일러스트 / 64 크롬·아이콘)을 승인했다. 61은 공통 토큰, 글꼴, 표면, 결함만 다룬다.
+UI 크롬은 Signal 흰빛 네온, 주요 행동·선택은 Magenta, 위험은 Danger, 재화는 Gold로
+분리하고 게임 판정색은 UI에 쓰지 않는다.
+
+### Implementation
+
+`Presentation/NeonUiPalette.cs`, `Tools/Generate-NeonUiSurfaces.mjs`(같은 이름·크기·
+28px 경계의 7종 PNG 결정적 생성), `Art/UI/Fonts/ChakraPetch-SemiBold.ttf`+`OFL.txt`,
+`Theme01UiSkinBuilder.ApplyFont`(FontStyle.Normal)와 아이콘 없는 버튼 라벨 여백을
+추가했다. 다섯 Builder의 글꼴 지정, 보이는 UI 색, Journey 마일스톤·Settings 토글
+런타임 색, Boot/Playtest 버튼 스킨, Home 카드 행, 탭 선택 프레임, 보상 행 스킨을 변경했다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 첫 집중 실행에서
+Home 카드 행 앵커 겹침 두 건과 투명 탭 버튼을 거르지 않은 테스트 필터를 발견해 수정했다.
+렌더 확인 후 평면 보상 행을 스킨했고, 그 뒤 Builder·전체 회귀·캡처를 다시 실행했다.
+독립 checker는 blocker 없이 PASS를 반환했다.
+
+### Learning
+
+Builder가 덮어쓰는 버튼·패널 색 인자는 화면에 나타나지 않으므로, 실제로 보이는
+텍스트·비스킨 채움·런타임 틴트만 토큰화하면 diff가 작다. Unity YAML 줄 끝 공백만
+바뀐 생성 재질/Spline은 HEAD로 복원했다. Frontend 캡처 테스트는 대화형 Editor가 필요하다.
+
+### Deferred / Human Review
+
+- Frontend 전체 페이지(Home 카드, 탭, Journey 틴트 대비, Shop 강조, Settings, Playtest
+  진입)의 렌더 확인과 720×1280 확인은 대화형 Editor 또는 WebGL에서 사람이 봐야 한다.
+- Magenta 주요 버튼과 판정용 Purple의 구분, 실제 기기 글꼴 가독성, 전체 통일감.
+- 금장 상단 바·하단 독·아이콘·로비 일러스트(63–64)와 게임플레이 밤 도시(62)는 남아
+  있어 그 사이 일시적 혼재가 있다. 레거시 `GameSceneController`의 `►`는 글꼴에 없다.
+- checker 참고: 표면 테스트는 모서리 픽셀 표본만 확인하고, 라벨 여백은 작은 버튼의
+  최소 폭을 보장하지 않으며, 일부 어두운 모달 채움은 아직 토큰화되지 않았다.

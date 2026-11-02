@@ -245,8 +245,8 @@ namespace ColorGateRunner.Presentation
             bool enabled = toggle.isOn;
             label.text = enabled ? "ON" : "OFF";
             label.color = enabled
-                ? new Color(0.32f, 0.90f, 0.56f, 1f)
-                : new Color(1f, 1f, 1f, 0.82f);
+                ? NeonUiPalette.Signal
+                : NeonUiPalette.TextSecondary;
         }
 
         private void OpenTerms() => OpenLink(ProductLinkType.Terms);

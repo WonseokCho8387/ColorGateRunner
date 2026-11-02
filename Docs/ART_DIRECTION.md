@@ -1042,3 +1042,22 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Human mobile/WebGL review owns hand-held icon recognition, selected-tab
   weight, swipe/scroll comfort and subjective cohesion across generated and
   existing art.
+
+## Iteration 61 neon night design system
+
+- This section supersedes the Iteration 32 UI color roles and the Iteration 54
+  Journey state colors. The game reads as a cyberpunk city at night: near-black
+  Ink/Night surfaces, restrained neon light, and no gold filigree, jewels,
+  ribbons or daylight skies in new chrome.
+- UI tokens live in `NeonUiPalette`: Ink `#05060D`, Night `#0A0F1F`, Line
+  `#1C2540`, Signal `#C8F4FF`, Magenta `#FF2BD6`, Danger `#FF5A4E`, Gold
+  `#FFC83D`, TextPrimary `#F2F7FF`, TextSecondary `#8A96B8`. Signal is the
+  default stroke; Magenta marks the primary action and current/selected state;
+  Danger marks destructive actions; Gold is reserved for currency.
+- Gameplay judgment colors stay exclusive to runner, gates, emblems and color HUD.
+- Shared surfaces are asymmetric chamfered panels (large top-left/bottom-right
+  cuts) with a 2 px neon stroke, faint inner line and short outer glow, generated
+  by `Tools/Generate-NeonUiSurfaces.mjs` inside the 28 px 9-slice border.
+- All player-facing text uses Chakra Petch SemiBold without synthetic bold.
+- Human review owns Magenta/Purple separation, device readability and cohesion;
+  remaining fantasy-style chrome and illustrations are replaced in 63–64.

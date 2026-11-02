@@ -88,23 +88,23 @@ namespace ColorGateRunner.Presentation
             {
                 case JourneyMilestoneState.Collected:
                     stateText.text = "COLLECTED";
-                    cardColor = new Color(0.04f, 0.34f, 0.28f, 0.96f);
-                    glowColor = new Color(0.20f, 1f, 0.65f, 1f);
+                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.Signal, 0.9f);
+                    glowColor = NeonUiPalette.Signal;
                     break;
                 case JourneyMilestoneState.Current:
                     stateText.text = "NEXT REWARD";
-                    cardColor = new Color(0.09f, 0.34f, 0.58f, 0.98f);
-                    glowColor = new Color(0.25f, 0.95f, 1f, 1f);
+                    cardColor = NeonUiPalette.Magenta;
+                    glowColor = NeonUiPalette.Magenta;
                     break;
                 case JourneyMilestoneState.ComingSoon:
                     stateText.text = "COMING SOON";
-                    cardColor = new Color(0.15f, 0.16f, 0.24f, 0.92f);
-                    glowColor = new Color(0.55f, 0.58f, 0.70f, 0.75f);
+                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.45f);
+                    glowColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.4f);
                     break;
                 default:
                     stateText.text = "LOCKED";
-                    cardColor = new Color(0.10f, 0.16f, 0.28f, 0.94f);
-                    glowColor = new Color(0.25f, 0.48f, 0.68f, 0.72f);
+                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.85f);
+                    glowColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.7f);
                     break;
             }
             cardBackground.color = cardColor;

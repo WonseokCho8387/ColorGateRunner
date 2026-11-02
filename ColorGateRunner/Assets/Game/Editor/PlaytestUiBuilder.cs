@@ -10,15 +10,14 @@ namespace ColorGateRunner.Editor
         {
             RectTransform root = Rect("PlaytestEntry", parent, Vector2.zero, Vector2.one);
             Image background = root.gameObject.AddComponent<Image>();
-            background.color = new Color(0.035f, 0.05f, 0.10f, 1f);
+            background.color = NeonUiPalette.Ink;
             Text title = Label("Title", root, 30, new Vector2(0.06f, 0.8f), new Vector2(0.94f, 0.93f));
             Text description = Label("Description", root, 22, new Vector2(0.07f, 0.23f), new Vector2(0.93f, 0.79f));
             RectTransform action = Rect("Play", root, new Vector2(0.16f, 0.09f), new Vector2(0.84f, 0.18f));
-            Image surface = action.gameObject.AddComponent<Image>();
-            surface.color = new Color(0.05f, 0.32f, 0.40f, 1f);
+            action.gameObject.AddComponent<Image>();
             Button button = action.gameObject.AddComponent<Button>();
-            button.targetGraphic = surface;
             Text label = Label("Label", action, 26, Vector2.zero, Vector2.one);
+            Theme01UiSkinBuilder.ApplyButton(button, "PlaytestPlayButton", label);
             PlaytestEntryView view = root.gameObject.AddComponent<PlaytestEntryView>();
             view.Configure(title, description, button, label);
             root.gameObject.SetActive(false);
@@ -40,7 +39,7 @@ namespace ColorGateRunner.Editor
         private static Text Label(string name, Transform parent, int size, Vector2 min, Vector2 max)
         {
             Text text = Rect(name, parent, min, max).gameObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Theme01UiSkinBuilder.ApplyFont(text);
             text.fontSize = size;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;

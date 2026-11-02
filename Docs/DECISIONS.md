@@ -1844,3 +1844,13 @@ Status: Approved and implemented.
   실제 수집을 켜거나 준비됐다고 표시하지 않는다. SDK·동의 UI·수신 검증은 미완료다.
 - 구현 진행 승인은 외부 게시·초대·커밋·push 승인이 아니다. 현재 후보는 Game Director의
   검토와 남은 브라우저/기기/서비스 검증을 거쳐야 한다.
+
+## Iteration 61 neon night visual direction (2026-11-03 기록)
+
+- 사용자가 전체 시각 방향을 **사이버펑크·밤·네온**으로 승인했다. 챕터 이름과 ID는
+  유지하고 밤 버전으로 재해석한다. 로비 일러스트는 Claude가 쓴 스타일 가이드·프롬프트로
+  사용자가 제작한다.
+- UI 크롬 토큰은 `NeonUiPalette`가 소유한다. 주요 행동·선택은 Magenta, 기본 테두리는
+  Signal, 위험은 Danger, 재화는 Gold다. 게임 판정색은 UI 크롬으로 재사용하지 않는다.
+- 공통 글꼴은 OFL Chakra Petch SemiBold이며 uGUI Text를 유지한다(TextMeshPro 전환 없음).
+- 구현은 61 기반 / 62 게임플레이 밤 도시 / 63 일러스트 / 64 크롬·아이콘으로 나눈다.

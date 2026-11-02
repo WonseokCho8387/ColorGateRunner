@@ -441,7 +441,7 @@ namespace ColorGateRunner.Editor
             cameraObject.transform.SetParent(parent, false);
             Camera camera = cameraObject.GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = FromHex(0x0B1020);
+            camera.backgroundColor = NeonUiPalette.Ink;
             camera.orthographic = true;
             cameraObject.tag = "MainCamera";
         }
@@ -702,16 +702,16 @@ namespace ColorGateRunner.Editor
                 themeRoot.transform,
                 "STAGE 1",
                 18,
-                new Vector2(0.11f, 0.252f),
-                new Vector2(0.34f, 0.292f));
+                new Vector2(0.11f, 0.272f),
+                new Vector2(0.34f, 0.302f));
             stage.alignment = TextAnchor.MiddleLeft;
             stageTitle = CreateText(
                 "LobbyStageTitleText",
                 themeRoot.transform,
                 "TWO-COLOR BASICS",
                 20,
-                new Vector2(0.11f, 0.216f),
-                new Vector2(0.89f, 0.258f));
+                new Vector2(0.11f, 0.246f),
+                new Vector2(0.89f, 0.272f));
             stageTitle.alignment = TextAnchor.MiddleLeft;
             stageTitle.horizontalOverflow = HorizontalWrapMode.Wrap;
             stageTitle.verticalOverflow = VerticalWrapMode.Truncate;
@@ -721,16 +721,16 @@ namespace ColorGateRunner.Editor
                 themeRoot.transform,
                 "COLOR MATCH  •  NORMAL",
                 12,
-                new Vector2(0.11f, 0.194f),
-                new Vector2(0.62f, 0.218f));
+                new Vector2(0.11f, 0.226f),
+                new Vector2(0.62f, 0.246f));
             stageMechanic.alignment = TextAnchor.MiddleLeft;
             progress = CreateText(
                 "LobbyProgressText",
                 themeRoot.transform,
                 "0 / 20",
                 12,
-                new Vector2(0.68f, 0.252f),
-                new Vector2(0.89f, 0.292f));
+                new Vector2(0.68f, 0.272f),
+                new Vector2(0.89f, 0.302f));
             progress.alignment = TextAnchor.MiddleRight;
             play = CreateButton(
                 "LobbyPlayCampaignButton",
@@ -956,7 +956,7 @@ namespace ColorGateRunner.Editor
                 30,
                 new Vector2(0.12f, 0.775f),
                 new Vector2(0.88f, 0.815f));
-            title.color = FromHex(0xE8FCFF);
+            title.color = NeonUiPalette.TextPrimary;
             Text status = CreateText(
                 "ComingSoonStatus",
                 root.transform,
@@ -964,7 +964,7 @@ namespace ColorGateRunner.Editor
                 17,
                 new Vector2(0.18f, 0.695f),
                 new Vector2(0.82f, 0.73f));
-            status.color = FromHex(0x67E8F9);
+            status.color = NeonUiPalette.Signal;
             return root;
         }
 
@@ -995,7 +995,7 @@ namespace ColorGateRunner.Editor
                 30,
                 new Vector2(0.14f, 0.775f),
                 new Vector2(0.86f, 0.815f));
-            title.color = FromHex(0xE8FCFF);
+            title.color = NeonUiPalette.TextPrimary;
             Text progress = CreateText(
                 "JourneyProgressText",
                 root.transform,
@@ -1003,7 +1003,7 @@ namespace ColorGateRunner.Editor
                 14,
                 new Vector2(0.20f, 0.705f),
                 new Vector2(0.80f, 0.735f));
-            progress.color = FromHex(0x7DDAFF);
+            progress.color = NeonUiPalette.Signal;
 
             GameObject scrollObject = new GameObject(
                 "JourneyScrollView",
@@ -1176,7 +1176,7 @@ namespace ColorGateRunner.Editor
                 22,
                 new Vector2(0.07f, 0.48f),
                 new Vector2(0.93f, 0.90f));
-            title.color = FromHex(0xF0ABFC);
+            title.color = NeonUiPalette.Magenta;
             Text description = CreateText(
                 "LeagueDescriptionText",
                 root.transform,
@@ -1230,7 +1230,7 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.58f, 0.57f),
                 new Vector2(0.94f, 0.88f));
             state.alignment = TextAnchor.MiddleRight;
-            state.color = FromHex(0xA5F3FC);
+            state.color = NeonUiPalette.Signal;
 
             CreateJourneyRewardChip(
                 root.transform,
@@ -1322,7 +1322,7 @@ namespace ColorGateRunner.Editor
                 30,
                 new Vector2(0.14f, 0.775f),
                 new Vector2(0.86f, 0.815f));
-            title.color = FromHex(0xE8FCFF);
+            title.color = NeonUiPalette.TextPrimary;
             Text status = CreateText(
                 "ShopStatusText",
                 root.transform,
@@ -1330,7 +1330,7 @@ namespace ColorGateRunner.Editor
                 13,
                 new Vector2(0.20f, 0.705f),
                 new Vector2(0.80f, 0.735f));
-            status.color = FromHex(0x7DDAFF);
+            status.color = NeonUiPalette.Signal;
 
             GameObject scrollObject = new GameObject(
                 "ShopScrollView",
@@ -1452,8 +1452,8 @@ namespace ColorGateRunner.Editor
                 : 220f;
 
             Color accent = card.Section == ShopProductSection.Featured
-                ? FromHex(0xFF7A1A)
-                : FromHex(0x22D3EE);
+                ? NeonUiPalette.Magenta
+                : NeonUiPalette.Signal;
             Image accentBar = CreatePanel(
                 "AccentBar",
                 root.transform,
@@ -1467,7 +1467,7 @@ namespace ColorGateRunner.Editor
                 root.transform,
                 new Vector2(0.025f, 0.08f),
                 new Vector2(0.34f, 0.92f),
-                new Color(accent.r, accent.g, accent.b, 0.22f))
+                NeonUiPalette.WithAlpha(accent, 0.08f))
                 .GetComponent<Image>();
             iconBack.raycastTarget = false;
             var heroObject = new GameObject(
@@ -1549,7 +1549,7 @@ namespace ColorGateRunner.Editor
                     12,
                     new Vector2(0f, 0f),
                     new Vector2(1f, 0.38f));
-                amount.color = FromHex(0xE8FCFF);
+                amount.color = NeonUiPalette.TextPrimary;
             }
         }
 
@@ -1609,7 +1609,7 @@ namespace ColorGateRunner.Editor
                 name.Replace("Button", "Selection"),
                 parent,
                 "NavigationSelection",
-                new Vector2(left, 0.025f),
+                new Vector2(left, 0.42f),
                 new Vector2(right, 0.975f)).gameObject;
             selection.GetComponent<Image>().raycastTarget = false;
 
@@ -1628,6 +1628,8 @@ namespace ColorGateRunner.Editor
             labelText.resizeTextMaxSize = 11;
             labelText.rectTransform.anchorMin = new Vector2(0f, 0.16f);
             labelText.rectTransform.anchorMax = new Vector2(1f, 0.40f);
+            labelText.rectTransform.offsetMin = Vector2.zero;
+            labelText.rectTransform.offsetMax = Vector2.zero;
             string[] iconNames =
             {
                 "Shop", "Rank", "Home", "Journey", "Collection"
@@ -1731,7 +1733,7 @@ namespace ColorGateRunner.Editor
                 sliderObject.transform,
                 Vector2.zero,
                 Vector2.one,
-                FromHex(0x2D7FF9));
+                NeonUiPalette.Signal);
             GameObject handle = CreatePanel(
                 "Handle",
                 sliderObject.transform,
@@ -1840,11 +1842,9 @@ namespace ColorGateRunner.Editor
                 anchorMin,
                 anchorMax);
             Text text = textObject.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
             text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.resizeTextForBestFit = true;

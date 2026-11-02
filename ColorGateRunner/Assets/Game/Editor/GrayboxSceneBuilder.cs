@@ -3069,7 +3069,7 @@ namespace ColorGateRunner.Editor
                 18,
                 new Vector2(0.12f, 0.28f),
                 new Vector2(0.88f, 0.33f));
-            statusText.color = new Color(1f, 0.42f, 0.38f, 1f);
+            statusText.color = NeonUiPalette.Danger;
             statusText.gameObject.SetActive(false);
             Text startLabel;
             startButton = CreateButton(
@@ -3539,7 +3539,7 @@ namespace ColorGateRunner.Editor
             {
                 CyanColor,
                 WarpGoldColor,
-                new Color(0.95f, 0.22f, 0.82f, 1f)
+                NeonUiPalette.Magenta
             };
             for (int index = 0; index < fireworkSparks.Length; index++)
             {
@@ -3559,7 +3559,7 @@ namespace ColorGateRunner.Editor
                 sparkImage.sprite = fireworkStreakSprite;
                 sparkImage.preserveAspect = true;
                 sparkImage.color = sparkInBurst % 4 == 0
-                    ? new Color(0.92f, 1f, 1f, 1f)
+                    ? NeonUiPalette.Signal
                     : burstColors[burst];
                 sparkImage.raycastTarget = false;
                 fireworkSparks[index] = rect;
@@ -3638,7 +3638,7 @@ namespace ColorGateRunner.Editor
                 62,
                 new Vector2(0.08f, 0.77f),
                 new Vector2(0.92f, 0.89f));
-            titleText.color = new Color(0.83f, 0.98f, 1f, 1f);
+            titleText.color = NeonUiPalette.Signal;
 
             GameObject skipObject = CreateUiObject(
                 "ClearSkipButton",
@@ -3655,7 +3655,7 @@ namespace ColorGateRunner.Editor
                 22,
                 new Vector2(0.2f, 0.08f),
                 new Vector2(0.8f, 0.14f));
-            skipLabel.color = new Color(0.68f, 0.84f, 0.92f, 1f);
+            skipLabel.color = NeonUiPalette.TextSecondary;
             skipPromptGroup = skipLabel.gameObject.AddComponent<CanvasGroup>();
 
             rewardRoot = CreateAnchoredPanel(
@@ -3679,7 +3679,7 @@ namespace ColorGateRunner.Editor
                 24,
                 new Vector2(0.08f, 0.68f),
                 new Vector2(0.92f, 0.83f));
-            details.color = new Color(0.76f, 0.88f, 0.96f, 1f);
+            details.color = NeonUiPalette.Signal;
 
             rewardRows = new GameObject[5];
             rewardRowGroups = new CanvasGroup[5];
@@ -3694,6 +3694,9 @@ namespace ColorGateRunner.Editor
                     new Vector2(0.11f, top - 0.095f),
                     new Vector2(0.89f, top),
                     new Color(0.08f, 0.15f, 0.25f, 0.92f));
+                Theme01UiSkinBuilder.ApplyPanel(
+                    row.GetComponent<Image>(),
+                    "RewardSlot");
                 rewardRows[index] = row;
                 rewardRowGroups[index] = row.AddComponent<CanvasGroup>();
                 rewardRowIcons[index] = Theme01UiSkinBuilder.AddStandaloneIcon(
@@ -3778,7 +3781,7 @@ namespace ColorGateRunner.Editor
                 54,
                 new Vector2(0.08f, 0.80f),
                 new Vector2(0.92f, 0.94f));
-            title.color = new Color(1f, 0.52f, 0.68f, 1f);
+            title.color = NeonUiPalette.Danger;
             details = CreateText(
                 "StageFailedDetails",
                 continueRoot.transform,
@@ -3793,7 +3796,7 @@ namespace ColorGateRunner.Editor
                 22,
                 new Vector2(0.08f, 0.51f),
                 new Vector2(0.92f, 0.60f));
-            continueStatus.color = new Color(0.72f, 0.86f, 0.95f, 1f);
+            continueStatus.color = NeonUiPalette.TextSecondary;
             Text ticketLabel;
             ticketContinueButton = CreateButton(
                 "TicketContinueButton",
@@ -4209,10 +4212,9 @@ namespace ColorGateRunner.Editor
         {
             GameObject textObject = CreateUiObject(name, parent);
             Text text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
             text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;

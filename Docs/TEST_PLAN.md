@@ -1157,3 +1157,21 @@ fairness, or polish.
   Quality Graph checker `PASS` with no blocking finding. Campaign and Step 10
   simulations are omitted because gameplay, Stage data, timing, generation,
   judgment and Experiment inputs do not change.
+
+### Iteration 61 neon night UI design system foundation
+
+- EditMode `NeonUiDesignSystemTests` proves the font covers printable ASCII
+  and `· • — ∞`; every Text in Boot, Frontend and Campaign uses the neon font
+  with `FontStyle.Normal`; the seven surfaces keep transparent chamfered
+  corners and a solid center; Home stage-card rows do not overlap and stay
+  inside the card above Play; each tab selection frame starts above its label;
+  visible icon-less skinned button labels are inset at least 12 px.
+- Existing Theme 1 sprite import/transparency tests remain mandatory.
+- All three Builders run twice. D3D11 non-headless capture reviews result,
+  failure, PreRun and HUD surfaces; Frontend page capture needs an interactive
+  Editor and is a human gate until it runs.
+- Final evidence: Builders `2/2`; focused `7/7`; EditMode `494/494`;
+  PlayMode `268` passed with one intentional opt-in ignore; D3D11 Campaign
+  `1/1`; Product save and Campaign PlayerPrefs exact; no Package or
+  ProjectSettings diff; fresh-context checker PASS without blockers. Campaign and
+  Step 10 simulations are omitted because no gameplay input changed.

@@ -9,6 +9,9 @@ namespace ColorGateRunner.Editor
     {
         internal const string ArtFolder = "Assets/Game/Art/UI/Theme01";
         internal const float SliceBorder = 28f;
+        private static readonly Vector2 LabelPadding = new Vector2(18f, 6f);
+        internal const string FontPath =
+            "Assets/Game/Art/UI/Fonts/ChakraPetch-SemiBold.ttf";
 
         private static readonly string[] PanelNames =
         {
@@ -109,6 +112,21 @@ namespace ColorGateRunner.Editor
                     false,
                     512f);
             }
+        }
+
+        // The SemiBold face carries the weight; Unity's synthesized bold would
+        // smear the custom glyph outlines.
+        internal static void ApplyFont(Text text)
+        {
+            Font font = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
+            if (font == null)
+            {
+                throw new InvalidOperationException(
+                    $"Neon UI font is missing: {FontPath}");
+            }
+
+            text.font = font;
+            text.fontStyle = FontStyle.Normal;
         }
 
         internal static Sprite[] LoadColorEmblems()
@@ -244,6 +262,12 @@ namespace ColorGateRunner.Editor
                     labelRect.offsetMin = Vector2.zero;
                     labelRect.offsetMax = Vector2.zero;
                 }
+            }
+            else if (label != null)
+            {
+                // Keep copy inside the chamfered neon stroke.
+                label.rectTransform.offsetMin = LabelPadding;
+                label.rectTransform.offsetMax = -LabelPadding;
             }
         }
 

@@ -1,8 +1,27 @@
 # Current Status
 
-## Uncommitted candidate — itch.io Playtest v0.1 (2026-10-06 KST)
+## Iteration 61 — Neon Night UI Design System Foundation (2026-11-03 KST)
 
-보고서에 따라 구현을 진행하라는 요청으로 만든 **로컬 검토 후보**다. 아래
+- 기준: `d527300` (itch.io Playtest v0.1 후보 커밋) 위에서 구현했다. primary 프로젝트,
+  Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음. Push 없음.
+- 사이버펑크·밤·네온 방향의 첫 단계다. `NeonUiPalette` 토큰, OFL Chakra Petch
+  SemiBold 공통 글꼴, 결정적으로 생성한 모서리 깎은 네온 9-slice 표면 7종,
+  UI 텍스트/비스킨 채움/런타임 상태 색의 토큰화, Home 카드 행·탭 선택 프레임·
+  버튼 라벨 여백·보상 행 스킨을 적용했다. 게임 판정색·규칙·데이터·저장은 변경 없음.
+- 최종 자동 검증: **EditMode 494 passed; PlayMode 268 passed + 1 existing ignored**
+  (신규 EditMode 6). 집중 7/7. 세 Builder 각 2회(최종 패스 포함) 후 전체 회귀 통과,
+  Missing Script/Reference 없음. Package·ProjectSettings 변경 없음.
+- D3D11 비헤드리스 batchmode 캡처: Campaign Step9C `1/1`(19장). Frontend 페이지
+  캡처는 `WaitForEndOfFrame` 제약으로 batchmode에서 실행 불가해 **NOT VERIFIED**다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+  변경은 Unity TestResults.xml·세션/테스트 실행 기록뿐이다.
+- 독립 read-only checker: 기준 1–7 PASS, blocker 없음. 근거:
+  `Artifacts/Validation/Iteration61/`.
+
+## itch.io Playtest v0.1 (2026-10-06 KST, `d527300`로 커밋됨)
+
+보고서에 따라 구현을 진행하라는 요청으로 만든 **로컬 검토 후보**였으며 2026-11-02에
+사용자 요청으로 커밋했다. 아래
 Authoritative Baseline의 승인된 HEAD를 대체하거나 게시 준비 완료를 의미하지 않는다.
 
 - 작업 HEAD: `e48448d81a28f2f4338a4f2db79e6f74ca90391a`; primary 프로젝트,
@@ -55,10 +74,13 @@ iterations but do not override this section.
 
 ### Repository
 
-- Snapshot date: `2026-09-12` KST
+- Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base HEAD: `d937b3a242b04df6d211de7dfe92abfca82175e3`
-- Base commit: `feat: refine lobby shell and page visuals`
+- Implementation base: the Iteration 61 commit `feat: establish neon night UI design system`,
+  whose parent is `d527300040de2a7b208f068a5d12939ae6ad3d92`
+  (`feat: add itch.io playtest build candidate`).
+- Earlier implementation base: `d937b3a242b04df6d211de7dfe92abfca82175e3`
+  (`feat: refine lobby shell and page visuals`)
 - The handoff-documentation commit is intentionally newer than the
   implementation base; it changes only this file and `Docs/GPT_HANDOFF.md`.
 - Inspection began with no untracked files. Git reported
@@ -72,7 +94,11 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 60 — Lobby Shell and Page Visual Refinement**.
+- Current completed iteration: **Iteration 61 — Neon Night UI Design System Foundation**.
+  Shared UI chrome now uses `NeonUiPalette`, Chakra Petch SemiBold and the
+  chamfered neon 9-slice surface set; lobby illustrations, top resource rail
+  and bottom dock art are unchanged until Iterations 63–64.
+- Previous iteration: **Iteration 60 — Lobby Shell and Page Visual Refinement**.
 - The persistent Lobby shell now uses authored transparent top-resource,
   bottom-dock and selected-tab art. Home keeps only the live Guest, Coin,
   Heart, theme, current Stage, mechanic, progress and Play hierarchy visible;
@@ -430,6 +456,10 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 61 on `2026-11-03` KST (parent `d527300`): EditMode `494/494`;
+  PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore
+  (`269` discovered). Builders `2/2`. D3D11 Campaign capture `1/1`.
+  Values below this line are the Iteration 60 record.
 - Fresh headless verification on `2026-09-12` KST at implementation HEAD
   `d937b3a242b04df6d211de7dfe92abfca82175e3`:
   - EditMode: `480/480` passed, `0` failed, `0` skipped

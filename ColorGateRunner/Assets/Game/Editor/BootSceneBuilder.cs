@@ -264,7 +264,7 @@ namespace ColorGateRunner.Editor
             cameraObject.transform.SetParent(parent, false);
             Camera camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = FromHex(0x10131D);
+            camera.backgroundColor = NeonUiPalette.Ink;
             camera.orthographic = true;
             cameraObject.tag = "MainCamera";
         }
@@ -400,11 +400,9 @@ namespace ColorGateRunner.Editor
             RectTransform rect = textObject.GetComponent<RectTransform>();
             SetAnchors(rect, anchorMin, anchorMax);
             Text text = textObject.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
             text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.resizeTextForBestFit = true;
@@ -430,15 +428,16 @@ namespace ColorGateRunner.Editor
                 buttonObject.GetComponent<RectTransform>(),
                 anchorMin,
                 anchorMax);
-            buttonObject.GetComponent<Image>().color = FromHex(0x2D7FF9);
-            CreateText(
+            Text labelText = CreateText(
                 "Label",
                 buttonObject.transform,
                 label,
                 22,
                 Vector2.zero,
                 Vector2.one);
-            return buttonObject.GetComponent<Button>();
+            Button button = buttonObject.GetComponent<Button>();
+            Theme01UiSkinBuilder.ApplyButton(button, name, labelText);
+            return button;
         }
 
         private static void CreateEventSystem(Transform parent)

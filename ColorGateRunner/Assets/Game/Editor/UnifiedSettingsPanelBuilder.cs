@@ -173,7 +173,7 @@ namespace ColorGateRunner.Editor
                 16,
                 new Vector2(0.72f, 0f),
                 Vector2.one);
-            stateLabel.color = new Color(0.32f, 0.90f, 0.56f, 1f);
+            stateLabel.color = NeonUiPalette.Signal;
             toggle.targetGraphic = root.GetComponent<Image>();
             toggle.graphic = null;
             toggle.isOn = true;
@@ -236,11 +236,9 @@ namespace ColorGateRunner.Editor
             root.transform.SetParent(parent, false);
             SetAnchors(root.GetComponent<RectTransform>(), minimum, maximum);
             Text text = root.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
             text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
