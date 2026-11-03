@@ -1233,3 +1233,19 @@ fairness, or polish.
   `510/510`; PlayMode `272` with one intentional opt-in ignore; Campaign
   520-row and Step 10 artifacts hash-identical to the baseline; D3D11 Campaign
   capture `2/2`; Product save and Campaign PlayerPrefs exact.
+
+
+### Iteration 64C curved rival lanes and zoned city
+
+- EditMode `RivalTrackLayoutTests` proves per-seed determinism, a ±9 / height 0
+  start, lane distance within 8.5–16.5 and height within 0–4.5 for several
+  seeds, and that the two rivals sway and climb differently.
+- PlayMode `RivalRace_RunsOnCurvedLanesWithRankAndClearCity` proves runners sit
+  exactly on their layout point on the correct side, and that every tower is at
+  least 7.5 from the route and clears its side's rival lane by the lane half
+  width plus the tower half width, before and after three seconds of play.
+  `RivalRace_IsHiddenOnTutorialStage` proves Stage 1 has no layout and keeps
+  the original tower band.
+- Final evidence: Builders `2/2`; focused EditMode `12/12`; EditMode
+  `514/514`; PlayMode `272` passed, `1` intentional opt-in ignore; D3D11 Campaign capture `2/2`; Product
+  save and Campaign PlayerPrefs exact.

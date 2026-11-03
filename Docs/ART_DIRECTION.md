@@ -1092,3 +1092,11 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Rival runners use the base silhouette only (no color-form parts) with one
   Magenta and one Signal shell. The rank chip sits under the Stage title in
   Magenta when first and Signal otherwise.
+
+
+## Iteration 64C rival lanes and city zoning
+
+- Each rival lane sways and climbs on its own seeded curve around the player's
+  road, so the lanes read as separate elevated roads rather than copies.
+- City towers stand either in the gap between the player road and a rival lane
+  or outside the lane, never on a lane, giving a layered future-city skyline.

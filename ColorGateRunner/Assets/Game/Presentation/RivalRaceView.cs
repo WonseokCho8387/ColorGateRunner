@@ -5,18 +5,18 @@ using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
 {
-    // Draws the two Ghost rivals on their own lanes beside the Campaign road.
+    // Draws the two Ghost rivals on their own curved lanes beside the
+    // Campaign road (see RivalTrackLayout).
     // The rivals are presentation only: RivalRaceSimulation owns their
     // progress and nothing here touches the player's StageSession.
     public sealed class RivalRaceView : MonoBehaviour
     {
-        internal const float LaneOffset = 9f;
-        internal const float CityClearance = 16f;
         internal const int GatesPerLane = 3;
         internal const int NeonPartsPerGate = 3;
         private const float GateFlashSeconds = 0.35f;
         private const float StumbleWobbleDegrees = 14f;
         private const float RunnerHeight = 1f;
+        private const float HeadingLookAhead = 1.5f;
 
         [SerializeField] private MeshFilter[] laneMeshFilters;
         [SerializeField] private Transform[] rivalRunners;
@@ -34,11 +34,13 @@ namespace ColorGateRunner.Presentation
             new float[RivalRaceSimulation.RivalCount * GatesPerLane];
         private readonly int[] _lastResolved = new int[RivalRaceSimulation.RivalCount];
         private RivalRaceSimulation _race;
+        private RivalTrackLayout _layout;
         private CampaignSplinePathView _path;
         private int _lastPlace = -1;
 
         internal bool RaceActive => _race != null;
         internal RivalRaceSimulation Race => _race;
+        internal RivalTrackLayout TrackLayout => _layout;
         internal Text RankText => rankText;
         internal Transform GetRunner(int rival) => rivalRunners[rival];
         internal Mesh GetLaneMesh(int rival) => _laneMeshes[rival];
@@ -104,9 +106,6 @@ namespace ColorGateRunner.Presentation
             Hide();
         }
 
-        internal static float GetLaneOffset(int rival) =>
-            rival == 0 ? -LaneOffset : LaneOffset;
-
         internal void Begin(
             StageDefinition stage,
             CampaignSplinePathView path,
@@ -129,6 +128,7 @@ namespace ColorGateRunner.Presentation
                 stage,
                 initialGateLeadDistance,
                 goalOffsetAfterFinalGate);
+            _layout = new RivalTrackLayout(stage.Seed);
             gameObject.SetActive(true);
             for (int rival = 0; rival < RivalRaceSimulation.RivalCount; rival++)
             {
@@ -136,7 +136,11 @@ namespace ColorGateRunner.Presentation
                 {
                     _laneMeshes[rival] = new Mesh { name = $"RivalLane_{rival}" };
                 }
-                _path.BuildLaneMesh(_laneMeshes[rival], GetLaneOffset(rival));
+                int lane = rival;
+                _path.BuildLaneMesh(
+                    _laneMeshes[lane],
+                    distance => _layout.GetLateralOffset(lane, distance),
+                    distance => _layout.GetHeight(lane, distance));
                 laneMeshFilters[rival].sharedMesh = _laneMeshes[rival];
                 laneMeshFilters[rival].gameObject.SetActive(true);
                 rivalRunners[rival].gameObject.SetActive(true);
@@ -195,6 +199,7 @@ namespace ColorGateRunner.Presentation
         internal void Hide()
         {
             _race = null;
+            _layout = null;
             _path = null;
             _lastPlace = -1;
             if (rankText != null)
@@ -265,14 +270,13 @@ namespace ColorGateRunner.Presentation
                 view.gameObject.SetActive(false);
                 return;
             }
-            _path.EvaluatePose(
+            EvaluateLanePose(
+                rival,
                 _race.GetGateDistance(gate),
                 0f,
                 out Vector3 position,
                 out Quaternion rotation);
-            view.SetPositionAndRotation(
-                position + (rotation * Vector3.right * GetLaneOffset(rival)),
-                rotation);
+            view.SetPositionAndRotation(position, rotation);
             SetGateMaterial(index, gateIdleMaterial);
             view.gameObject.SetActive(true);
         }
@@ -302,7 +306,8 @@ namespace ColorGateRunner.Presentation
         {
             for (int rival = 0; rival < RivalRaceSimulation.RivalCount; rival++)
             {
-                _path.EvaluatePose(
+                EvaluateLanePose(
+                    rival,
                     _race.GetDistance(rival),
                     RunnerHeight,
                     out Vector3 position,
@@ -313,10 +318,41 @@ namespace ColorGateRunner.Presentation
                         StumbleWobbleDegrees;
                     rotation *= Quaternion.Euler(0f, 0f, wobble);
                 }
-                rivalRunners[rival].SetPositionAndRotation(
-                    position + (rotation * Vector3.right * GetLaneOffset(rival)),
-                    rotation);
+                rivalRunners[rival].SetPositionAndRotation(position, rotation);
             }
+        }
+
+        // World pose on a rival lane, facing along the lane's own sway.
+        internal void EvaluateLanePose(
+            int rival,
+            float distance,
+            float heightOffset,
+            out Vector3 position,
+            out Quaternion rotation)
+        {
+            position = GetLanePoint(rival, distance, heightOffset);
+            Vector3 ahead = GetLanePoint(
+                rival,
+                distance + HeadingLookAhead,
+                heightOffset);
+            Vector3 forward = ahead - position;
+            if (forward.sqrMagnitude < 0.0001f)
+            {
+                _path.EvaluatePose(distance, 0f, out _, out rotation);
+                return;
+            }
+            rotation = Quaternion.LookRotation(forward, Vector3.up);
+        }
+
+        private Vector3 GetLanePoint(int rival, float distance, float heightOffset)
+        {
+            _path.EvaluatePose(
+                distance,
+                heightOffset + _layout.GetHeight(rival, distance),
+                out Vector3 center,
+                out Quaternion pathRotation);
+            return center + (pathRotation * Vector3.right *
+                _layout.GetLateralOffset(rival, distance));
         }
 
         private void UpdateRank(float playerDistance, float playerFinishSeconds)

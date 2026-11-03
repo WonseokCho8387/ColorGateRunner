@@ -1,5 +1,26 @@
 # Current Status
 
+## Iteration 64C — Curved Rival Lanes and Zoned City (2026-11-03 KST)
+
+- 기준: `308625a` (Iteration 64B) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 피드백: 라이벌 트랙이 플레이어와 같은 커브일 필요가 없고, "나 외에도 누군가
+  달리고 있다"는 느낌이 목적이다. `RivalTrackLayout`이 Stage 시드로 라이벌마다
+  다른 좌우 흔들림(경로 중심에서 8.5–16.5)과 높낮이(0–4.5)를 만든다. 출발선에서는
+  ±9·높이 0에서 40m에 걸쳐 섞여 들어간다. 차선 메시, 러너, 측면 게이트, 러너 진행
+  방향이 이 형태를 따른다.
+- 빌딩은 트랙에 맞춰 배치한다. 라이벌 단계에서 각 빌딩은 플레이어 도로와 라이벌
+  차선 사이의 틈(틈이 충분할 때 45%)이나 라이벌 차선 바깥에 서며, 빌딩 깊이 전체에서
+  차선과 겹치지 않는다. Stage 1 배치는 이전과 같다.
+- 라이벌 진행 계산, 순위, 판정, 보상, 저장, 카메라, Stage 데이터, Builder, Scene은
+  변경 없음.
+- 자동 검증: **EditMode 514/514 passed; PlayMode `272` passed, `1` intentional opt-in ignore** (신규 EditMode 4,
+  PlayMode 라이벌 차선 테스트 갱신). Builder 각 2회(변경 없음 확인 후 Scene 복원).
+  D3D11 Step9C 캡처 `2/2`에서 서로 다른 커브의 측면 차선과 차선 사이/바깥 빌딩을
+  확인했다. Core 변경이 없어 시뮬레이션은 재실행하지 않았다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+  근거: `Artifacts/Validation/Iteration64C/`.
+
 ## Iteration 64B — Rival Race Presentation (2026-11-03 KST)
 
 - 기준: `0c36ecc` (Iteration 64A) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
@@ -145,9 +166,9 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 64B commit `feat: show rival racers beside the campaign road`,
-  whose parent is `0c36ecc5523a24d20d37c705a3c63da03bf1324a`
-  (`feat: add deterministic rival race simulation`).
+- Implementation base: the Iteration 64C commit `feat: give rival lanes their own curves`,
+  whose parent is `308625a234b66d943b1b1b7584478b0f1cb6e1c8`
+  (`feat: show rival racers beside the campaign road`).
 - Iteration 63 commit: `dfa10cfb69f61ac373c227cef6e79d6776ebcb95`
   (`feat: refresh settings and placeholder pages`).
 - Iteration 62 base parent: `d9630311d18785aa87f49e483029538d969f49aa`
@@ -169,7 +190,8 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 64 — Rival Race (64A Core, 64B presentation)**.
+- Current completed iteration: **Iteration 64 — Rival Race (64A Core, 64B presentation,
+  64C curved lanes and zoned city)**.
   Campaign Stage 2+ shows two presentation-only Ghost rivals on side lanes with
   a live rank chip and a clear-result placement line.
 - Iteration 63 — Settings and Placeholder Page Refresh.
@@ -541,6 +563,8 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 64C on `2026-11-03` KST (parent `308625a`): EditMode `514/514`;
+  PlayMode `272` passed, `1` intentional opt-in ignore. Builders `2/2`. Core unchanged, so simulation hashes carry over.
 - Iteration 64B on `2026-11-03` KST (parent `0c36ecc`): EditMode `510/510`;
   PlayMode `272` passed, `1` intentional opt-in ignore. Builders `2/2`.
   Campaign and Step 10 simulation artifacts match the baseline hashes below.

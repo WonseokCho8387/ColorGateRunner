@@ -3529,11 +3529,12 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(rivals.RaceActive, Is.False);
             Assert.That(rivals.gameObject.activeSelf, Is.False);
             Assert.That(rivals.RankText.gameObject.activeSelf, Is.False);
+            Assert.That(rivals.TrackLayout, Is.Null);
             SplineCityPoolView city = _controller.SplineCityPool;
             for (int index = 0; index < city.SlotCount; index++)
             {
                 Assert.That(city.GetSlotLateralDistance(index),
-                    Is.LessThan(RivalRaceView.CityClearance));
+                    Is.LessThan(SplineCityPoolView.MinimumLateralOffset + 4.01f));
             }
         }
 
@@ -3557,39 +3558,74 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void RivalRace_RunsOnOffsetLanesWithRankAndClearCity()
+        public void RivalRace_RunsOnCurvedLanesWithRankAndClearCity()
         {
             SelectAndStartStage(9);
             RivalRaceView rivals = _controller.RivalRace;
             Assert.That(rivals.RaceActive, Is.True);
             Assert.That(rivals.RankText.gameObject.activeSelf, Is.True);
-            SplineCityPoolView city = _controller.SplineCityPool;
-            for (int index = 0; index < city.SlotCount; index++)
-            {
-                Assert.That(city.GetSlotLateralDistance(index),
-                    Is.GreaterThanOrEqualTo(RivalRaceView.CityClearance));
-            }
+            RivalTrackLayout layout = rivals.TrackLayout;
+            Assert.That(layout, Is.Not.Null);
+            AssertCityClearsRivalLanes(_controller.SplineCityPool, layout);
 
             for (int frame = 0; frame < 180; frame++)
             {
                 _controller.TickMovement(1f / 60f);
             }
+            AssertCityClearsRivalLanes(_controller.SplineCityPool, layout);
             CampaignSplinePathView path = _controller.CampaignSplinePath;
             for (int rival = 0; rival < RivalRaceSimulation.RivalCount; rival++)
             {
                 float distance = rivals.Race.GetDistance(rival);
                 Assert.That(distance, Is.GreaterThan(0f));
-                path.EvaluatePose(distance, 1f, out Vector3 center, out _);
+                path.EvaluatePose(
+                    distance,
+                    1f + layout.GetHeight(rival, distance),
+                    out Vector3 center,
+                    out Quaternion pathRotation);
                 Vector3 runner = rivals.GetRunner(rival).position;
-                Assert.That(
-                    Vector3.Distance(center, runner),
-                    Is.EqualTo(RivalRaceView.LaneOffset).Within(1.5f));
+                Vector3 expected = center + (pathRotation * Vector3.right *
+                    layout.GetLateralOffset(rival, distance));
+                Assert.That(Vector3.Distance(expected, runner),
+                    Is.LessThan(0.01f));
+                float side = Vector3.Dot(
+                    runner - center,
+                    pathRotation * Vector3.right);
+                Assert.That(Mathf.Sign(side),
+                    Is.EqualTo(RivalTrackLayout.GetSide(rival)));
                 Assert.That(rivals.GetLaneMesh(rival), Is.Not.Null);
                 Assert.That(rivals.GetLaneMesh(rival).subMeshCount,
                     Is.EqualTo(2));
             }
             Assert.That(rivals.RankText.text, Does.EndWith("/ 3"));
             Assert.That(CountNamed("ColorShell"), Is.EqualTo(1));
+        }
+
+        private static void AssertCityClearsRivalLanes(
+            SplineCityPoolView city,
+            RivalTrackLayout layout)
+        {
+            float laneMargin = RivalTrackLayout.LaneHalfWidth +
+                SplineCityPoolView.TowerHalfWidth;
+            int between = 0;
+            for (int index = 0; index < city.SlotCount; index++)
+            {
+                float lateral = city.GetSlotLateralDistance(index);
+                Assert.That(lateral, Is.GreaterThanOrEqualTo(
+                    SplineCityPoolView.MinimumLateralOffset));
+                int rival = RivalTrackLayout.GetRivalOnSide(city.GetSlotSide(index));
+                float lane = layout.GetLaneDistance(
+                    rival,
+                    city.GetSlotPathDistance(index));
+                Assert.That(Mathf.Abs(lateral - lane),
+                    Is.GreaterThanOrEqualTo(laneMargin),
+                    $"Tower {index} stands on rival lane {rival}.");
+                if (lateral < lane)
+                {
+                    between++;
+                }
+            }
+            TestContext.WriteLine($"Towers between lanes: {between}/{city.SlotCount}");
         }
 
         [Test]

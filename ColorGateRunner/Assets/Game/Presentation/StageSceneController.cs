@@ -2446,20 +2446,18 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.DisplayNumber,
                 _goalPathDistance);
             trackPool.gameObject.SetActive(false);
-            bool rivals = RivalRaceSimulation.IsEnabledFor(_session.Stage);
-            splineCityPool.Build(
-                campaignSplinePath,
-                _session.Stage.Seed,
-                _goalPathDistance,
-                rivals
-                    ? RivalRaceView.CityClearance
-                    : SplineCityPoolView.MinimumLateralOffset);
             LastRacePlace = 0;
             rivalRace.Begin(
                 _session.Stage,
                 campaignSplinePath,
                 CampaignInitialGateLeadDistance,
                 CampaignGoalDistance);
+            // TrackLayout is null on stages without rivals.
+            splineCityPool.Build(
+                campaignSplinePath,
+                _session.Stage.Seed,
+                _goalPathDistance,
+                rivalRace.TrackLayout);
             ApplyCampaignPlayerPose();
             runnerSteeringView.ResetSteering();
             SnapCampaignCameraFollow();

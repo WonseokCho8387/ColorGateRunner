@@ -184,10 +184,21 @@ namespace ColorGateRunner.Presentation
             _runtimeMesh = null;
         }
 
-        // Fills a road ribbon that follows the route at a lateral offset, so
-        // rival lanes share the player's curves without their own Spline.
-        internal void BuildLaneMesh(Mesh target, float lateralOffset)
+        // Fills a road ribbon that sways and climbs around the route by
+        // distance, so rival lanes get their own curves without a Spline.
+        internal void BuildLaneMesh(
+            Mesh target,
+            Func<float, float> lateralOffset,
+            Func<float, float> heightOffset)
         {
+            if (lateralOffset == null)
+            {
+                throw new ArgumentNullException(nameof(lateralOffset));
+            }
+            if (heightOffset == null)
+            {
+                throw new ArgumentNullException(nameof(heightOffset));
+            }
             if (target == null)
             {
                 throw new ArgumentNullException(nameof(target));
@@ -198,7 +209,7 @@ namespace ColorGateRunner.Presentation
                     "Campaign Spline route has not been built.");
             }
             target.Clear();
-            FillRibbon(target, lateralOffset);
+            FillRibbon(target, lateralOffset, heightOffset);
         }
 
         private void RebuildTrackMesh()
@@ -216,11 +227,14 @@ namespace ColorGateRunner.Presentation
                 _runtimeMesh.Clear();
             }
 
-            FillRibbon(_runtimeMesh, 0f);
+            FillRibbon(_runtimeMesh, null, null);
             trackMeshFilter.sharedMesh = _runtimeMesh;
         }
 
-        private void FillRibbon(Mesh mesh, float lateralOffset)
+        private void FillRibbon(
+            Mesh mesh,
+            Func<float, float> lateralOffset,
+            Func<float, float> heightOffset)
         {
             int pathRowCount = Mathf.Max(
                 2,
@@ -240,6 +254,7 @@ namespace ColorGateRunner.Presentation
                 Vector3 worldPosition;
                 Quaternion worldRotation;
                 float textureDistance;
+                float distance = 0f;
                 if (row == 0)
                 {
                     worldPosition = start -
@@ -249,7 +264,7 @@ namespace ColorGateRunner.Presentation
                 }
                 else
                 {
-                    float distance = _pathLength *
+                    distance = _pathLength *
                         ((row - 1f) / (pathRowCount - 1f));
                     EvaluatePose(
                         distance,
@@ -261,8 +276,12 @@ namespace ColorGateRunner.Presentation
 
                 Vector3 right = transform.InverseTransformDirection(
                     worldRotation * Vector3.right).normalized;
+                Vector3 up = transform.InverseTransformDirection(
+                    worldRotation * Vector3.up).normalized;
+                float lateral = lateralOffset == null ? 0f : lateralOffset(distance);
+                float height = heightOffset == null ? 0f : heightOffset(distance);
                 Vector3 position = transform.InverseTransformPoint(
-                    worldPosition) + (right * lateralOffset);
+                    worldPosition) + (right * lateral) + (up * height);
                 int vertex = row * 4;
                 vertices[vertex] = position - (right * halfWidth);
                 vertices[vertex + 1] =

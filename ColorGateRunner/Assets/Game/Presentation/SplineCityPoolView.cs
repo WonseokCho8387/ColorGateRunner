@@ -12,6 +12,11 @@ namespace ColorGateRunner.Presentation
         private const float DistanceJitter = 2f;
         private const float RecycleBehindDistance = 24f;
         private const float GoalVisualBuffer = 24f;
+        // Towers are 1.6 units wide and 2.5 deep (Theme01 NeonCityBackdrop).
+        internal const float TowerHalfWidth = 0.8f;
+        private const float TowerHalfDepth = 1.25f;
+        internal const float LaneClearance = 1f;
+        private const float BetweenChance = 0.45f;
 
         [SerializeField] private Transform[] buildingBodies;
         [SerializeField] private Transform[] buildingGlows;
@@ -25,8 +30,9 @@ namespace ColorGateRunner.Presentation
         private int[] _sideOrdinals;
         private int[] _sideCounts;
         private CampaignSplinePathView _path;
+        private float[] _lateralDistances;
         private uint _stageSeed;
-        private float _lateralClearance = MinimumLateralOffset;
+        private RivalTrackLayout _rivalTracks;
         private float _goalDistance;
         private bool _campaignActive;
 
@@ -84,15 +90,16 @@ namespace ColorGateRunner.Presentation
             uint stageSeed,
             float goalDistance)
         {
-            Build(path, stageSeed, goalDistance, MinimumLateralOffset);
+            Build(path, stageSeed, goalDistance, null);
         }
 
-        // Rival stages push the towers outward so the side lanes stay clear.
+        // On rival stages each tower stands either in the gap between the
+        // player road and a rival lane, or outside that lane, never on it.
         internal void Build(
             CampaignSplinePathView path,
             uint stageSeed,
             float goalDistance,
-            float lateralClearance)
+            RivalTrackLayout rivalTracks)
         {
             if (!HasRequiredReferences)
             {
@@ -107,7 +114,7 @@ namespace ColorGateRunner.Presentation
             }
             _stageSeed = stageSeed;
             _goalDistance = Mathf.Max(0f, goalDistance);
-            _lateralClearance = Mathf.Max(MinimumLateralOffset, lateralClearance);
+            _rivalTracks = rivalTracks;
             _campaignActive = true;
 
             int leftCount = 0;
@@ -153,6 +160,7 @@ namespace ColorGateRunner.Presentation
         {
             _campaignActive = false;
             _path = null;
+            _rivalTracks = null;
             if (_originalBodyPositions == null)
             {
                 return;
@@ -172,7 +180,17 @@ namespace ColorGateRunner.Presentation
 
         internal float GetSlotLateralDistance(int index)
         {
-            return GetLateralOffset(index);
+            return _lateralDistances[index];
+        }
+
+        internal float GetSlotPathDistance(int index)
+        {
+            return GetPlacementDistance(index);
+        }
+
+        internal float GetSlotSide(int index)
+        {
+            return _originalBodyPositions[index].x >= 0f ? 1f : -1f;
         }
 
         internal Vector3 GetSlotPosition(int index)
@@ -191,6 +209,7 @@ namespace ColorGateRunner.Presentation
             _sequenceIndices = new int[count];
             _sideOrdinals = new int[count];
             _sideCounts = new int[count];
+            _lateralDistances = new float[count];
             for (int index = 0; index < count; index++)
             {
                 Transform body = buildingBodies[index];
@@ -209,6 +228,9 @@ namespace ColorGateRunner.Presentation
             float distance = GetPlacementDistance(index);
             Transform body = buildingBodies[index];
             Transform glow = buildingGlows[index];
+            float side = GetSlotSide(index);
+            float lateral = GetLateralOffset(index, distance, side);
+            _lateralDistances[index] = lateral;
             if (distance > _goalDistance + GoalVisualBuffer)
             {
                 body.gameObject.SetActive(false);
@@ -223,8 +245,6 @@ namespace ColorGateRunner.Presentation
                 0f,
                 out Vector3 pathPosition,
                 out Quaternion pathRotation);
-            bool rightSide = _originalBodyPositions[index].x >= 0f;
-            float side = rightSide ? 1f : -1f;
             Vector3 pathRight = pathRotation * Vector3.right;
             Vector3 flatForward = Vector3.ProjectOnPlane(
                 pathRotation * Vector3.forward,
@@ -237,7 +257,7 @@ namespace ColorGateRunner.Presentation
                 flatForward,
                 Vector3.up);
             Vector3 bodyPosition = pathPosition +
-                (pathRight * side * GetLateralOffset(index)) +
+                (pathRight * side * lateral) +
                 (Vector3.up * _originalBodyPositions[index].y);
             body.SetPositionAndRotation(
                 bodyPosition,
@@ -256,11 +276,30 @@ namespace ColorGateRunner.Presentation
                  DistanceJitter * 2f);
         }
 
-        private float GetLateralOffset(int index)
+        private float GetLateralOffset(int index, float distance, float side)
         {
             int sequence = _sequenceIndices[index];
-            return _lateralClearance +
-                (Hash01(_stageSeed, sequence, index, 29u) * LateralJitter);
+            float jitter = Hash01(_stageSeed, sequence, index, 29u);
+            if (_rivalTracks == null)
+            {
+                return MinimumLateralOffset + (jitter * LateralJitter);
+            }
+
+            _rivalTracks.GetLaneDistanceRange(
+                RivalTrackLayout.GetRivalOnSide(side),
+                distance - TowerHalfDepth,
+                distance + TowerHalfDepth,
+                out float nearestLane,
+                out float farthestLane);
+            float laneMargin = RivalTrackLayout.LaneHalfWidth +
+                LaneClearance + TowerHalfWidth;
+            float gapOuter = nearestLane - laneMargin;
+            if (gapOuter >= MinimumLateralOffset &&
+                Hash01(_stageSeed, sequence, index, 41u) < BetweenChance)
+            {
+                return Mathf.Lerp(MinimumLateralOffset, gapOuter, jitter);
+            }
+            return farthestLane + laneMargin + (jitter * LateralJitter);
         }
 
         private static float Hash01(
