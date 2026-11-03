@@ -36,7 +36,8 @@ namespace ColorGateRunner.Presentation
         StageStartAuthorizationResult Authorize(
             bool shield,
             bool booster,
-            string attemptTransactionId);
+            string attemptTransactionId,
+            string stageId);
         ProductMutationResult Purchase(
             StartItemKind kind,
             string transactionId);
@@ -76,12 +77,15 @@ namespace ColorGateRunner.Presentation
         public StageStartAuthorizationResult Authorize(
             bool shield,
             bool booster,
-            string attemptTransactionId)
+            string attemptTransactionId,
+            string stageId)
         {
             return _session.AuthorizeStageStartWithReceipt(
                 shield,
                 booster,
-                attemptTransactionId);
+                attemptTransactionId,
+                true,
+                stageId);
         }
 
         public ProductMutationResult Purchase(
@@ -103,7 +107,8 @@ namespace ColorGateRunner.Presentation
         public StageStartAuthorizationResult Authorize(
             bool shield,
             bool booster,
-            string attemptTransactionId)
+            string attemptTransactionId,
+            string stageId)
         {
             ProductMutationResult result = !shield && !booster
                 ? ProductMutationResult.Success(false)

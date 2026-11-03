@@ -3871,3 +3871,47 @@ Phase A 탐색에서 플레이어 속도가 진행도와 Booster로만 정해지
   입력 지연은 사람이 확인해야 한다.
 - 최고 콤보 저장, 스테이지 크라운·업적, Collection 히스토리, Journey 재도전은
   Iteration 68로 미룬다. 음악 재생·박자 연동은 그 뒤에 다룬다.
+
+
+---
+
+## Iteration 68A — Stage Crowns and Campaign Replay (2026-11-03)
+
+### Play / Analyze
+
+Phase A에서 스테이지 기록에 클리어·Continue 횟수는 있으나 실패 횟수가 없고, 시작 승인이
+스테이지를 모르며, Campaign 클리어의 Replay 버튼이 숨겨져 있음을 확인했다. 모든 스테이지에
+색 전환 게이트가 13개 이상이라 10 COMBO가 어디서나 가능하다.
+
+### Design
+
+크라운 판정은 순수 C# `StageCrownPolicy`가 맡고 `StageProgress.RecordClear`가 누적한다.
+Product는 선택 필드 세 개를 검증·저장하고 시작 트랜잭션에서 시도 횟수를 센다. 클리어
+화면은 저장소에서 다시 읽은 기록으로 NEW를 판정한다.
+
+### Implementation
+
+`Core/StageCrownPolicy`(`StageCrown`, `StageClearRun`), `StageRecord` 확장,
+`StageSession.ShieldAbsorbCount`, `PerfectSwitchCombo.BreakCount`, Product 저장 필드·검증·
+`CountStageAttempt`·크라운 비감소 병합, `StartItemInventoryGateway` stage ID 전달,
+`Presentation/StageCrownResultView`, `StageSceneController` 연결과 Campaign REPLAY,
+`GrayboxSceneBuilder` 클리어 카드 재배치.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. Checker should-fix 4건을 한
+번의 수정으로 반영했다.
+
+### Learning
+
+저장 성공 여부와 저장소가 실제로 보존한 값을 기준으로 NEW를 판정해야 레거시 저장소나 저장
+실패에서 거짓 알림이 생기지 않는다. 새 PlayMode 테스트는 클리어 시간이 0이면 기록이 남지
+않으므로 기존 헬퍼처럼 시간을 진행해야 한다.
+
+### Deferred / Human Review
+
+- 크라운 줄·NEW·MAX COMBO의 가독성, 아래 줄 REPLAY/LOBBY 배치, Playtest 클리어에서
+  LOBBY가 오른쪽에 홀로 놓이는 모습은 사람이 확인해야 한다. Step9C 캡처는 클리어 시간이
+  0초로 고정돼 크라운이 모두 흐리게 나온다.
+- 크라운을 노린 재도전이 Heart 소모로 막히는지, FULL COMBO 난이도는 플레이로 판단해야 한다.
+- Journey 스테이지 목록·Replay 진입, Collection 히스토리(7전8기, 크라운 합계)는 68B로 미룬다.

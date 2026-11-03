@@ -55,6 +55,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private SplineCityPoolView splineCityPool;
         [SerializeField] private RivalRaceView rivalRace;
         [SerializeField] private ComboHudView comboHud;
+        [SerializeField] private StageCrownResultView crownResult;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -175,6 +176,11 @@ namespace ColorGateRunner.Presentation
         private string _clearRewardSummary = string.Empty;
         private StageClearRewardPreview _clearRewardPreview;
         private bool _clearRewardsEarned;
+        private StageCrown _clearCrownsOwned;
+        private StageCrown _clearCrownsNew;
+        private StageCrown _clearCrownsEarned;
+        private int _clearBestMaxCombo;
+        private int _clearAttempt;
         private string _heartRefundToken = string.Empty;
         private IHapticFeedback _haptics;
         private DevelopmentTelemetry _telemetry;
@@ -332,6 +338,7 @@ namespace ColorGateRunner.Presentation
         internal RivalRaceView RivalRace => rivalRace;
         internal ComboHudView ComboHud => comboHud;
         internal PerfectSwitchCombo Combo => _combo;
+        internal StageCrownResultView CrownResult => crownResult;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -1152,7 +1159,8 @@ namespace ColorGateRunner.Presentation
                 _startItemInventory.Authorize(
                 _shieldSelected,
                 _boosterSelected,
-                startTransactionId);
+                startTransactionId,
+                _selectedStageId);
             if (!authorization.Succeeded)
             {
                 _startItemStartError =
@@ -1735,6 +1743,11 @@ namespace ColorGateRunner.Presentation
             comboHud = view;
         }
 
+        internal void ConfigureCrownResult(StageCrownResultView view)
+        {
+            crownResult = view;
+        }
+
         internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
         {
             splineTrackLab = lab;
@@ -1844,6 +1857,7 @@ namespace ColorGateRunner.Presentation
                 !splineCityPool.HasRequiredReferences ||
                 rivalRace == null || !rivalRace.HasRequiredReferences ||
                 comboHud == null || !comboHud.HasRequiredReferences ||
+                crownResult == null || !crownResult.HasRequiredReferences ||
                 gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
@@ -2979,11 +2993,23 @@ namespace ColorGateRunner.Presentation
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
+            StageCrown previousCrowns = record.Crowns;
+            _clearAttempt = record.AttemptsSinceClear;
+            _clearCrownsEarned = StageCrown.None;
+            _clearCrownsOwned = previousCrowns;
+            _clearCrownsNew = StageCrown.None;
+            _clearBestMaxCombo = record.BestMaxCombo;
             record = StageProgress.RecordClear(
                 record,
                 _session.ElapsedPlayingSeconds,
                 _session.Items,
-                _session.ContinueUsed);
+                new StageClearRun(
+                    _session.ContinueUsed,
+                    _session.ShieldAbsorbCount,
+                    _combo.Max,
+                    _combo.PerfectCount,
+                    _combo.BreakCount),
+                out StageCrown earned);
             int highestUnlocked = StageProgress.HighestUnlockedAfterClear(
                 _highestUnlocked,
                 _selectedStageNumber);
@@ -3007,6 +3033,14 @@ namespace ColorGateRunner.Presentation
             if (result.Succeeded)
             {
                 _highestUnlocked = highestUnlocked;
+                // Read back what the store kept so NEW, Comeback and BEST
+                // never announce a value that was not persisted.
+                StageRecord saved =
+                    _progressStore.LoadRecord(_selectedStageNumber);
+                _clearCrownsOwned = saved.Crowns;
+                _clearCrownsEarned = earned & saved.Crowns;
+                _clearCrownsNew = _clearCrownsEarned & ~previousCrowns;
+                _clearBestMaxCombo = saved.BestMaxCombo;
                 if (productRewardAuthority && firstClear)
                 {
                     StageClearRewardPreview reward =
@@ -3172,7 +3206,9 @@ namespace ColorGateRunner.Presentation
                         _progressStore.LoadRecord(_selectedStageNumber);
                     clearDetailsText.text =
                         $"STAGE {_selectedStageNumber} COMPLETE\n" +
-                        $"MAX COMBO {_combo.Max}\n" +
+                        ((_clearCrownsEarned & StageCrown.Comeback) != 0
+                            ? $"COMEBACK CLEAR · ATTEMPT {_clearAttempt}\n"
+                            : string.Empty) +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
                         $"BEST {record.BestTime:0.00}s" +
@@ -3184,11 +3220,17 @@ namespace ColorGateRunner.Presentation
                         out _,
                         out string continuationLabel);
                     clearContinueButton.gameObject.SetActive(hasContinuation);
-                    replayButton.gameObject.SetActive(false);
+                    replayButton.gameObject.SetActive(true);
                     clearLobbyButton.gameObject.SetActive(true);
+                    SetButtonLabel(replayButton, "REPLAY");
                     SetButtonLabel(
                         clearContinueButton,
                         continuationLabel);
+                    crownResult.Show(
+                        _combo.Max,
+                        _clearBestMaxCombo,
+                        _clearCrownsOwned,
+                        _clearCrownsNew);
                     SetButtonLabel(clearLobbyButton, "LOBBY");
                     _campaignResultFlow.BeginClear();
                     resultSequenceView.PlayCampaignClear(
@@ -3369,6 +3411,7 @@ namespace ColorGateRunner.Presentation
             splineCityPool.ResetPool();
             rivalRace.Hide();
             comboHud.Hide();
+            crownResult.Hide();
             trackPool.gameObject.SetActive(true);
             trackPool.ResetPool();
             gateBreakEffects.ResetPool();

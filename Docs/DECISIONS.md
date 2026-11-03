@@ -1908,3 +1908,17 @@ Status: Approved and implemented.
   다룬다.
 - 음악은 사용자가 직접 제작하며 현재 게이트 박자를 기준으로 맞춘다. 게이트 배치를 음악에
   종속시키지 않는다.
+
+
+
+## Iteration 68A Stage crowns and Campaign replay (2026-11-03 기록)
+
+- 사용자 결정(권장값 승인): 스테이지 크라운은 CLEAN, 10 COMBO, FULL COMBO 3종이며 Coin 등
+  보상을 주지 않는다. FULL COMBO는 Booster·Echo 통과를 허용한다(Iteration 67 콤보 규칙 유지).
+- 7전8기는 마지막 클리어 이후 승인된 시작 8번째 이상에서의 클리어로 정의하고, 시도 횟수는
+  시작 트랜잭션에서 센다. Continue로 이어서 클리어해도 클리어로 본다.
+- 이전 결정 "Campaign clear hides Replay"를 대체한다. Campaign 클리어는 같은 스테이지
+  PreRun으로 가는 REPLAY를 제공하며 일반 Heart 시작 규칙을 따른다. 재클리어 횟수가 League
+  선택 seed에 반영되는 기존 규칙은 그대로다.
+- Iteration 68은 68A(크라운 저장·클리어 화면·Replay)와 68B(Journey 스테이지 목록·Collection
+  히스토리)로 나눈다.

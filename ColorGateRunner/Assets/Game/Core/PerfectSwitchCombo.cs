@@ -31,6 +31,7 @@ namespace ColorGateRunner.Core
         public int Current { get; private set; }
         public int Max { get; private set; }
         public int PerfectCount { get; private set; }
+        public int BreakCount { get; private set; }
 
         public ComboStep Record(GateOutcome outcome, GateSwitchTiming timing)
         {
@@ -54,6 +55,7 @@ namespace ColorGateRunner.Core
                         return ComboStep.Perfect;
                     }
                     Current = 0;
+                    BreakCount++;
                     return ComboStep.Broken;
                 case GateOutcome.Echoed:
                 case GateOutcome.Boosted:
@@ -61,6 +63,7 @@ namespace ColorGateRunner.Core
                 default:
                     // Shielded, Invulnerable after Continue, and Mismatched.
                     Current = 0;
+                    BreakCount++;
                     return ComboStep.Broken;
             }
         }
@@ -70,6 +73,7 @@ namespace ColorGateRunner.Core
             Current = 0;
             Max = 0;
             PerfectCount = 0;
+            BreakCount = 0;
         }
     }
 }

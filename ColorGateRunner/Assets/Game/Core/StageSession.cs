@@ -77,6 +77,7 @@ namespace ColorGateRunner.Core
         public StartItemSelection Items => _items;
         public int ContinueUseCount { get; private set; }
         public bool ContinueUsed => ContinueUseCount > 0;
+        public int ShieldAbsorbCount { get; private set; }
         public bool ContinueAvailable =>
             FlowState == StageFlowState.Failed;
         public bool ContinueProtectionActive =>
@@ -390,6 +391,7 @@ namespace ColorGateRunner.Core
             if (ShieldActive)
             {
                 ShieldActive = false;
+                ShieldAbsorbCount++;
                 FlowState = StageFlowState.ShieldRecovery;
                 _shieldRecoveryRemaining = GameRules.ShieldRecoveryDuration;
                 return CompleteSuccessfulGate(
@@ -500,6 +502,7 @@ namespace ColorGateRunner.Core
             _safeGateCountRemaining = 0;
             _continueCountdown = false;
             ContinueUseCount = 0;
+            ShieldAbsorbCount = 0;
             ContinuedFailedGateResolutionCount = 0;
             _failedGatePendingForContinue = false;
             _shieldRecoveryRemaining = 0f;

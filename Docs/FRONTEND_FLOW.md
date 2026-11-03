@@ -575,7 +575,8 @@ Rules:
   `200` for Hard, and `500` for Very Hard. Even-Stage milestone rewards remain
   separate from the base reward and are also first-Clear only.
 - Continue clears keep current Best restrictions.
-- Campaign Clear hides Replay. Experiment Lab may retain its diagnostic Replay.
+- Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).
+  Experiment Lab retains its diagnostic Replay.
 - `Next Stage` resolves through stable Stage IDs and opens the unlocked next
   Stage's PreRun directly. The final Stage, or an unavailable/unpersisted next
   Stage, falls back to Lobby instead of starting an invalid destination.
@@ -1041,7 +1042,8 @@ not reusable art assets or an exact visual copy.
   Echo, local grants, and their presentation are already inactive.
 - Clear refunds the finite Heart spent by that successful attempt. It presents
   the difficulty base reward separately from any even-Stage milestone reward.
-- Campaign Clear hides Replay. `Next Stage` opens the unlocked next Stage's
+- Campaign Clear shows Replay (same Stage PreRun, normal Heart start).
+  `Next Stage` opens the unlocked next Stage's
   PreRun directly; final-Stage and invalid/unpersisted destinations return to
   Lobby.
 - Final Lobby composition, Fog curtain redesign, and authored Ice approach are

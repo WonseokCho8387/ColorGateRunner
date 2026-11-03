@@ -307,7 +307,7 @@ fairness, or polish.
   to the local Product profile and does not derive from Guest identity.
 - Locked stages cannot start; Clear unlocks only the next Stage; Retry returns
   through the existing PreRun/item-selection contract.
-- Campaign Clear hides Replay. Next Stage opens the unlocked next stable Stage
+- Campaign Clear shows Replay since Iteration 68A. Next Stage opens the unlocked next stable Stage
   directly in PreRun; final-Stage and unavailable/unpersisted destinations
   return to Lobby.
 - A first Clear grants `100 / 200 / 500` base Coins for Normal/Hard/Very Hard
@@ -1268,3 +1268,25 @@ fairness, or polish.
   `527/527`; PlayMode `276` passed, `1` intentional opt-in ignore; Campaign and Step 10 artifacts hash-identical;
   D3D11 Campaign capture with `04E-Combo-Perfect`; Product save and Campaign
   PlayerPrefs exact.
+
+
+### Iteration 68A Stage crowns and Campaign replay
+
+- EditMode `StageCrownTests` prove each crown rule, the Comeback threshold
+  (attempt `7` no, `8` yes), the crown mask shared with Product validation,
+  crown and best-combo accumulation with attempt reset, the legacy clear
+  overload awarding nothing, legacy serialization dropping achievement fields,
+  combo break counting, and Shield absorb counting with Retry reset.
+- EditMode `ProductFoundationTests` prove per-Stage attempt counting inside
+  the start receipt (idempotent per attempt ID, unscoped starts uncounted),
+  clear storage of the new fields, Product-side crown/best-combo non-decrease,
+  rejection of invalid stored values and zero defaults.
+- PlayMode proves new crowns show `NEW` and are saved, Replay reopens the
+  same Stage PreRun and a repeat clear shows no `NEW`, an eighth-attempt clear
+  shows the Comeback line, a store that keeps no crowns never shows `NEW` or
+  Comeback, the Product Frontend clear stores crowns with attempts reset, and
+  Campaign Clear shows Replay beside Next Stage.
+- Final evidence: Builders `2/2`; focused EditMode `92/92`; EditMode
+  `544/544`; PlayMode `280` passed + `1` intentional ignore; Campaign and Step 10
+  artifacts hash-identical; D3D11 Campaign capture `2/2`; Product save and
+  Campaign PlayerPrefs exact.

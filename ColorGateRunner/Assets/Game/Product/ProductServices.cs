@@ -342,9 +342,16 @@ namespace ColorGateRunner.Product
                 candidate.CampaignProgress,
                 request.StageId);
             bool firstClear = previous == null || !previous.Cleared;
-            UpsertStageRecord(
-                candidate.CampaignProgress,
-                request.Record.Clone());
+            LocalStageProgressData merged = request.Record.Clone();
+            if (previous != null)
+            {
+                // Achievements only accumulate, whatever the caller sent.
+                merged.CrownFlags |= previous.CrownFlags;
+                merged.BestMaxCombo = Math.Max(
+                    merged.BestMaxCombo,
+                    previous.BestMaxCombo);
+            }
+            UpsertStageRecord(candidate.CampaignProgress, merged);
             candidate.CampaignProgress.HighestUnlockedStageId =
                 request.HighestUnlockedStageId;
             if (firstClear)
@@ -485,7 +492,8 @@ namespace ColorGateRunner.Product
             bool shield,
             bool booster,
             string attemptTransactionId,
-            bool consumeHeart = true)
+            bool consumeHeart = true,
+            string stageId = null)
         {
             if (!TryGetReady(out ProductMutationResult failure))
             {
@@ -570,6 +578,12 @@ namespace ColorGateRunner.Product
             if (heartConsumed)
             {
                 economy.AppliedTransactionIds.Add(heartSpendId);
+            }
+            if (!string.IsNullOrWhiteSpace(stageId))
+            {
+                // Counted with the start ledger so a replayed attempt ID
+                // or an abandoned failure cannot skip or double it.
+                CountStageAttempt(candidate.CampaignProgress, stageId);
             }
 
             ProductMutationResult result = Commit(candidate);
@@ -990,7 +1004,8 @@ namespace ColorGateRunner.Product
                 !string.IsNullOrWhiteSpace(record.StageId) &&
                 record.BestTime >= 0f &&
                 record.BestNoItemTime >= 0f &&
-                record.ClearCount >= 0 && record.ContinuedClearCount >= 0;
+                record.ClearCount >= 0 && record.ContinuedClearCount >= 0 &&
+                SaveDocumentPolicy.StageAchievementFieldsAreValid(record);
         }
 
         private static LocalStageProgressData FindStageRecord(
@@ -1021,6 +1036,23 @@ namespace ColorGateRunner.Product
                 }
             }
             campaign.StageRecords.Add(record);
+        }
+
+        private static void CountStageAttempt(
+            LocalCampaignProgressData campaign,
+            string stageId)
+        {
+            LocalStageProgressData record =
+                FindStageRecord(campaign, stageId);
+            if (record == null)
+            {
+                record = new LocalStageProgressData { StageId = stageId };
+                campaign.StageRecords.Add(record);
+            }
+            if (record.AttemptsSinceClear < int.MaxValue)
+            {
+                record.AttemptsSinceClear++;
+            }
         }
 
         private static void ApplyFirstClearRewards(

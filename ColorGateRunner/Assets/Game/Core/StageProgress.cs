@@ -20,12 +20,36 @@ namespace ColorGateRunner.Core
             float bestNoItemTime,
             int clearCount,
             int continuedClearCount)
+            : this(
+                cleared,
+                bestTime,
+                bestNoItemTime,
+                clearCount,
+                continuedClearCount,
+                0,
+                StageCrown.None,
+                0)
+        {
+        }
+
+        public StageRecord(
+            bool cleared,
+            float bestTime,
+            float bestNoItemTime,
+            int clearCount,
+            int continuedClearCount,
+            int bestMaxCombo,
+            StageCrown crowns,
+            int attemptsSinceClear)
         {
             Cleared = cleared;
             BestTime = bestTime;
             BestNoItemTime = bestNoItemTime;
             ClearCount = clearCount;
             ContinuedClearCount = continuedClearCount;
+            BestMaxCombo = bestMaxCombo;
+            Crowns = crowns;
+            AttemptsSinceClear = attemptsSinceClear;
         }
 
         public bool Cleared { get; }
@@ -33,6 +57,10 @@ namespace ColorGateRunner.Core
         public float BestNoItemTime { get; }
         public int ClearCount { get; }
         public int ContinuedClearCount { get; }
+        public int BestMaxCombo { get; }
+        public StageCrown Crowns { get; }
+        // Authorized starts since the last clear, including the current one.
+        public int AttemptsSinceClear { get; }
     }
 
     public static class StageProgress
@@ -50,6 +78,43 @@ namespace ColorGateRunner.Core
             float time,
             StartItemSelection items,
             bool continued)
+        {
+            return Merge(current, time, items, continued, 0, StageCrown.None);
+        }
+
+        // Merges one clearing run, accumulating crowns and resetting the
+        // attempt streak. earned holds every crown this run qualified for.
+        public static StageRecord RecordClear(
+            StageRecord current,
+            float time,
+            StartItemSelection items,
+            StageClearRun run,
+            out StageCrown earned)
+        {
+            earned = StageCrown.None;
+            if (time <= 0f)
+            {
+                return current;
+            }
+            earned = StageCrownPolicy.Evaluate(
+                run,
+                current.AttemptsSinceClear);
+            return Merge(
+                current,
+                time,
+                items,
+                run.Continued,
+                run.MaxCombo,
+                earned);
+        }
+
+        private static StageRecord Merge(
+            StageRecord current,
+            float time,
+            StartItemSelection items,
+            bool continued,
+            int maxCombo,
+            StageCrown earned)
         {
             if (time <= 0f)
             {
@@ -76,7 +141,10 @@ namespace ColorGateRunner.Core
                 best,
                 bestNoItem,
                 current.ClearCount + 1,
-                current.ContinuedClearCount + (continued ? 1 : 0));
+                current.ContinuedClearCount + (continued ? 1 : 0),
+                Math.Max(current.BestMaxCombo, maxCombo),
+                current.Crowns | earned,
+                0);
         }
 
         public static int HighestUnlockedAfterClear(

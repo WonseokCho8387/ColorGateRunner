@@ -77,6 +77,12 @@ namespace ColorGateRunner.Product
         public float BestNoItemTime;
         public int ClearCount;
         public int ContinuedClearCount;
+        // Optional since Iteration 68; older saves read these as zero.
+        // CrownFlags mirrors Core StageCrown bits.
+        public const int KnownCrownFlags = 15;
+        public int BestMaxCombo;
+        public int CrownFlags;
+        public int AttemptsSinceClear;
 
         public LocalStageProgressData Clone()
         {
@@ -87,7 +93,10 @@ namespace ColorGateRunner.Product
                 BestTime = BestTime,
                 BestNoItemTime = BestNoItemTime,
                 ClearCount = ClearCount,
-                ContinuedClearCount = ContinuedClearCount
+                ContinuedClearCount = ContinuedClearCount,
+                BestMaxCombo = BestMaxCombo,
+                CrownFlags = CrownFlags,
+                AttemptsSinceClear = AttemptsSinceClear
             };
         }
     }

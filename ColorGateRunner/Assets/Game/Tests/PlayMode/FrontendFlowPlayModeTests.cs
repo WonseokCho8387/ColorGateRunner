@@ -1148,6 +1148,20 @@ namespace ColorGateRunner.Tests.PlayMode
 
             Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
             Assert.That(save.Stored.Economy.Coins, Is.EqualTo(300));
+            LocalStageProgressData stored = null;
+            foreach (LocalStageProgressData record in
+                save.Stored.CampaignProgress.StageRecords)
+            {
+                if (record.StageId == "stage-08")
+                {
+                    stored = record;
+                }
+            }
+            Assert.That(stored, Is.Not.Null);
+            Assert.That(stored.AttemptsSinceClear, Is.Zero);
+            Assert.That(stored.CrownFlags & (int)StageCrown.Clean,
+                Is.EqualTo((int)StageCrown.Clean));
+            Assert.That(stored.BestMaxCombo, Is.EqualTo(campaign.Combo.Max));
             Assert.That(campaign.ClearDetailsText.text,
                 Does.Contain("STAGE 8 COMPLETE"));
             Assert.That(campaign.ClearDetailsText.text,
@@ -1170,7 +1184,7 @@ namespace ColorGateRunner.Tests.PlayMode
                         Does.Not.Contain("HEART RETURNED"));
                 }
             }
-            Assert.That(campaign.ReplayButton.gameObject.activeSelf, Is.False);
+            Assert.That(campaign.ReplayButton.gameObject.activeSelf, Is.True);
         }
 
         [UnityTest]

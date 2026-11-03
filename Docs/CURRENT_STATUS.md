@@ -1,5 +1,31 @@
 # Current Status
 
+## Iteration 68A — Stage Crowns and Campaign Replay (2026-11-03 KST)
+
+- 기준: `4ba41e5` (Iteration 67) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 결정(권장값 승인): 스테이지 크라운 3종 — CLEAN(Continue·Shield 발동 없는 클리어),
+  10 COMBO(그 런의 최대 콤보 10 이상), FULL COMBO(CLEAN이면서 Perfect 1회 이상, 콤보 끊김
+  없음; Booster·Echo 통과는 유지). 크라운은 클리어한 런에서만 얻고 누적되며 지워지지 않는다.
+  Coin 보상 없음. 7전8기(Comeback)는 마지막 클리어 이후 8번째 이상 승인된 시작에서의
+  클리어로, 같은 비트 필드에 기록하고 클리어 화면에 `COMEBACK CLEAR · ATTEMPT n`으로만
+  보여준다(Collection 표시는 68B).
+- Product 저장의 스테이지 기록에 선택 필드 `BestMaxCombo`, `CrownFlags`,
+  `AttemptsSinceClear`를 schema 3 그대로 추가했다. 시도 횟수는 Heart/아이템 승인과 같은
+  시작 트랜잭션에서 stage ID별로 세며, 같은 attempt ID 재시도는 다시 세지 않는다.
+  레거시 PlayerPrefs 형식은 바뀌지 않으며 크라운을 저장하지 않는다.
+- Campaign 클리어 화면은 큰 `MAX COMBO`, 크라운 3칸(이번 저장으로 처음 얻은 크라운은 NEW),
+  REPLAY(같은 스테이지 PreRun)를 보여준다. REPLAY와 LOBBY는 아래 줄에 나란히 놓인다.
+  판정, 속도, 보상, 경제, Heart 정책은 변경 없음.
+- 자동 검증: **EditMode 544/544 passed; PlayMode `280` passed, `1` intentional opt-in
+  ignore**. Builder 각 2회. Campaign 시뮬레이션 Summary/JSON/CSV와 Step 10 다섯 해시가
+  기준과 **동일**하다. D3D11 Step9C 캡처 2/2.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다
+  (`TestResults.xml`만 변경).
+- 독립 read-only checker: blocker 없음. should-fix 4건(Product 측 크라운 축소 방지, 저장되지
+  않은 크라운·Comeback·BEST 표시)을 한 번의 수정으로 반영하고 회귀 테스트를 추가했다.
+  근거: `Artifacts/Validation/Iteration68/`.
+
 ## Iteration 67 — Perfect Switch Combo and Gate Timeline Export (2026-11-03 KST)
 
 - 기준: `50cc5d5` (Iteration 64C) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
@@ -184,9 +210,9 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 67 commit `feat: add perfect switch combo and gate timeline export`,
-  whose parent is `50cc5d5c774de6cd8a3b333075ae6ef4725ad94f`
-  (`feat: give rival lanes their own curves`).
+- Implementation base: the Iteration 68A commit `feat: add stage crowns and campaign replay`,
+  whose parent is `4ba41e51bacafcd9712b75547dba3ee88f33cc73`
+  (`feat: add perfect switch combo and gate timeline export`).
 - Iteration 63 commit: `dfa10cfb69f61ac373c227cef6e79d6776ebcb95`
   (`feat: refresh settings and placeholder pages`).
 - Iteration 62 base parent: `d9630311d18785aa87f49e483029538d969f49aa`
@@ -208,8 +234,11 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 67 — Perfect Switch Combo and Gate
-  Timeline Export**. The HUD counts Perfect Switches as a combo and the clear
+- Current completed iteration: **Iteration 68A — Stage Crowns and Campaign
+  Replay**. Clears earn CLEAN, 10 COMBO and FULL COMBO crowns and a Comeback
+  flag; the Campaign clear result offers REPLAY.
+- Iteration 67 — Perfect Switch Combo and Gate
+  Timeline Export. The HUD counts Perfect Switches as a combo and the clear
   result shows the run's max combo; rivals no longer show a rank.
 - Iteration 64 — Rival Race (64A Core, 64B presentation, 64C curved lanes and
   zoned city). Campaign Stage 2+ shows two presentation-only Ghost rivals.
@@ -549,7 +578,7 @@ below where their contracts differ.
 - Initial Stage start retains `3, 2, 1, GO`. Continue instead shows `READY` for
   `0.5s`, resumes gameplay when `GO` appears and removes the non-blocking `GO`
   flash after `0.25s`. Active gate modifiers are already rendered and consumed
-  Shield/Booster state is already absent before READY. Campaign Clear hides Replay,
+  Shield/Booster state is already absent before READY. Campaign Clear shows Replay (Iteration 68A),
   separates first-clear and Lobby milestone rewards, and opens the unlocked
   next Stage directly in PreRun. Final or still-locked next Stages hide that
   action.
@@ -582,6 +611,9 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 68A on `2026-11-03` KST (parent `4ba41e5`): EditMode `544/544`;
+  PlayMode `280` passed, `1` intentional opt-in ignore. Builders `2/2`. Campaign and
+  Step 10 artifacts match the baseline hashes below.
 - Iteration 67 on `2026-11-03` KST (parent `50cc5d5`): EditMode `527/527`;
   PlayMode `276` passed, `1` intentional opt-in ignore. Builders `2/2`. Campaign and Step 10 artifacts match the
   baseline hashes below.

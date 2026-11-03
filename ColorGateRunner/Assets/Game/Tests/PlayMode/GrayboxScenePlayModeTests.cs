@@ -2271,7 +2271,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void CampaignClear_HidesReplayAndNextOpensPreRunDirectly()
+        public void CampaignClear_ShowsReplayAndNextOpensPreRunDirectly()
         {
             ClearStage();
             _controller.Tick(1.3f);
@@ -2287,6 +2287,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(2f);
             Assert.That(_controller.ClearContinueButton.gameObject.activeSelf,
                 Is.True);
+            Assert.That(_controller.ReplayButton.gameObject.activeSelf, Is.True);
             _controller.OpenNextStagePreRun();
 
             Assert.That(_controller.SelectedStageNumber, Is.EqualTo(2));
@@ -3697,11 +3698,112 @@ namespace ColorGateRunner.Tests.PlayMode
             FinishCurrentStage();
             Assert.That(_controller.Combo.Max, Is.GreaterThan(0));
             _controller.Tick(1.3f);
-            Assert.That(_controller.ClearDetailsText.text,
-                Does.Contain($"MAX COMBO {_controller.Combo.Max}"));
+            Assert.That(_controller.CrownResult.MaxComboText.text,
+                Does.StartWith($"MAX COMBO {_controller.Combo.Max}"));
             Assert.That(_controller.ClearDetailsText.text,
                 Does.Not.Contain("PLACE"));
             Assert.That(CountNamed("RaceRankText"), Is.Zero);
+        }
+
+        [Test]
+        public void StageCrowns_ClearShowsNewCrownsAndSavesThem()
+        {
+            SelectAndStartStage(4);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+
+            StageRecord record = _store.Records[3];
+            Assert.That(record.Crowns & StageCrown.Clean, Is.EqualTo(StageCrown.Clean));
+            Assert.That(record.Crowns & StageCrown.FullCombo,
+                Is.EqualTo(StageCrown.FullCombo));
+            Assert.That(record.BestMaxCombo, Is.EqualTo(_controller.Combo.Max));
+            Assert.That(_controller.CrownResult.MaxComboText.gameObject.activeSelf,
+                Is.True);
+            Text[] crowns = _controller.CrownResult.CrownTexts;
+            Assert.That(crowns[0].text, Is.EqualTo("CLEAN\nNEW"));
+            Assert.That(crowns[2].text, Is.EqualTo("FULL COMBO\nNEW"));
+            bool comboCrown = _controller.Combo.Max >= StageCrownPolicy.ComboTarget;
+            Assert.That(crowns[1].text, Is.EqualTo(
+                comboCrown ? "10 COMBO\nNEW" : "10 COMBO"));
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Not.Contain("COMEBACK"));
+        }
+
+        [Test]
+        public void StageCrowns_ReplayReopensStageAndDoesNotRepeatNew()
+        {
+            SelectAndStartStage(4);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+            _controller.Tick(
+                StageResultSequenceView.MinimumClearSkipDelay + 0.01f);
+            _controller.HandleGameplayTap();
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration + 0.01f);
+            _controller.Tick(2f);
+            Assert.That(_controller.ReplayButton.gameObject.activeSelf, Is.True);
+            Assert.That(
+                _controller.ReplayButton.GetComponentInChildren<Text>(true).text,
+                Is.EqualTo("REPLAY"));
+
+            _controller.ReplayButton.onClick.Invoke();
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(4));
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.PreRunSelection));
+            Assert.That(_controller.CrownResult.MaxComboText.gameObject.activeSelf,
+                Is.False);
+
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+            Assert.That(_store.Records[3].ClearCount, Is.EqualTo(2));
+            Assert.That(_controller.CrownResult.CrownTexts[0].text,
+                Is.EqualTo("CLEAN"));
+            Assert.That(_controller.CrownResult.CrownTexts[2].text,
+                Is.EqualTo("FULL COMBO"));
+        }
+
+        [Test]
+        public void StageCrowns_ClearAfterSevenFailuresShowsComeback()
+        {
+            _store.Records[3] = new StageRecord(
+                false, 0f, 0f, 0, 0, 0, StageCrown.None, 8);
+            SelectAndStartStage(4);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Contain("COMEBACK CLEAR · ATTEMPT 8"));
+            Assert.That(_store.Records[3].Crowns & StageCrown.Comeback,
+                Is.EqualTo(StageCrown.Comeback));
+            Assert.That(_store.Records[3].AttemptsSinceClear, Is.Zero);
+        }
+
+        [Test]
+        public void StageCrowns_UnpersistedCrownsAreNotAnnouncedAsNew()
+        {
+            _store.DropAchievements = true;
+            _store.Records[3] = new StageRecord(
+                false, 0f, 0f, 0, 0, 0, StageCrown.None, 8);
+            SelectAndStartStage(4);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+
+            Text[] crowns = _controller.CrownResult.CrownTexts;
+            for (int index = 0; index < crowns.Length; index++)
+            {
+                Assert.That(crowns[index].text, Does.Not.Contain("NEW"));
+            }
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Not.Contain("COMEBACK"));
+            Assert.That(_controller.CrownResult.MaxComboText.text,
+                Is.EqualTo($"MAX COMBO {_controller.Combo.Max}"));
         }
 
         [Test]
@@ -4045,6 +4147,8 @@ namespace ColorGateRunner.Tests.PlayMode
             internal StageRecord[] Records { get; } =
                 new StageRecord[StageCatalog.Count];
             internal int UnrelatedSetting { get; set; } = 37;
+            // Mimics the legacy PlayerPrefs format, which keeps no crowns.
+            internal bool DropAchievements { get; set; }
 
             public int LoadHighestUnlocked() => HighestUnlocked;
             public StageRecord LoadRecord(int stageNumber) =>
@@ -4052,7 +4156,14 @@ namespace ColorGateRunner.Tests.PlayMode
             public void SaveHighestUnlocked(int stageNumber) =>
                 HighestUnlocked = stageNumber;
             public void SaveRecord(int stageNumber, StageRecord record) =>
-                Records[stageNumber - 1] = record;
+                Records[stageNumber - 1] = DropAchievements
+                    ? new StageRecord(
+                        record.Cleared,
+                        record.BestTime,
+                        record.BestNoItemTime,
+                        record.ClearCount,
+                        record.ContinuedClearCount)
+                    : record;
 
             public void ClearGameplayProgress()
             {

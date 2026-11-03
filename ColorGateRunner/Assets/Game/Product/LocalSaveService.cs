@@ -567,7 +567,8 @@ namespace ColorGateRunner.Product
                     !IsNonNegativeFinite(record.BestTime) ||
                     !IsNonNegativeFinite(record.BestNoItemTime) ||
                     record.ClearCount < 0 ||
-                    record.ContinuedClearCount < 0)
+                    record.ContinuedClearCount < 0 ||
+                    !StageAchievementFieldsAreValid(record))
                 {
                     return false;
                 }
@@ -586,6 +587,16 @@ namespace ColorGateRunner.Product
                 }
             }
             return true;
+        }
+
+        internal static bool StageAchievementFieldsAreValid(
+            LocalStageProgressData record)
+        {
+            return record.BestMaxCombo >= 0 &&
+                record.AttemptsSinceClear >= 0 &&
+                record.CrownFlags >= 0 &&
+                (record.CrownFlags &
+                    ~LocalStageProgressData.KnownCrownFlags) == 0;
         }
 
         private static bool OptionalUtcIsValid(string value)

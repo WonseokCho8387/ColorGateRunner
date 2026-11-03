@@ -28,7 +28,7 @@ stage by matching every gate before crossing the Goal.
 8. The final gate reveals a Goal. Crossing it clears the stage.
 9. Clear waits for a finish animation, shows the first-clear base reward and
    any separate Lobby milestone reward, then offers `NEXT STAGE` directly to
-   the next PreRun selection or `LOBBY`. Campaign Replay is not offered.
+   the next PreRun selection, `REPLAY` to the same Stage's PreRun, or `LOBBY`.
    Failure waits for its animation, then offers eligible Ticket, rewarded-ad,
    and Coin Continue sources, Retry, and Lobby. Retry returns to item selection
    with toggles retained.
@@ -961,3 +961,19 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   saves or simulation results. The clear result shows the run's maximum combo.
 - Rivals remain presentation-only ambience and show no rank, because a clean
   clear's time is fixed per Stage.
+
+
+## Iteration 68A Stage crowns
+
+- Each Stage holds three crowns, earned only by a clearing run and kept
+  forever: **CLEAN** (no Continue and no Shield absorb), **10 COMBO** (the
+  run's max Perfect Switch combo is at least `10`) and **FULL COMBO** (a CLEAN
+  run with at least one Perfect Switch and no combo break; Booster and Echo
+  gates hold the combo).
+- **Comeback** (7전8기) is recorded when a Stage is cleared on the eighth or
+  later authorized start since its previous clear. Continue clears count as
+  clears; the attempt count resets on every clear.
+- Crowns never change judgment, speed, rewards, items or Hearts. The clear
+  result shows the run's max combo (and the stored best when higher), the
+  three crowns with `NEW` on crowns first saved by this clear, and the
+  Comeback line only when it was saved by this clear.

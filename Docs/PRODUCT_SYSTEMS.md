@@ -350,6 +350,14 @@ StageProgressRecord
 
 Only approved game rules are shown to the player.
 
+Iteration 68A implemented optional `LocalStageProgressData` fields
+`BestMaxCombo`, `CrownFlags` (Core `StageCrown` bits, mask `15`) and
+`AttemptsSinceClear` within schema 3. Missing fields load as zero; negative
+values or unknown crown bits fail validation. `AuthorizeStageStartWithReceipt`
+counts the attempt for its stage ID inside the same ledgered start
+transaction (an attempt-only record has `Cleared = false`), and
+`RecordStageClear` never lowers stored crowns or best combo.
+
 ## 6.3 Progression service contract
 
 ```text

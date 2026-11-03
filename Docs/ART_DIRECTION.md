@@ -1107,3 +1107,12 @@ This section supersedes Iteration 47's separate additive frame trace.
 - The combo chip replaces the rival rank chip under the Stage title in Magenta
   and appears only while the combo is above zero. PERFECT flashes in Signal on
   the canvas just above the runner for `0.45` seconds.
+
+
+## Iteration 68A clear crowns
+
+- The clear reward card shows `MAX COMBO` in Magenta at size `34` above a row
+  of three crown labels. A crown first saved by this clear reads `NEW` in
+  Gold, an owned crown uses Signal and a missing crown uses dim
+  TextSecondary. Reward rows start lower to make room. REPLAY and LOBBY share
+  the bottom row under the primary action.

@@ -734,6 +734,8 @@ namespace ColorGateRunner.Editor
                 rivalGateFail);
             controller.ConfigureRivalRace(rivalRace);
             controller.ConfigureComboHud(CreateComboHud(root.transform, hud.transform));
+            controller.ConfigureCrownResult(
+                CreateCrownResult(clearRewardRoot.transform));
             SplineTrackLabController splineLabController =
                 splineTrackLabView.gameObject.AddComponent<
                     SplineTrackLabController>();
@@ -1801,6 +1803,36 @@ namespace ColorGateRunner.Editor
             perfect.color = NeonUiPalette.Signal;
             ComboHudView view = root.GetComponent<ComboHudView>();
             view.Configure(combo, perfect);
+            return view;
+        }
+
+        private static StageCrownResultView CreateCrownResult(Transform card)
+        {
+            GameObject root = CreateUiObject("ClearCrownResult", card);
+            Stretch(root.GetComponent<RectTransform>());
+            StageCrownResultView view =
+                root.AddComponent<StageCrownResultView>();
+            Text maxCombo = CreateText(
+                "ClearMaxComboText",
+                root.transform,
+                "MAX COMBO 0",
+                34,
+                new Vector2(0.08f, 0.655f),
+                new Vector2(0.92f, 0.72f));
+            maxCombo.color = NeonUiPalette.Magenta;
+            var crowns = new Text[StageCrownResultView.DisplayOrder.Length];
+            for (int index = 0; index < crowns.Length; index++)
+            {
+                float left = 0.06f + index * 0.3f;
+                crowns[index] = CreateText(
+                    $"ClearCrownText_{index}",
+                    root.transform,
+                    string.Empty,
+                    22,
+                    new Vector2(left, 0.575f),
+                    new Vector2(left + 0.28f, 0.65f));
+            }
+            view.Configure(maxCombo, crowns);
             return view;
         }
 
@@ -3940,15 +3972,15 @@ namespace ColorGateRunner.Editor
                 rewardRoot.transform,
                 "REWARDS",
                 38,
-                new Vector2(0.08f, 0.83f),
-                new Vector2(0.92f, 0.96f));
+                new Vector2(0.08f, 0.86f),
+                new Vector2(0.92f, 0.97f));
             details = CreateText(
                 "StageClearDetails",
                 rewardRoot.transform,
                 string.Empty,
                 24,
-                new Vector2(0.08f, 0.68f),
-                new Vector2(0.92f, 0.83f));
+                new Vector2(0.08f, 0.72f),
+                new Vector2(0.92f, 0.86f));
             details.color = NeonUiPalette.Signal;
 
             rewardRows = new GameObject[5];
@@ -3957,11 +3989,12 @@ namespace ColorGateRunner.Editor
             rewardRowTexts = new Text[5];
             for (int index = 0; index < rewardRows.Length; index++)
             {
-                float top = 0.655f - index * 0.115f;
+                // Rows start below the max-combo line and crown row.
+                float top = 0.56f - index * 0.105f;
                 GameObject row = CreateAnchoredPanel(
                     $"ClearRewardRow_{index}",
                     rewardRoot.transform,
-                    new Vector2(0.11f, top - 0.095f),
+                    new Vector2(0.11f, top - 0.088f),
                     new Vector2(0.89f, top),
                     new Color(0.08f, 0.15f, 0.25f, 0.92f));
                 Theme01UiSkinBuilder.ApplyPanel(
@@ -3992,19 +4025,20 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.13f, 0.09f),
                 new Vector2(0.87f, 0.17f),
                 out Text _);
+            // Replay and Lobby share the lower row under the primary action.
             replay = CreateButton(
                 "ReplayButton",
                 panel.transform,
                 "REPLAY",
-                new Vector2(0.13f, 0.09f),
-                new Vector2(0.87f, 0.17f),
+                new Vector2(0.13f, 0.015f),
+                new Vector2(0.48f, 0.075f),
                 out Text _);
             select = CreateButton(
                 "ClearLobbyButton",
                 panel.transform,
                 "LOBBY",
-                new Vector2(0.25f, 0.015f),
-                new Vector2(0.75f, 0.075f),
+                new Vector2(0.52f, 0.015f),
+                new Vector2(0.87f, 0.075f),
                 out Text _);
         }
 

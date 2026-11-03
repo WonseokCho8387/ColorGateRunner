@@ -1453,6 +1453,116 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void StageStartReceipt_CountsEachStageAttemptOnceAndClearStoresCrowns()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+
+            pipeline.Session.AuthorizeStageStartWithReceipt(
+                false, false, "crown-attempt-1", true, "stage-03");
+            pipeline.Session.AuthorizeStageStartWithReceipt(
+                false, false, "crown-attempt-1", true, "stage-03");
+            pipeline.Session.AuthorizeStageStartWithReceipt(
+                false, false, "crown-attempt-2", true, "stage-03");
+            pipeline.Session.AuthorizeStageStartWithReceipt(
+                false, false, "unscoped-attempt");
+
+            LocalStageProgressData pending =
+                pipeline.Progression.GetStageRecord("stage-03");
+            Assert.That(pending, Is.Not.Null);
+            Assert.That(pending.Cleared, Is.False);
+            Assert.That(pending.AttemptsSinceClear, Is.EqualTo(2));
+            Assert.That(save.Stored.CampaignProgress.StageRecords.Count,
+                Is.EqualTo(1));
+
+            LocalStageProgressData cleared = CreateStageRecord("stage-03", true, 1);
+            cleared.BestMaxCombo = 12;
+            cleared.CrownFlags = 5;
+            cleared.AttemptsSinceClear = 0;
+            ProductMutationResult result = pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    3, "stage-03", "stage-04", cleared));
+
+            Assert.That(result.Succeeded, Is.True);
+            LocalStageProgressData stored =
+                pipeline.Progression.GetStageRecord("stage-03");
+            Assert.That(stored.BestMaxCombo, Is.EqualTo(12));
+            Assert.That(stored.CrownFlags, Is.EqualTo(5));
+            Assert.That(stored.AttemptsSinceClear, Is.Zero);
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(100));
+        }
+
+        [Test]
+        public void StageClear_NeverRemovesStoredCrownsOrBestCombo()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            LocalStageProgressData first = CreateStageRecord("stage-03", true, 1);
+            first.CrownFlags = 6;
+            first.BestMaxCombo = 18;
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    3, "stage-03", "stage-04", first)).Succeeded, Is.True);
+
+            LocalStageProgressData stale = CreateStageRecord("stage-03", true, 2);
+            stale.CrownFlags = 1;
+            stale.BestMaxCombo = 4;
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    3, "stage-03", "stage-04", stale)).Succeeded, Is.True);
+
+            LocalStageProgressData stored =
+                pipeline.Progression.GetStageRecord("stage-03");
+            Assert.That(stored.CrownFlags, Is.EqualTo(7));
+            Assert.That(stored.BestMaxCombo, Is.EqualTo(18));
+            Assert.That(stored.ClearCount, Is.EqualTo(2));
+        }
+
+        [TestCase(16, 0, 0)]
+        [TestCase(-1, 0, 0)]
+        [TestCase(0, -1, 0)]
+        [TestCase(0, 0, -1)]
+        public void StageAchievementFields_RejectInvalidStoredValues(
+            int crownFlags,
+            int bestMaxCombo,
+            int attemptsSinceClear)
+        {
+            LocalSaveData data = CreateValidData();
+            LocalStageProgressData record = CreateStageRecord("stage-02", true, 1);
+            record.CrownFlags = crownFlags;
+            record.BestMaxCombo = bestMaxCombo;
+            record.AttemptsSinceClear = attemptsSinceClear;
+            data.CampaignProgress.StageRecords.Add(record);
+
+            DecodeResult result = SaveDocumentPolicy.PrepareForLoad(data);
+
+            Assert.That(result.Status, Is.EqualTo(DecodeStatus.Corrupt));
+        }
+
+        [Test]
+        public void StageAchievementFields_DefaultToZeroAndRoundTrip()
+        {
+            LocalSaveData data = CreateValidData();
+            LocalStageProgressData record = CreateStageRecord("stage-02", true, 1);
+            data.CampaignProgress.StageRecords.Add(record);
+            DecodeResult legacy = SaveDocumentPolicy.PrepareForLoad(data);
+            Assert.That(legacy.Status, Is.EqualTo(DecodeStatus.Success));
+            Assert.That(legacy.Dirty, Is.False);
+
+            record.CrownFlags = LocalStageProgressData.KnownCrownFlags;
+            record.BestMaxCombo = 31;
+            record.AttemptsSinceClear = 9;
+            LocalStageProgressData clone = record.Clone();
+            Assert.That(clone.CrownFlags, Is.EqualTo(15));
+            Assert.That(clone.BestMaxCombo, Is.EqualTo(31));
+            Assert.That(clone.AttemptsSinceClear, Is.EqualTo(9));
+            Assert.That(SaveDocumentPolicy.PrepareForLoad(data).Status,
+                Is.EqualTo(DecodeStatus.Success));
+        }
+
+        [Test]
         public void StageClear_HeartRefundAndRewardsAreAtomicOnSaveFailure()
         {
             var save = new MutableSessionSaveService(CreateValidData());

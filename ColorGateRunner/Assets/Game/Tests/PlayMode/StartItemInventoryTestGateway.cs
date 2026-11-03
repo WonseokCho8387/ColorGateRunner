@@ -93,7 +93,8 @@ namespace ColorGateRunner.Tests.PlayMode
         public StageStartAuthorizationResult Authorize(
             bool shield,
             bool booster,
-            string attemptTransactionId)
+            string attemptTransactionId,
+            string stageId)
         {
             bool heartConsumed = !UnlimitedHearts && HeartCount > 0;
             ProductMutationResult result = Consume(shield, booster);
