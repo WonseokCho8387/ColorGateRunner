@@ -184,6 +184,23 @@ namespace ColorGateRunner.Presentation
             _runtimeMesh = null;
         }
 
+        // Fills a road ribbon that follows the route at a lateral offset, so
+        // rival lanes share the player's curves without their own Spline.
+        internal void BuildLaneMesh(Mesh target, float lateralOffset)
+        {
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+            if (_pathLength <= 0f)
+            {
+                throw new InvalidOperationException(
+                    "Campaign Spline route has not been built.");
+            }
+            target.Clear();
+            FillRibbon(target, lateralOffset);
+        }
+
         private void RebuildTrackMesh()
         {
             if (_runtimeMesh == null)
@@ -199,6 +216,12 @@ namespace ColorGateRunner.Presentation
                 _runtimeMesh.Clear();
             }
 
+            FillRibbon(_runtimeMesh, 0f);
+            trackMeshFilter.sharedMesh = _runtimeMesh;
+        }
+
+        private void FillRibbon(Mesh mesh, float lateralOffset)
+        {
             int pathRowCount = Mathf.Max(
                 2,
                 Mathf.CeilToInt(_pathLength / MeshSampleSpacing) + 1);
@@ -236,10 +259,10 @@ namespace ColorGateRunner.Presentation
                     textureDistance = distance + TrackRearExtension;
                 }
 
-                Vector3 position = transform.InverseTransformPoint(
-                    worldPosition);
                 Vector3 right = transform.InverseTransformDirection(
                     worldRotation * Vector3.right).normalized;
+                Vector3 position = transform.InverseTransformPoint(
+                    worldPosition) + (right * lateralOffset);
                 int vertex = row * 4;
                 vertices[vertex] = position - (right * halfWidth);
                 vertices[vertex + 1] =
@@ -281,14 +304,13 @@ namespace ColorGateRunner.Presentation
                 edgeTriangles[edge + 11] = next + 3;
             }
 
-            _runtimeMesh.vertices = vertices;
-            _runtimeMesh.uv = uvs;
-            _runtimeMesh.subMeshCount = 2;
-            _runtimeMesh.SetTriangles(roadTriangles, 0);
-            _runtimeMesh.SetTriangles(edgeTriangles, 1);
-            _runtimeMesh.RecalculateNormals();
-            _runtimeMesh.RecalculateBounds();
-            trackMeshFilter.sharedMesh = _runtimeMesh;
+            mesh.vertices = vertices;
+            mesh.uv = uvs;
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(roadTriangles, 0);
+            mesh.SetTriangles(edgeTriangles, 1);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
         }
 
         private static void ResolveRouteAmplitude(

@@ -1,5 +1,21 @@
 # Current Status
 
+## Iteration 64B — Rival Race Presentation (2026-11-03 KST)
+
+- 기준: `0c36ecc` (Iteration 64A) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- Campaign Stage 2부터 `RivalRaceView`가 같은 Spline을 ±9로 오프셋한 측면 차선 2개,
+  기본 실루엣의 라이벌 러너(Magenta / Signal 셸), 차선당 게이트 3개(통과 Signal,
+  실패 Danger 점멸)를 표시한다. HUD에 `1ST / 3` 순위 칩, 클리어 결과에
+  `RACE <순위> PLACE` 줄을 추가했다. 라이벌 단계에서는 빌딩 최소 거리를 16으로 넓힌다.
+  카메라, 판정, 보상, 저장, Stage 데이터는 변경 없음. Stage 1은 라이벌이 없다.
+- 자동 검증: **EditMode 510 passed; PlayMode 272 passed + 1 existing ignored**
+  (신규 EditMode 1, PlayMode 4). Builder 각 2회. Campaign 시뮬레이션 520행의
+  Summary/JSON/CSV와 Step 10의 다섯 해시가 기준과 **바이트 단위로 동일**하다.
+  D3D11 Step9C 캡처 `2/2`에서 측면 차선·게이트·순위 칩을 확인했다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+- 독립 read-only checker: 기준 1–6 PASS, 7 테스트 공백 지적(재시작·단계 선택 숨김·Stage 1 빌딩 거리 테스트 추가로 보완), blocker 없음. 근거: `Artifacts/Validation/Iteration64/`.
+
 ## Iteration 64A — Rival Race Core Simulation (2026-11-03 KST)
 
 - 기준: `dfa10cf` (Iteration 63) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
@@ -129,9 +145,11 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 63 commit `feat: refresh settings and placeholder pages`,
-  whose parent is `f63c82ceb66dc1cfd3a0fef93456ce92160f6e48`
-  (`feat: add neon night city gameplay environment`).
+- Implementation base: the Iteration 64B commit `feat: show rival racers beside the campaign road`,
+  whose parent is `0c36ecc5523a24d20d37c705a3c63da03bf1324a`
+  (`feat: add deterministic rival race simulation`).
+- Iteration 63 commit: `dfa10cfb69f61ac373c227cef6e79d6776ebcb95`
+  (`feat: refresh settings and placeholder pages`).
 - Iteration 62 base parent: `d9630311d18785aa87f49e483029538d969f49aa`
   (`feat: establish neon night UI design system`).
 - Previous base: `d527300040de2a7b208f068a5d12939ae6ad3d92`
@@ -151,7 +169,10 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 63 — Settings and Placeholder Page Refresh**.
+- Current completed iteration: **Iteration 64 — Rival Race (64A Core, 64B presentation)**.
+  Campaign Stage 2+ shows two presentation-only Ghost rivals on side lanes with
+  a live rank chip and a clear-result placement line.
+- Iteration 63 — Settings and Placeholder Page Refresh.
   Settings shows only controls the build can honor; Rank states that online
   ranking is unavailable.
 - Iteration 62 — Neon Night City Gameplay Environment.
@@ -520,6 +541,9 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 64B on `2026-11-03` KST (parent `0c36ecc`): EditMode `510/510`;
+  PlayMode `272` passed, `1` intentional opt-in ignore. Builders `2/2`.
+  Campaign and Step 10 simulation artifacts match the baseline hashes below.
 - Iteration 64A on `2026-11-03` KST (parent `dfa10cf`): EditMode `509/509`;
   PlayMode `268` passed, `1` intentional opt-in ignore. No Builder or Scene change.
 - Iteration 63 on `2026-11-03` KST (parent `f63c82c`): EditMode `502/502`;

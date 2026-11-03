@@ -1217,3 +1217,19 @@ fairness, or polish.
 - Evidence: EditMode `509/509`; PlayMode `268` with one intentional opt-in
   ignore. Builders and simulations are omitted because no Scene, Stage data or
   gameplay execution path references the new class yet.
+
+
+### Iteration 64B rival race presentation
+
+- EditMode `RivalRaceSceneTests` proves one hidden, fully referenced
+  `RivalRaceView`, a single player `ColorShell`, a rank chip under `StageHud`
+  and hidden rival form parts.
+- PlayMode proves Stage 1 has no rivals; Stage 9 runs both rivals on lanes 9
+  units from the route centre with two-submesh lane meshes, a rank chip and
+  towers at least 16 units out; rivals freeze while paused; the clear result
+  reports the computed race place; returning to stage select hides the race and
+  a restart begins both rivals at distance 0; Stage 1 towers stay under 16.
+- Final evidence: Builders `2/2`; focused EditMode `11/11`; EditMode
+  `510/510`; PlayMode `272` with one intentional opt-in ignore; Campaign
+  520-row and Step 10 artifacts hash-identical to the baseline; D3D11 Campaign
+  capture `2/2`; Product save and Campaign PlayerPrefs exact.

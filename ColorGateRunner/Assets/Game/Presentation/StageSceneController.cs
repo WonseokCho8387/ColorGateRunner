@@ -53,6 +53,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private TrackPoolController trackPool;
         [SerializeField] private CampaignSplinePathView campaignSplinePath;
         [SerializeField] private SplineCityPoolView splineCityPool;
+        [SerializeField] private RivalRaceView rivalRace;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -326,6 +327,8 @@ namespace ColorGateRunner.Presentation
         internal CampaignSplinePathView CampaignSplinePath =>
             campaignSplinePath;
         internal SplineCityPoolView SplineCityPool => splineCityPool;
+        internal RivalRaceView RivalRace => rivalRace;
+        internal int LastRacePlace { get; private set; }
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -606,6 +609,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             splineCityPool.Tick(_campaignDistance);
+            rivalRace.Tick(deltaTime, _campaignDistance);
             RecycleResolvedGatesBehindPlayer();
             UpdateCampaignFogCurtain(deltaTime);
             UpdateCampaignGateVisibility(deltaTime);
@@ -1714,6 +1718,11 @@ namespace ColorGateRunner.Presentation
             gateBreakEffects = breakEffects;
         }
 
+        internal void ConfigureRivalRace(RivalRaceView view)
+        {
+            rivalRace = view;
+        }
+
         internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
         {
             splineTrackLab = lab;
@@ -1820,7 +1829,9 @@ namespace ColorGateRunner.Presentation
                 campaignSplinePath == null ||
                 !campaignSplinePath.HasRequiredReferences ||
                 splineCityPool == null ||
-                !splineCityPool.HasRequiredReferences || gates == null ||
+                !splineCityPool.HasRequiredReferences ||
+                rivalRace == null || !rivalRace.HasRequiredReferences ||
+                gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
                 !shieldField.HasRequiredReferences() || echoField == null ||
@@ -2435,10 +2446,20 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.DisplayNumber,
                 _goalPathDistance);
             trackPool.gameObject.SetActive(false);
+            bool rivals = RivalRaceSimulation.IsEnabledFor(_session.Stage);
             splineCityPool.Build(
                 campaignSplinePath,
                 _session.Stage.Seed,
-                _goalPathDistance);
+                _goalPathDistance,
+                rivals
+                    ? RivalRaceView.CityClearance
+                    : SplineCityPoolView.MinimumLateralOffset);
+            LastRacePlace = 0;
+            rivalRace.Begin(
+                _session.Stage,
+                campaignSplinePath,
+                CampaignInitialGateLeadDistance,
+                CampaignGoalDistance);
             ApplyCampaignPlayerPose();
             runnerSteeringView.ResetSteering();
             SnapCampaignCameraFollow();
@@ -2910,6 +2931,7 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
+            LastRacePlace = rivalRace.CompleteForPlayer(_campaignDistance);
             RecordClear();
             ApplyUiFlow(MobileUiFlow.ClearResult);
             clearPanel.SetActive(false);
@@ -3139,6 +3161,9 @@ namespace ColorGateRunner.Presentation
                         _progressStore.LoadRecord(_selectedStageNumber);
                     clearDetailsText.text =
                         $"STAGE {_selectedStageNumber} COMPLETE\n" +
+                        (LastRacePlace > 0
+                            ? $"RACE {RivalRaceView.FormatPlace(LastRacePlace)} PLACE\n"
+                            : string.Empty) +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
                         $"BEST {record.BestTime:0.00}s" +
@@ -3333,6 +3358,7 @@ namespace ColorGateRunner.Presentation
             runnerFormView.SnapToColor(RunnerColor.Red);
             campaignSplinePath.ResetRoute();
             splineCityPool.ResetPool();
+            rivalRace.Hide();
             trackPool.gameObject.SetActive(true);
             trackPool.ResetPool();
             gateBreakEffects.ResetPool();

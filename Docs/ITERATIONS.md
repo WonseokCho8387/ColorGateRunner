@@ -3749,3 +3749,46 @@ checker 지적에 따라 릴리스 빌드에서 링크 행이 숨으면 링크 �
   카드 객체 이름은 `ComingSoonStatusCard`를 공유한다.
 - 데스크톱/WebGL 릴리스 빌드에서는 ABOUT과 버튼만 남는다. 오디오, 알림 전송, 링크
   주소, 온라인 랭킹은 별도 승인 범위다.
+
+
+---
+
+## Iteration 64 — Rival Race (2026-11-03)
+
+### Play / Analyze
+
+사용자는 싱글 플레이에서도 좌우 트랙의 AI가 함께 경쟁하는 모습을 원했다. 기존
+결정은 Race Mode를 Campaign과 분리했다. 임시 렌더 프로토타입(커밋하지 않음)에서
+세로 화면은 카메라를 넓혀도 플레이어 옆의 라이벌을 보여주지 못한다는 점을 확인했다.
+
+### Design
+
+사용자가 권장안을 승인했다: 현재 카메라, ±9 측면 차선, 표시 전용 Ghost 2명, 실패는
+휘청임, 순위 칩과 결과 문구만, Stage 2부터. 64A Core와 64B 표시로 나눠 커밋했다.
+
+### Implementation
+
+64A는 `RivalRaceSimulation`(원시 게이트 간격, 비부스터 속도, 시드 기반 성공 여부,
+휘청임, 순위 계산)을 추가했다. 64B는 `CampaignSplinePathView.BuildLaneMesh`,
+`SplineCityPoolView` 거리 오버로드, `RivalRaceView`, `StageSceneController` 연결,
+`GrayboxSceneBuilder.CreateRivalRace`(차선·러너·게이트·순위 칩, 이름 접두사)를 추가했다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. Campaign과 Step 10
+시뮬레이션을 실행해 모든 결과물 해시가 기준과 같음을 확인했다.
+checker 지적에 따라 재시작·단계 선택 복귀 숨김과 Stage 1 빌딩 거리 테스트를 추가하고
+시뮬레이션 해시 비교를 `simulation-hashes.txt`로 남겼다.
+
+### Learning
+
+라이벌 모델을 복제하면 `ColorShell` 같은 기존 고유 이름 조회와 충돌하므로 프리팹을
+풀고 하위 이름에 접두사를 붙였다. 세로 화면의 경쟁감은 3D 배치만으로 전달되지 않아
+순위 HUD가 필요하다.
+
+### Deferred / Human Review
+
+- 경쟁감이 실제로 느껴지는지, 라이벌이 대부분 화면 밖인 구간, 측면 게이트와 실제
+  게이트의 혼동, Magenta 라이벌과 판정 Purple 구분, 빌딩이 바깥으로 밀린 도시 밀도,
+  Fog 구간의 측면 차선, 모바일 성능은 사람이 확인해야 한다.
+- 라이벌 순위의 보상 연동, 실제 고스트 기록·온라인 랭킹, 라이벌 수 조정은 범위 밖이다.

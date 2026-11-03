@@ -134,6 +134,26 @@ namespace ColorGateRunner.Editor
                 GeneratedMaterialsFolder + "/CityMagenta.mat",
                 NeonUiPalette.Magenta,
                 4f);
+            Material rivalSignal = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/RivalSignal.mat",
+                NeonUiPalette.Signal,
+                2.2f);
+            Material rivalLaneEdge = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/RivalLaneEdge.mat",
+                NeonUiPalette.Signal,
+                1.4f);
+            Material rivalGateIdle = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/RivalGateIdle.mat",
+                NeonUiPalette.Signal,
+                1.2f);
+            Material rivalGatePass = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/RivalGatePass.mat",
+                NeonUiPalette.Signal,
+                4f);
+            Material rivalGateFail = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/RivalGateFail.mat",
+                NeonUiPalette.Danger,
+                4f);
             Material cityFacade = CreateOrUpdateCityFacadeMaterial(
                 GeneratedMaterialsFolder + "/CityFacade.mat");
             Material nightSky = CreateOrUpdateNightSkyMaterial(
@@ -701,6 +721,18 @@ namespace ColorGateRunner.Editor
                 },
                 frontendPath);
             controller.ConfigureThemeVisuals(gateBreakEffects);
+            RivalRaceView rivalRace = CreateRivalRace(
+                root.transform,
+                hud.transform,
+                roadMaterial,
+                darkAlloy,
+                runnerGlass,
+                new[] { cityMagenta, rivalSignal },
+                rivalLaneEdge,
+                rivalGateIdle,
+                rivalGatePass,
+                rivalGateFail);
+            controller.ConfigureRivalRace(rivalRace);
             SplineTrackLabController splineLabController =
                 splineTrackLabView.gameObject.AddComponent<
                     SplineTrackLabController>();
@@ -1639,6 +1671,135 @@ namespace ColorGateRunner.Editor
             volumeType.GetProperty("isGlobal")?.SetValue(volume, true);
             volumeType.GetProperty("priority")?.SetValue(volume, 10f);
             volumeType.GetProperty("sharedProfile")?.SetValue(volume, profile);
+        }
+
+        private static RivalRaceView CreateRivalRace(
+            Transform parent,
+            Transform hud,
+            Material roadMaterial,
+            Material darkMaterial,
+            Material glassMaterial,
+            Material[] shellMaterials,
+            Material laneEdgeMaterial,
+            Material gateIdle,
+            Material gatePass,
+            Material gateFail)
+        {
+            GameObject root = new GameObject("RivalRace", typeof(RivalRaceView));
+            root.transform.SetParent(parent, false);
+            int lanes = RivalRaceSimulation.RivalCount;
+            var laneFilters = new MeshFilter[lanes];
+            var runners = new Transform[lanes];
+            var gates = new Transform[lanes * RivalRaceView.GatesPerLane];
+            var gateRenderers =
+                new Renderer[gates.Length * RivalRaceView.NeonPartsPerGate];
+            string[] neonNames = { "LeftNeon", "RightNeon", "TopNeon" };
+            for (int rival = 0; rival < lanes; rival++)
+            {
+                GameObject lane = new GameObject(
+                    $"RivalLane_{rival}",
+                    typeof(MeshFilter),
+                    typeof(MeshRenderer));
+                lane.transform.SetParent(root.transform, false);
+                MeshRenderer laneRenderer = lane.GetComponent<MeshRenderer>();
+                laneRenderer.sharedMaterials =
+                    new[] { roadMaterial, laneEdgeMaterial };
+                laneRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                laneFilters[rival] = lane.GetComponent<MeshFilter>();
+
+                GameObject runner = new GameObject($"RivalRunner_{rival}");
+                runner.transform.SetParent(root.transform, false);
+                GameObject art = InstantiateTheme01Model(
+                    "CyberOrbRunner.fbx",
+                    runner.transform,
+                    "RivalRunnerVisual");
+                ApplyThemeMaterials(art, darkMaterial, shellMaterials[rival]);
+                Transform hull = FindNamedTransform(art.transform, "HullShell");
+                if (hull == null || !hull.TryGetComponent(out Renderer hullRenderer))
+                {
+                    throw new InvalidOperationException(
+                        "Rival runner requires a HullShell renderer.");
+                }
+                hullRenderer.sharedMaterial = glassMaterial;
+                // Rivals keep the neutral base silhouette, never a color form.
+                foreach (Transform part in art.GetComponentsInChildren<Transform>(true))
+                {
+                    if (part.name.StartsWith("Power", StringComparison.Ordinal) ||
+                        part.name.StartsWith("Stable", StringComparison.Ordinal) ||
+                        part.name.StartsWith("Wing", StringComparison.Ordinal))
+                    {
+                        part.gameObject.SetActive(false);
+                    }
+                }
+                PrefixDescendants(art, "Rival_");
+                runners[rival] = runner.transform;
+
+                for (int slot = 0; slot < RivalRaceView.GatesPerLane; slot++)
+                {
+                    int gateIndex = (rival * RivalRaceView.GatesPerLane) + slot;
+                    GameObject gate = new GameObject($"RivalGate_{rival}_{slot}");
+                    gate.transform.SetParent(root.transform, false);
+                    GameObject gateArt = InstantiateTheme01Model(
+                        "NeonGate.fbx",
+                        gate.transform,
+                        "RivalGateArtwork");
+                    ApplyThemeMaterials(gateArt, darkMaterial, gateIdle);
+                    for (int part = 0; part < neonNames.Length; part++)
+                    {
+                        Transform neon = FindNamedTransform(
+                            gateArt.transform,
+                            neonNames[part]);
+                        if (neon == null ||
+                            !neon.TryGetComponent(out Renderer neonRenderer))
+                        {
+                            throw new InvalidOperationException(
+                                $"Rival gate requires {neonNames[part]}.");
+                        }
+                        gateRenderers[(gateIndex * RivalRaceView.NeonPartsPerGate) +
+                            part] = neonRenderer;
+                    }
+                    PrefixDescendants(gateArt, "Rival_");
+                    gates[gateIndex] = gate.transform;
+                }
+            }
+
+            Text rank = CreateText(
+                "RaceRankText",
+                hud,
+                "1ST / 3",
+                22,
+                new Vector2(0.03f, 0.3f),
+                new Vector2(0.26f, 0.52f));
+            rank.alignment = TextAnchor.MiddleLeft;
+            rank.color = NeonUiPalette.Magenta;
+            RivalRaceView view = root.GetComponent<RivalRaceView>();
+            view.Configure(
+                laneFilters,
+                runners,
+                gates,
+                gateRenderers,
+                gateIdle,
+                gatePass,
+                gateFail,
+                rank);
+            return view;
+        }
+
+        // Rival copies of shared models get distinct names so scene lookups
+        // for the player's runner and gate parts stay unique.
+        private static void PrefixDescendants(GameObject root, string prefix)
+        {
+            PrefabUtility.UnpackPrefabInstance(
+                root,
+                PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (child != root.transform)
+                {
+                    child.name = prefix + child.name;
+                }
+            }
         }
 
         private static void ConfigureNightEnvironment(Material nightSky)

@@ -1082,3 +1082,13 @@ This section supersedes Iteration 47's separate additive frame trace.
   on. APPLY uses the primary surface; CANCEL and links use the secondary one.
 - Unavailable destinations use an ItemCard status card with a Magenta status
   word and a TextSecondary explanation instead of a bare floating label.
+
+
+## Iteration 64 rival lanes
+
+- Rival lanes reuse the asphalt surface with quieter Signal edges so the
+  player's Cyan road stays dominant. Rival gates are neutral Signal frames that
+  flash Signal on a pass and Danger on a fail; they never show judgment colors.
+- Rival runners use the base silhouette only (no color-form parts) with one
+  Magenta and one Signal shell. The rank chip sits under the Stage title in
+  Magenta when first and Signal otherwise.

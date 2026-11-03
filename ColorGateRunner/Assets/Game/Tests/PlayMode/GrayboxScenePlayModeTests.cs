@@ -3521,6 +3521,98 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.Playing));
         }
 
+        [Test]
+        public void RivalRace_IsHiddenOnTutorialStage()
+        {
+            SelectAndStartStage(1);
+            RivalRaceView rivals = _controller.RivalRace;
+            Assert.That(rivals.RaceActive, Is.False);
+            Assert.That(rivals.gameObject.activeSelf, Is.False);
+            Assert.That(rivals.RankText.gameObject.activeSelf, Is.False);
+            SplineCityPoolView city = _controller.SplineCityPool;
+            for (int index = 0; index < city.SlotCount; index++)
+            {
+                Assert.That(city.GetSlotLateralDistance(index),
+                    Is.LessThan(RivalRaceView.CityClearance));
+            }
+        }
+
+        [Test]
+        public void RivalRace_HidesOnReturnAndRestartsFromTheLine()
+        {
+            SelectAndStartStage(9);
+            RivalRaceView rivals = _controller.RivalRace;
+            _controller.TickMovement(1f);
+            Assert.That(rivals.Race.GetDistance(0), Is.GreaterThan(0f));
+
+            _controller.ShowStageSelect();
+            Assert.That(rivals.RaceActive, Is.False);
+            Assert.That(rivals.gameObject.activeSelf, Is.False);
+            Assert.That(rivals.RankText.gameObject.activeSelf, Is.False);
+
+            SelectAndStartStage(9);
+            Assert.That(rivals.RaceActive, Is.True);
+            Assert.That(rivals.Race.GetDistance(0), Is.Zero);
+            Assert.That(rivals.Race.GetDistance(1), Is.Zero);
+        }
+
+        [Test]
+        public void RivalRace_RunsOnOffsetLanesWithRankAndClearCity()
+        {
+            SelectAndStartStage(9);
+            RivalRaceView rivals = _controller.RivalRace;
+            Assert.That(rivals.RaceActive, Is.True);
+            Assert.That(rivals.RankText.gameObject.activeSelf, Is.True);
+            SplineCityPoolView city = _controller.SplineCityPool;
+            for (int index = 0; index < city.SlotCount; index++)
+            {
+                Assert.That(city.GetSlotLateralDistance(index),
+                    Is.GreaterThanOrEqualTo(RivalRaceView.CityClearance));
+            }
+
+            for (int frame = 0; frame < 180; frame++)
+            {
+                _controller.TickMovement(1f / 60f);
+            }
+            CampaignSplinePathView path = _controller.CampaignSplinePath;
+            for (int rival = 0; rival < RivalRaceSimulation.RivalCount; rival++)
+            {
+                float distance = rivals.Race.GetDistance(rival);
+                Assert.That(distance, Is.GreaterThan(0f));
+                path.EvaluatePose(distance, 1f, out Vector3 center, out _);
+                Vector3 runner = rivals.GetRunner(rival).position;
+                Assert.That(
+                    Vector3.Distance(center, runner),
+                    Is.EqualTo(RivalRaceView.LaneOffset).Within(1.5f));
+                Assert.That(rivals.GetLaneMesh(rival), Is.Not.Null);
+                Assert.That(rivals.GetLaneMesh(rival).subMeshCount,
+                    Is.EqualTo(2));
+            }
+            Assert.That(rivals.RankText.text, Does.EndWith("/ 3"));
+            Assert.That(CountNamed("ColorShell"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RivalRace_FreezesWhilePausedAndReportsClearPlace()
+        {
+            SelectAndStartStage(4);
+            RivalRaceView rivals = _controller.RivalRace;
+            _controller.TickMovement(0.5f);
+            float before = rivals.Race.GetDistance(0);
+            _controller.RequestPause();
+            _controller.Tick(1f);
+            Assert.That(rivals.Race.GetDistance(0), Is.EqualTo(before));
+            _controller.RequestResume();
+
+            FinishCurrentStage();
+            Assert.That(_controller.LastRacePlace, Is.InRange(1, 3));
+            _controller.Tick(1.3f);
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Contain("RACE " +
+                    RivalRaceView.FormatPlace(_controller.LastRacePlace) +
+                    " PLACE"));
+        }
+
         private void SelectAndStartStage(int stageNumber)
         {
             _store.HighestUnlocked = StageCatalog.Count;

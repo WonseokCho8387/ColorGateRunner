@@ -26,6 +26,7 @@ namespace ColorGateRunner.Presentation
         private int[] _sideCounts;
         private CampaignSplinePathView _path;
         private uint _stageSeed;
+        private float _lateralClearance = MinimumLateralOffset;
         private float _goalDistance;
         private bool _campaignActive;
 
@@ -83,6 +84,16 @@ namespace ColorGateRunner.Presentation
             uint stageSeed,
             float goalDistance)
         {
+            Build(path, stageSeed, goalDistance, MinimumLateralOffset);
+        }
+
+        // Rival stages push the towers outward so the side lanes stay clear.
+        internal void Build(
+            CampaignSplinePathView path,
+            uint stageSeed,
+            float goalDistance,
+            float lateralClearance)
+        {
             if (!HasRequiredReferences)
             {
                 throw new InvalidOperationException(
@@ -96,6 +107,7 @@ namespace ColorGateRunner.Presentation
             }
             _stageSeed = stageSeed;
             _goalDistance = Mathf.Max(0f, goalDistance);
+            _lateralClearance = Mathf.Max(MinimumLateralOffset, lateralClearance);
             _campaignActive = true;
 
             int leftCount = 0;
@@ -247,7 +259,7 @@ namespace ColorGateRunner.Presentation
         private float GetLateralOffset(int index)
         {
             int sequence = _sequenceIndices[index];
-            return MinimumLateralOffset +
+            return _lateralClearance +
                 (Hash01(_stageSeed, sequence, index, 29u) * LateralJitter);
         }
 
