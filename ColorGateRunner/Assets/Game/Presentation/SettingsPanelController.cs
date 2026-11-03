@@ -24,10 +24,16 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Button applyButton;
         [SerializeField] private Button cancelButton;
         [SerializeField] private ProductLinkConfiguration linkConfiguration;
+        [SerializeField] private GameObject audioSection;
+        [SerializeField] private GameObject gameplaySection;
+        [SerializeField] private GameObject linkRow;
+        [SerializeField] private Text versionText;
 
         private IProductSettingsHost _host;
         private IExternalUrlOpener _urlOpener;
         private bool _listenersBound;
+        private SettingsAvailability _availability =
+            SettingsAvailability.Current;
 
         internal event Action ApplySucceeded;
         internal event Action CancelRequested;
@@ -48,6 +54,10 @@ namespace ColorGateRunner.Presentation
         internal Text StatusText => statusText;
         internal Button ApplyButton => applyButton;
         internal Button CancelButton => cancelButton;
+        internal GameObject AudioSection => audioSection;
+        internal GameObject GameplaySection => gameplaySection;
+        internal GameObject LinkRow => linkRow;
+        internal Text VersionText => versionText;
 
         private void Awake()
         {
@@ -99,9 +109,28 @@ namespace ColorGateRunner.Presentation
             linkConfiguration = links;
         }
 
+        internal void ConfigureSections(
+            GameObject audio,
+            GameObject gameplay,
+            GameObject links,
+            Text version)
+        {
+            audioSection = audio;
+            gameplaySection = gameplay;
+            linkRow = links;
+            versionText = version;
+        }
+
+        internal void SetAvailabilityForTests(SettingsAvailability availability)
+        {
+            _availability = availability;
+        }
+
         internal void Open(IProductSettingsHost host)
         {
             _host = host;
+            ApplyAvailability();
+            versionText.text = "VERSION " + Application.version;
             LocalSettingsData settings = host?.CurrentSettings;
             if (settings == null)
             {
@@ -139,7 +168,9 @@ namespace ColorGateRunner.Presentation
                 privacyButton != null && supportButton != null &&
                 linkStatusText != null && statusText != null &&
                 applyButton != null && cancelButton != null &&
-                linkConfiguration != null;
+                linkConfiguration != null && audioSection != null &&
+                gameplaySection != null && linkRow != null &&
+                versionText != null;
         }
 
         private void Apply()
@@ -227,6 +258,21 @@ namespace ColorGateRunner.Presentation
             _listenersBound = false;
         }
 
+        private void ApplyAvailability()
+        {
+            // Hidden rows keep their loaded values, so Apply preserves the
+            // persisted preference without exposing an inert control.
+            audioSection.SetActive(_availability.AnyAudio);
+            musicToggle.gameObject.SetActive(_availability.Music);
+            sfxToggle.gameObject.SetActive(_availability.Sfx);
+            gameplaySection.SetActive(_availability.AnyGameplay);
+            vibrationToggle.gameObject.SetActive(_availability.Vibration);
+            notificationToggle.gameObject.SetActive(
+                _availability.Notifications);
+            notificationNoticeText.gameObject.SetActive(
+                _availability.Notifications);
+        }
+
         private void HandleToggleChanged(bool _)
         {
             RefreshTogglePresentation();
@@ -243,6 +289,12 @@ namespace ColorGateRunner.Presentation
         private static void SetTogglePresentation(Toggle toggle, Text label)
         {
             bool enabled = toggle.isOn;
+            SettingsSwitchView switchView =
+                toggle.GetComponent<SettingsSwitchView>();
+            if (switchView != null)
+            {
+                switchView.Show(enabled);
+            }
             label.text = enabled ? "ON" : "OFF";
             label.color = enabled
                 ? NeonUiPalette.Signal
@@ -281,9 +333,18 @@ namespace ColorGateRunner.Presentation
             bool support = ConfigureLinkButton(
                 supportButton,
                 ProductLinkType.Support);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            linkRow.SetActive(true);
+            linkStatusText.gameObject.SetActive(true);
             linkStatusText.text = terms && privacy && support
                 ? string.Empty
                 : "URL NOT CONFIGURED";
+#else
+            // Release builds hide unconfigured links instead of naming them.
+            linkRow.SetActive(terms || privacy || support);
+            linkStatusText.gameObject.SetActive(false);
+            linkStatusText.text = string.Empty;
+#endif
         }
 
         private bool ConfigureLinkButton(

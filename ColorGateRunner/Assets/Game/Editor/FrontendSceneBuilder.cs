@@ -867,6 +867,8 @@ namespace ColorGateRunner.Editor
                 "LeaderboardPageRoot",
                 "RANK",
                 "RankBackground",
+                "OFFLINE",
+                "ONLINE RANKING IS NOT AVAILABLE IN THIS BUILD.",
                 lobbyPagePager);
             journeyPage = CreateJourneyPage(
                 viewportObject.transform,
@@ -878,6 +880,8 @@ namespace ColorGateRunner.Editor
                 "CollectionPageRoot",
                 "COLLECTION",
                 "CollectionBackground",
+                "COMING SOON",
+                "COLLECTION IS NOT AVAILABLE IN THIS BUILD.",
                 lobbyPagePager);
             CreateLobbyNavigation(
                 parent,
@@ -932,6 +936,8 @@ namespace ColorGateRunner.Editor
             string rootName,
             string titleText,
             string backgroundSpriteName,
+            string statusText,
+            string bodyText,
             LobbyPagePager pagePager)
         {
             GameObject root = CreateFlowRoot(rootName, parent);
@@ -957,14 +963,35 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.12f, 0.775f),
                 new Vector2(0.88f, 0.815f));
             title.color = NeonUiPalette.TextPrimary;
+            var card = new GameObject(
+                "ComingSoonStatusCard",
+                typeof(RectTransform),
+                typeof(Image));
+            card.transform.SetParent(root.transform, false);
+            RectTransform cardRect = card.GetComponent<RectTransform>();
+            cardRect.anchorMin = new Vector2(0.1f, 0.5f);
+            cardRect.anchorMax = new Vector2(0.9f, 0.665f);
+            cardRect.offsetMin = Vector2.zero;
+            cardRect.offsetMax = Vector2.zero;
+            Image cardImage = card.GetComponent<Image>();
+            cardImage.raycastTarget = false;
+            Theme01UiSkinBuilder.ApplyPanel(cardImage, "ComingSoonStatusCard");
             Text status = CreateText(
                 "ComingSoonStatus",
-                root.transform,
-                "COMING SOON",
-                17,
-                new Vector2(0.18f, 0.695f),
-                new Vector2(0.82f, 0.73f));
-            status.color = NeonUiPalette.Signal;
+                card.transform,
+                statusText,
+                24,
+                new Vector2(0.08f, 0.54f),
+                new Vector2(0.92f, 0.86f));
+            status.color = NeonUiPalette.Magenta;
+            Text body = CreateText(
+                "ComingSoonBody",
+                card.transform,
+                bodyText,
+                16,
+                new Vector2(0.08f, 0.16f),
+                new Vector2(0.92f, 0.5f));
+            body.color = NeonUiPalette.TextSecondary;
             return root;
         }
 

@@ -1073,3 +1073,12 @@ This section supersedes Iteration 47's separate additive frame trace.
   strips. Road, gates, runner and judgment colors are unchanged.
 - Human review owns runner shell/wing readability against the darker scene,
   Magenta/Purple separation, fog density and device frame cost.
+
+
+## Iteration 63 settings and placeholder pages
+
+- Settings is a neon Modal with quiet TextSecondary section labels, ItemCard
+  rows and a rectangular switch whose track turns Magenta with a white knob when
+  on. APPLY uses the primary surface; CANCEL and links use the secondary one.
+- Unavailable destinations use an ItemCard status card with a Magenta status
+  word and a TextSecondary explanation instead of a bare floating label.

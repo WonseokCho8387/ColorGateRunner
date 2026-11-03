@@ -1190,3 +1190,18 @@ fairness, or polish.
   `2/2`; Product save and Campaign PlayerPrefs exact; no Package or
   ProjectSettings diff. Campaign and Step 10 simulations are omitted because no
   gameplay input changed.
+
+
+### Iteration 63 settings and placeholder page refresh
+
+- EditMode `SettingsPanelDesignTests` proves the availability policy (desktop
+  hides every inert row, handheld shows only Vibration); both Settings panels
+  use the Modal surface, ItemCard switch rows with complete switch references,
+  Primary APPLY / Secondary CANCEL and icon-free text buttons, and the OFL
+  credit; `Open` applies availability and the build version; the switch moves
+  its knob and turns Magenta when on; Rank shows the `OFFLINE` status card.
+- The existing Settings PlayMode flow still persists toggles and Master volume.
+- Final evidence: Builders `2/2`; focused `11/11`; EditMode `502/502`;
+  PlayMode `268` passed with one intentional opt-in ignore; Product save and
+  Campaign PlayerPrefs exact; no Package or ProjectSettings diff. Simulations
+  are omitted because no gameplay input changed.

@@ -3702,3 +3702,50 @@ RenderSettings를 Builder가 소유해야 한다. Builder는 Boot/Frontend fileI
   정해져 FBX 자식 순서에 따라 교대가 보장되지 않는다. 슬롯 기준 배정과 교대 검증은
   후속으로 남긴다. 거리 Fog가 60 유닛 너머 게이트에도 적용되므로 먼 게이트 가독성,
   파사드 `Fallback Off`의 WebGL 실제 빌드 확인이 남아 있다.
+
+
+---
+
+## Iteration 63 — Settings and Placeholder Page Refresh (2026-11-03)
+
+### Play / Analyze
+
+Settings 패널은 Iteration 61 스킨이 적용되지 않은 단색 사각형이었고, 네 토글 중
+알림(전송 없음)과 Music/SFX(오디오 자산 없음)는 아무것도 제어하지 않았다. 진동은
+WebGL에서 효과가 없고 링크 주소는 비어 있었다. Rank는 `COMING SOON` 한 줄이었다.
+
+### Design
+
+사용자가 권장안을 승인했다. 작동하는 것만 보이게 하되 저장 데이터와 키는 바꾸지
+않는다. 번호는 이 작업을 63으로 하고 로비 일러스트를 64, 상단 바·아이콘을 65로 미룬다.
+
+### Implementation
+
+`SettingsAvailability`(플랫폼별 표시 정책), `SettingsSwitchView`(트랙·손잡이 스위치),
+`SettingsPanelController.ConfigureSections`·가용성 적용·버전 표시, Builder의
+VerticalLayoutGroup 기반 구역 레이아웃, Rank/Collection 상태 카드를 추가했다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 첫 집중 실행은
+이전 Iteration용 복원 스크립트가 Frontend 씬을 HEAD로 되돌려 실패했고 스크립트를
+고쳤다. 임시 렌더에서 링크 행이 남는 높이를 흡수해 세로로 늘어나는 문제를 발견해
+LayoutElement `flexibleHeight = 0`으로 고쳤다.
+checker 지적에 따라 릴리스 빌드에서 링크 행이 숨으면 링크 상태 문구도 숨겨 빈 간격을
+없앴다. 수정 후 단독 Frontend PlayMode 실행이 Unity 네이티브 접근 위반으로 종료되어
+남은 InitTestScene과 오래된 잠금 파일을 지우고 전체 회귀를 다시 실행해 통과했다.
+
+### Learning
+
+가로 LayoutGroup의 `childForceExpandHeight`는 부모 세로 그룹에 유연 높이를 보고하므로
+행 높이를 고정하려면 LayoutElement로 유연 높이를 0으로 막아야 한다. Builder 산출물
+복원 대상은 Iteration마다 바뀐 씬을 기준으로 다시 정해야 한다.
+
+### Deferred / Human Review
+
+- Frontend·Pause의 실제 Settings 화면, Rank/Collection 카드, 720×1280 배치는 대화형
+  Editor 또는 WebGL에서 사람이 확인해야 한다. 스위치는 사각형 손잡이를 쓴다.
+- checker 참고: 릴리스 전용 링크 숨김(`#if`)과 Collection 문구는 테스트하지 않는다. Rank
+  카드 객체 이름은 `ComingSoonStatusCard`를 공유한다.
+- 데스크톱/WebGL 릴리스 빌드에서는 ABOUT과 버튼만 남는다. 오디오, 알림 전송, 링크
+  주소, 온라인 랭킹은 별도 승인 범위다.

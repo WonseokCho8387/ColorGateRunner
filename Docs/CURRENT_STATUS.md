@@ -1,5 +1,26 @@
 # Current Status
 
+## Iteration 63 — Settings and Placeholder Page Refresh (2026-11-03 KST)
+
+- 기준: `f63c82c` (Iteration 62) 위에서 구현했다. primary 프로젝트, Unity
+  `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음. Push 없음.
+- 공용 Settings 패널(Frontend·Pause)을 네온 Modal, AUDIO/GAMEPLAY/ABOUT 구역,
+  Magenta 스위치 토글, 주요/보조 텍스트 버튼으로 다시 구성했다.
+  `SettingsAvailability`가 작동하지 않는 행을 숨긴다: 알림(전송 없음)과 Music/SFX
+  (오디오 자산 없음)는 숨김, 진동은 Android/iOS에서만 표시, 릴리스 빌드는 주소 없는
+  링크를 숨긴다. 숨긴 행도 불러온 값을 유지하므로 Apply가 저장 값을 보존한다.
+  ABOUT은 빌드 버전과 Chakra Petch SIL OFL 1.1 표기를 보여준다. Rank는
+  `OFFLINE` 상태 카드, Collection은 `COMING SOON` 카드로 정직하게 안내한다.
+  저장 스키마·키·규칙은 변경 없음.
+- 최종 자동 검증: **EditMode 502 passed; PlayMode 268 passed + 1 existing ignored**
+  (신규 EditMode 5, PlayMode Rank 문구 1건 갱신). 집중 11/11. Builder 각 2회 이상.
+- 커밋하지 않은 임시 Editor 캡처 스크립트로 Settings 렌더 2장(데스크톱/휴대기기
+  가용성)을 확인하고 링크 행 높이를 고쳤다. Rank 페이지 렌더와 실제 Frontend 흐름의
+  화면 확인은 대화형 Editor가 필요해 **NOT VERIFIED**다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+  변경은 Unity TestResults.xml, 세션 기록, `PT_Run` EditorPrefs뿐이다.
+- 독립 read-only checker: 기준 1, 3, 5 PASS·2, 4, 6, 7 참고 사항, blocker 없음(릴리스 링크 상태 문구 간격은 수정함). 근거: `Artifacts/Validation/Iteration63/`.
+
 ## Iteration 62 — Neon Night City Gameplay Environment (2026-11-03 KST)
 
 - 기준: `d963031` (Iteration 61) 위에서 구현했다. primary 프로젝트, Unity
@@ -96,8 +117,10 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 62 commit `feat: add neon night city gameplay environment`,
-  whose parent is `d9630311d18785aa87f49e483029538d969f49aa`
+- Implementation base: the Iteration 63 commit `feat: refresh settings and placeholder pages`,
+  whose parent is `f63c82ceb66dc1cfd3a0fef93456ce92160f6e48`
+  (`feat: add neon night city gameplay environment`).
+- Iteration 62 base parent: `d9630311d18785aa87f49e483029538d969f49aa`
   (`feat: establish neon night UI design system`).
 - Previous base: `d527300040de2a7b208f068a5d12939ae6ad3d92`
   (`feat: add itch.io playtest build candidate`).
@@ -116,7 +139,10 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 62 — Neon Night City Gameplay Environment**.
+- Current completed iteration: **Iteration 63 — Settings and Placeholder Page Refresh**.
+  Settings shows only controls the build can honor; Rank states that online
+  ranking is unavailable.
+- Iteration 62 — Neon Night City Gameplay Environment.
   Campaign renders a night skybox, Trilight night ambient, linear distance fog
   and lit-window city facades; gameplay rules and road/gate/runner art are
   unchanged.
@@ -482,6 +508,9 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 63 on `2026-11-03` KST (parent `f63c82c`): EditMode `502/502`;
+  PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore.
+  Builders `2/2`.
 - Iteration 62 on `2026-11-03` KST (parent `d963031`): EditMode `497/497`;
   PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore.
   Builders `2/2`. D3D11 Campaign capture `2/2`.

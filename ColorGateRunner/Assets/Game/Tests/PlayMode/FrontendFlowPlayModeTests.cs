@@ -317,7 +317,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(FrontendPage.Leaderboard));
             Assert.That(
                 controller.LeaderboardPageRoot.GetComponentsInChildren<Text>(true)
-                    .Any(text => text.text == "COMING SOON"),
+                    .Any(text => text.text == "OFFLINE"),
                 Is.True);
 
             controller.JourneyNavigationButton.onClick.Invoke();

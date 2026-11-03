@@ -9,6 +9,13 @@ namespace ColorGateRunner.Editor
     {
         internal const string ConfigurationPath =
             "Assets/Game/Resources/ProductLinkConfiguration.asset";
+        internal const string FontCredit =
+            "FONT: CHAKRA PETCH - SIL OPEN FONT LICENSE 1.1";
+
+        private const float SectionHeight = 44f;
+        private const float ToggleHeight = 104f;
+        private const float InfoHeight = 40f;
+        private const float LinkRowHeight = 60f;
 
         internal static SettingsPanelController Create(Transform parent)
         {
@@ -18,94 +25,108 @@ namespace ColorGateRunner.Editor
                 parent,
                 new Vector2(0.07f, 0.08f),
                 new Vector2(0.93f, 0.92f),
-                new Color(0.09f, 0.13f, 0.21f, 1f));
+                NeonUiPalette.Night);
+            Theme01UiSkinBuilder.ApplyPanel(
+                panel.GetComponent<Image>(),
+                "SettingsModal");
             SettingsPanelController controller =
                 panel.AddComponent<SettingsPanelController>();
-            CreateText(
+            Text title = CreateText(
                 "SettingsTitle",
                 panel.transform,
                 "SETTINGS",
-                30,
-                new Vector2(0.08f, 0.90f),
-                new Vector2(0.92f, 0.98f));
+                34,
+                new Vector2(0.08f, 0.89f),
+                new Vector2(0.92f, 0.96f));
+            title.color = NeonUiPalette.TextPrimary;
 
-            Toggle notifications = CreateToggle(
-                "NotificationToggle",
-                panel.transform,
-                "NOTIFICATIONS",
-                0.75f,
-                out Text notificationState);
+            Transform content = CreateContentColumn(panel.transform);
+            GameObject audioSection = CreateSectionLabel(
+                "AudioSectionLabel",
+                content,
+                "AUDIO");
             Toggle music = CreateToggle(
                 "MusicToggle",
-                panel.transform,
+                content,
                 "MUSIC",
-                0.63f,
                 out Text musicState);
             Toggle sfx = CreateToggle(
                 "SfxToggle",
-                panel.transform,
+                content,
                 "SFX",
-                0.51f,
                 out Text sfxState);
+            GameObject gameplaySection = CreateSectionLabel(
+                "GameplaySectionLabel",
+                content,
+                "GAMEPLAY");
             Toggle vibration = CreateToggle(
                 "VibrationToggle",
-                panel.transform,
+                content,
                 "VIBRATION",
-                0.39f,
                 out Text vibrationState);
-            Text notificationNotice = CreateText(
+            Toggle notifications = CreateToggle(
+                "NotificationToggle",
+                content,
+                "NOTIFICATIONS",
+                out Text notificationState);
+            Text notificationNotice = CreateRowText(
                 "NotificationNoticeText",
-                panel.transform,
+                content,
                 "PREFERENCE ONLY - NOTIFICATIONS ARE NOT SENT YET",
-                12,
-                new Vector2(0.08f, 0.31f),
-                new Vector2(0.92f, 0.37f));
-            notificationNotice.color = new Color(1f, 1f, 1f, 0.68f);
+                13,
+                InfoHeight,
+                NeonUiPalette.TextSecondary);
 
-            Button terms = CreateButton(
-                "TermsButton",
-                panel.transform,
-                "TERMS",
-                new Vector2(0.07f, 0.21f),
-                new Vector2(0.35f, 0.29f));
-            Button privacy = CreateButton(
-                "PrivacyButton",
-                panel.transform,
-                "PRIVACY",
-                new Vector2(0.36f, 0.21f),
-                new Vector2(0.64f, 0.29f));
-            Button support = CreateButton(
-                "SupportButton",
-                panel.transform,
-                "SUPPORT",
-                new Vector2(0.65f, 0.21f),
-                new Vector2(0.93f, 0.29f));
-            Text linkStatus = CreateText(
+            CreateSectionLabel("AboutSectionLabel", content, "ABOUT");
+            Text version = CreateRowText(
+                "SettingsVersionText",
+                content,
+                "VERSION",
+                16,
+                InfoHeight,
+                NeonUiPalette.TextPrimary);
+            CreateRowText(
+                "SettingsFontCreditText",
+                content,
+                FontCredit,
+                13,
+                InfoHeight,
+                NeonUiPalette.TextSecondary);
+            GameObject linkRow = CreateLinkRow(
+                content,
+                out Button terms,
+                out Button privacy,
+                out Button support);
+            Text linkStatus = CreateRowText(
                 "LinkStatusText",
-                panel.transform,
+                content,
                 "URL NOT CONFIGURED",
-                12,
-                new Vector2(0.08f, 0.16f),
-                new Vector2(0.92f, 0.20f));
+                13,
+                InfoHeight,
+                NeonUiPalette.TextSecondary);
+
             Text status = CreateText(
                 "SettingsStatusText",
                 panel.transform,
                 string.Empty,
-                13,
-                new Vector2(0.08f, 0.11f),
-                new Vector2(0.92f, 0.15f));
+                15,
+                new Vector2(0.08f, 0.14f),
+                new Vector2(0.92f, 0.19f));
+            status.color = NeonUiPalette.Signal;
             Button apply = CreateButton(
                 "SettingsApplyButton",
+                "ConfirmApply",
                 panel.transform,
                 "APPLY",
-                new Vector2(0.08f, 0.02f),
-                new Vector2(0.48f, 0.10f));
+                new Vector2(0.08f, 0.035f),
+                new Vector2(0.48f, 0.125f));
             Button cancel = CreateButton(
                 "SettingsCancelButton",
+                "CancelSecondary",
                 panel.transform,
                 "CANCEL",
-                new Vector2(0.52f, 0.02f),
-                new Vector2(0.92f, 0.10f));
+                new Vector2(0.52f, 0.035f),
+                new Vector2(0.92f, 0.125f));
 
             controller.Configure(
                 notifications,
@@ -125,6 +146,11 @@ namespace ColorGateRunner.Editor
                 apply,
                 cancel,
                 links);
+            controller.ConfigureSections(
+                audioSection,
+                gameplaySection,
+                linkRow,
+                version);
             return controller;
         }
 
@@ -145,43 +171,166 @@ namespace ColorGateRunner.Editor
             return configuration;
         }
 
+        private static Transform CreateContentColumn(Transform parent)
+        {
+            var root = new GameObject(
+                "SettingsContent",
+                typeof(RectTransform),
+                typeof(VerticalLayoutGroup));
+            root.transform.SetParent(parent, false);
+            SetAnchors(
+                root.GetComponent<RectTransform>(),
+                new Vector2(0.07f, 0.2f),
+                new Vector2(0.93f, 0.87f));
+            VerticalLayoutGroup layout = root.GetComponent<VerticalLayoutGroup>();
+            layout.spacing = 12f;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            return root.transform;
+        }
+
+        private static GameObject CreateSectionLabel(
+            string name,
+            Transform parent,
+            string value)
+        {
+            Text label = CreateRowText(
+                name,
+                parent,
+                value,
+                17,
+                SectionHeight,
+                NeonUiPalette.TextSecondary);
+            label.alignment = TextAnchor.LowerLeft;
+            return label.gameObject;
+        }
+
+        private static Text CreateRowText(
+            string name,
+            Transform parent,
+            string value,
+            int fontSize,
+            float height,
+            Color color)
+        {
+            Text text = CreateText(
+                name,
+                parent,
+                value,
+                fontSize,
+                Vector2.zero,
+                Vector2.one);
+            text.color = color;
+            AddHeight(text.gameObject, height);
+            return text;
+        }
+
         private static Toggle CreateToggle(
             string name,
             Transform parent,
             string label,
-            float bottom,
             out Text stateLabel)
         {
             GameObject root = CreatePanel(
                 name,
                 parent,
-                new Vector2(0.10f, bottom),
-                new Vector2(0.90f, bottom + 0.10f),
-                new Color(0.15f, 0.19f, 0.28f, 1f));
+                Vector2.zero,
+                Vector2.one,
+                Color.white);
+            Image card = root.GetComponent<Image>();
+            Theme01UiSkinBuilder.ApplyPanel(card, "SettingsToggleCard");
+            AddHeight(root, ToggleHeight);
             Toggle toggle = root.AddComponent<Toggle>();
-            CreateText(
+            Text labelText = CreateText(
                 "Label",
                 root.transform,
                 label,
-                17,
-                Vector2.zero,
-                new Vector2(0.72f, 1f));
+                20,
+                new Vector2(0.07f, 0f),
+                new Vector2(0.6f, 1f));
+            labelText.alignment = TextAnchor.MiddleLeft;
+            labelText.color = NeonUiPalette.TextPrimary;
             stateLabel = CreateText(
                 "StateLabel",
                 root.transform,
                 "ON",
                 16,
-                new Vector2(0.72f, 0f),
-                Vector2.one);
+                new Vector2(0.58f, 0f),
+                new Vector2(0.72f, 1f));
+            stateLabel.alignment = TextAnchor.MiddleRight;
             stateLabel.color = NeonUiPalette.Signal;
-            toggle.targetGraphic = root.GetComponent<Image>();
+
+            Image track = CreatePanel(
+                "SwitchTrack",
+                root.transform,
+                new Vector2(0.75f, 0.27f),
+                new Vector2(0.93f, 0.73f),
+                NeonUiPalette.Magenta).GetComponent<Image>();
+            track.raycastTarget = false;
+            Image knob = CreatePanel(
+                "SwitchKnob",
+                track.transform,
+                new Vector2(0.54f, 0.14f),
+                new Vector2(0.94f, 0.86f),
+                NeonUiPalette.TextPrimary).GetComponent<Image>();
+            knob.raycastTarget = false;
+            root.AddComponent<SettingsSwitchView>().Configure(track, knob);
+
+            toggle.targetGraphic = card;
             toggle.graphic = null;
             toggle.isOn = true;
             return toggle;
         }
 
+        private static GameObject CreateLinkRow(
+            Transform parent,
+            out Button terms,
+            out Button privacy,
+            out Button support)
+        {
+            var root = new GameObject(
+                "SettingsLinkRow",
+                typeof(RectTransform),
+                typeof(HorizontalLayoutGroup));
+            root.transform.SetParent(parent, false);
+            AddHeight(root, LinkRowHeight);
+            HorizontalLayoutGroup layout =
+                root.GetComponent<HorizontalLayoutGroup>();
+            layout.spacing = 10f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = true;
+            terms = CreateButton(
+                "TermsButton",
+                "TermsLink",
+                root.transform,
+                "TERMS",
+                Vector2.zero,
+                Vector2.one);
+            privacy = CreateButton(
+                "PrivacyButton",
+                "PrivacyLink",
+                root.transform,
+                "PRIVACY",
+                Vector2.zero,
+                Vector2.one);
+            support = CreateButton(
+                "SupportButton",
+                "SupportLink",
+                root.transform,
+                "SUPPORT",
+                Vector2.zero,
+                Vector2.one);
+            return root;
+        }
+
         private static Button CreateButton(
             string name,
+            string skinName,
             Transform parent,
             string label,
             Vector2 minimum,
@@ -192,16 +341,29 @@ namespace ColorGateRunner.Editor
                 parent,
                 minimum,
                 maximum,
-                new Color(0.16f, 0.22f, 0.34f, 1f));
+                Color.white);
             Button button = root.AddComponent<Button>();
-            CreateText(
+            Text text = CreateText(
                 name + "Label",
                 root.transform,
                 label,
-                16,
+                17,
                 Vector2.zero,
                 Vector2.one);
+            text.color = NeonUiPalette.TextPrimary;
+            // Skin names avoid the "Settings" icon route so these stay text
+            // buttons inside the chamfered stroke.
+            Theme01UiSkinBuilder.ApplyButton(button, skinName, text);
             return button;
+        }
+
+        private static void AddHeight(GameObject target, float height)
+        {
+            LayoutElement element = target.AddComponent<LayoutElement>();
+            element.minHeight = height;
+            element.preferredHeight = height;
+            // Rows never absorb spare column height; hidden rows collapse.
+            element.flexibleHeight = 0f;
         }
 
         private static GameObject CreatePanel(
