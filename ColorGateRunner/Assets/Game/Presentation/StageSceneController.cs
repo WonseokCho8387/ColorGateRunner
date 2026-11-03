@@ -14,7 +14,7 @@ namespace ColorGateRunner.Presentation
         private const float CountdownDuration = 3f;
         private const float ContinueReadyDuration = 0.5f;
         private const float ContinueGoFlashDuration = 0.25f;
-        private const float CampaignInitialGateLeadDistance = 48f;
+        internal const float CampaignInitialGateLeadDistance = 48f;
         private const float ExperimentInitialGateLeadDistance = 24f;
         private const float CampaignGoalDistance = 40f;
         private const float FailurePanelDelay = 1f;
@@ -54,6 +54,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private CampaignSplinePathView campaignSplinePath;
         [SerializeField] private SplineCityPoolView splineCityPool;
         [SerializeField] private RivalRaceView rivalRace;
+        [SerializeField] private ComboHudView comboHud;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -162,6 +163,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private string frontendScenePath;
 
         private StageSession _session;
+        private readonly PerfectSwitchCombo _combo = new PerfectSwitchCombo();
         private IStageProgressStore _progressStore;
         private IStartItemInventoryGateway _startItemInventory;
         private IContinueEconomyGateway _continueEconomy;
@@ -328,7 +330,8 @@ namespace ColorGateRunner.Presentation
             campaignSplinePath;
         internal SplineCityPoolView SplineCityPool => splineCityPool;
         internal RivalRaceView RivalRace => rivalRace;
-        internal int LastRacePlace { get; private set; }
+        internal ComboHudView ComboHud => comboHud;
+        internal PerfectSwitchCombo Combo => _combo;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -609,7 +612,8 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             splineCityPool.Tick(_campaignDistance);
-            rivalRace.Tick(deltaTime, _campaignDistance);
+            rivalRace.Tick(deltaTime);
+            comboHud.Tick(deltaTime);
             RecycleResolvedGatesBehindPlayer();
             UpdateCampaignFogCurtain(deltaTime);
             UpdateCampaignGateVisibility(deltaTime);
@@ -1221,6 +1225,9 @@ namespace ColorGateRunner.Presentation
             GateOutcome outcome = _session.ResolveGate(
                 plan,
                 _session.ElapsedPlayingSeconds);
+            comboHud.Apply(
+                _combo.Record(outcome, _session.LastGateSwitchTiming),
+                _combo.Current);
             if (_playtest != null)
             {
                 if (outcome == GateOutcome.Matched) _playtest.RecordDirectMatch();
@@ -1723,6 +1730,11 @@ namespace ColorGateRunner.Presentation
             rivalRace = view;
         }
 
+        internal void ConfigureComboHud(ComboHudView view)
+        {
+            comboHud = view;
+        }
+
         internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
         {
             splineTrackLab = lab;
@@ -1831,6 +1843,7 @@ namespace ColorGateRunner.Presentation
                 splineCityPool == null ||
                 !splineCityPool.HasRequiredReferences ||
                 rivalRace == null || !rivalRace.HasRequiredReferences ||
+                comboHud == null || !comboHud.HasRequiredReferences ||
                 gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
@@ -2446,7 +2459,8 @@ namespace ColorGateRunner.Presentation
                 _session.Stage.DisplayNumber,
                 _goalPathDistance);
             trackPool.gameObject.SetActive(false);
-            LastRacePlace = 0;
+            _combo.Reset();
+            comboHud.Begin();
             rivalRace.Begin(
                 _session.Stage,
                 campaignSplinePath,
@@ -2929,7 +2943,6 @@ namespace ColorGateRunner.Presentation
             {
                 return;
             }
-            LastRacePlace = rivalRace.CompleteForPlayer(_campaignDistance);
             RecordClear();
             ApplyUiFlow(MobileUiFlow.ClearResult);
             clearPanel.SetActive(false);
@@ -3159,9 +3172,7 @@ namespace ColorGateRunner.Presentation
                         _progressStore.LoadRecord(_selectedStageNumber);
                     clearDetailsText.text =
                         $"STAGE {_selectedStageNumber} COMPLETE\n" +
-                        (LastRacePlace > 0
-                            ? $"RACE {RivalRaceView.FormatPlace(LastRacePlace)} PLACE\n"
-                            : string.Empty) +
+                        $"MAX COMBO {_combo.Max}\n" +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
                         $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
                         $"BEST {record.BestTime:0.00}s" +
@@ -3357,6 +3368,7 @@ namespace ColorGateRunner.Presentation
             campaignSplinePath.ResetRoute();
             splineCityPool.ResetPool();
             rivalRace.Hide();
+            comboHud.Hide();
             trackPool.gameObject.SetActive(true);
             trackPool.ResetPool();
             gateBreakEffects.ResetPool();

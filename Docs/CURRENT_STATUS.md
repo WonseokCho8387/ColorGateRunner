@@ -1,5 +1,23 @@
 # Current Status
 
+## Iteration 67 — Perfect Switch Combo and Gate Timeline Export (2026-11-03 KST)
+
+- 기준: `50cc5d5` (Iteration 64C) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 결정: 레이스 순위는 깨끗한 클리어 시간이 스테이지마다 고정이라 실력과 무관하므로
+  표시하지 않는다. 대신 게이트 도착 `0.25`초 안의 마지막 색 전환을 **Perfect Switch**로
+  세는 콤보를 HUD(`n COMBO`, `PERFECT` 0.45초)와 클리어 결과(`MAX COMBO n`)에 보여준다.
+  탭 없이 통과·Echo·Booster는 콤보 유지, 이른 전환·Shield·Continue 보호·실패는 초기화.
+  속도, 판정, 보상, 저장은 변경 없음. 라이벌은 분위기 연출로만 남는다.
+- `Tools/Color Gate Runner/Export Gate Timeline For Music`이 스테이지별 깨끗한 무아이템
+  런의 게이트 도착 시각을 `Artifacts/GateTimeline/StageNN.csv`(간격·참고 BPM 포함)와
+  `.mid`(120 BPM 실시간, 색별 음높이)로 내보낸다. 시각 0은 GO다.
+- 자동 검증: **EditMode 527/527 passed; PlayMode `276` passed, `1` intentional opt-in ignore**. Builder 각 2회.
+  Campaign 시뮬레이션 Summary/JSON/CSV와 Step 10 다섯 해시가 기준과 **동일**하다.
+  D3D11 Step9C 캡처에 `04E-Combo-Perfect`를 추가했다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+- 독립 read-only checker: 기준 1–6 PASS, blocker 없음. should-fix 2건(실패 시 PERFECT 잔상, MIDI 근접 노트 시각 밀림)을 한 번의 수정으로 보완하고 회귀 테스트를 추가. 근거: `Artifacts/Validation/Iteration67/`.
+
 ## Iteration 64C — Curved Rival Lanes and Zoned City (2026-11-03 KST)
 
 - 기준: `308625a` (Iteration 64B) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
@@ -166,9 +184,9 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 64C commit `feat: give rival lanes their own curves`,
-  whose parent is `308625a234b66d943b1b1b7584478b0f1cb6e1c8`
-  (`feat: show rival racers beside the campaign road`).
+- Implementation base: the Iteration 67 commit `feat: add perfect switch combo and gate timeline export`,
+  whose parent is `50cc5d5c774de6cd8a3b333075ae6ef4725ad94f`
+  (`feat: give rival lanes their own curves`).
 - Iteration 63 commit: `dfa10cfb69f61ac373c227cef6e79d6776ebcb95`
   (`feat: refresh settings and placeholder pages`).
 - Iteration 62 base parent: `d9630311d18785aa87f49e483029538d969f49aa`
@@ -190,10 +208,11 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 64 — Rival Race (64A Core, 64B presentation,
-  64C curved lanes and zoned city)**.
-  Campaign Stage 2+ shows two presentation-only Ghost rivals on side lanes with
-  a live rank chip and a clear-result placement line.
+- Current completed iteration: **Iteration 67 — Perfect Switch Combo and Gate
+  Timeline Export**. The HUD counts Perfect Switches as a combo and the clear
+  result shows the run's max combo; rivals no longer show a rank.
+- Iteration 64 — Rival Race (64A Core, 64B presentation, 64C curved lanes and
+  zoned city). Campaign Stage 2+ shows two presentation-only Ghost rivals.
 - Iteration 63 — Settings and Placeholder Page Refresh.
   Settings shows only controls the build can honor; Rank states that online
   ranking is unavailable.
@@ -563,6 +582,9 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 67 on `2026-11-03` KST (parent `50cc5d5`): EditMode `527/527`;
+  PlayMode `276` passed, `1` intentional opt-in ignore. Builders `2/2`. Campaign and Step 10 artifacts match the
+  baseline hashes below.
 - Iteration 64C on `2026-11-03` KST (parent `308625a`): EditMode `514/514`;
   PlayMode `272` passed, `1` intentional opt-in ignore. Builders `2/2`. Core unchanged, so simulation hashes carry over.
 - Iteration 64B on `2026-11-03` KST (parent `0c36ecc`): EditMode `510/510`;

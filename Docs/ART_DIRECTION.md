@@ -1100,3 +1100,10 @@ This section supersedes Iteration 47's separate additive frame trace.
   road, so the lanes read as separate elevated roads rather than copies.
 - City towers stand either in the gap between the player road and a rival lane
   or outside the lane, never on a lane, giving a layered future-city skyline.
+
+
+## Iteration 67 combo HUD
+
+- The combo chip replaces the rival rank chip under the Stage title in Magenta
+  and appears only while the combo is above zero. PERFECT flashes in Signal on
+  the canvas just above the runner for `0.45` seconds.

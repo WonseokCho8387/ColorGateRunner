@@ -733,6 +733,7 @@ namespace ColorGateRunner.Editor
                 rivalGatePass,
                 rivalGateFail);
             controller.ConfigureRivalRace(rivalRace);
+            controller.ConfigureComboHud(CreateComboHud(root.transform, hud.transform));
             SplineTrackLabController splineLabController =
                 splineTrackLabView.gameObject.AddComponent<
                     SplineTrackLabController>();
@@ -1763,15 +1764,6 @@ namespace ColorGateRunner.Editor
                 }
             }
 
-            Text rank = CreateText(
-                "RaceRankText",
-                hud,
-                "1ST / 3",
-                22,
-                new Vector2(0.03f, 0.3f),
-                new Vector2(0.26f, 0.52f));
-            rank.alignment = TextAnchor.MiddleLeft;
-            rank.color = NeonUiPalette.Magenta;
             RivalRaceView view = root.GetComponent<RivalRaceView>();
             view.Configure(
                 laneFilters,
@@ -1780,8 +1772,35 @@ namespace ColorGateRunner.Editor
                 gateRenderers,
                 gateIdle,
                 gatePass,
-                gateFail,
-                rank);
+                gateFail);
+            return view;
+        }
+
+        // The combo chip takes the HUD slot under the Stage title; the
+        // PERFECT flash sits on the canvas just above the runner.
+        private static ComboHudView CreateComboHud(Transform parent, Transform hud)
+        {
+            GameObject root = new GameObject("ComboHud", typeof(ComboHudView));
+            root.transform.SetParent(parent, false);
+            Text combo = CreateText(
+                "ComboText",
+                hud,
+                "0 COMBO",
+                22,
+                new Vector2(0.03f, 0.3f),
+                new Vector2(0.3f, 0.52f));
+            combo.alignment = TextAnchor.MiddleLeft;
+            combo.color = NeonUiPalette.Magenta;
+            Text perfect = CreateText(
+                "PerfectText",
+                hud.parent,
+                "PERFECT",
+                44,
+                new Vector2(0.2f, 0.42f),
+                new Vector2(0.8f, 0.5f));
+            perfect.color = NeonUiPalette.Signal;
+            ComboHudView view = root.GetComponent<ComboHudView>();
+            view.Configure(combo, perfect);
             return view;
         }
 

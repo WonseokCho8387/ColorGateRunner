@@ -1,12 +1,12 @@
 using System;
 using ColorGateRunner.Core;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace ColorGateRunner.Presentation
 {
     // Draws the two Ghost rivals on their own curved lanes beside the
-    // Campaign road (see RivalTrackLayout).
+    // Campaign road (see RivalTrackLayout). They are ambience only: no rank
+    // is shown because the player's clean-run time is fixed per stage.
     // The rivals are presentation only: RivalRaceSimulation owns their
     // progress and nothing here touches the player's StageSession.
     public sealed class RivalRaceView : MonoBehaviour
@@ -25,7 +25,6 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Material gateIdleMaterial;
         [SerializeField] private Material gatePassMaterial;
         [SerializeField] private Material gateFailMaterial;
-        [SerializeField] private Text rankText;
 
         private readonly Mesh[] _laneMeshes = new Mesh[RivalRaceSimulation.RivalCount];
         private readonly int[] _gateIndices =
@@ -36,12 +35,10 @@ namespace ColorGateRunner.Presentation
         private RivalRaceSimulation _race;
         private RivalTrackLayout _layout;
         private CampaignSplinePathView _path;
-        private int _lastPlace = -1;
 
         internal bool RaceActive => _race != null;
         internal RivalRaceSimulation Race => _race;
         internal RivalTrackLayout TrackLayout => _layout;
-        internal Text RankText => rankText;
         internal Transform GetRunner(int rival) => rivalRunners[rival];
         internal Mesh GetLaneMesh(int rival) => _laneMeshes[rival];
 
@@ -56,7 +53,7 @@ namespace ColorGateRunner.Presentation
                     laneGateRenderers == null ||
                     laneGateRenderers.Length != laneGates.Length * NeonPartsPerGate ||
                     gateIdleMaterial == null || gatePassMaterial == null ||
-                    gateFailMaterial == null || rankText == null)
+                    gateFailMaterial == null)
                 {
                     return false;
                 }
@@ -92,8 +89,7 @@ namespace ColorGateRunner.Presentation
             Renderer[] gateRenderers,
             Material idle,
             Material pass,
-            Material fail,
-            Text rank)
+            Material fail)
         {
             laneMeshFilters = lanes;
             rivalRunners = runners;
@@ -102,7 +98,6 @@ namespace ColorGateRunner.Presentation
             gateIdleMaterial = idle;
             gatePassMaterial = pass;
             gateFailMaterial = fail;
-            rankText = rank;
             Hide();
         }
 
@@ -150,13 +145,10 @@ namespace ColorGateRunner.Presentation
                     AssignGate(rival, slot, slot);
                 }
             }
-            _lastPlace = -1;
             PoseRunners();
-            rankText.gameObject.SetActive(true);
-            UpdateRank(0f, -1f);
         }
 
-        internal void Tick(float deltaSeconds, float playerDistance)
+        internal void Tick(float deltaSeconds)
         {
             if (_race == null)
             {
@@ -175,25 +167,6 @@ namespace ColorGateRunner.Presentation
             }
             TickGateFlashes(deltaSeconds);
             PoseRunners();
-            UpdateRank(playerDistance, -1f);
-        }
-
-        internal int GetPlayerPlace(float playerDistance, float playerFinishSeconds)
-        {
-            return _race == null
-                ? 0
-                : _race.GetPlayerPlace(playerDistance, playerFinishSeconds);
-        }
-
-        internal int CompleteForPlayer(float playerDistance)
-        {
-            if (_race == null)
-            {
-                return 0;
-            }
-            int place = _race.GetPlayerPlace(playerDistance, _race.ElapsedSeconds);
-            UpdateRank(playerDistance, _race.ElapsedSeconds);
-            return place;
         }
 
         internal void Hide()
@@ -201,27 +174,7 @@ namespace ColorGateRunner.Presentation
             _race = null;
             _layout = null;
             _path = null;
-            _lastPlace = -1;
-            if (rankText != null)
-            {
-                rankText.gameObject.SetActive(false);
-            }
             gameObject.SetActive(false);
-        }
-
-        internal static string FormatPlace(int place)
-        {
-            switch (place)
-            {
-                case 1:
-                    return "1ST";
-                case 2:
-                    return "2ND";
-                case 3:
-                    return "3RD";
-                default:
-                    return place + "TH";
-            }
         }
 
         private void OnGateResolved(int rival, int gate)
@@ -353,21 +306,6 @@ namespace ColorGateRunner.Presentation
                 out Quaternion pathRotation);
             return center + (pathRotation * Vector3.right *
                 _layout.GetLateralOffset(rival, distance));
-        }
-
-        private void UpdateRank(float playerDistance, float playerFinishSeconds)
-        {
-            int place = _race.GetPlayerPlace(playerDistance, playerFinishSeconds);
-            if (place == _lastPlace)
-            {
-                return;
-            }
-            _lastPlace = place;
-            rankText.text = FormatPlace(place) + " / " +
-                (RivalRaceSimulation.RivalCount + 1);
-            rankText.color = place == 1
-                ? NeonUiPalette.Magenta
-                : NeonUiPalette.Signal;
         }
 
         private void OnDestroy()

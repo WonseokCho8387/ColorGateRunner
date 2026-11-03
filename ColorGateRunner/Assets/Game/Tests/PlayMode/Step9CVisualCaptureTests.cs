@@ -70,6 +70,19 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return Capture("04D-Runner-Green-Wing.png");
 
             yield return LoadCleanScene();
+            _store.HighestUnlocked = 5;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(5);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            for (int gate = 0; gate < 3; gate++)
+            {
+                ResolveNextGateWithPerfectSwitch();
+            }
+            Assert.That(_controller.Combo.Current, Is.EqualTo(3));
+            yield return Capture("04E-Combo-Perfect.png");
+
+            yield return LoadCleanScene();
             SelectItemEnabledStage();
             _controller.ToggleShieldSelection();
             _controller.StartSelectedStage();
@@ -521,6 +534,19 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(
                 _controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.StageCleared));
+        }
+
+        // Forces a fresh color change just before the gate resolves, so the
+        // switch lands inside the Perfect window.
+        private void ResolveNextGateWithPerfectSwitch()
+        {
+            StageGateView gate = FindGate(_controller.Session.GatesPassed);
+            if (_controller.Session.CurrentColor == gate.AssignedColor)
+            {
+                _controller.HandleGameplayTap();
+            }
+            Match(gate.AssignedColor);
+            Assert.That(gate.TryResolveCrossing(), Is.True);
         }
 
         private void Match(RunnerColor color)

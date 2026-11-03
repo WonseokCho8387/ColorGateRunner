@@ -1249,3 +1249,22 @@ fairness, or polish.
 - Final evidence: Builders `2/2`; focused EditMode `12/12`; EditMode
   `514/514`; PlayMode `272` passed, `1` intentional opt-in ignore; D3D11 Campaign capture `2/2`; Product
   save and Campaign PlayerPrefs exact.
+
+
+### Iteration 67 Perfect Switch combo and gate timeline export
+
+- EditMode `PerfectSwitchComboTests` prove the `0.25` s window boundary, max and
+  perfect counts, hold for no-switch/Echo/Booster, reset for early switch,
+  Shield, Continue protection and failure, reset, and that `StageSession`
+  measures the final switch before a gate and clears it on Retry.
+- EditMode `GateTimelineExporterTests` prove every Stage exports one strictly
+  increasing, non-failing arrival per gate, deterministic CSV output, and a
+  MIDI file with one note per gate. `RivalRaceSceneTests` proves the scene has a
+  hidden combo HUD and no `RaceRankText`.
+- PlayMode proves a Perfect Switch shows `1 COMBO` and a PERFECT flash that
+  freezes while paused and hides after its duration, the clear result shows
+  `MAX COMBO` without a race place, and a restart resets the combo.
+- Final evidence: Builders `2/2`; focused EditMode `18/18`; EditMode
+  `527/527`; PlayMode `276` passed, `1` intentional opt-in ignore; Campaign and Step 10 artifacts hash-identical;
+  D3D11 Campaign capture with `04E-Combo-Perfect`; Product save and Campaign
+  PlayerPrefs exact.

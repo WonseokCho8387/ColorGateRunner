@@ -3831,3 +3831,43 @@ checker 지적에 따라 재시작·단계 선택 복귀 숨김과 Stage 1 빌�
 - 라이벌이 보이는 빈도, 떠 있는 고가 차선의 인상, 틈 사이 빌딩의 밀도, 급커브
   안쪽 차선의 접힘 여부, 모바일 성능은 사람이 확인해야 한다.
 - 순위의 보상·불이익과 이전 스테이지 재도전은 별도 결정 대상으로 남긴다.
+
+
+---
+
+## Iteration 67 — Perfect Switch Combo and Gate Timeline Export (2026-11-03)
+
+### Play / Analyze
+
+Phase A 탐색에서 플레이어 속도가 진행도와 Booster로만 정해지고 실패 중 라이벌이 멈춰,
+깨끗한 클리어의 레이스 순위가 스테이지마다 고정임을 확인했다(Stage 2, 15, 16, 22는
+무아이템 1위 불가). 사용자는 속도 보상 대신 타이밍 콤보와 이후 업적 크라운을 택했고,
+음악은 직접 만들되 현재 게이트 박자를 기준으로 삼기로 했다.
+
+### Design
+
+판정 결과는 그대로 두고 `StageSession`이 게이트 해결 시점의 마지막 색 전환 시각만
+기록한다. 순수 C# `PerfectSwitchCombo`가 결과를 점수화한다. 순위 칩과 결과의 순위
+문구를 제거하고 같은 HUD 자리에 콤보 칩을 둔다.
+
+### Implementation
+
+`Core/PerfectSwitchCombo`(`GateSwitchTiming`, `ComboStep`), `StageSession.LastGateSwitchTiming`,
+`Presentation/ComboHudView`, `StageSceneController` 연결, `GrayboxSceneBuilder.CreateComboHud`,
+`RivalRaceView` 순위 표시 제거, `Editor/GateTimelineExporter`(CSV·MIDI).
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+순위 같은 경쟁 지표는 플레이어가 바꿀 수 있는 변수가 있어야 의미가 있다. 판정과 분리된
+점수 계층으로 실력 표현을 추가하면 결정적 시뮬레이션 기준선을 지킬 수 있다.
+
+### Deferred / Human Review
+
+- Perfect 구간 `0.25`초의 손맛, PERFECT 문구 위치·가독성, 콤보 칩의 크기, WebGL·모바일
+  입력 지연은 사람이 확인해야 한다.
+- 최고 콤보 저장, 스테이지 크라운·업적, Collection 히스토리, Journey 재도전은
+  Iteration 68로 미룬다. 음악 재생·박자 연동은 그 뒤에 다룬다.

@@ -946,3 +946,18 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A tap may skip the hold after `0.1s`; taps before that threshold are ignored.
   Skipping changes presentation time only and never changes rewards, records,
   Heart refund, next-Stage selection or League selection.
+
+
+## Iteration 67 Perfect Switch combo
+
+- A matched gate is a **Perfect Switch** when the player's final color change
+  before it landed within `0.25` seconds of the gate's judgment. Each Perfect
+  Switch adds one to the combo.
+- A matched gate with no color change since the previous gate, an Echoed gate
+  and a Boosted gate hold the combo. A matched gate whose final change was
+  earlier than the window, a Shield-absorbed gate, a post-Continue protected
+  gate and a failure reset the combo to zero.
+- The combo is score only. It never changes judgment, speed, rewards, items,
+  saves or simulation results. The clear result shows the run's maximum combo.
+- Rivals remain presentation-only ambience and show no rank, because a clean
+  clear's time is fixed per Stage.

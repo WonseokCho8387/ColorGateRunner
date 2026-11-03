@@ -3528,7 +3528,6 @@ namespace ColorGateRunner.Tests.PlayMode
             RivalRaceView rivals = _controller.RivalRace;
             Assert.That(rivals.RaceActive, Is.False);
             Assert.That(rivals.gameObject.activeSelf, Is.False);
-            Assert.That(rivals.RankText.gameObject.activeSelf, Is.False);
             Assert.That(rivals.TrackLayout, Is.Null);
             SplineCityPoolView city = _controller.SplineCityPool;
             for (int index = 0; index < city.SlotCount; index++)
@@ -3549,7 +3548,8 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.ShowStageSelect();
             Assert.That(rivals.RaceActive, Is.False);
             Assert.That(rivals.gameObject.activeSelf, Is.False);
-            Assert.That(rivals.RankText.gameObject.activeSelf, Is.False);
+            Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
+                Is.False);
 
             SelectAndStartStage(9);
             Assert.That(rivals.RaceActive, Is.True);
@@ -3563,7 +3563,6 @@ namespace ColorGateRunner.Tests.PlayMode
             SelectAndStartStage(9);
             RivalRaceView rivals = _controller.RivalRace;
             Assert.That(rivals.RaceActive, Is.True);
-            Assert.That(rivals.RankText.gameObject.activeSelf, Is.True);
             RivalTrackLayout layout = rivals.TrackLayout;
             Assert.That(layout, Is.Not.Null);
             AssertCityClearsRivalLanes(_controller.SplineCityPool, layout);
@@ -3597,7 +3596,6 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.That(rivals.GetLaneMesh(rival).subMeshCount,
                     Is.EqualTo(2));
             }
-            Assert.That(rivals.RankText.text, Does.EndWith("/ 3"));
             Assert.That(CountNamed("ColorShell"), Is.EqualTo(1));
         }
 
@@ -3629,7 +3627,7 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void RivalRace_FreezesWhilePausedAndReportsClearPlace()
+        public void RivalRace_FreezesWhilePaused()
         {
             SelectAndStartStage(4);
             RivalRaceView rivals = _controller.RivalRace;
@@ -3639,14 +3637,109 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(1f);
             Assert.That(rivals.Race.GetDistance(0), Is.EqualTo(before));
             _controller.RequestResume();
+        }
 
+        [Test]
+        public void PerfectSwitch_ShowsComboAndFlashThatFreezesWhilePaused()
+        {
+            SelectAndStartStage(4);
+            ComboHudView hud = _controller.ComboHud;
+            Assert.That(hud.ComboText.gameObject.activeSelf, Is.False);
+            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
+
+            ResolveNextGateWithSwitch();
+            Assert.That(_controller.Combo.Current, Is.EqualTo(1));
+            Assert.That(hud.ComboText.gameObject.activeSelf, Is.True);
+            Assert.That(hud.ComboText.text, Is.EqualTo("1 COMBO"));
+            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.True);
+
+            _controller.RequestPause();
+            _controller.Tick(1f);
+            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.True);
+            _controller.RequestResume();
+            _controller.TickMovement(ComboHudView.PerfectFlashSeconds + 0.01f);
+            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void PerfectSwitch_FailureClearsFlashAndCombo()
+        {
+            SelectAndStartStage(4);
+            ResolveNextGateWithSwitch();
+            Assert.That(_controller.ComboHud.PerfectText.gameObject.activeSelf,
+                Is.True);
+
+            StageGateView next = null;
+            for (int slot = 0; slot < 6; slot++)
+            {
+                StageGateView candidate = _controller.GetGate(slot);
+                if (candidate.PlanIndex == _controller.Session.GatesPassed)
+                {
+                    next = candidate;
+                }
+            }
+            Assert.That(next, Is.Not.Null);
+            Mismatch(next.AssignedColor);
+            Assert.That(next.TryResolveCrossing(), Is.True);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Failed));
+            Assert.That(_controller.Combo.Current, Is.Zero);
+            Assert.That(_controller.ComboHud.PerfectText.gameObject.activeSelf,
+                Is.False);
+            Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
+                Is.False);
+        }
+
+        [Test]
+        public void PerfectSwitch_ClearResultShowsMaxComboWithoutRaceRank()
+        {
+            SelectAndStartStage(4);
             FinishCurrentStage();
-            Assert.That(_controller.LastRacePlace, Is.InRange(1, 3));
+            Assert.That(_controller.Combo.Max, Is.GreaterThan(0));
             _controller.Tick(1.3f);
             Assert.That(_controller.ClearDetailsText.text,
-                Does.Contain("RACE " +
-                    RivalRaceView.FormatPlace(_controller.LastRacePlace) +
-                    " PLACE"));
+                Does.Contain($"MAX COMBO {_controller.Combo.Max}"));
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Not.Contain("PLACE"));
+            Assert.That(CountNamed("RaceRankText"), Is.Zero);
+        }
+
+        [Test]
+        public void PerfectSwitch_ComboResetsOnRestart()
+        {
+            SelectAndStartStage(4);
+            ResolveNextGateWithSwitch();
+            Assert.That(_controller.Combo.Current, Is.EqualTo(1));
+
+            _controller.ShowStageSelect();
+            Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
+                Is.False);
+            SelectAndStartStage(4);
+            Assert.That(_controller.Combo.Current, Is.Zero);
+            Assert.That(_controller.Combo.Max, Is.Zero);
+        }
+
+        // Resolves the next gate, forcing a fresh color change right before
+        // arrival so the switch lands inside the Perfect window.
+        private void ResolveNextGateWithSwitch()
+        {
+            int gateIndex = _controller.Session.GatesPassed;
+            StageGateView gate = null;
+            for (int slot = 0; slot < 6; slot++)
+            {
+                StageGateView candidate = _controller.GetGate(slot);
+                if (candidate.PlanIndex == gateIndex)
+                {
+                    gate = candidate;
+                }
+            }
+            Assert.That(gate, Is.Not.Null);
+            if (_controller.Session.CurrentColor == gate.AssignedColor)
+            {
+                Mismatch(gate.AssignedColor);
+            }
+            Match(gate.AssignedColor);
+            Assert.That(gate.TryResolveCrossing(), Is.True);
         }
 
         private void SelectAndStartStage(int stageNumber)

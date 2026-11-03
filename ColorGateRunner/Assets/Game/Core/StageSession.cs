@@ -22,6 +22,8 @@ namespace ColorGateRunner.Core
         private bool _failedGatePendingForContinue;
         private float _speedBeforeFailure;
         private bool _mechanicGrantActivated;
+        private bool _switchedSinceLastGate;
+        private float _lastSwitchSeconds;
 
         public StageSession(StageDefinition stage)
         {
@@ -85,6 +87,9 @@ namespace ColorGateRunner.Core
             _failedGatePendingForContinue;
         public int ContinuedFailedGateResolutionCount { get; private set; }
         public float SpeedBeforeFailure => _speedBeforeFailure;
+        // Color-change timing captured when the latest gate was resolved;
+        // presentation scores it without affecting judgment.
+        public GateSwitchTiming LastGateSwitchTiming { get; private set; }
         public bool EchoActive => _echoCoordinator.EchoActive;
         public RunnerColor EchoColor => _echoCoordinator.EchoColor;
         public int EchoAcquisitionCount =>
@@ -163,6 +168,8 @@ namespace ColorGateRunner.Core
             CurrentColor = Stage.GetNextActiveColor(
                 GatesPassed,
                 CurrentColor);
+            _switchedSinceLastGate = true;
+            _lastSwitchSeconds = ElapsedPlayingSeconds;
             return true;
         }
 
@@ -322,6 +329,13 @@ namespace ColorGateRunner.Core
             {
                 return GateOutcome.Ignored;
             }
+
+            LastGateSwitchTiming = _switchedSinceLastGate
+                ? new GateSwitchTiming(
+                    true,
+                    Math.Max(0f, gameplayTimeSeconds - _lastSwitchSeconds))
+                : default;
+            _switchedSinceLastGate = false;
 
             FlickerGateRuntimeState flickerState = null;
             bool hasFlickerWindow = plan.Modifier.IsFlicker &&
@@ -494,6 +508,9 @@ namespace ColorGateRunner.Core
             _sequence.Reset();
             _echoCoordinator.Restart();
             _mechanicGrantActivated = false;
+            _switchedSinceLastGate = false;
+            _lastSwitchSeconds = 0f;
+            LastGateSwitchTiming = default;
         }
 
         public float GetSpeedForPlan(GatePlan plan)
