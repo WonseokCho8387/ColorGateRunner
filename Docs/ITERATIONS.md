@@ -3655,3 +3655,50 @@ Builder가 덮어쓰는 버튼·패널 색 인자는 화면에 나타나지 않�
   있어 그 사이 일시적 혼재가 있다. 레거시 `GameSceneController`의 `►`는 글꼴에 없다.
 - checker 참고: 표면 테스트는 모서리 픽셀 표본만 확인하고, 라벨 여백은 작은 버튼의
   최소 폭을 보장하지 않으며, 일부 어두운 모달 채움은 아직 토큰화되지 않았다.
+
+---
+
+## Iteration 62 — Neon Night City Gameplay Environment (2026-11-03)
+
+### Play / Analyze
+
+Step9C 캡처에서 Campaign 배경이 단색 회색 하늘이고 빌딩이 중간 회색으로 보였다.
+씬 환경광과 반사가 Unity 기본 낮 Skybox에서 오고 있었고, 빌딩은 금속성 0.72·
+매끄러움 0.78의 Dark Alloy가 낮 하늘을 반사해 회색으로 떠 보였다.
+
+### Design
+
+사용자가 권장안을 승인했다. 도로 매끄러움 `< 0.4` 계약(빙판 구분)은 유지하고
+젖은 도로·반사 기법은 제외했다. 하늘·환경광·거리 Fog·빌딩 표면만 바꾼다.
+
+### Implementation
+
+`NeonNightSky.shader`(스카이박스), `NeonCityFacade.shader`(피벗 기준 월드 정렬
+좌표의 결정적 창문 격자, `multi_compile_fog`, DepthOnly 패스)를 추가했다.
+`GrayboxSceneBuilder`가 하늘/파사드/CityMagenta 재질을 만들고 RenderSettings
+(Skybox, Trilight, 반사 0.6, 선형 Fog 60–230), 달빛 조명 색, 카메라 Skybox 지우기,
+빌딩 재질을 구성하며 `ValidateNightEnvironment`로 검사한다. 공용 Dark Alloy는
+러너·트랙용으로 그대로 둔다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 첫 렌더에서 러너
+셸이 어두워지고 날개 윤곽이 배경에 묻혀 환경광(하늘/적도)과 반사를 올리고, 스카이라인
+높이와 창문 셀을 줄인 뒤 Builder·캡처·전체 회귀를 다시 실행했다.
+
+### Learning
+
+카메라 배경만 바꾸면 밤이 되지 않는다. 기본 Skybox가 환경광·반사를 계속 공급하므로
+RenderSettings를 Builder가 소유해야 한다. Builder는 Boot/Frontend fileID와 생성 재질의
+줄 끝 공백도 다시 쓰므로 내용이 같은 파일은 HEAD로 복원했다.
+
+### Deferred / Human Review
+
+- 밤 분위기와 통일감, 러너 셸 색과 날개 윤곽 가독성(이전보다 어두움), Magenta 빌딩
+  글로와 판정용 Purple 구분, 거리 Fog 농도, 곡선 구간 스카이라인, WebGL/모바일 성능.
+- 파사드 셰이더는 ShadowCaster가 없어 빌딩 그림자가 사라졌다. Flicker/ProtectionField
+  셰이더는 거리 Fog를 받지 않는다. Fog 기믹 구간 렌더는 이번 캡처 세트에 없다.
+- checker should-fix(보류): 빌딩 글로 색은 기존 코드처럼 전체 Renderer 순서의 짝/홀로
+  정해져 FBX 자식 순서에 따라 교대가 보장되지 않는다. 슬롯 기준 배정과 교대 검증은
+  후속으로 남긴다. 거리 Fog가 60 유닛 너머 게이트에도 적용되므로 먼 게이트 가독성,
+  파사드 `Fallback Off`의 WebGL 실제 빌드 확인이 남아 있다.

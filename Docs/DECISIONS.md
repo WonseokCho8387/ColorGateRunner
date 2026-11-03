@@ -1854,3 +1854,11 @@ Status: Approved and implemented.
   Signal, 위험은 Danger, 재화는 Gold다. 게임 판정색은 UI 크롬으로 재사용하지 않는다.
 - 공통 글꼴은 OFL Chakra Petch SemiBold이며 uGUI Text를 유지한다(TextMeshPro 전환 없음).
 - 구현은 61 기반 / 62 게임플레이 밤 도시 / 63 일러스트 / 64 크롬·아이콘으로 나눈다.
+
+## Iteration 62 neon night city gameplay environment (2026-11-03 기록)
+
+- Campaign RenderSettings(Skybox, 환경광, 반사, 거리 Fog)는 `GrayboxSceneBuilder`가
+  소유하고 검증한다. 기본 낮 Skybox 환경광을 쓰지 않는다.
+- 도로 매끄러움 `< 0.4`와 비발광 계약은 빙판 구분을 위해 유지한다. 젖은 도로와
+  SSR/평면 반사는 이번 범위에서 제외했다.
+- 빌딩 글로는 Cyan/Magenta 교대이며 판정색이 아닌 장식이다.

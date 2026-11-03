@@ -1,5 +1,25 @@
 # Current Status
 
+## Iteration 62 — Neon Night City Gameplay Environment (2026-11-03 KST)
+
+- 기준: `d963031` (Iteration 61) 위에서 구현했다. primary 프로젝트, Unity
+  `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음. Push 없음.
+- Campaign 배경만 밤 도시로 바꿨다. `NeonNightSky` 스카이박스(그라디언트·지평선
+  마젠타 글로·두 겹 스카이라인·창문 점), `NeonCityFacade`(UV 없이 그리는 결정적
+  창문 격자, 거리 Fog 지원), Trilight 밤 환경광, 달빛 조명 색, 반사 0.6, 선형 거리
+  Fog 60–230, 빌딩 글로 Cyan/Magenta 교대. 도로·게이트·러너·Fog 기믹·Bloom·규칙·
+  Stage 데이터·저장은 변경 없음.
+- 최종 자동 검증: **EditMode 497 passed; PlayMode 268 passed + 1 existing ignored**
+  (신규 EditMode 3). 집중 9/9. 세 Builder 각 2회 이상 후 전체 회귀 통과, Missing
+  Script/Reference 없음. Package·ProjectSettings 변경 없음.
+- D3D11 비헤드리스 batchmode Step9C 캡처 `2/2`(19장)로 밤 화면을 직접 확인했다.
+  첫 캡처에서 러너 셸이 어두워지고 날개 윤곽이 사라져 환경광·반사를 한 번 올렸다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다.
+  변경은 Unity TestResults.xml, Unity 세션 기록, Performance Test Framework
+  `PT_Run` EditorPrefs뿐이다.
+- 독립 read-only checker: 기준 1–7 PASS(5–7은 참고 사항 포함), blocker 없음. 근거:
+  `Artifacts/Validation/Iteration62/`.
+
 ## Iteration 61 — Neon Night UI Design System Foundation (2026-11-03 KST)
 
 - 기준: `d527300` (itch.io Playtest v0.1 후보 커밋) 위에서 구현했다. primary 프로젝트,
@@ -76,8 +96,10 @@ iterations but do not override this section.
 
 - Snapshot date: `2026-11-03` KST
 - Branch: `main`
-- Implementation base: the Iteration 61 commit `feat: establish neon night UI design system`,
-  whose parent is `d527300040de2a7b208f068a5d12939ae6ad3d92`
+- Implementation base: the Iteration 62 commit `feat: add neon night city gameplay environment`,
+  whose parent is `d9630311d18785aa87f49e483029538d969f49aa`
+  (`feat: establish neon night UI design system`).
+- Previous base: `d527300040de2a7b208f068a5d12939ae6ad3d92`
   (`feat: add itch.io playtest build candidate`).
 - Earlier implementation base: `d937b3a242b04df6d211de7dfe92abfca82175e3`
   (`feat: refine lobby shell and page visuals`)
@@ -94,7 +116,11 @@ iterations but do not override this section.
 Iteration 23 supersedes the active Iteration 22 gameplay/economy baseline
 below where their contracts differ.
 
-- Current completed iteration: **Iteration 61 — Neon Night UI Design System Foundation**.
+- Current completed iteration: **Iteration 62 — Neon Night City Gameplay Environment**.
+  Campaign renders a night skybox, Trilight night ambient, linear distance fog
+  and lit-window city facades; gameplay rules and road/gate/runner art are
+  unchanged.
+- Iteration 61 — Neon Night UI Design System Foundation.
   Shared UI chrome now uses `NeonUiPalette`, Chakra Petch SemiBold and the
   chamfered neon 9-slice surface set; lobby illustrations, top resource rail
   and bottom dock art are unchanged until Iterations 63–64.
@@ -456,6 +482,9 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 62 on `2026-11-03` KST (parent `d963031`): EditMode `497/497`;
+  PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore.
+  Builders `2/2`. D3D11 Campaign capture `2/2`.
 - Iteration 61 on `2026-11-03` KST (parent `d527300`): EditMode `494/494`;
   PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore
   (`269` discovered). Builders `2/2`. D3D11 Campaign capture `1/1`.

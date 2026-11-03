@@ -47,6 +47,23 @@ namespace ColorGateRunner.Editor
         internal static readonly Color FailureColor = FromHex(0x6B7280);
         internal static readonly Color WarpGoldColor = FromHex(0xFF9D18);
 
+        internal const string NightSkyShaderName =
+            "ColorGateRunner/NeonNightSky";
+        internal const string CityFacadeShaderName =
+            "ColorGateRunner/NeonCityFacade";
+        internal const float NightFogStart = 60f;
+        internal const float NightFogEnd = 230f;
+        private static readonly Color NightAmbientSky =
+            new Color(0.2f, 0.18f, 0.34f, 1f);
+        private static readonly Color NightAmbientEquator =
+            new Color(0.1f, 0.11f, 0.2f, 1f);
+        private static readonly Color NightAmbientGround =
+            new Color(0.015f, 0.016f, 0.03f, 1f);
+        private static readonly Color NightFogColor =
+            new Color(0.06f, 0.05f, 0.12f, 1f);
+        private static readonly Color MoonlightColor =
+            new Color(0.72f, 0.8f, 1f, 1f);
+
         private static readonly Vector3 PlayerStartPosition =
             new Vector3(0f, 1f, 0f);
         private static readonly Vector3 CameraPosition =
@@ -113,6 +130,14 @@ namespace ColorGateRunner.Editor
                 GeneratedMaterialsFolder + "/Theme01DarkAlloy.mat",
                 new Color(0.004f, 0.008f, 0.018f, 1f),
                 0f);
+            Material cityMagenta = CreateOrUpdateMaterial(
+                GeneratedMaterialsFolder + "/CityMagenta.mat",
+                NeonUiPalette.Magenta,
+                4f);
+            Material cityFacade = CreateOrUpdateCityFacadeMaterial(
+                GeneratedMaterialsFolder + "/CityFacade.mat");
+            Material nightSky = CreateOrUpdateNightSkyMaterial(
+                GeneratedMaterialsFolder + "/NeonNightSky.mat");
             Material runnerGlass = CreateOrUpdateRunnerGlassMaterial(
                 GeneratedMaterialsFolder + "/RunnerGlass.mat",
                 BlueColor);
@@ -170,6 +195,7 @@ namespace ColorGateRunner.Editor
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             RemovePreviousSceneObjects(scene);
+            ConfigureNightEnvironment(nightSky);
 
             GameObject root = new GameObject(GeneratedRootName);
             StageSceneController controller =
@@ -178,7 +204,11 @@ namespace ColorGateRunner.Editor
             CreateDirectionalLight(root.transform);
             CreateTheme01Volume(root.transform, camera);
             SplineCityPoolView cityPool =
-                CreateTheme01City(root.transform, darkAlloy, blue, cyan);
+                CreateTheme01City(
+                    root.transform,
+                    cityFacade,
+                    cityMagenta,
+                    cyan);
             TrackPoolController trackPool =
                 CreateTrackPool(root.transform, darkAlloy, cyan);
             CampaignSplinePathView campaignSplinePath =
@@ -1144,6 +1174,7 @@ namespace ColorGateRunner.Editor
             ValidateRunnerRearReadability(generatedRoot);
             ValidateEmissiveContrast();
             ValidateBloomProfile();
+            ValidateNightEnvironment(cameras[0], generatedRoot);
             ValidateProtectionAndWarpEffects(generatedRoot);
         }
 
@@ -1268,6 +1299,48 @@ namespace ColorGateRunner.Editor
             {
                 throw new InvalidOperationException(
                     "Theme 01 dark alloy must remain non-emissive.");
+            }
+        }
+
+        private static void ValidateNightEnvironment(
+            Camera camera,
+            GameObject generatedRoot)
+        {
+            if (RenderSettings.skybox == null ||
+                RenderSettings.skybox.shader.name != NightSkyShaderName ||
+                camera.clearFlags != CameraClearFlags.Skybox)
+            {
+                throw new InvalidOperationException(
+                    "Campaign camera must render the neon night sky.");
+            }
+            if (RenderSettings.ambientMode != AmbientMode.Trilight ||
+                !RenderSettings.fog ||
+                RenderSettings.fogMode != FogMode.Linear ||
+                RenderSettings.fogStartDistance < NightFogStart ||
+                RenderSettings.fogEndDistance <= RenderSettings.fogStartDistance)
+            {
+                throw new InvalidOperationException(
+                    "Campaign night ambient or distance fog is not configured.");
+            }
+            SplineCityPoolView[] cities =
+                generatedRoot.GetComponentsInChildren<SplineCityPoolView>(true);
+            if (cities.Length != 1)
+            {
+                throw new InvalidOperationException(
+                    "Campaign requires one neon night city pool.");
+            }
+            Renderer[] renderers =
+                cities[0].GetComponentsInChildren<Renderer>(true);
+            for (int index = 0; index < renderers.Length; index++)
+            {
+                Material material = renderers[index].sharedMaterial;
+                bool glow = renderers[index].name.Contains("Glow");
+                if (material == null ||
+                    (!glow && material.shader.name != CityFacadeShaderName))
+                {
+                    throw new InvalidOperationException(
+                        $"{renderers[index].name} must use the city facade.");
+                }
             }
         }
 
@@ -1508,8 +1581,8 @@ namespace ColorGateRunner.Editor
                 CameraPosition,
                 Quaternion.Euler(CameraRotation));
             Camera camera = cameraObject.GetComponent<Camera>();
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.08f, 0.09f, 0.12f);
+            camera.clearFlags = CameraClearFlags.Skybox;
+            camera.backgroundColor = NeonUiPalette.Ink;
             camera.fieldOfView = 60f;
             camera.nearClipPlane = 0.1f;
             camera.farClipPlane = 500f;
@@ -1527,6 +1600,7 @@ namespace ColorGateRunner.Editor
             Light light = lightObject.GetComponent<Light>();
             light.type = LightType.Directional;
             light.intensity = 1.2f;
+            light.color = MoonlightColor;
         }
 
         private static void CreateTheme01Volume(
@@ -1567,10 +1641,26 @@ namespace ColorGateRunner.Editor
             volumeType.GetProperty("sharedProfile")?.SetValue(volume, profile);
         }
 
+        private static void ConfigureNightEnvironment(Material nightSky)
+        {
+            RenderSettings.skybox = nightSky;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = NightAmbientSky;
+            RenderSettings.ambientEquatorColor = NightAmbientEquator;
+            RenderSettings.ambientGroundColor = NightAmbientGround;
+            RenderSettings.ambientIntensity = 1f;
+            RenderSettings.reflectionIntensity = 0.6f;
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogColor = NightFogColor;
+            RenderSettings.fogStartDistance = NightFogStart;
+            RenderSettings.fogEndDistance = NightFogEnd;
+        }
+
         private static SplineCityPoolView CreateTheme01City(
             Transform parent,
-            Material darkMaterial,
-            Material neonBlue,
+            Material facadeMaterial,
+            Material neonMagenta,
             Material neonCyan)
         {
             GameObject city = InstantiateTheme01Model(
@@ -1582,8 +1672,8 @@ namespace ColorGateRunner.Editor
             {
                 string name = renderers[index].name;
                 renderers[index].sharedMaterial = name.Contains("Glow")
-                    ? (index % 2 == 0 ? neonBlue : neonCyan)
-                    : darkMaterial;
+                    ? (index % 2 == 0 ? neonMagenta : neonCyan)
+                    : facadeMaterial;
             }
             Transform[] bodies = new Transform[24];
             Transform[] glows = new Transform[24];
@@ -4679,6 +4769,59 @@ namespace ColorGateRunner.Editor
             material.SetColor("_FieldColor", CyanColor);
             material.SetFloat("_FieldPulse", 1f);
             EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateNightSkyMaterial(string path)
+        {
+            Material material = LoadOrCreateShaderMaterial(
+                path,
+                NightSkyShaderName);
+            material.SetColor("_ZenithColor", new Color(0.02f, 0.024f, 0.05f, 1f));
+            material.SetColor("_HorizonColor", new Color(0.07f, 0.06f, 0.15f, 1f));
+            material.SetColor("_GlowColor", new Color(0.32f, 0.06f, 0.3f, 1f));
+            material.SetColor("_GroundColor", NeonUiPalette.Ink);
+            material.SetColor("_FarSkylineColor", new Color(0.06f, 0.055f, 0.12f, 1f));
+            material.SetColor("_NearSkylineColor", new Color(0.025f, 0.028f, 0.06f, 1f));
+            material.SetColor("_WindowColor", NeonUiPalette.Signal);
+            material.SetColor("_AccentColor", NeonUiPalette.Magenta);
+            material.SetFloat("_GlowWidth", 0.09f);
+            material.SetFloat("_SkylineHeight", 0.085f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material CreateOrUpdateCityFacadeMaterial(string path)
+        {
+            Material material = LoadOrCreateShaderMaterial(
+                path,
+                CityFacadeShaderName);
+            material.SetColor("_BaseColor", new Color(0.014f, 0.018f, 0.034f, 1f));
+            material.SetColor("_WindowColor", NeonUiPalette.Signal);
+            material.SetColor("_CyanWindowColor", CyanColor);
+            material.SetColor("_AccentColor", NeonUiPalette.Magenta);
+            material.SetFloat("_WindowIntensity", 1.15f);
+            material.SetFloat("_LitRatio", 0.3f);
+            material.SetVector("_CellSize", new Vector4(0.5f, 0.65f, 0f, 0f));
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material LoadOrCreateShaderMaterial(
+            string path,
+            string shaderName)
+        {
+            Shader shader = GetCheckedShader(shaderName);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
             return material;
         }
 

@@ -1061,3 +1061,15 @@ This section supersedes Iteration 47's separate additive frame trace.
 - All player-facing text uses Chakra Petch SemiBold without synthetic bold.
 - Human review owns Magenta/Purple separation, device readability and cohesion;
   remaining fantasy-style chrome and illustrations are replaced in 63–64.
+
+## Iteration 62 neon night city
+
+- Campaign is a city at night: a near-black zenith fading to a violet horizon
+  with a short Magenta glow band, two world-fixed skyline layers with sparse
+  lit windows, and linear violet-navy distance fog from 60 to 230 units.
+- Ambient light is explicit Trilight night color, not the default daylight
+  skybox. Towers are near-black facades with roughly 30 percent lit windows
+  (Signal white, Cyan and a few Magenta) and alternating Cyan/Magenta glow
+  strips. Road, gates, runner and judgment colors are unchanged.
+- Human review owns runner shell/wing readability against the darker scene,
+  Magenta/Purple separation, fog density and device frame cost.

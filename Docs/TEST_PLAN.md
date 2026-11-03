@@ -1175,3 +1175,18 @@ fairness, or polish.
   `1/1`; Product save and Campaign PlayerPrefs exact; no Package or
   ProjectSettings diff; fresh-context checker PASS without blockers. Campaign and
   Step 10 simulations are omitted because no gameplay input changed.
+
+### Iteration 62 neon night city gameplay environment
+
+- EditMode `NeonNightCityEnvironmentTests` proves both night shaders compile;
+  Campaign uses the night skybox with Skybox clear, Trilight dark ambient and
+  linear fog starting at or beyond 60 units; every city body uses the facade
+  shader and the glows are exactly CityMagenta and Cyan.
+- The Builder's `ValidateNightEnvironment` repeats those checks after
+  generation. The existing PlayMode road contract (non-emissive, smoothness
+  `< 0.4`) remains mandatory.
+- Final evidence: Builders `2/2`; focused `9/9`; EditMode `497/497`;
+  PlayMode `268` passed with one intentional opt-in ignore; D3D11 Campaign
+  `2/2`; Product save and Campaign PlayerPrefs exact; no Package or
+  ProjectSettings diff. Campaign and Step 10 simulations are omitted because no
+  gameplay input changed.
