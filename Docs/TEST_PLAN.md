@@ -1205,3 +1205,15 @@ fairness, or polish.
   PlayMode `268` passed with one intentional opt-in ignore; Product save and
   Campaign PlayerPrefs exact; no Package or ProjectSettings diff. Simulations
   are omitted because no gameplay input changed.
+
+
+### Iteration 64A rival race core simulation
+
+- EditMode `RivalRaceSimulationTests` proves gate distances and goal match
+  `StageGoalPlanner`; identical replays; gate outcomes independent of frame
+  rate; a failed gate stumbles and slows the rival; bounded pace and failure
+  counts; player placement by finish time then distance; Stage 1 is excluded and
+  the player's `StageSession` gate plans are unaffected.
+- Evidence: EditMode `509/509`; PlayMode `268` with one intentional opt-in
+  ignore. Builders and simulations are omitted because no Scene, Stage data or
+  gameplay execution path references the new class yet.

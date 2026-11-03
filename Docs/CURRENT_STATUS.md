@@ -1,5 +1,17 @@
 # Current Status
 
+## Iteration 64A — Rival Race Core Simulation (2026-11-03 KST)
+
+- 기준: `dfa10cf` (Iteration 63) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- `Core/RivalRaceSimulation`을 추가했다. 표시 전용 Ghost 라이벌 2명이 Stage 2부터
+  스테이지의 원시 게이트 간격과 비부스터 기본 속도를 따라 각자의 거리로 달린다.
+  시드에서 파생한 게이트 성공 여부와 속도 계수는 결정적이고 프레임률과 무관하며,
+  실패 시 0.9초 동안 45% 속도로 휘청인다. 플레이어 순위는 완주 시간, 그다음 거리로
+  계산한다. 아직 어떤 Scene이나 런타임도 이 클래스를 호출하지 않는다(64B에서 연결).
+- 자동 검증: **EditMode 509 passed; PlayMode 268 passed + 1 existing ignored**
+  (신규 EditMode 7). Product 저장 파일과 Campaign PlayerPrefs는 전후 동일하다.
+
 ## Iteration 63 — Settings and Placeholder Page Refresh (2026-11-03 KST)
 
 - 기준: `f63c82c` (Iteration 62) 위에서 구현했다. primary 프로젝트, Unity
@@ -508,6 +520,8 @@ below where their contracts differ.
 
 ### Automated validation
 
+- Iteration 64A on `2026-11-03` KST (parent `dfa10cf`): EditMode `509/509`;
+  PlayMode `268` passed, `1` intentional opt-in ignore. No Builder or Scene change.
 - Iteration 63 on `2026-11-03` KST (parent `f63c82c`): EditMode `502/502`;
   PlayMode `268` passed, `0` failed, `1` intentional opt-in visual ignore.
   Builders `2/2`.
