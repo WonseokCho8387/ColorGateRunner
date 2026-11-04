@@ -1270,6 +1270,21 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 68B Collection stage records
+
+- EditMode `StageCollectionPresentationTests` prove one row per catalog Stage
+  with Cleared / Next / Locked states, crown and Comeback totals, unknown bits
+  and achievements on uncleared records ignored, no Replay above the unlocked
+  Stage, and the row/summary text.
+- PlayMode proves the Collection page binds a Product save (summary, crown
+  colors, details, Replay only on cleared rows), Replay queues exactly one
+  Authored launch for that Stage ID without unlock bypass, and the former
+  `COMING SOON` Collection assertion now expects the record list.
+- Final evidence: Frontend Builder `2/2`; focused EditMode `41/41`; EditMode
+  `549/549`; PlayMode `282` passed + `1` intentional opt-in ignore; Campaign and Step 10 artifacts
+  hash-identical; D3D11 Lobby capture passed; Product save and Campaign
+  PlayerPrefs exact.
+
 ### Iteration 68A Stage crowns and Campaign replay
 
 - EditMode `StageCrownTests` prove each crown rule, the Comeback threshold

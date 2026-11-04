@@ -334,10 +334,15 @@ namespace ColorGateRunner.Tests.PlayMode
             yield return null;
             Assert.That(controller.Router.CurrentPage,
                 Is.EqualTo(FrontendPage.Collection));
+            Assert.That(controller.CollectionPageView, Is.Not.Null);
+            Assert.That(controller.CollectionPageView.RowViews.Length,
+                Is.EqualTo(StageCatalog.Count));
+            Assert.That(controller.CollectionPageView.CrownTotalText.text,
+                Does.StartWith("CROWNS "));
             Assert.That(
                 controller.CollectionPageRoot.GetComponentsInChildren<Text>(true)
                     .Any(text => text.text == "COMING SOON"),
-                Is.True);
+                Is.False);
 
             controller.HandleBack();
             yield return null;
@@ -691,6 +696,75 @@ namespace ColorGateRunner.Tests.PlayMode
                 out CampaignLaunchRequest request), Is.True);
             Assert.That(request.RunKind, Is.EqualTo(CampaignRunKind.League));
             Assert.That(request.StageId, Does.StartWith("stage-"));
+        }
+
+        [UnityTest]
+        public IEnumerator Collection_ShowsSavedCrownsAndOnlyClearedStagesReplay()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new PartialCampaignSaveService()));
+            FrontendSceneController controller = RequireController();
+            controller.CollectionNavigationButton.onClick.Invoke();
+            yield return null;
+            StageCollectionPageView view = controller.CollectionPageView;
+
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Collection));
+            Assert.That(view.CrownTotalText.text,
+                Is.EqualTo($"CROWNS 4 / {StageCatalog.Count * 3}"));
+            Assert.That(view.BreakdownText.text,
+                Is.EqualTo("CLEAN 2  ·  10 COMBO 1  ·  FULL COMBO 1  /  " +
+                    StageCatalog.Count));
+            Assert.That(view.ComebackText.text,
+                Is.EqualTo("COMEBACK CLEARS 1"));
+            StageCollectionRowView first = view.RowViews[0];
+            Assert.That(first.TitleText.text, Does.StartWith("STAGE 01  "));
+            Assert.That(first.DetailText.text,
+                Is.EqualTo("BEST 18.50s  ·  COMBO 12"));
+            Assert.That(first.CrownTexts.Select(text => text.text),
+                Is.EqualTo(new[] { "CLEAN", "10 COMBO", "FULL COMBO" }));
+            Assert.That(first.CrownTexts[2].color, Is.EqualTo(NeonUiPalette.Gold));
+            Assert.That(view.RowViews[2].CrownTexts[0].color,
+                Is.Not.EqualTo(NeonUiPalette.Gold));
+            Assert.That(view.RowViews[2].DetailText.text,
+                Does.EndWith("COMEBACK"));
+            for (int index = 0; index < 3; index++)
+            {
+                Assert.That(view.RowViews[index].ReplayButton.gameObject.activeSelf,
+                    Is.True, $"row {index}");
+            }
+            Assert.That(view.RowViews[3].DetailText.text,
+                Is.EqualTo("NOT CLEARED YET"));
+            Assert.That(view.RowViews[3].ReplayButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(view.RowViews[4].DetailText.text, Is.EqualTo("LOCKED"));
+            Assert.That(view.RowViews[4].ReplayButton.gameObject.activeSelf,
+                Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator CollectionReplay_QueuesAuthoredLaunchForThatStage()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new PartialCampaignSaveService()));
+            FrontendSceneController controller = RequireController();
+            var loader = new DeferredSceneLoader();
+            controller.SetSceneLoaderForTests(loader);
+            controller.CollectionNavigationButton.onClick.Invoke();
+            yield return null;
+
+            controller.CollectionPageView.RowViews[1].ReplayButton.onClick.Invoke();
+            yield return null;
+            controller.CollectionPageView.RowViews[0].ReplayButton.onClick.Invoke();
+            yield return null;
+
+            Assert.That(loader.LoadCount, Is.EqualTo(1));
+            Assert.That(AppRoot.TryGetActive(out AppRoot root), Is.True);
+            Assert.That(root.TryConsumeCampaignLaunch(
+                out CampaignLaunchRequest request), Is.True);
+            Assert.That(request.StageId, Is.EqualTo("stage-02"));
+            Assert.That(request.RunKind, Is.EqualTo(CampaignRunKind.Authored));
+            Assert.That(request.BypassUnlock, Is.False);
         }
 
         [UnityTest]
@@ -1561,6 +1635,45 @@ namespace ColorGateRunner.Tests.PlayMode
             public LocalSaveWriteResult Save(LocalSaveData data) =>
                 LocalSaveWriteResult.Success(
                     SaveReplacementResult.Recoverable);
+        }
+
+        private sealed class PartialCampaignSaveService : ILocalSaveService
+        {
+            public LocalSaveLoadResult Load()
+            {
+                LocalSaveData data =
+                    new ExistingGuestSaveService(true).Load().Data;
+                data.CampaignProgress.LegacyMigrationCompleted = true;
+                data.CampaignProgress.HighestUnlockedStageId = "stage-04";
+                data.CampaignProgress.StageRecords.Add(Record(
+                    "stage-01", 18.5f, 12, StageCrown.Clean |
+                        StageCrown.Combo | StageCrown.FullCombo));
+                data.CampaignProgress.StageRecords.Add(Record(
+                    "stage-02", 22f, 4, StageCrown.Clean));
+                data.CampaignProgress.StageRecords.Add(Record(
+                    "stage-03", 30f, 1, StageCrown.Comeback));
+                return LocalSaveLoadResult.Success(data, false, false);
+            }
+
+            public LocalSaveWriteResult Save(LocalSaveData data) =>
+                LocalSaveWriteResult.Success(
+                    SaveReplacementResult.Recoverable);
+
+            private static LocalStageProgressData Record(
+                string stageId,
+                float time,
+                int combo,
+                StageCrown crowns) =>
+                new LocalStageProgressData
+                {
+                    StageId = stageId,
+                    Cleared = true,
+                    BestTime = time,
+                    BestNoItemTime = time,
+                    ClearCount = 1,
+                    BestMaxCombo = combo,
+                    CrownFlags = (int)crowns
+                };
         }
 
         private sealed class RecordingSceneLoader : ISceneTransitionLoader

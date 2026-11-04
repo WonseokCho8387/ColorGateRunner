@@ -1911,6 +1911,13 @@ Status: Approved and implemented.
 
 
 
+## Iteration 68B Collection stage records (2026-11-04 기록)
+
+- 사용자 결정(권장안 A 승인): 스테이지 목록·REPLAY·크라운 합계는 Collection 페이지에 둔다.
+  Journey는 짝수 스테이지 보상 경로라 홀수 스테이지가 빠지므로 읽기 전용 계약을 유지한다.
+- Collection은 저장된 기록에서 계산 가능한 값만 보여주고 기록 날짜·Coin 보상은 두지 않는다.
+  REPLAY는 클리어했고 해금 범위 안의 스테이지만, 일반 Authored 시작으로 제공한다.
+
 ## Iteration 68A Stage crowns and Campaign replay (2026-11-03 기록)
 
 - 사용자 결정(권장값 승인): 스테이지 크라운은 CLEAN, 10 COMBO, FULL COMBO 3종이며 Coin 등

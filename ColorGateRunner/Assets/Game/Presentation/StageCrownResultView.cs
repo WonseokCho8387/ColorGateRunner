@@ -15,7 +15,7 @@ namespace ColorGateRunner.Presentation
             StageCrown.FullCombo
         };
 
-        private static readonly string[] Labels =
+        internal static readonly string[] Labels =
         {
             "CLEAN",
             StageCrownPolicy.ComboTarget + " COMBO",

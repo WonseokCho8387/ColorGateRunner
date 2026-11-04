@@ -1,5 +1,26 @@
 # Current Status
 
+## Iteration 68B — Collection Stage Records and Replay (2026-11-04 KST)
+
+- 기준: `4c7a4a6` (Iteration 68A) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 결정(권장안 A 승인): Lobby **Collection** 페이지를 `COMING SOON`에서 스테이지 기록
+  페이지로 바꾼다. Journey, Rank, Shop, Home은 변경 없음.
+- 위쪽 요약 카드: `CROWNS n / 78`, CLEAN · 10 COMBO · FULL COMBO 각 `x / 26`,
+  `COMEBACK CLEARS n`. 아래에 카탈로그 스테이지마다 한 줄(제목, 크라운 3칸, 최고 시간,
+  최고 콤보)을 세로 스크롤로 보여준다. 이미 저장된 기록만 읽으며 저장 필드·schema·쓰기·
+  Coin 보상은 없다. "첫 풀콤보" 같은 날짜 기록은 저장돼 있지 않아 표시하지 않는다.
+- 클리어했고 해금 범위 안의 스테이지만 REPLAY를 보여준다. Home PLAY와 같은 실행 경로로
+  해당 stage ID의 Authored 실행을 예약하고 그 스테이지 PreRun을 연다(일반 Heart 시작).
+  미클리어는 `NOT CLEARED YET`, 잠금은 `LOCKED`. Playtest에서는 REPLAY를 숨기고 거부한다.
+- 자동 검증: **EditMode 549/549 passed; PlayMode `282` passed, `1` intentional opt-in ignore**. Frontend Builder 2회. Campaign 시뮬레이션과
+  Step 10 해시 8개가 기준과 **동일**하다. D3D11 Lobby 캡처(`LobbyCollection-1080x1920.png`) 포함.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다
+  (`TestResults.xml`만 변경).
+- 독립 read-only checker: blocker 없음. should-fix 2건(요약의 콤보 목표 하드코딩, 행 수
+  불일치 시 Lobby 전체 실패)과 minor 1건(해금 범위 밖 클리어 기록의 REPLAY)을 한 번의
+  수정으로 반영하고 회귀 테스트를 추가했다. 근거: `Artifacts/Validation/Iteration68B/`.
+
 ## Iteration 68A — Stage Crowns and Campaign Replay (2026-11-03 KST)
 
 - 기준: `4ba41e5` (Iteration 67) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

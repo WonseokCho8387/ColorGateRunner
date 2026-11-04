@@ -3915,3 +3915,41 @@ Product는 선택 필드 세 개를 검증·저장하고 시작 트랜잭션에�
   0초로 고정돼 크라운이 모두 흐리게 나온다.
 - 크라운을 노린 재도전이 Heart 소모로 막히는지, FULL COMBO 난이도는 플레이로 판단해야 한다.
 - Journey 스테이지 목록·Replay 진입, Collection 히스토리(7전8기, 크라운 합계)는 68B로 미룬다.
+
+## Iteration 68B — Collection Stage Records and Replay (2026-11-04)
+
+### Play / Analyze
+
+Journey는 짝수 스테이지 18개의 보상 경로라 스테이지 목록을 담으면 홀수 스테이지가 빠진다.
+Collection은 `COMING SOON` 자리였고, 클리어한 스테이지는 기존 Authored 실행 경로로 바로
+열 수 있었다.
+
+### Design
+
+순수 C# `StageCollectionPresentation`이 진행 리더와 카탈로그로 행과 합계를 만든다.
+`StageCollectionPageView`/`RowView`가 표시하고, Frontend는 Home PLAY와 같은
+`LaunchCampaign`으로 REPLAY를 실행한다. Builder가 카탈로그 수만큼 행을 생성한다.
+
+### Implementation
+
+`Presentation/StageCollectionPresentation`, `StageCollectionPageView`,
+`StageCollectionRowView`, `FrontendSceneController`(바인딩·REPLAY·공용 실행),
+`FrontendSceneBuilder.CreateCollectionPage`, `StageCrownResultView.Labels` 공유,
+`Frontend.unity` 재생성.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. Checker should-fix 2건과
+minor 1건을 한 번의 수정으로 반영했다.
+
+### Learning
+
+Builder 생성 행 수와 런타임 카탈로그가 어긋나도 Lobby 전체를 막지 않도록 표시 계층은
+오류를 기록하고 가능한 만큼만 그린다. Builder는 손대지 않은 Boot·SampleScene·재질에도
+fileID·공백 변경을 남기므로 의도한 Frontend만 남기고 복원한다.
+
+### Deferred / Human Review
+
+- 행 정보 밀도·가독성, Signal 행 위 Gold 크라운 대비, REPLAY 버튼 크기, 세로 스크롤과
+  좌우 페이지 스와이프의 손맛은 사람이 확인해야 한다.
+- 기록 날짜(첫 풀콤보 등), 크라운 보상, Rank 페이지는 범위 밖이다.

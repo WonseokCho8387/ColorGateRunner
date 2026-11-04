@@ -575,7 +575,12 @@ Rules:
   `200` for Hard, and `500` for Very Hard. Even-Stage milestone rewards remain
   separate from the base reward and are also first-Clear only.
 - Continue clears keep current Best restrictions.
-- Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).
+- Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).- Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).
+- Since Iteration 68B the Lobby Collection page is a read-only Stage record
+  list. Its REPLAY on a cleared, unlocked row queues an Authored launch for
+  that stable Stage ID through the same transition path as Home PLAY and opens
+  that Stage's PreRun; double taps during the transition are ignored and
+  Playtest hides the action. Rank remains the truthful `COMING SOON` page.
   Experiment Lab retains its diagnostic Replay.
 - `Next Stage` resolves through stable Stage IDs and opens the unlocked next
   Stage's PreRun directly. The final Stage, or an unavailable/unpersisted next
@@ -1158,3 +1163,4 @@ not reusable art assets or an exact visual copy.
   contracts are unchanged.
 - Rank and Collection are navigable illustrated placeholders with truthful
   `COMING SOON` copy and no interaction, persistence or simulated service.
+  Collection is superseded by the Iteration 68B record list.

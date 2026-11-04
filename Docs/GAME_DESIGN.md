@@ -977,3 +977,11 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   result shows the run's max combo (and the stored best when higher), the
   three crowns with `NEW` on crowns first saved by this clear, and the
   Comeback line only when it was saved by this clear.
+
+## Iteration 68B Collection stage records
+
+- The Lobby Collection page lists every catalog Stage with its saved crowns,
+  best time and best max combo, plus totals: crowns out of `3` per Stage,
+  CLEAN / 10 COMBO / FULL COMBO Stage counts and Comeback clear count.
+- A cleared, unlocked Stage offers REPLAY, which starts the same normal
+  Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.

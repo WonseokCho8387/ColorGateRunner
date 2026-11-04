@@ -71,6 +71,7 @@ namespace ColorGateRunner.Presentation
         private AppRoot _appRoot;
         private ICampaignLaunchHost _campaignLaunchHost;
         private CampaignLobbyReadModel _campaignLobby;
+        private StageCollectionModel _collectionModel;
         private string _queuedStageId;
         private float _nextHeartRefreshTime;
 
@@ -119,6 +120,10 @@ namespace ColorGateRunner.Presentation
             homeNavigationSelection;
         internal LobbyPagePager LobbyPagePager => lobbyPagePager;
         internal JourneyPageView JourneyPageView => journeyPageView;
+        internal StageCollectionPageView CollectionPageView =>
+            collectionPageRoot != null
+                ? collectionPageRoot.GetComponent<StageCollectionPageView>()
+                : null;
         internal SettingsPanelController SettingsPanel => settingsPanel;
         internal Button ModalConfirmButton => modalConfirmButton;
         internal Button ModalCancelButton => modalCancelButton;
@@ -340,6 +345,12 @@ namespace ColorGateRunner.Presentation
                         ? "missing view"
                         : journeyPageView.FindMissingReferenceGroup());
             }
+            StageCollectionPageView collectionView = CollectionPageView;
+            if (collectionView == null ||
+                !collectionView.HasRequiredReferences())
+            {
+                return "collection page";
+            }
             if (lobbyPagePager == null ||
                 !lobbyPagePager.HasRequiredReferences())
             {
@@ -445,13 +456,20 @@ namespace ColorGateRunner.Presentation
             try
             {
                 StageCatalogProvider.EnsureConfigured();
+                var progressStore = new ProductStageProgressStore(
+                    appRoot.Graph.ProductSession,
+                    appRoot.Graph.Progression,
+                    StageCatalog.Current);
                 _campaignLobby = new FrontendCampaignProgressReader(
-                    new ProductStageProgressStore(
-                        appRoot.Graph.ProductSession,
-                        appRoot.Graph.Progression,
-                        StageCatalog.Current),
+                    progressStore,
                     StageCatalog.Current,
                     appRoot.Graph.Profile.Current.ProfileId).Read();
+                _collectionModel = StageCollectionPresentation.Create(
+                    progressStore,
+                    StageCatalog.Current);
+                CollectionPageView.Bind(
+                    _collectionModel,
+                    appRoot.Playtest == null);
             }
             catch (Exception exception)
             {
@@ -577,6 +595,7 @@ namespace ColorGateRunner.Presentation
             _router.TransitionChanged += ApplyTransition;
             lobbyPagePager.PageRequested += RequestLobbyPage;
             journeyPageView.ChapterSelectionRequested += SelectLobbyTheme;
+            CollectionPageView.ReplayRequested += ReplayStage;
             _listenersBound = true;
         }
 
@@ -607,6 +626,11 @@ namespace ColorGateRunner.Presentation
             _router.TransitionChanged -= ApplyTransition;
             lobbyPagePager.PageRequested -= RequestLobbyPage;
             journeyPageView.ChapterSelectionRequested -= SelectLobbyTheme;
+            StageCollectionPageView collectionView = CollectionPageView;
+            if (collectionView != null)
+            {
+                collectionView.ReplayRequested -= ReplayStage;
+            }
             _listenersBound = false;
         }
 
@@ -726,15 +750,47 @@ namespace ColorGateRunner.Presentation
                 _router.TryShowModal(FrontendModal.BootRequired);
                 return;
             }
+            LaunchCampaign(_campaignLobby.StageId, _campaignLobby.RunKind);
+        }
+
+        private void ReplayStage(string stageId)
+        {
+            if (!_productReady || _campaignLaunchHost == null ||
+                _appRoot?.Playtest != null || !IsReplayable(stageId))
+            {
+                return;
+            }
+            LaunchCampaign(stageId, CampaignRunKind.Authored);
+        }
+
+        private bool IsReplayable(string stageId)
+        {
+            if (_collectionModel == null)
+            {
+                return false;
+            }
+            for (int index = 0; index < _collectionModel.Rows.Count; index++)
+            {
+                StageCollectionRowModel row = _collectionModel.Rows[index];
+                if (row.StageId == stageId)
+                {
+                    return row.CanReplay;
+                }
+            }
+            return false;
+        }
+
+        private void LaunchCampaign(string stageId, CampaignRunKind runKind)
+        {
             if (!_router.TryBeginSceneTransition())
             {
                 return;
             }
 
-            _queuedStageId = _campaignLobby.StageId;
+            _queuedStageId = stageId;
             if (!_campaignLaunchHost.TryQueueCampaignLaunch(
                     _queuedStageId,
-                    _campaignLobby.RunKind))
+                    runKind))
             {
                 _queuedStageId = null;
                 _router.CompleteSceneTransition();
@@ -804,6 +860,10 @@ namespace ColorGateRunner.Presentation
                 else if (page == FrontendPage.Journey)
                 {
                     journeyPageView.OnPageShown();
+                }
+                else if (page == FrontendPage.Collection)
+                {
+                    CollectionPageView.OnPageShown();
                 }
             }
         }

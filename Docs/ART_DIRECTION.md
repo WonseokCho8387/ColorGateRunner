@@ -1109,6 +1109,14 @@ This section supersedes Iteration 47's separate additive frame trace.
   the canvas just above the runner for `0.45` seconds.
 
 
+## Iteration 68B Collection page
+
+- Collection keeps its authored background and page header. A summary card
+  shows the crown total in Gold (`24`), the per-crown breakdown in TextPrimary
+  and Comeback clears in Magenta (`13`). Below it, a vertical list of `84`px
+  ItemCard rows: cleared Signal, next Magenta, locked dim TextSecondary; owned
+  crown labels Gold, missing dim; a primary REPLAY button on the right.
+
 ## Iteration 68A clear crowns
 
 - The clear reward card shows `MAX COMBO` in Magenta at size `34` above a row

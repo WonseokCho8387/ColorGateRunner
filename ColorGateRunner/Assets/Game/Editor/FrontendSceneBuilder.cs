@@ -875,13 +875,8 @@ namespace ColorGateRunner.Editor
                 lobbyPagePager,
                 out journeyPageView,
                 themeVisualCatalog);
-            collectionPage = CreateComingSoonPage(
+            collectionPage = CreateCollectionPage(
                 viewportObject.transform,
-                "CollectionPageRoot",
-                "COLLECTION",
-                "CollectionBackground",
-                "COMING SOON",
-                "COLLECTION IS NOT AVAILABLE IN THIS BUILD.",
                 lobbyPagePager);
             CreateLobbyNavigation(
                 parent,
@@ -993,6 +988,205 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.92f, 0.5f));
             body.color = NeonUiPalette.TextSecondary;
             return root;
+        }
+
+        private static GameObject CreateCollectionPage(
+            Transform parent,
+            LobbyPagePager pagePager)
+        {
+            StageCatalogProvider.EnsureConfigured();
+            GameObject root = CreateFlowRoot("CollectionPageRoot", parent);
+            root.AddComponent<LobbyPageSwipeForwarder>().Configure(pagePager);
+            Image background = CreateFrontendImage(
+                "CollectionPageBackground",
+                root.transform,
+                "CollectionBackground",
+                Vector2.zero,
+                Vector2.one);
+            background.raycastTarget = true;
+            CreateFrontendImage(
+                "CollectionHeader",
+                root.transform,
+                "PageHeader",
+                new Vector2(0.055f, 0.70f),
+                new Vector2(0.945f, 0.875f));
+            Text title = CreateText(
+                "CollectionPageTitle",
+                root.transform,
+                "COLLECTION",
+                30,
+                new Vector2(0.12f, 0.775f),
+                new Vector2(0.88f, 0.815f));
+            title.color = NeonUiPalette.TextPrimary;
+
+            GameObject summary = CreatePanel(
+                "CollectionSummaryCard",
+                root.transform,
+                new Vector2(0.055f, 0.585f),
+                new Vector2(0.945f, 0.695f),
+                Color.white);
+            summary.GetComponent<Image>().raycastTarget = false;
+            Text crownTotal = CreateText(
+                "CollectionCrownTotalText",
+                summary.transform,
+                "CROWNS 0 / 0",
+                24,
+                new Vector2(0.06f, 0.58f),
+                new Vector2(0.94f, 0.95f));
+            crownTotal.color = NeonUiPalette.Gold;
+            Text breakdown = CreateText(
+                "CollectionBreakdownText",
+                summary.transform,
+                string.Empty,
+                13,
+                new Vector2(0.06f, 0.32f),
+                new Vector2(0.94f, 0.58f));
+            breakdown.color = NeonUiPalette.TextPrimary;
+            Text comeback = CreateText(
+                "CollectionComebackText",
+                summary.transform,
+                string.Empty,
+                13,
+                new Vector2(0.06f, 0.06f),
+                new Vector2(0.94f, 0.32f));
+            comeback.color = NeonUiPalette.Magenta;
+
+            GameObject scrollObject = new GameObject(
+                "CollectionScrollView",
+                typeof(RectTransform),
+                typeof(ScrollRect),
+                typeof(LobbyPageSwipeForwarder));
+            scrollObject.transform.SetParent(root.transform, false);
+            SetAnchors(
+                scrollObject.GetComponent<RectTransform>(),
+                new Vector2(0.035f, 0.125f),
+                new Vector2(0.965f, 0.575f));
+            scrollObject.GetComponent<LobbyPageSwipeForwarder>()
+                .Configure(pagePager);
+
+            GameObject viewportObject = new GameObject(
+                "Viewport",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(RectMask2D));
+            viewportObject.transform.SetParent(scrollObject.transform, false);
+            Stretch(viewportObject.GetComponent<RectTransform>());
+            viewportObject.GetComponent<Image>().color =
+                new Color(0f, 0f, 0f, 0.01f);
+
+            GameObject contentObject = new GameObject(
+                "Content",
+                typeof(RectTransform));
+            contentObject.transform.SetParent(viewportObject.transform, false);
+            RectTransform contentRect =
+                contentObject.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.offsetMin = Vector2.zero;
+            contentRect.offsetMax = Vector2.zero;
+
+            const float rowHeight = 84f;
+            const float rowGap = 8f;
+            int stageCount = ColorGateRunner.Core.StageCatalog.Count;
+            contentRect.sizeDelta = new Vector2(
+                0f,
+                (stageCount * (rowHeight + rowGap)) + rowGap);
+            var rows = new StageCollectionRowView[stageCount];
+            for (int index = 0; index < stageCount; index++)
+            {
+                rows[index] = CreateCollectionRow(
+                    contentRect,
+                    index,
+                    rowGap + (index * (rowHeight + rowGap)),
+                    rowHeight);
+            }
+
+            ScrollRect scroll = scrollObject.GetComponent<ScrollRect>();
+            scroll.viewport = viewportObject.GetComponent<RectTransform>();
+            scroll.content = contentRect;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Elastic;
+            scroll.elasticity = 0.08f;
+            scroll.inertia = true;
+            scroll.decelerationRate = 0.12f;
+            scroll.scrollSensitivity = 42f;
+            root.AddComponent<StageCollectionPageView>().Configure(
+                scroll,
+                contentRect,
+                crownTotal,
+                breakdown,
+                comeback,
+                rows);
+            return root;
+        }
+
+        private static StageCollectionRowView CreateCollectionRow(
+            RectTransform parent,
+            int index,
+            float top,
+            float height)
+        {
+            GameObject root = CreatePanel(
+                $"CollectionStageCard_{index + 1:00}",
+                parent,
+                Vector2.zero,
+                Vector2.one,
+                Color.white);
+            RectTransform rect = root.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.02f, 1f);
+            rect.anchorMax = new Vector2(0.98f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -top);
+            rect.sizeDelta = new Vector2(0f, height);
+            Image card = root.GetComponent<Image>();
+            card.raycastTarget = false;
+
+            Text title = CreateText(
+                "StageTitleText",
+                root.transform,
+                $"STAGE {index + 1:00}",
+                17,
+                new Vector2(0.04f, 0.62f),
+                new Vector2(0.72f, 0.95f));
+            title.alignment = TextAnchor.MiddleLeft;
+            var crowns = new Text[StageCrownResultView.DisplayOrder.Length];
+            for (int crown = 0; crown < crowns.Length; crown++)
+            {
+                float left = 0.04f + (crown * 0.23f);
+                crowns[crown] = CreateText(
+                    $"CrownText_{crown}",
+                    root.transform,
+                    StageCrownResultView.Labels[crown],
+                    12,
+                    new Vector2(left, 0.34f),
+                    new Vector2(left + 0.22f, 0.62f));
+                crowns[crown].alignment = TextAnchor.MiddleLeft;
+            }
+            Text detail = CreateText(
+                "StageDetailText",
+                root.transform,
+                "LOCKED",
+                12,
+                new Vector2(0.04f, 0.05f),
+                new Vector2(0.72f, 0.34f));
+            detail.alignment = TextAnchor.MiddleLeft;
+            Button replay = CreateButton(
+                "CollectionReplayButton",
+                root.transform,
+                "REPLAY",
+                new Vector2(0.74f, 0.18f),
+                new Vector2(0.97f, 0.82f),
+                Color.white,
+                out Text replayLabel);
+            replayLabel.fontSize = 15;
+            replayLabel.resizeTextMaxSize = 15;
+            replay.gameObject.SetActive(false);
+
+            var view = root.AddComponent<StageCollectionRowView>();
+            view.Configure(card, title, detail, crowns, replay);
+            return view;
         }
 
         private static GameObject CreateJourneyPage(

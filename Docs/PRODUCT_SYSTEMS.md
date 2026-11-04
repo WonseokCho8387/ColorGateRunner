@@ -357,6 +357,8 @@ values or unknown crown bits fail validation. `AuthorizeStageStartWithReceipt`
 counts the attempt for its stage ID inside the same ledgered start
 transaction (an attempt-only record has `Cleared = false`), and
 `RecordStageClear` never lowers stored crowns or best combo.
+Iteration 68B reads these fields for the Collection page through the existing
+`ProductStageProgressStore` read path only; it adds no field and no write.
 
 ## 6.3 Progression service contract
 
