@@ -208,6 +208,12 @@ namespace ColorGateRunner.Editor
             PlaytestEntryView playtestEntry = PlaytestUiBuilder.CreateEntry(safeArea.transform);
             playtestEntry.transform.SetSiblingIndex(popupRoot.transform.GetSiblingIndex());
             controller.ConfigurePlaytestEntry(playtestEntry);
+            SoundEffectPlayer soundEffects =
+                SoundLibraryBuilder.CreatePlayer(root.transform);
+            SoundLibraryBuilder.BindControls(root.transform, soundEffects);
+            controller.ConfigureAudio(
+                CreateLobbyMusic(root.transform, soundEffects.Library),
+                soundEffects);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -434,11 +440,34 @@ namespace ColorGateRunner.Editor
             }
         }
 
+        private static LobbyMusicPlayer CreateLobbyMusic(
+            Transform parent,
+            SoundLibraryAsset library)
+        {
+            var musicObject = new GameObject(
+                "LobbyMusic",
+                typeof(AudioSource),
+                typeof(LobbyMusicPlayer));
+            musicObject.transform.SetParent(parent, false);
+            AudioSource source = musicObject.GetComponent<AudioSource>();
+            source.clip = library.LobbyMusic;
+            source.loop = true;
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.volume = 0f;
+            source.priority = 0;
+            LobbyMusicPlayer player =
+                musicObject.GetComponent<LobbyMusicPlayer>();
+            player.Configure(source);
+            return player;
+        }
+
         private static void CreateCamera(Transform parent)
         {
             var cameraObject = new GameObject(
                 "FrontendCamera",
-                typeof(Camera));
+                typeof(Camera),
+                typeof(AudioListener));
             cameraObject.transform.SetParent(parent, false);
             Camera camera = cameraObject.GetComponent<Camera>();
             camera.clearFlags = CameraClearFlags.SolidColor;

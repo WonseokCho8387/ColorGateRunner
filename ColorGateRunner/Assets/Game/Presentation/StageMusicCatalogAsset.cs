@@ -54,10 +54,19 @@ namespace ColorGateRunner.Presentation
                 if (entry != null && entry.StageNumber == stageNumber &&
                     entry.Clip != null)
                 {
+                    try
+                    {
+                        timeline = new StageMusicTimeline(
+                            entry.GateDistances,
+                            entry.GateSeconds);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // A broken gate map plays the Stage silently rather
+                        // than stopping the run.
+                        break;
+                    }
                     clip = entry.Clip;
-                    timeline = new StageMusicTimeline(
-                        entry.GateDistances,
-                        entry.GateSeconds);
                     return true;
                 }
             }

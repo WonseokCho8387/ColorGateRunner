@@ -12,6 +12,7 @@ namespace ColorGateRunner.Presentation
         internal const float FailureFadeSeconds = 0.6f;
         internal const float FailurePitch = 0.55f;
         internal const float FreeRunPitchPerSecond = 1.5f;
+        internal const float ClearFadeSeconds = 2f;
 
         internal enum MusicState
         {
@@ -19,6 +20,7 @@ namespace ColorGateRunner.Presentation
             Following,
             FreeRunning,
             FailingOut,
+            ClearFading,
             Held
         }
 
@@ -30,6 +32,7 @@ namespace ColorGateRunner.Presentation
         private float _gainTarget;
         private float _clock;
         private bool _paused;
+        private float _volume = 1f;
 
         internal MusicState State { get; private set; }
         internal bool HasTrack => _timeline != null;
@@ -99,6 +102,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
+            _volume = Mathf.Clamp01(volume);
             _clock += deltaTime * source.pitch;
             if (source.isPlaying && source.time > 0f)
             {
@@ -129,7 +133,8 @@ namespace ColorGateRunner.Presentation
                             runnerSpeed);
                 }
             }
-            if (State == MusicState.FreeRunning)
+            if (State == MusicState.FreeRunning ||
+                State == MusicState.ClearFading)
             {
                 source.pitch = Mathf.MoveTowards(
                     source.pitch,
@@ -147,13 +152,41 @@ namespace ColorGateRunner.Presentation
 
             float rate = State == MusicState.FailingOut
                 ? 1f / FailureFadeSeconds
-                : 1f / FadeInSeconds;
+                : State == MusicState.ClearFading
+                    ? 1f / ClearFadeSeconds
+                    : 1f / FadeInSeconds;
             _gain = Mathf.MoveTowards(_gain, _gainTarget, rate * deltaTime);
-            source.volume = Mathf.Clamp01(volume) * _gain;
+            source.volume = _volume * _gain;
             if (State == MusicState.FailingOut && _gain <= 0f)
             {
                 source.Pause();
                 State = MusicState.Held;
+            }
+            else if (State == MusicState.ClearFading && _gain <= 0f)
+            {
+                Stop();
+            }
+        }
+
+        // The result screen is up: the final chord fades away.
+        internal void FadeOut()
+        {
+            if (State != MusicState.Following &&
+                State != MusicState.FreeRunning)
+            {
+                return;
+            }
+            _gainTarget = 0f;
+            State = MusicState.ClearFading;
+        }
+
+        // Volume follows Settings even while the run is paused.
+        internal void ApplyVolume(float volume)
+        {
+            _volume = Mathf.Clamp01(volume);
+            if (source != null && State != MusicState.Idle)
+            {
+                source.volume = _volume * _gain;
             }
         }
 

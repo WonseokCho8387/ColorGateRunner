@@ -1,5 +1,24 @@
 # Current Status
 
+## Iteration 73 — Sound Effects and Lobby Music (2026-11-05 KST)
+
+- 기준: `f1e6531`(로비 일러스트 프롬프트 문서) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 효과음 17종을 `Tools/Music/synth_ui_sfx.py`로 합성했다(`Assets/Game/Audio/Sfx`). Frontend와
+  Campaign의 모든 Button·Toggle에 Builder가 `UiButtonSound`를 붙이고, 이름과 표면으로 탭·확인·
+  뒤로·위험·구매·탭 전환 소리를 고른다. 토글은 켜짐/꺼짐, 누를 수 없는 버튼은 거절음을 낸다.
+- 게임 효과음: 카운트다운 3·2·1과 GO, 게이트 판정 PERFECT/GREAT/GOOD, 실패, 클리어, 새 크라운.
+- Frontend에서 잔잔한 로비 루프(84 BPM, 91.4초, `synth_lobby_music.py`)가 페이드 인으로 재생되고,
+  Stage 실행 시 페이드 아웃, 로드 실패 시 다시 재생된다. Frontend 카메라에 AudioListener를 추가했다.
+- 설정의 SFX 행을 보이게 했고 저장된 SFX 볼륨을 적용한다. 클리어 결과 화면이 뜨면 Stage 음악이
+  2초 동안 사라진다. 일시정지 중 바꾼 음악 볼륨이 바로 적용되고, 깨진 음악 지도는 소리 없이 진행된다.
+- 자동 검증: **EditMode `579/579` passed; PlayMode `292` passed, `1` intentional opt-in ignore**. Builder 각 2회(Scene 변경은 소리 컴포넌트와
+  오디오 오브젝트 추가뿐, 재질은 공백만 바뀌어 복원). Campaign 시뮬레이션과 Step 10 산출물 8개 해시
+  **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일. 근거: `Artifacts/Validation/Iteration73/`.
+- Fresh-context checker 1차 FAIL: 클릭 처리 중 스스로 비활성화되는 버튼(구매 확인, 뒤로, 결과 건너뛰기)이
+  거절음을 냈다. 누를 때의 상태로 판단하도록 고치고 Playtest 실행 경로에 로비 음악 페이드를 추가한 뒤
+  관련·전체 테스트를 다시 통과했다.
+
 ## Iteration 72 — Stage Music (2026-11-04 KST)
 
 - 기준: `d9328b2` (Iteration 71) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

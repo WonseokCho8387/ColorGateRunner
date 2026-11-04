@@ -1911,6 +1911,15 @@ Status: Approved and implemented.
 
 
 
+## Iteration 73 sound effects and lobby music (2026-11-05 기록)
+
+- 사용자 결정: 모든 버튼에 효과음을 넣고, 로비에는 잔잔한 배경음을 넣는다.
+- 사용자 결정: 효과음 범위는 게이트 판정음(PERFECT/GREAT/GOOD)까지 포함한다.
+- 사용자 결정: 클리어 결과 화면에서는 마무리 화음 뒤 Stage 음악을 페이드한다.
+- 버튼별 소리는 Builder가 컨트롤 이름과 표면 스프라이트로 고른다(`SoundLibraryBuilder.CueFor`).
+  효과음과 로비 음악도 저장소의 결정적 합성 스크립트로 만든다.
+- 사용자 결정(Iteration 74 예정): 26개 Stage 곡을 모두 다른 테마로 다시 만든다.
+
 ## Iteration 72 Stage music (2026-11-04 기록)
 
 - 사용자 결정: Guilty Gear OST처럼 하드록/메탈 성향의 Stage별 음악을 만든다. 장르 특징만 쓰고

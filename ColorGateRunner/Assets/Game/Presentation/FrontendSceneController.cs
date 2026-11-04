@@ -59,6 +59,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private Text modalCancelText;
         [SerializeField] private SettingsPanelController settingsPanel;
         [SerializeField] private string campaignScenePath;
+        [SerializeField] private LobbyMusicPlayer lobbyMusic;
+        [SerializeField] private SoundEffectPlayer soundEffects;
 
         private FrontendPageRouter _router;
         private FrontendDisplayContext _context;
@@ -409,6 +411,11 @@ namespace ColorGateRunner.Presentation
                 campaignScenePath == gameObject.scene.path)
             {
                 return "campaign destination";
+            }
+            if (lobbyMusic == null || !lobbyMusic.HasRequiredReferences ||
+                soundEffects == null || !soundEffects.HasRequiredReferences)
+            {
+                return "audio";
             }
             return string.Empty;
         }
@@ -800,6 +807,7 @@ namespace ColorGateRunner.Presentation
             }
 
             loadingRoot.SetActive(true);
+            lobbyMusic.FadeOut();
             _sceneLoader.LoadScene(campaignScenePath, OnSceneLoadCompleted);
         }
 
@@ -816,6 +824,7 @@ namespace ColorGateRunner.Presentation
             {
                 _campaignLaunchHost?.TryCancelCampaignLaunch(_queuedStageId);
                 _queuedStageId = null;
+                lobbyMusic.Resume();
                 modalMessageText.text = string.IsNullOrWhiteSpace(result.Error)
                     ? "CAMPAIGN LOAD FAILED"
                     : result.Error;

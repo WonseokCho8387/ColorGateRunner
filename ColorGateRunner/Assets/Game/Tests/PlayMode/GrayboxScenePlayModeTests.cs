@@ -3791,6 +3791,78 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void SoundEffects_CountdownGateAndFailureCues()
+        {
+            SoundEffectPlayer sounds = _controller.SoundEffects;
+            SelectAndStartStage(1);
+            Assert.That(sounds.CountOf(SoundCue.CountdownTick),
+                Is.GreaterThanOrEqualTo(1));
+            Assert.That(sounds.CountOf(SoundCue.CountdownGo), Is.EqualTo(1));
+
+            StageGateView gate = FindGateByPlanIndex(
+                _controller.Session.GatesPassed);
+            Match(gate.AssignedColor);
+            Assert.That(gate.TryResolveCrossing(), Is.True);
+            Assert.That(sounds.LastCue,
+                Is.EqualTo(SoundCue.GatePerfect)
+                    .Or.EqualTo(SoundCue.GateGreat)
+                    .Or.EqualTo(SoundCue.GateGood));
+
+            Fail();
+            Assert.That(sounds.LastCue, Is.EqualTo(SoundCue.Fail));
+            Assert.That(sounds.CountOf(SoundCue.Fail), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SoundEffects_ClearPlaysCueAndFadesStageMusic()
+        {
+            SelectAndStartStage(4);
+            FinishCurrentStage();
+            SoundEffectPlayer sounds = _controller.SoundEffects;
+            Assert.That(sounds.CountOf(SoundCue.Clear), Is.EqualTo(1));
+            _controller.Tick(1.3f);
+            Assert.That(_controller.StageMusic.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.ClearFading)
+                    .Or.EqualTo(StageMusicPlayer.MusicState.Idle));
+            _controller.Tick(StageMusicPlayer.ClearFadeSeconds + 0.1f);
+            Assert.That(_controller.StageMusic.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Idle));
+        }
+
+        [Test]
+        public void SoundEffects_ControlsPlayTheirCueOrDenied()
+        {
+            Button retry = _controller.RetryButton;
+            UiButtonSound sound = retry.GetComponent<UiButtonSound>();
+            Assert.That(sound, Is.Not.Null);
+            bool wasInteractable = retry.interactable;
+            retry.interactable = true;
+            Assert.That(sound.ResolveCue(), Is.EqualTo(sound.Cue));
+            retry.interactable = false;
+            Assert.That(sound.ResolveCue(), Is.EqualTo(SoundCue.UiDenied));
+            retry.interactable = wasInteractable;
+
+            int before = _controller.SoundEffects.PlayCount;
+            sound.OnPointerClick(null);
+            Assert.That(_controller.SoundEffects.PlayCount,
+                Is.EqualTo(before + 1));
+
+            // A click whose handler switches its own control off still
+            // plays the control's cue, because it was pressed while live.
+            retry.interactable = true;
+            sound.OnPointerDown(null);
+            retry.interactable = false;
+            sound.OnPointerClick(null);
+            Assert.That(_controller.SoundEffects.LastCue,
+                Is.EqualTo(sound.Cue));
+            sound.OnPointerDown(null);
+            sound.OnPointerClick(null);
+            Assert.That(_controller.SoundEffects.LastCue,
+                Is.EqualTo(SoundCue.UiDenied));
+            retry.interactable = wasInteractable;
+        }
+
+        [Test]
         public void PerfectSwitch_FailureClearsFlashAndCombo()
         {
             SelectAndStartStage(4);

@@ -20,7 +20,7 @@ namespace ColorGateRunner.Tests.EditMode
             SettingsAvailability desktop = SettingsAvailability.ForPlatform(false);
             Assert.That(desktop.Notifications, Is.False);
             Assert.That(desktop.Music, Is.True);
-            Assert.That(desktop.Sfx, Is.False);
+            Assert.That(desktop.Sfx, Is.True);
             Assert.That(desktop.Vibration, Is.False);
             Assert.That(desktop.AnyAudio, Is.True);
             Assert.That(desktop.AnyGameplay, Is.False);
@@ -29,7 +29,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(handheld.Vibration, Is.True);
             Assert.That(handheld.AnyGameplay, Is.True);
             Assert.That(handheld.Music, Is.True);
-            Assert.That(handheld.Sfx, Is.False);
+            Assert.That(handheld.Sfx, Is.True);
         }
 
         [Test]
@@ -102,7 +102,7 @@ namespace ColorGateRunner.Tests.EditMode
 
                 Assert.That(panel.AudioSection.activeSelf, Is.True);
                 Assert.That(panel.MusicToggle.gameObject.activeSelf, Is.True);
-                Assert.That(panel.SfxToggle.gameObject.activeSelf, Is.False);
+                Assert.That(panel.SfxToggle.gameObject.activeSelf, Is.True);
                 Assert.That(panel.GameplaySection.activeSelf, Is.True);
                 Assert.That(panel.VibrationToggle.gameObject.activeSelf,
                     Is.True);

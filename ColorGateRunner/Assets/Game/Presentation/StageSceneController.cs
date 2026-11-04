@@ -57,6 +57,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private ComboHudView comboHud;
         [SerializeField] private StageCrownResultView crownResult;
         [SerializeField] private StageMusicPlayer stageMusic;
+        [SerializeField] private SoundEffectPlayer soundEffects;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -179,6 +180,7 @@ namespace ColorGateRunner.Presentation
         private bool _clearRewardsEarned;
         private StageCrown _clearCrownsOwned;
         private StageCrown _clearCrownsNew;
+        private string _countdownCueLabel = string.Empty;
         private StageCrown _clearCrownsEarned;
         private int _clearBestMaxCombo;
         private int _clearAttempt;
@@ -341,6 +343,7 @@ namespace ColorGateRunner.Presentation
         internal PerfectSwitchCombo Combo => _combo;
         internal StageCrownResultView CrownResult => crownResult;
         internal StageMusicPlayer StageMusic => stageMusic;
+        internal SoundEffectPlayer SoundEffects => soundEffects;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -508,6 +511,8 @@ namespace ColorGateRunner.Presentation
 
         internal void Tick(float deltaTime)
         {
+            // Applied even while paused so a Settings change is heard at once.
+            stageMusic.ApplyVolume(SoundEffectPlayer.MusicVolume);
             if (_pauseCoordinator != null && _pauseCoordinator.IsPaused)
             {
                 return;
@@ -1238,9 +1243,10 @@ namespace ColorGateRunner.Presentation
             GateOutcome outcome = _session.ResolveGate(
                 plan,
                 _session.ElapsedPlayingSeconds);
-            comboHud.Apply(
-                _combo.Record(outcome, _session.LastGateSwitchTiming),
-                _combo.Current);
+            ComboStep comboStep =
+                _combo.Record(outcome, _session.LastGateSwitchTiming);
+            comboHud.Apply(comboStep, _combo.Current);
+            soundEffects.PlayGateStep(comboStep);
             if (_playtest != null)
             {
                 if (outcome == GateOutcome.Matched) _playtest.RecordDirectMatch();
@@ -1758,6 +1764,11 @@ namespace ColorGateRunner.Presentation
             stageMusic = player;
         }
 
+        internal void ConfigureSoundEffects(SoundEffectPlayer player)
+        {
+            soundEffects = player;
+        }
+
         internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
         {
             splineTrackLab = lab;
@@ -1869,6 +1880,7 @@ namespace ColorGateRunner.Presentation
                 comboHud == null || !comboHud.HasRequiredReferences ||
                 crownResult == null || !crownResult.HasRequiredReferences ||
                 stageMusic == null || !stageMusic.HasRequiredReferences ||
+                soundEffects == null || !soundEffects.HasRequiredReferences ||
                 gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
@@ -2969,6 +2981,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             RecordClear();
+            soundEffects.Play(SoundCue.Clear);
             ApplyUiFlow(MobileUiFlow.ClearResult);
             clearPanel.SetActive(false);
             _clearDelayRemaining = ClearPanelDelay;
@@ -3114,6 +3127,7 @@ namespace ColorGateRunner.Presentation
             _failedGate = failedGate;
             _continueSnapshot = CaptureContinueSnapshot(failedGate);
             stageMusic.Fail();
+            soundEffects.Play(SoundCue.Fail);
             _cameraShakeRemaining = 0.3f;
             _failureDelayRemaining = FailurePanelDelay;
             ApplyPlayerMaterial(failureMaterial);
@@ -3211,6 +3225,11 @@ namespace ColorGateRunner.Presentation
                         return;
                     }
                     clearPanel.SetActive(true);
+                    stageMusic.FadeOut();
+                    if (_clearCrownsNew != StageCrown.None)
+                    {
+                        soundEffects.Play(SoundCue.Crown);
+                    }
                     clearTitleText.text = _campaignRunKind ==
                         CampaignRunKind.League
                             ? "LEAGUE RUN CLEAR"
@@ -3385,6 +3404,7 @@ namespace ColorGateRunner.Presentation
         {
             _pauseCoordinator?.Clear();
             stageMusic.Stop();
+            _countdownCueLabel = string.Empty;
             _pauseSceneLoadError = string.Empty;
             _clearRecorded = false;
             _clearRewardSummary = string.Empty;
@@ -3898,16 +3918,12 @@ namespace ColorGateRunner.Presentation
             float speed = upcoming == null
                 ? _session.CurrentSpeed
                 : _session.GetSpeedForPlan(upcoming.ActivePlan);
-            float volume = AppRoot.TryGetActive(out AppRoot root) &&
-                root.CurrentSettings != null
-                    ? root.CurrentSettings.MusicVolume
-                    : 1f;
             stageMusic.Tick(
                 deltaTime,
                 _campaignDistance,
                 speed,
                 _session.GatesPassed >= _session.Stage.TargetGateCount,
-                volume);
+                SoundEffectPlayer.MusicVolume);
         }
 
         private StageGateView FindActiveGate(int planIndex)
@@ -4214,6 +4230,7 @@ namespace ColorGateRunner.Presentation
             if (_continueReadyActive)
             {
                 countdownText.text = "READY";
+                _countdownCueLabel = countdownText.text;
                 return;
             }
             if (_countdownRemaining > 2.083f)
@@ -4231,6 +4248,25 @@ namespace ColorGateRunner.Presentation
             else
             {
                 countdownText.text = "GO!";
+            }
+            PlayCountdownCue(countdownText.text);
+        }
+
+        // One cue per shown count: a tick for 3-2-1 and a launch for GO.
+        private void PlayCountdownCue(string label)
+        {
+            if (label == _countdownCueLabel)
+            {
+                return;
+            }
+            _countdownCueLabel = label;
+            if (label == "GO!")
+            {
+                soundEffects.Play(SoundCue.CountdownGo);
+            }
+            else if (label.Length == 1)
+            {
+                soundEffects.Play(SoundCue.CountdownTick);
             }
         }
 

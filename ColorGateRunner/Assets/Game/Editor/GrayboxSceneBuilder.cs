@@ -792,6 +792,17 @@ namespace ColorGateRunner.Editor
             successParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             trail.emitting = false;
 
+            SoundEffectPlayer soundEffects =
+                SoundLibraryBuilder.CreatePlayer(root.transform);
+            GameObject[] sceneRoots = scene.GetRootGameObjects();
+            for (int index = 0; index < sceneRoots.Length; index++)
+            {
+                SoundLibraryBuilder.BindControls(
+                    sceneRoots[index].transform,
+                    soundEffects);
+            }
+            controller.ConfigureSoundEffects(soundEffects);
+
             PlayerSettings.defaultInterfaceOrientation =
                 UIOrientation.Portrait;
             EditorSceneManager.MarkSceneDirty(scene);

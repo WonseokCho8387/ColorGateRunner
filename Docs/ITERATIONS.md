@@ -4106,3 +4106,39 @@ Builder 이후 Scene diff는 fileID를 제외하고 비교하면 실제 변경 �
 - Booster 빨리감기와 따라잡기가 자연스러운지, 실패 시 늘어지는 소리가 적절한지 플레이로 확인한다.
 - 실제 기기(WebGL, Android)의 오디오 출력과 Streaming 지연은 검증하지 않았다.
 - 로비 음악, 효과음, 음악에 맞춘 게이트 재배치, 오디오 믹서는 범위 밖이다.
+
+## Iteration 73 — Sound Effects and Lobby Music (2026-11-05)
+
+### Play / Analyze
+
+Stage 음악을 들은 사용자는 버튼 효과음과 로비 배경음이 필요하다고 했다. 설정의 SFX 행은 효과음이
+없어 숨겨져 있었고, Frontend에는 AudioListener가 없었다.
+
+### Design
+
+효과음은 E 단조에 맞춘 짧은 합성음 17종이다. 버튼 소리는 Builder가 컨트롤 이름과 표면으로 정하고
+누를 때 `UiButtonSound`가 재생한다. 로비는 84 BPM 신스 패드 루프이고 끝부분을 시작에 겹쳐 이음매
+없이 반복한다.
+
+### Implementation
+
+`Tools/Music/synth_ui_sfx.py`, `Tools/Music/synth_lobby_music.py`, `SoundCue`, `SoundLibraryAsset`,
+`SoundEffectPlayer`, `UiButtonSound`, `LobbyMusicPlayer`, `Editor/SoundLibraryBuilder`, Frontend·Campaign
+Builder 연결, `StageSceneController` 게임 효과음과 클리어 페이드, `StageMusicPlayer`의 페이드·볼륨
+적용, `StageMusicCatalogAsset`의 안전한 실패, `SettingsAvailability`(SFX 표시), 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+Unity의 NUnit에는 `Is.AnyOf`가 없다. 여러 값 허용은 `Is.EqualTo(a).Or.EqualTo(b)`로 쓴다. 배치 실행이
+중간에 끝나면 `Temp/UnityLockfile`이 남아 preflight가 막으므로, Unity 프로세스가 없음을 확인한 뒤 지운다.
+
+### Deferred / Human Review
+
+- 효과음과 음악의 음량 균형, 판정음이 피곤하지 않은지, 로비 음악의 분위기는 직접 들어 판단한다.
+- 실제 기기 출력, 오디오 믹서와 덕킹, Campaign 내부 로비의 음악은 범위 밖이다.
+- 26곡 개별 테마는 Iteration 74, 상단 바·하단 메뉴·아이콘은 66, 로비 일러스트 교체는 65(사용자 이미지
+  전달 후)에서 진행한다.

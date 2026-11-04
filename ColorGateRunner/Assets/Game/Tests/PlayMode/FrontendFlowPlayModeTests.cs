@@ -756,6 +756,36 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator LobbyAudio_FadesInPlaysTabCueAndFadesOnLaunch()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new CompletedCampaignSaveService()));
+            FrontendSceneController controller = RequireController();
+            var loader = new DeferredSceneLoader();
+            controller.SetSceneLoaderForTests(loader);
+            LobbyMusicPlayer music = controller.LobbyMusic;
+            Assert.That(music.Source.clip, Is.Not.Null);
+            Assert.That(music.Source.loop, Is.True);
+            music.Tick(LobbyMusicPlayer.FadeInSeconds);
+            Assert.That(music.Gain, Is.EqualTo(1f));
+            Assert.That(music.FadingOut, Is.False);
+
+            UiButtonSound tab = controller.CollectionNavigationButton
+                .GetComponent<UiButtonSound>();
+            Assert.That(tab.Cue, Is.EqualTo(SoundCue.UiTab));
+            tab.OnPointerClick(null);
+            Assert.That(controller.SoundEffects.LastCue,
+                Is.EqualTo(SoundCue.UiTab));
+
+            controller.LobbyPlayButton.onClick.Invoke();
+            yield return null;
+            Assert.That(loader.LoadCount, Is.EqualTo(1));
+            Assert.That(music.FadingOut, Is.True);
+            music.Tick(LobbyMusicPlayer.FadeOutSeconds);
+            Assert.That(music.Gain, Is.Zero);
+        }
+
+        [UnityTest]
         public IEnumerator Collection_ShowsSavedCrownsAndOnlyClearedStagesReplay()
         {
             yield return LoadFrontendThroughBoot(() =>

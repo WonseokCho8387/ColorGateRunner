@@ -986,6 +986,17 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 73 sound effects and lobby music
+
+- Every button, tab and toggle clicks with a short cue chosen by its role
+  (tap, confirm, back, danger, purchase, tab, toggle on/off); a control that
+  cannot act plays a short denied cue.
+- Gameplay cues: countdown 3-2-1 and GO, a judgment cue per graded gate
+  (PERFECT, GREAT, GOOD), failure, clear and newly earned crowns. Shielded,
+  protected and ignored gates add no judgment cue.
+- The Frontend plays a calm looping night-city pad; it fades as a Stage loads.
+- On the clear result screen the Stage music fades out after the final chord.
+
 ## Iteration 72 Stage music
 
 - Every Campaign Stage plays its own hard-rock track. Eight chapter themes:

@@ -9,6 +9,17 @@ namespace ColorGateRunner.Presentation
 
         internal void ConfigurePlaytestEntry(PlaytestEntryView view) => playtestEntry = view;
 
+        internal void ConfigureAudio(
+            LobbyMusicPlayer music,
+            SoundEffectPlayer effects)
+        {
+            lobbyMusic = music;
+            soundEffects = effects;
+        }
+
+        internal LobbyMusicPlayer LobbyMusic => lobbyMusic;
+        internal SoundEffectPlayer SoundEffects => soundEffects;
+
         private void ApplyPlaytestEntry()
         {
             if (playtestEntry == null) return;
@@ -36,6 +47,7 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             loadingRoot.SetActive(true);
+            lobbyMusic.FadeOut();
             _sceneLoader.LoadScene(campaignScenePath, OnSceneLoadCompleted);
         }
     }

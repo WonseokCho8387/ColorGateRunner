@@ -1270,6 +1270,24 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 73 sound effects and lobby music
+
+- EditMode `SoundEffectsTests`: cue rules for representative control names
+  and surfaces; the sound library holds all 17 DecompressOnLoad cues and a
+  Streaming lobby loop of 32 bars at 84 BPM; Frontend and Campaign each have
+  one `SoundEffectPlayer`, one AudioListener, and a `UiButtonSound` bound to it
+  on every Button and Toggle; Frontend has one looping `LobbyMusicPlayer`.
+- `SettingsPanelDesignTests`: MUSIC and SFX rows are visible.
+- PlayMode: countdown tick and GO cues, a graded gate cue, the failure cue;
+  the clear cue and a Stage music fade to idle; a control's cue or denied cue;
+  Frontend lobby music fades in, a tab plays the tab cue and the music fades
+  when a Stage launch starts.
+- Not automated: loudness balance against the Stage music, whether cues feel
+  good or tiring, real device output.
+- Final evidence: Builders `2/2`; EditMode `579/579` passed; PlayMode `292` passed, `1` intentional opt-in ignore;
+  Campaign and Step 10 artifacts hash-identical; Product save and Campaign
+  PlayerPrefs exact.
+
 ### Iteration 72 Stage music
 
 - EditMode `StageMusicTests`: the distance map is `0` at GO, exact on gates,
