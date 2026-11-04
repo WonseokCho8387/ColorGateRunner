@@ -4066,3 +4066,43 @@ Builder 이후 Scene diff는 fileID를 제외하고 비교하면 실제 변경 �
   않는지는 플레이로 확인해야 한다.
 - 이미 받은 크라운 재평가, 아이템 사용 판의 크라운 제한, Echo 통과의 PlayMode 자동 검증은 범위
   밖이다. 음악 연동은 음원 파일을 받은 뒤 진행한다.
+
+## Iteration 72 — Stage Music (2026-11-04)
+
+### Play / Analyze
+
+게임에 소리가 전혀 없었다. 사용자는 Guilty Gear OST 같은 하드록 Stage 음악과, Booster를 쓰면
+음악이 그 지점까지 빨리 재생되는 느낌을 원했다. 이 PC에는 오디오 인코더가 없고 Python
+표준 라이브러리만 있다.
+
+### Design
+
+음악을 게임에 맞춘다(게임을 음악에 맞추지 않는다). Iteration 67의 게이트 타임라인으로 곡마다
+게이트 한 개를 한 마디로 놓아 게이트 도착이 첫 박이 되게 한다. 실행 중에는 주자 거리를 곡 시각으로
+바꾸고, 공칭보다 빠르면 pitch를 올려 빨리감기처럼 따라간다.
+
+### Implementation
+
+`Tools/Music/synth_stage_music.py`(8개 챕터 테마 합성), `Tools/Music/analyze_track.py`,
+`Core/StageMusicSync`(`StageMusicTimeline`, pitch 규칙), `Presentation/StageMusicCatalogAsset`,
+`Presentation/StageMusicPlayer`, `StageSceneController` 연결, `Editor/StageMusicCatalogBuilder`
+(가져오기 설정과 게이트 지도), `GateTimelineExporter`(게이트 거리), `GrayboxSceneBuilder`
+(`StageMusic` 오브젝트), `SettingsAvailability`(MUSIC 표시), 26개 WAV, 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 렌더한 26곡은 모두 클리핑이
+없고, 분석기로 본 게이트 박 강세가 마디 중간보다 강하다. 샘플 Stage 1·26은 사용자가 듣고
+방향을 승인했다.
+
+### Learning
+
+곡을 게이트 타임라인에 맞춰 렌더하면 BPM 설계나 게이트 재배치 없이 박과 게이트가 맞는다.
+촘촘한 리프에서는 게이트 첫 박에 킥과 짧은 심벌을 겹쳐야 강세가 살아난다.
+
+### Deferred / Human Review
+
+- 곡의 음색, 장르 느낌, 반복감, 게이트가 박에 맞게 느껴지는지는 실제로 들으며 판단해야 한다.
+- Booster 빨리감기와 따라잡기가 자연스러운지, 실패 시 늘어지는 소리가 적절한지 플레이로 확인한다.
+- 실제 기기(WebGL, Android)의 오디오 출력과 Streaming 지연은 검증하지 않았다.
+- 로비 음악, 효과음, 음악에 맞춘 게이트 재배치, 오디오 믹서는 범위 밖이다.

@@ -4,8 +4,10 @@ namespace ColorGateRunner.Presentation
     // preference never pretends to control something that does not exist.
     internal readonly struct SettingsAvailability
     {
-        // No music or SFX assets ship yet; volumes stay persisted but hidden.
-        internal const bool AudioOutputAvailable = false;
+        // Campaign Stage music ships; no SFX assets ship yet, so the SFX
+        // volume stays persisted but hidden.
+        internal const bool MusicOutputAvailable = true;
+        internal const bool SfxOutputAvailable = false;
         // Notification delivery is deferred; the preference stays persisted.
         internal const bool NotificationDeliveryAvailable = false;
 
@@ -35,8 +37,8 @@ namespace ColorGateRunner.Presentation
         {
             return new SettingsAvailability(
                 NotificationDeliveryAvailable,
-                AudioOutputAvailable,
-                AudioOutputAvailable,
+                MusicOutputAvailable,
+                SfxOutputAvailable,
                 supportsHaptics);
         }
 

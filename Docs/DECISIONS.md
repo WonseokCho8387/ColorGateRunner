@@ -1911,6 +1911,18 @@ Status: Approved and implemented.
 
 
 
+## Iteration 72 Stage music (2026-11-04 기록)
+
+- 사용자 결정: Guilty Gear OST처럼 하드록/메탈 성향의 Stage별 음악을 만든다. 장르 특징만 쓰고
+  기존 곡의 멜로디는 쓰지 않는다. 곡 수는 8개 챕터 테마로 하고, 같은 챕터의 Stage는 테마를
+  공유하되 각 Stage의 게이트 시각에 맞춰 따로 렌더한다.
+- 사용자 결정: Booster를 쓰면 그 지점까지 음악이 빨리 재생되듯 한다. 구현은 거리→곡 시각 지도와
+  상한 `2.0`의 pitch 추종(이후 따라잡기)이다. 음악은 게임플레이를 바꾸지 않는다.
+- 사용자 결정: 음원은 WAV 그대로 저장소에 커밋한다(약 211MB). 빌드에서는 Unity가 압축한다.
+- 음원은 외부 에셋이 아니라 저장소의 결정적 합성 스크립트로 만든다. 게이트 타이밍이 바뀌면
+  `Export Gate Timeline For Music` → 합성 → `Build Stage Music Catalog` 순서로 다시 만든다.
+- SFX와 로비 음악은 이번 범위 밖이며 SFX 설정 행은 계속 숨긴다.
+
 ## Iteration 71 Booster/Echo PERFECT and combo crown targets (2026-11-04 기록)
 
 - 사용자 결정: Booster 통과는 모두 PERFECT로 처리한다. Echo 통과도 같은 이유(Stage가 의도한

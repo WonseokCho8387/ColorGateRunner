@@ -96,6 +96,8 @@ namespace ColorGateRunner.Editor
                 EditorBuildSettings.scenes);
             StageCatalogAsset stageCatalogAsset =
                 StageCatalogAssetBuilder.EnsureAndConfigure();
+            StageMusicCatalogAsset stageMusicCatalog =
+                StageMusicCatalogBuilder.EnsureAndConfigure();
             EnsureAssetFolder(GeneratedMaterialsFolder);
             EnsureAssetFolder(GeneratedSplineFolder);
             EnsureAssetFolder(GeneratedProfilesFolder);
@@ -741,6 +743,8 @@ namespace ColorGateRunner.Editor
             controller.ConfigureComboHud(CreateComboHud(root.transform, hud.transform));
             controller.ConfigureCrownResult(
                 CreateCrownResult(clearRewardRoot.transform));
+            controller.ConfigureStageMusic(
+                CreateStageMusic(root.transform, stageMusicCatalog));
             SplineTrackLabController splineLabController =
                 splineTrackLabView.gameObject.AddComponent<
                     SplineTrackLabController>();
@@ -1787,6 +1791,26 @@ namespace ColorGateRunner.Editor
         // judgment flash spans the band just under the top HUD and the Pause
         // button. Iteration 70: the flash is a feeling effect, so it is bold,
         // translucent and additive instead of sitting on an opaque plate.
+        private static StageMusicPlayer CreateStageMusic(
+            Transform parent,
+            StageMusicCatalogAsset catalog)
+        {
+            GameObject root = new GameObject(
+                "StageMusic",
+                typeof(AudioSource),
+                typeof(StageMusicPlayer));
+            root.transform.SetParent(parent, false);
+            AudioSource source = root.GetComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.loop = false;
+            source.spatialBlend = 0f;
+            source.volume = 0f;
+            source.priority = 0;
+            StageMusicPlayer player = root.GetComponent<StageMusicPlayer>();
+            player.Configure(source, catalog);
+            return player;
+        }
+
         private static ComboHudView CreateComboHud(Transform parent, Transform hud)
         {
             GameObject root = new GameObject("ComboHud", typeof(ComboHudView));

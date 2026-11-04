@@ -1,5 +1,29 @@
 # Current Status
 
+## Iteration 72 — Stage Music (2026-11-04 KST)
+
+- 기준: `d9328b2` (Iteration 71) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- Campaign Stage 26개에 하드록 배경음악을 넣었다. 8개 챕터 테마(기본, 아이템, Camouflage, Fog,
+  Ice, Echo, Hidden, Flicker)를 `Tools/Music/synth_stage_music.py`가 표준 라이브러리만으로
+  결정적으로 합성한다. 각 곡은 그 Stage의 공칭 게이트 도착 시각에 맞춰 게이트마다 한 마디이고,
+  게이트 도착이 마디 첫 박이다. 음원은 `Assets/Game/Audio/Music/StageNN.wav`(Streaming,
+  Vorbis 0.5, preload 끔)이고 `Assets/Game/Audio/StageMusicCatalog.asset`이 곡과 게이트 거리·
+  시각 지도를 묶는다.
+- 재생 위치는 주자 거리로 정한다. Booster처럼 공칭보다 빠르면 곡이 빨리감기처럼 빨라지고
+  (pitch 최대 `2.0`), Booster 뒤에는 따라잡을 때까지 빠르게 재생된다. 실패하면 곡이 느려지며
+  사라지고, Continue는 다시 시작한 거리의 위치에서 이어지며, Retry와 로비는 정지한다. Pause는
+  곡을 멈춘다. 마지막 게이트 뒤에는 원래 속도로 마무리 화음까지 재생한다.
+- 설정의 MUSIC 행을 보이게 했다(저장된 Music 볼륨이 곡 볼륨에 적용된다). SFX 행은 효과음이
+  없으므로 계속 숨긴다. 저장 형식 변경 없음.
+- 자동 검증: **EditMode `563/563` passed; PlayMode `288` passed, `1` intentional opt-in ignore**. Builder 각 2회(Frontend는 fileID 재배치만
+  생겨 복원했고, SampleScene에는 `StageMusic` 오브젝트만 추가됐다). Campaign 시뮬레이션과
+  Step 10 산출물 8개를 다시 생성했고 해시가 기준과 **동일**하다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다. 근거:
+  `Artifacts/Validation/Iteration72/`.
+- Fresh-context checker: 7개 기준 모두 PASS, 차단 이슈 없음. 지적에 따라 스트리밍 곡의 위치 지정을
+  `Play()` 뒤로 옮겼고 관련 EditMode `14/14`, PlayMode `50/50`을 다시 통과했다.
+
 ## Iteration 71 — Booster/Echo PERFECT and Combo Crown Targets (2026-11-04 KST)
 
 - 기준: `64c0816` (Iteration 70) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

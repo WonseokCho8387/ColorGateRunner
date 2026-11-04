@@ -576,14 +576,16 @@ ISettingsService
 ```
 
 The implemented settings panel persists Master, Music, SFX, and Vibration.
-Master is currently applied through `AudioListener.volume`. Music and SFX are
-stored for future content-specific audio targets and do not yet change a
-runtime mixer or source. A disabled Vibration setting prevents the existing
+Master is currently applied through `AudioListener.volume`. Music is applied
+to the Campaign Stage track (Iteration 72). SFX is stored for future sound
+effects and does not yet change a runtime source, so its row stays hidden. A disabled Vibration setting prevents the existing
 Booster haptic request from being issued at all.
 
 ## 10.2 Audio service
 
-Full audio and BPM integration remain deferred.
+Campaign Stage music is owned by `StageMusicPlayer` in the Campaign Scene
+(Iteration 72); it reads the Music volume each frame and follows runner
+distance. A shared audio service, lobby music and SFX remain deferred.
 
 The boundary may own:
 
@@ -849,8 +851,8 @@ Implementation status: Completed in Iteration 9.
   version does not increase, older files read it as `false`, and Settings
   validation or repair is independent from onboarding state.
 - Frontend and Gameplay share the same Settings mutation path. Master Volume
-  and Booster vibration have runtime consumers; Music/SFX remain persistence-
-  only until real audio content exists.
+  and Booster vibration have runtime consumers; Music drives Campaign Stage
+  music since Iteration 72, and SFX remains persistence-only.
 - Schema 1 Settings also persist `NotificationEnabled` plus
   `LastNonZeroMusicVolume` and `LastNonZeroSfxVolume`. Missing fields use
   `false`, `1.0`, and `1.0` without a schema bump. Settings repair remains

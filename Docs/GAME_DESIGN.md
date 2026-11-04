@@ -986,6 +986,24 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 72 Stage music
+
+- Every Campaign Stage plays its own hard-rock track. Eight chapter themes:
+  Stages 1-5 basics, 6-8 items, then Camouflage, Fog, Ice, Echo, Hidden and
+  Flicker for three Stages each.
+- A track is composed to the Stage's nominal gate timeline: one bar per gate
+  and each gate arrival on a bar downbeat, so the music speeds up with the
+  Stage. The intro covers GO to the first gate; two outro bars and a final
+  chord follow the last gate.
+- Music position follows runner distance. A run faster than the nominal one,
+  such as a start Booster, plays the track faster like a fast-forward, capped
+  at 2x; after the Booster the track keeps running faster until it is back on
+  the runner. Ice and Stage-provided Booster are part of the nominal run, so
+  they play at normal speed.
+- Failure winds the music down and silences it, Continue resumes at the
+  respawn point, Pause pauses it, and Retry or leaving stops it.
+- Music never affects gate placement, timing or judgment.
+
 ## Iteration 71 Booster/Echo grades and combo crown targets
 
 - Supersedes part of Iteration 70: a Booster pass and an Echo pass are always

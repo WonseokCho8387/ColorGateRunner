@@ -3723,6 +3723,74 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void StageMusic_FollowsRunThroughPauseFailureContinueAndRetry()
+        {
+            SelectAndStartStage(1);
+            StageMusicPlayer music = _controller.StageMusic;
+            Assert.That(music.HasTrack, Is.True);
+            Assert.That(music.Source.clip.name, Is.EqualTo("Stage01"));
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Following));
+
+            _controller.RequestPause();
+            Assert.That(music.IsPaused, Is.True);
+            _controller.RequestResume();
+            Assert.That(music.IsPaused, Is.False);
+
+            Fail();
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.FailingOut));
+            _controller.Tick(StageMusicPlayer.FailureFadeSeconds + 0.1f);
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Held));
+            Assert.That(music.Gain, Is.Zero);
+
+            _controller.RequestCoinContinue();
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Held));
+            for (int frame = 0; frame < 40 &&
+                _controller.Session.FlowState == StageFlowState.Countdown;
+                frame++)
+            {
+                _controller.Tick(0.1f);
+            }
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Following));
+            Assert.That(music.PlaybackSeconds, Is.EqualTo(
+                music.Timeline.TimeAtDistance(_controller.CampaignDistance))
+                .Within(0.5f));
+
+            _controller.RetryToItemSelection();
+            Assert.That(music.State,
+                Is.EqualTo(StageMusicPlayer.MusicState.Idle));
+            Assert.That(music.Source.isPlaying, Is.False);
+        }
+
+        [Test]
+        public void StageMusic_StartBoosterFastForwardsTheTrack()
+        {
+            _inventory = new StartItemInventoryTestGateway(0, 1);
+            _controller.SetStartItemInventoryForTests(_inventory);
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(8);
+            _controller.ToggleBoosterSelection();
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+
+            _controller.Tick(0.05f);
+            Assert.That(_controller.StageMusic.Pitch,
+                Is.GreaterThan(1.5f));
+            Assert.That(_controller.StageMusic.Pitch,
+                Is.LessThanOrEqualTo(StageMusicSync.MaximumPitch));
+        }
+
+        [Test]
         public void PerfectSwitch_FailureClearsFlashAndCombo()
         {
             SelectAndStartStage(4);

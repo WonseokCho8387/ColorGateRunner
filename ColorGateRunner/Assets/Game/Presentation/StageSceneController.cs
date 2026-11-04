@@ -56,6 +56,7 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private RivalRaceView rivalRace;
         [SerializeField] private ComboHudView comboHud;
         [SerializeField] private StageCrownResultView crownResult;
+        [SerializeField] private StageMusicPlayer stageMusic;
         [SerializeField] private StageGateView[] gates;
         [SerializeField] private GameObject goal;
         [SerializeField] private GameObject shieldVisual;
@@ -339,6 +340,7 @@ namespace ColorGateRunner.Presentation
         internal ComboHudView ComboHud => comboHud;
         internal PerfectSwitchCombo Combo => _combo;
         internal StageCrownResultView CrownResult => crownResult;
+        internal StageMusicPlayer StageMusic => stageMusic;
         internal bool BoosterExitOverridesApplied =>
             _boosterExitOverridesApplied;
         internal MobileUiFlow UiFlow => _uiFlow;
@@ -548,6 +550,7 @@ namespace ColorGateRunner.Presentation
                 {
                     bool continued = _continueReadyActive;
                     _session.CompleteCountdown();
+                    stageMusic.Begin(_campaignDistance, continued);
                     ApplyUiFlow(MobileUiFlow.Gameplay);
                     if (continued)
                     {
@@ -576,6 +579,7 @@ namespace ColorGateRunner.Presentation
                 _boosterExitOverridesApplied = true;
                 ApplySafeOverridesToActiveGates();
             }
+            TickStageMusic(deltaTime);
             SynchronizeViews();
             TickCamera(deltaTime);
         }
@@ -1193,6 +1197,7 @@ namespace ColorGateRunner.Presentation
             BuildCampaignRoute();
             BuildInitialGatePool();
             PlacePlannedGoal();
+            stageMusic.Prepare(_session.Stage.DisplayNumber);
             ApplyUiFlow(MobileUiFlow.Countdown);
             shieldVisual.SetActive(_shieldSelected);
             _continueReadyActive = false;
@@ -1748,6 +1753,11 @@ namespace ColorGateRunner.Presentation
             crownResult = view;
         }
 
+        internal void ConfigureStageMusic(StageMusicPlayer player)
+        {
+            stageMusic = player;
+        }
+
         internal void ConfigureSplineTrackLab(SplineTrackLabController lab)
         {
             splineTrackLab = lab;
@@ -1858,6 +1868,7 @@ namespace ColorGateRunner.Presentation
                 rivalRace == null || !rivalRace.HasRequiredReferences ||
                 comboHud == null || !comboHud.HasRequiredReferences ||
                 crownResult == null || !crownResult.HasRequiredReferences ||
+                stageMusic == null || !stageMusic.HasRequiredReferences ||
                 gates == null ||
                 gates.Length < 5 || goal == null || shieldVisual == null ||
                 echoShellVisual == null || shieldField == null ||
@@ -3102,6 +3113,7 @@ namespace ColorGateRunner.Presentation
         {
             _failedGate = failedGate;
             _continueSnapshot = CaptureContinueSnapshot(failedGate);
+            stageMusic.Fail();
             _cameraShakeRemaining = 0.3f;
             _failureDelayRemaining = FailurePanelDelay;
             ApplyPlayerMaterial(failureMaterial);
@@ -3372,6 +3384,7 @@ namespace ColorGateRunner.Presentation
         private void ResetRunPresentation()
         {
             _pauseCoordinator?.Clear();
+            stageMusic.Stop();
             _pauseSceneLoadError = string.Empty;
             _clearRecorded = false;
             _clearRewardSummary = string.Empty;
@@ -3441,6 +3454,7 @@ namespace ColorGateRunner.Presentation
 
         private void PauseAttemptEffects()
         {
+            stageMusic.SetPaused(true);
             for (int index = 0; index < attemptEffects.Length; index++)
             {
                 ParticleSystem effect = attemptEffects[index];
@@ -3454,6 +3468,7 @@ namespace ColorGateRunner.Presentation
 
         private void ResumeAttemptEffects()
         {
+            stageMusic.SetPaused(false);
             for (int index = 0; index < attemptEffects.Length; index++)
             {
                 ParticleSystem effect = attemptEffects[index];
@@ -3875,6 +3890,24 @@ namespace ColorGateRunner.Presentation
                     plan,
                     GetMaterial(plan.Color));
             }
+        }
+
+        private void TickStageMusic(float deltaTime)
+        {
+            StageGateView upcoming = FindActiveGate(_session.GatesPassed);
+            float speed = upcoming == null
+                ? _session.CurrentSpeed
+                : _session.GetSpeedForPlan(upcoming.ActivePlan);
+            float volume = AppRoot.TryGetActive(out AppRoot root) &&
+                root.CurrentSettings != null
+                    ? root.CurrentSettings.MusicVolume
+                    : 1f;
+            stageMusic.Tick(
+                deltaTime,
+                _campaignDistance,
+                speed,
+                _session.GatesPassed >= _session.Stage.TargetGateCount,
+                volume);
         }
 
         private StageGateView FindActiveGate(int planIndex)

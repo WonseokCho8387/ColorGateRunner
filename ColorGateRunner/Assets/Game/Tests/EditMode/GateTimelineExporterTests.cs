@@ -110,6 +110,7 @@ namespace ColorGateRunner.Tests.EditMode
         private static GateTimelineExporter.GateTiming Gate(int index, float seconds) =>
             new GateTimelineExporter.GateTiming(
                 index,
+                48f + index * 10f,
                 seconds,
                 0.5f,
                 RunnerColor.Red,

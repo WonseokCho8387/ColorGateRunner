@@ -1270,6 +1270,27 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 72 Stage music
+
+- EditMode `StageMusicTests`: the distance map is `0` at GO, exact on gates,
+  linear between and extrapolated past the last gate, and rejects bad input;
+  the pitch rule plays at the runner rate, caps at `2.0` and corrects drift;
+  a simulated 2.5x Booster run falls more than one second behind and then
+  catches up to within `0.02` s; the catalog holds one Streaming Vorbis track
+  per Stage whose gate map equals `GateTimelineExporter.Build` exactly and
+  whose clip outlasts the last gate.
+- `SettingsPanelDesignTests`: the MUSIC row and AUDIO section are visible and
+  SFX stays hidden. `GateTimelineExporterTests` carry the gate path distance.
+- PlayMode: Stage 1 music follows from GO, pauses and resumes with Pause,
+  fades to held on failure, resumes at the respawn distance after Continue and
+  stops on Retry; a Stage 8 start Booster plays the track above `1.5x` and at
+  most `2.0x`.
+- Not automated: how the tracks sound, whether gates feel on the beat in play,
+  and real device audio output; headless runs have no audible output.
+- Final evidence: Builders `2/2`; EditMode `563/563` passed; PlayMode `288` passed, `1` intentional opt-in ignore;
+  Campaign and Step 10 artifacts regenerated and hash-identical; Product save
+  and Campaign PlayerPrefs exact.
+
 ### Iteration 71 Booster/Echo PERFECT and combo crown targets
 
 - EditMode `PerfectSwitchComboTests`: Boosted and Echoed passes grade PERFECT

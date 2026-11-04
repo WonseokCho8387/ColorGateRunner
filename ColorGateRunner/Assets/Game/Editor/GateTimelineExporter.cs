@@ -26,6 +26,7 @@ namespace ColorGateRunner.Editor
         {
             public GateTiming(
                 int gateIndex,
+                float pathDistance,
                 float arrivalSeconds,
                 float intervalSeconds,
                 RunnerColor color,
@@ -33,6 +34,7 @@ namespace ColorGateRunner.Editor
                 GateOutcome outcome)
             {
                 GateIndex = gateIndex;
+                PathDistance = pathDistance;
                 ArrivalSeconds = arrivalSeconds;
                 IntervalSeconds = intervalSeconds;
                 Color = color;
@@ -41,6 +43,7 @@ namespace ColorGateRunner.Editor
             }
 
             public int GateIndex { get; }
+            public float PathDistance { get; }
             public float ArrivalSeconds { get; }
             public float IntervalSeconds { get; }
             public RunnerColor Color { get; }
@@ -139,6 +142,7 @@ namespace ColorGateRunner.Editor
                 }
                 timeline.Add(new GateTiming(
                     plannedGate,
+                    gateDistance,
                     arrival,
                     arrival - previousArrival,
                     color,
