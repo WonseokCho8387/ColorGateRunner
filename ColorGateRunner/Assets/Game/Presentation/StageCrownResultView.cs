@@ -15,12 +15,14 @@ namespace ColorGateRunner.Presentation
             StageCrown.FullCombo
         };
 
-        internal static readonly string[] Labels =
-        {
-            "CLEAN",
-            StageCrownPolicy.ComboTarget + " COMBO",
-            "FULL COMBO"
-        };
+        // The Combo crown names the Stage's own target, such as "20 COMBO".
+        internal static string Label(int index, int comboTarget) =>
+            DisplayOrder[index] switch
+            {
+                StageCrown.Clean => "CLEAN",
+                StageCrown.Combo => comboTarget + " COMBO",
+                _ => "FULL COMBO"
+            };
 
         [SerializeField] private Text maxComboText;
         [SerializeField] private Text[] crownTexts;
@@ -59,7 +61,8 @@ namespace ColorGateRunner.Presentation
             int maxCombo,
             int bestMaxCombo,
             StageCrown owned,
-            StageCrown newlyEarned)
+            StageCrown newlyEarned,
+            int comboTarget)
         {
             maxComboText.gameObject.SetActive(true);
             maxComboText.text = bestMaxCombo > maxCombo
@@ -72,17 +75,17 @@ namespace ColorGateRunner.Presentation
                 text.gameObject.SetActive(true);
                 if ((newlyEarned & crown) != 0)
                 {
-                    text.text = Labels[index] + "\nNEW";
+                    text.text = Label(index, comboTarget) + "\nNEW";
                     text.color = NeonUiPalette.Gold;
                 }
                 else if ((owned & crown) != 0)
                 {
-                    text.text = Labels[index];
+                    text.text = Label(index, comboTarget);
                     text.color = NeonUiPalette.Signal;
                 }
                 else
                 {
-                    text.text = Labels[index];
+                    text.text = Label(index, comboTarget);
                     text.color = NeonUiPalette.TextMuted;
                 }
             }

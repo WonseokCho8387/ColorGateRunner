@@ -1270,6 +1270,24 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 71 Booster/Echo PERFECT and combo crown targets
+
+- EditMode `PerfectSwitchComboTests`: Boosted and Echoed passes grade PERFECT
+  and continue the combo even after an early switch; Shielded, Invulnerable and
+  Mismatched still break it.
+- `StageCrownTests`: `ComboTargetFor` is `10` / `20` / `30` for Normal / Hard /
+  VeryHard with `target - 1` and `target` boundaries; Catalog Stages 1, 11 and
+  20 resolve to those targets.
+- `StageCollectionPresentationTests`: rows carry the Stage target, the crown
+  label names it ("20 COMBO"), and the summary reads `COMBO n`.
+- PlayMode: on Stage 7 the stage Booster passes a mismatched gate as PERFECT
+  with combo `1` and no break; Collection summary text updated.
+- Not automated: Echo pass grading in PlayMode, Hard and VeryHard crown
+  earning in a full run.
+- Final evidence: Builders `2/2`; EditMode `558/558` passed; PlayMode `286` passed, `1` intentional opt-in ignore;
+  Campaign and Step 10 artifacts regenerated and hash-identical; Product save
+  and Campaign PlayerPrefs exact.
+
 ### Iteration 70 gate judgment grades
 
 - EditMode `PerfectSwitchComboTests`: grade boundaries (holding = PERFECT,

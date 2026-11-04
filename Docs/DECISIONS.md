@@ -1911,6 +1911,16 @@ Status: Approved and implemented.
 
 
 
+## Iteration 71 Booster/Echo PERFECT and combo crown targets (2026-11-04 기록)
+
+- 사용자 결정: Booster 통과는 모두 PERFECT로 처리한다. Echo 통과도 같은 이유(Stage가 의도한
+  플레이)로 PERFECT로 처리한다. Iteration 70의 "판정 없는 게이트는 끊김" 중 이 두 경우만 바꾼다.
+- 사용자 결정: 어려운 Stage는 콤보 크라운 목표를 올린다. Normal `10`, Hard `20`, VeryHard `30`.
+  목표는 `StageCrownPolicy.ComboTargetFor(StageDifficulty)`가 소유하고, 한 판의
+  `StageClearRun`이 그 Stage의 목표를 담는다.
+- 이미 받은 크라운은 재평가하지 않는다. 시작 아이템 Booster로 크라운이 쉬워지는 영향은 이번
+  범위에서 제한하지 않고 플레이로 판단한다.
+
 ## Iteration 70 gate judgment grades (2026-11-04 기록)
 
 - 사용자 결정: PERFECT·GREAT·GOOD 등급을 둔다. 색을 바꾸지 않고 맞게 통과하면 "속지 않고 잘

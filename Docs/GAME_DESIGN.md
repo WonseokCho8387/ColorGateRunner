@@ -986,6 +986,17 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 71 Booster/Echo grades and combo crown targets
+
+- Supersedes part of Iteration 70: a Booster pass and an Echo pass are always
+  **PERFECT** and continue the combo, whatever the last color change was. Only
+  GOOD, Shield-absorbed, post-Continue protected and failed gates break it.
+- The Combo crown target follows Stage difficulty: Normal `10`, Hard `20`,
+  VeryHard `30`. The crown is named after the Stage's target ("20 COMBO"), and
+  the Collection summary counts Combo crowns as `COMBO n`.
+- Crowns earned under an earlier target are kept; records are not
+  re-evaluated.
+
 ## Iteration 70 gate judgment grades
 
 - Supersedes the Iteration 67 combo rule. A matched gate is graded by the

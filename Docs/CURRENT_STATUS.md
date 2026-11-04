@@ -1,5 +1,20 @@
 # Current Status
 
+## Iteration 71 — Booster/Echo PERFECT and Combo Crown Targets (2026-11-04 KST)
+
+- 기준: `64c0816` (Iteration 70) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 결정: Booster 통과와 Echo 통과는 항상 **PERFECT**이고 콤보를 +1 한다. Shield 흡수,
+  Continue 보호, GOOD, 실패는 계속 콤보를 끊는다.
+- 콤보 크라운 목표는 Stage 난이도를 따른다: Normal `10`, Hard `20`(Stage 11·14·17·23·26),
+  VeryHard `30`(Stage 20). 결과 화면과 Collection 행의 크라운 이름이 Stage 목표("20 COMBO")를
+  표시하고, Collection 요약은 `COMBO n`으로 합산한다. 저장 형식 변경과 기존 크라운 재평가는 없다.
+- 자동 검증: **EditMode `558/558` passed; PlayMode `286` passed, `1` intentional opt-in ignore**. Builder 각 2회(Scene은 fileID 재배치만
+  생겨 복원했고 내용은 동일). Campaign 시뮬레이션과 Step 10 산출물 8개를 다시 생성했고 해시가
+  기준과 **동일**하다.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다. 근거:
+  `Artifacts/Validation/Iteration71/`.
+
 ## Iteration 70 — Gate Judgment Grades (2026-11-04 KST)
 
 - 기준: `b55d181` (Iteration 69) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

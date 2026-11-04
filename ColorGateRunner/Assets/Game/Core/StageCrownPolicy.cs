@@ -23,13 +23,15 @@ namespace ColorGateRunner.Core
             int shieldAbsorbCount,
             int maxCombo,
             int comboHitCount,
-            int comboBreakCount)
+            int comboBreakCount,
+            int comboTarget)
         {
             Continued = continued;
             ShieldAbsorbCount = Math.Max(0, shieldAbsorbCount);
             MaxCombo = Math.Max(0, maxCombo);
             ComboHitCount = Math.Max(0, comboHitCount);
             ComboBreakCount = Math.Max(0, comboBreakCount);
+            ComboTarget = Math.Max(1, comboTarget);
         }
 
         public bool Continued { get; }
@@ -38,11 +40,16 @@ namespace ColorGateRunner.Core
         // Perfect and Great gates, the ones that continue the combo.
         public int ComboHitCount { get; }
         public int ComboBreakCount { get; }
+        // Max combo the cleared Stage asks for its Combo crown.
+        public int ComboTarget { get; }
     }
 
     public static class StageCrownPolicy
     {
-        public const int ComboTarget = 10;
+        // Combo crown targets rise with Stage difficulty.
+        public const int NormalComboTarget = 10;
+        public const int HardComboTarget = 20;
+        public const int VeryHardComboTarget = 30;
         // Seven failed attempts since the last clear, then a clear.
         public const int ComebackAttempt = 8;
         public const StageCrown DisplayedCrowns =
@@ -60,7 +67,7 @@ namespace ColorGateRunner.Core
             {
                 crowns |= StageCrown.Clean;
             }
-            if (run.MaxCombo >= ComboTarget)
+            if (run.MaxCombo >= run.ComboTarget)
             {
                 crowns |= StageCrown.Combo;
             }
@@ -74,6 +81,14 @@ namespace ColorGateRunner.Core
             }
             return crowns;
         }
+
+        public static int ComboTargetFor(StageDifficulty difficulty) =>
+            difficulty switch
+            {
+                StageDifficulty.Hard => HardComboTarget,
+                StageDifficulty.VeryHard => VeryHardComboTarget,
+                _ => NormalComboTarget
+            };
 
         public static bool IsValid(int flags)
         {

@@ -1173,7 +1173,9 @@ namespace ColorGateRunner.Editor
                 crowns[crown] = CreateText(
                     $"CrownText_{crown}",
                     root.transform,
-                    StageCrownResultView.Labels[crown],
+                    StageCrownResultView.Label(
+                        crown,
+                        ColorGateRunner.Core.StageCrownPolicy.NormalComboTarget),
                     14,
                     new Vector2(left, 0.38f),
                     new Vector2(left + 0.22f, 0.62f));

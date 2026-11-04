@@ -3008,7 +3008,8 @@ namespace ColorGateRunner.Presentation
                     _session.ShieldAbsorbCount,
                     _combo.Max,
                     _combo.ComboHitCount,
-                    _combo.BreakCount),
+                    _combo.BreakCount,
+                    StageCrownPolicy.ComboTargetFor(_session.Stage.Difficulty)),
                 out StageCrown earned);
             int highestUnlocked = StageProgress.HighestUnlockedAfterClear(
                 _highestUnlocked,
@@ -3230,7 +3231,8 @@ namespace ColorGateRunner.Presentation
                         _combo.Max,
                         _clearBestMaxCombo,
                         _clearCrownsOwned,
-                        _clearCrownsNew);
+                        _clearCrownsNew,
+                        StageCrownPolicy.ComboTargetFor(_session.Stage.Difficulty));
                     SetButtonLabel(clearLobbyButton, "LOBBY");
                     _campaignResultFlow.BeginClear();
                     resultSequenceView.PlayCampaignClear(

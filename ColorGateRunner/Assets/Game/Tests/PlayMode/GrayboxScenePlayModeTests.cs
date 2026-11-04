@@ -3702,6 +3702,27 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void GateJudgment_BoosterPassIsPerfectAndContinuesCombo()
+        {
+            SelectAndStartStage(7);
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+            ComboHudView hud = _controller.ComboHud;
+
+            StageGateView next = FindGateByPlanIndex(
+                _controller.Session.GatesPassed);
+            Assert.That(next, Is.Not.Null);
+            Mismatch(next.AssignedColor);
+            Assert.That(next.TryResolveCrossing(), Is.True);
+
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(hud.ShownStep, Is.EqualTo(ComboStep.Perfect));
+            Assert.That(hud.JudgmentText.text, Is.EqualTo("PERFECT"));
+            Assert.That(_controller.Combo.Current, Is.EqualTo(1));
+            Assert.That(_controller.Combo.BreakCount, Is.Zero);
+        }
+
+        [Test]
         public void PerfectSwitch_FailureClearsFlashAndCombo()
         {
             SelectAndStartStage(4);
@@ -3760,7 +3781,8 @@ namespace ColorGateRunner.Tests.PlayMode
             Text[] crowns = _controller.CrownResult.CrownTexts;
             Assert.That(crowns[0].text, Is.EqualTo("CLEAN\nNEW"));
             Assert.That(crowns[2].text, Is.EqualTo("FULL COMBO\nNEW"));
-            bool comboCrown = _controller.Combo.Max >= StageCrownPolicy.ComboTarget;
+            bool comboCrown =
+                _controller.Combo.Max >= StageCrownPolicy.NormalComboTarget;
             Assert.That(crowns[1].text, Is.EqualTo(
                 comboCrown ? "10 COMBO\nNEW" : "10 COMBO"));
             Assert.That(_controller.ClearDetailsText.text,

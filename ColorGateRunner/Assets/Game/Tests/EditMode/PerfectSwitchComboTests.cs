@@ -65,8 +65,6 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(combo.BreakCount, Is.EqualTo(1));
         }
 
-        [TestCase(GateOutcome.Echoed)]
-        [TestCase(GateOutcome.Boosted)]
         [TestCase(GateOutcome.Shielded)]
         [TestCase(GateOutcome.Invulnerable)]
         [TestCase(GateOutcome.Mismatched)]
@@ -79,6 +77,22 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(combo.Current, Is.Zero);
             Assert.That(combo.Max, Is.EqualTo(1));
             Assert.That(combo.BreakCount, Is.EqualTo(1));
+        }
+
+        [TestCase(GateOutcome.Boosted)]
+        [TestCase(GateOutcome.Echoed)]
+        public void BoosterAndEchoPasses_ArePerfectAndContinueCombo(
+            GateOutcome outcome)
+        {
+            var combo = new PerfectSwitchCombo();
+            combo.Record(GateOutcome.Matched, Switch(0f));
+            // An early switch would be Good on a matched gate; it never
+            // downgrades a Booster or Echo pass.
+            Assert.That(combo.Record(outcome, Switch(GreatWindow + 1f)),
+                Is.EqualTo(ComboStep.Perfect));
+            Assert.That(combo.Current, Is.EqualTo(2));
+            Assert.That(combo.PerfectCount, Is.EqualTo(2));
+            Assert.That(combo.BreakCount, Is.Zero);
         }
 
         [Test]

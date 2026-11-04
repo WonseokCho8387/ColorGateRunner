@@ -4030,3 +4030,39 @@ PERFECT로 본다. 사용자가 콤보를 PERFECT·GREAT만 잇도록 정했다.
 - 색 유지 PERFECT로 10 COMBO·FULL COMBO가 쉬워지고, Echo·Booster가 있는 스테이지에서는
   FULL COMBO가 어려워지는 영향을 플레이로 판단해야 한다.
 - 효과음·진동, MISS 표시, 판정의 점수 반영은 범위 밖이다. 음악 연동은 음원 파일을 받은 뒤 진행한다.
+
+## Iteration 71 — Booster/Echo PERFECT and Combo Crown Targets (2026-11-04)
+
+### Play / Analyze
+
+Iteration 70 이후 Booster가 켜진 동안의 모든 게이트가 콤보를 끊어, 시작부터 Booster를 주는
+Stage 7은 FULL COMBO를 받을 수 없었다. Echo Stage도 의도된 Echo 사용이 콤보를 끊었다. 콤보
+크라운 목표가 모든 Stage에서 `10`이라 게이트가 많은 어려운 Stage에서 오히려 쉬웠다.
+
+### Design
+
+Booster·Echo 통과를 PERFECT로 판정한다. 콤보 목표는 기존 `StageDifficulty`로 정해
+`StageClearRun`에 담고, 크라운 이름은 Stage 목표를 따라 표시한다.
+
+### Implementation
+
+`Core/PerfectSwitchCombo.Record`, `Core/StageCrownPolicy`(`ComboTargetFor`,
+`StageClearRun.ComboTarget`), `StageSceneController`, `StageCrownResultView.Label`,
+`StageCollectionRowModel.ComboTarget`, `StageCollectionRowView`, Collection 요약 문구,
+`FrontendSceneBuilder`(생성 텍스트는 그대로 Normal 목표), 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. Builder가 만든 Scene 변경은
+fileID 재배치뿐이어서 복원했다.
+
+### Learning
+
+Builder 이후 Scene diff는 fileID를 제외하고 비교하면 실제 변경 여부를 빠르게 판단할 수 있다.
+
+### Deferred / Human Review
+
+- Hard `20`·VeryHard `30` 목표가 적절한 도전인지, 시작 아이템 Booster로 크라운이 너무 쉬워지지
+  않는지는 플레이로 확인해야 한다.
+- 이미 받은 크라운 재평가, 아이템 사용 판의 크라운 제한, Echo 통과의 PlayMode 자동 검증은 범위
+  밖이다. 음악 연동은 음원 파일을 받은 뒤 진행한다.

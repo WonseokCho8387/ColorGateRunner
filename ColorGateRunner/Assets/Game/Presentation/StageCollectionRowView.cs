@@ -100,7 +100,7 @@ namespace ColorGateRunner.Presentation
             for (int index = 0; index < crownTexts.Length; index++)
             {
                 Text text = crownTexts[index];
-                text.text = StageCrownResultView.Labels[index];
+                text.text = StageCrownResultView.Label(index, model.ComboTarget);
                 text.color = model.Has(StageCrownResultView.DisplayOrder[index])
                     ? NeonUiPalette.Gold
                     : NeonUiPalette.TextMuted;

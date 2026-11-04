@@ -10,7 +10,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void CleanRun_EarnsCleanAndFullComboWhenUnbroken()
         {
             StageCrown crowns = StageCrownPolicy.Evaluate(
-                new StageClearRun(false, 0, 12, 12, 0),
+                new StageClearRun(false, 0, 12, 12, 0, 10),
                 1);
             Assert.That(crowns, Is.EqualTo(
                 StageCrown.Clean | StageCrown.Combo | StageCrown.FullCombo));
@@ -20,34 +20,65 @@ namespace ColorGateRunner.Tests.EditMode
         public void ComboCrown_RequiresTenAndIsIndependentOfClean()
         {
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(true, 0, 10, 14, 3), 1),
+                    new StageClearRun(true, 0, 10, 14, 3, 10), 1),
                 Is.EqualTo(StageCrown.Combo));
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(false, 0, 9, 9, 0), 1),
+                    new StageClearRun(false, 0, 9, 9, 0, 10), 1),
                 Is.EqualTo(StageCrown.Clean | StageCrown.FullCombo));
+        }
+
+        [TestCase(StageDifficulty.Normal, 10)]
+        [TestCase(StageDifficulty.Hard, 20)]
+        [TestCase(StageDifficulty.VeryHard, 30)]
+        public void ComboCrown_TargetRisesWithDifficulty(
+            StageDifficulty difficulty,
+            int target)
+        {
+            Assert.That(StageCrownPolicy.ComboTargetFor(difficulty),
+                Is.EqualTo(target));
+            Assert.That(StageCrownPolicy.Evaluate(
+                    new StageClearRun(true, 0, target - 1, 40, 1, target), 1),
+                Is.EqualTo(StageCrown.None));
+            Assert.That(StageCrownPolicy.Evaluate(
+                    new StageClearRun(true, 0, target, 40, 1, target), 1),
+                Is.EqualTo(StageCrown.Combo));
+        }
+
+        [Test]
+        public void Catalog_HardAndVeryHardStagesAskForHigherCombo()
+        {
+            Assert.That(StageCrownPolicy.ComboTargetFor(
+                    StageCatalog.GetByDisplayNumber(1).Difficulty),
+                Is.EqualTo(10));
+            Assert.That(StageCrownPolicy.ComboTargetFor(
+                    StageCatalog.GetByDisplayNumber(11).Difficulty),
+                Is.EqualTo(20));
+            Assert.That(StageCrownPolicy.ComboTargetFor(
+                    StageCatalog.GetByDisplayNumber(20).Difficulty),
+                Is.EqualTo(30));
         }
 
         [Test]
         public void ShieldContinueBreakOrNoComboHit_DenyFullCombo()
         {
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(false, 1, 4, 8, 1), 1),
+                    new StageClearRun(false, 1, 4, 8, 1, 10), 1),
                 Is.EqualTo(StageCrown.None));
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(true, 0, 4, 8, 1), 1),
+                    new StageClearRun(true, 0, 4, 8, 1, 10), 1),
                 Is.EqualTo(StageCrown.None));
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(false, 0, 4, 8, 1), 1),
+                    new StageClearRun(false, 0, 4, 8, 1, 10), 1),
                 Is.EqualTo(StageCrown.Clean));
             Assert.That(StageCrownPolicy.Evaluate(
-                    new StageClearRun(false, 0, 0, 0, 0), 1),
+                    new StageClearRun(false, 0, 0, 0, 0, 10), 1),
                 Is.EqualTo(StageCrown.Clean));
         }
 
         [Test]
         public void Comeback_RequiresSevenFailedAttemptsBeforeTheClear()
         {
-            var run = new StageClearRun(true, 0, 0, 0, 2);
+            var run = new StageClearRun(true, 0, 0, 0, 2, 10);
             Assert.That(StageCrownPolicy.Evaluate(run, 7),
                 Is.EqualTo(StageCrown.None));
             Assert.That(StageCrownPolicy.Evaluate(run, 8),
@@ -73,7 +104,7 @@ namespace ColorGateRunner.Tests.EditMode
                 current,
                 18f,
                 default,
-                new StageClearRun(false, 0, 6, 6, 0),
+                new StageClearRun(false, 0, 6, 6, 0, 10),
                 out StageCrown earned);
 
             Assert.That(earned, Is.EqualTo(
@@ -116,7 +147,7 @@ namespace ColorGateRunner.Tests.EditMode
             combo.Record(GateOutcome.Matched, new GateSwitchTiming(true, 1f));
             combo.Record(GateOutcome.Shielded, default);
             combo.Record(GateOutcome.Matched, default);
-            combo.Record(GateOutcome.Echoed, default);
+            combo.Record(GateOutcome.Mismatched, default);
             Assert.That(combo.BreakCount, Is.EqualTo(3));
             combo.Reset();
             Assert.That(combo.BreakCount, Is.Zero);

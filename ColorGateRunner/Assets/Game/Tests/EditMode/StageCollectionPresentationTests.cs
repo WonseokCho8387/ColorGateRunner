@@ -61,11 +61,23 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(StageCollectionPresentation.FormatCrownTotal(model),
                 Is.EqualTo($"CROWNS 4 / {StageCatalog.Count * 3}"));
             Assert.That(StageCollectionPresentation.FormatBreakdown(model),
-                Is.EqualTo($"CLEAN 1  ·  {StageCrownPolicy.ComboTarget} COMBO 2  ·  " +
+                Is.EqualTo("CLEAN 1  ·  COMBO 2  ·  " +
                     "FULL COMBO 1  /  " +
                     StageCatalog.Count));
             Assert.That(StageCollectionPresentation.FormatComeback(model),
                 Is.EqualTo("COMEBACK CLEARS 2"));
+            Assert.That(model.Rows[0].ComboTarget, Is.EqualTo(10));
+            Assert.That(model.Rows[10].ComboTarget, Is.EqualTo(20));
+            Assert.That(model.Rows[19].ComboTarget, Is.EqualTo(30));
+        }
+
+        [Test]
+        public void CrownLabel_NamesTheStageComboTarget()
+        {
+            Assert.That(StageCrownResultView.Label(0, 20), Is.EqualTo("CLEAN"));
+            Assert.That(StageCrownResultView.Label(1, 20), Is.EqualTo("20 COMBO"));
+            Assert.That(StageCrownResultView.Label(1, 30), Is.EqualTo("30 COMBO"));
+            Assert.That(StageCrownResultView.Label(2, 20), Is.EqualTo("FULL COMBO"));
         }
 
         [Test]

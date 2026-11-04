@@ -25,9 +25,10 @@ namespace ColorGateRunner.Core
     }
 
     // Grades matched gates by the final color change before arrival and
-    // counts the combo. Perfect and Great continue it; Good and every gate
-    // without a grade break it. Score only; it never changes judgment, speed,
-    // rewards or saves.
+    // counts the combo. Booster and Echo passes are the stage's intended play
+    // and always grade Perfect. Perfect and Great continue the combo; Good and
+    // every gate without a grade break it. Score only; it never changes
+    // judgment, speed, rewards or saves.
     public sealed class PerfectSwitchCombo
     {
         public const float PerfectWindowSeconds = 0.25f;
@@ -46,9 +47,20 @@ namespace ColorGateRunner.Core
             {
                 return ComboStep.Ignored;
             }
-            ComboStep step = outcome == GateOutcome.Matched
-                ? Grade(timing)
-                : ComboStep.Broken;
+            ComboStep step;
+            switch (outcome)
+            {
+                case GateOutcome.Matched:
+                    step = Grade(timing);
+                    break;
+                case GateOutcome.Boosted:
+                case GateOutcome.Echoed:
+                    step = ComboStep.Perfect;
+                    break;
+                default:
+                    step = ComboStep.Broken;
+                    break;
+            }
             switch (step)
             {
                 case ComboStep.Perfect:
@@ -60,8 +72,8 @@ namespace ColorGateRunner.Core
                     Continue();
                     break;
                 default:
-                    // Good, plus Echoed, Boosted, Shielded, Invulnerable
-                    // after Continue and Mismatched gates.
+                    // Good, plus Shielded, Invulnerable after Continue and
+                    // Mismatched gates.
                     Current = 0;
                     BreakCount++;
                     break;

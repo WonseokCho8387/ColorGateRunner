@@ -21,7 +21,8 @@ namespace ColorGateRunner.Presentation
             StageCrown crowns,
             float bestTime,
             int bestMaxCombo,
-            bool unlocked)
+            bool unlocked,
+            int comboTarget)
         {
             StageId = stageId;
             DisplayNumber = displayNumber;
@@ -31,6 +32,7 @@ namespace ColorGateRunner.Presentation
             BestTime = bestTime;
             BestMaxCombo = bestMaxCombo;
             Unlocked = unlocked;
+            ComboTarget = comboTarget;
         }
 
         public string StageId { get; }
@@ -41,6 +43,8 @@ namespace ColorGateRunner.Presentation
         public float BestTime { get; }
         public int BestMaxCombo { get; }
         public bool Unlocked { get; }
+        // This Stage's Combo crown target.
+        public int ComboTarget { get; }
         public bool CanReplay =>
             State == StageCollectionRowState.Cleared && Unlocked;
         public bool Comeback => (Crowns & StageCrown.Comeback) != 0;
@@ -125,7 +129,8 @@ namespace ColorGateRunner.Presentation
                     crowns,
                     record.Cleared ? Math.Max(0f, record.BestTime) : 0f,
                     record.Cleared ? Math.Max(0, record.BestMaxCombo) : 0,
-                    definition.DisplayNumber <= highestUnlocked);
+                    definition.DisplayNumber <= highestUnlocked,
+                    StageCrownPolicy.ComboTargetFor(definition.Difficulty));
                 clean += row.Has(StageCrown.Clean) ? 1 : 0;
                 combo += row.Has(StageCrown.Combo) ? 1 : 0;
                 fullCombo += row.Has(StageCrown.FullCombo) ? 1 : 0;
@@ -160,7 +165,7 @@ namespace ColorGateRunner.Presentation
 
         internal static string FormatBreakdown(StageCollectionModel model) =>
             $"CLEAN {model.CleanCount}  ·  " +
-            $"{StageCrownPolicy.ComboTarget} COMBO {model.ComboCount}  ·  " +
+            $"COMBO {model.ComboCount}  ·  " +
             $"FULL COMBO {model.FullComboCount}  /  {model.StageCount}";
 
         internal static string FormatComeback(StageCollectionModel model) =>

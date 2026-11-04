@@ -770,7 +770,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(view.CrownTotalText.text,
                 Is.EqualTo($"CROWNS 4 / {StageCatalog.Count * 3}"));
             Assert.That(view.BreakdownText.text,
-                Is.EqualTo("CLEAN 2  ·  10 COMBO 1  ·  FULL COMBO 1  /  " +
+                Is.EqualTo("CLEAN 2  ·  COMBO 1  ·  FULL COMBO 1  /  " +
                     StageCatalog.Count));
             Assert.That(view.ComebackText.text,
                 Is.EqualTo("COMEBACK CLEARS 1"));
