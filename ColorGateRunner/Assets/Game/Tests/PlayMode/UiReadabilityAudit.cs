@@ -65,6 +65,11 @@ namespace ColorGateRunner.Tests.PlayMode
                 "ButtonPrimary", "ButtonSecondary", "ButtonDanger"
             };
 
+        // Iteration 70: the gate judgment flash is a translucent, additive
+        // feeling effect rather than text to read, so it is exempt.
+        private static readonly HashSet<string> DecorativeRoots =
+            new HashSet<string> { "GateJudgmentFlash" };
+
         private static RectTransform _root;
 
         // Audits the current UI at a fixed 1080x1920 portrait frame and adds
@@ -123,7 +128,8 @@ namespace ColorGateRunner.Tests.PlayMode
             {
                 Graphic graphic = graphics[index];
                 if (!graphic.isActiveAndEnabled ||
-                    EffectiveAlpha(graphic) < VisibleAlpha)
+                    EffectiveAlpha(graphic) < VisibleAlpha ||
+                    IsDecorative(graphic.transform))
                 {
                     continue;
                 }
@@ -325,6 +331,18 @@ namespace ColorGateRunner.Tests.PlayMode
                     {
                         return true;
                     }
+                }
+            }
+            return false;
+        }
+
+        private static bool IsDecorative(Transform transform)
+        {
+            for (Transform node = transform; node != null; node = node.parent)
+            {
+                if (DecorativeRoots.Contains(node.name))
+                {
+                    return true;
                 }
             }
             return false;

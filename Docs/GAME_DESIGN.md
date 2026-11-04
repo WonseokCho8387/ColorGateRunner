@@ -985,3 +985,17 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
   CLEAN / 10 COMBO / FULL COMBO Stage counts and Comeback clear count.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
+
+## Iteration 70 gate judgment grades
+
+- Supersedes the Iteration 67 combo rule. A matched gate is graded by the
+  player's final color change since the previous gate: no change (the right
+  color held through the gate, including a Flicker gate) or a change within
+  `0.25` seconds of the gate is **PERFECT**, within `0.50` seconds is
+  **GREAT**, and earlier is **GOOD**.
+- PERFECT and GREAT add one to the combo. GOOD and every gate without a grade
+  (Echoed, Boosted, Shield-absorbed, post-Continue protected, failure) reset it
+  to zero. FULL COMBO needs at least one combo hit and no break; 10 COMBO needs
+  a max combo of at least `10`.
+- Grades never change judgment, speed, rewards, items, saves or simulation
+  results.

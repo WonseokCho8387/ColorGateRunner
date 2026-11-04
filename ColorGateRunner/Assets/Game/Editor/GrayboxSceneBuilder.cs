@@ -52,6 +52,8 @@ namespace ColorGateRunner.Editor
 
         internal const string NightSkyShaderName =
             "ColorGateRunner/NeonNightSky";
+        internal const string JudgmentGlowShaderName =
+            "ColorGateRunner/UI/AdditiveGlow";
         internal const string CityFacadeShaderName =
             "ColorGateRunner/NeonCityFacade";
         internal const float NightFogStart = 60f;
@@ -1781,8 +1783,10 @@ namespace ColorGateRunner.Editor
             return view;
         }
 
-        // The combo chip takes the HUD slot under the Stage title; the
-        // PERFECT flash sits on the canvas just above the runner.
+        // The combo chip takes the HUD slot under the Stage title; the gate
+        // judgment flash spans the band just under the top HUD and the Pause
+        // button. Iteration 70: the flash is a feeling effect, so it is bold,
+        // translucent and additive instead of sitting on an opaque plate.
         private static ComboHudView CreateComboHud(Transform parent, Transform hud)
         {
             GameObject root = new GameObject("ComboHud", typeof(ComboHudView));
@@ -1796,24 +1800,61 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.3f, 0.52f));
             combo.alignment = TextAnchor.MiddleLeft;
             combo.color = NeonUiPalette.Magenta;
-            GameObject perfectPlate = CreateAnchoredPanel(
-                "PerfectPlatePanel",
-                hud.parent,
-                new Vector2(0.28f, 0.425f),
-                new Vector2(0.72f, 0.495f),
-                Color.white);
-            perfectPlate.GetComponent<Image>().raycastTarget = false;
-            Text perfect = CreateText(
-                "PerfectText",
-                hud.parent,
-                "PERFECT",
-                44,
-                new Vector2(0.3f, 0.43f),
-                new Vector2(0.7f, 0.49f));
-            perfect.color = NeonUiPalette.Signal;
+
+            Material glow = LoadOrCreateShaderMaterial(
+                GeneratedMaterialsFolder + "/JudgmentGlow.mat",
+                JudgmentGlowShaderName);
+            EditorUtility.SetDirty(glow);
+            GameObject flash = CreateUiObject("GateJudgmentFlash", hud.parent);
+            SetAnchors(
+                flash.GetComponent<RectTransform>(),
+                new Vector2(0f, 0.675f),
+                new Vector2(1f, 0.755f));
+            CanvasGroup group = flash.AddComponent<CanvasGroup>();
+            group.interactable = false;
+            group.blocksRaycasts = false;
+
+            GameObject streakObject = CreateUiObject("JudgmentStreak", flash.transform);
+            SetAnchors(
+                streakObject.GetComponent<RectTransform>(),
+                new Vector2(0.04f, 0.46f),
+                new Vector2(0.96f, 0.54f));
+            Image streak = streakObject.AddComponent<Image>();
+            streak.material = glow;
+            streak.raycastTarget = false;
+
+            Text ghost = CreateJudgmentText("JudgmentGlow", flash.transform);
+            ghost.material = glow;
+            Text judgment = CreateJudgmentText("JudgmentText", flash.transform);
+            Outline outline = judgment.gameObject.AddComponent<Outline>();
+            // The SemiBold font stays unsynthesized; the rim adds the weight.
+            outline.effectDistance = new Vector2(4f, -4f);
+            outline.useGraphicAlpha = true;
+
             ComboHudView view = root.GetComponent<ComboHudView>();
-            view.Configure(combo, perfect, perfectPlate);
+            view.Configure(
+                combo,
+                flash.GetComponent<RectTransform>(),
+                group,
+                judgment,
+                outline,
+                ghost,
+                streak);
             return view;
+        }
+
+        private static Text CreateJudgmentText(string name, Transform parent)
+        {
+            Text text = CreateText(
+                name,
+                parent,
+                "PERFECT",
+                104,
+                new Vector2(-0.1f, -0.2f),
+                new Vector2(1.1f, 1.2f));
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            return text;
         }
 
         private static StageCrownResultView CreateCrownResult(Transform card)

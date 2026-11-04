@@ -6,6 +6,7 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class PerfectSwitchComboTests
     {
         private const float Window = PerfectSwitchCombo.PerfectWindowSeconds;
+        private const float GreatWindow = PerfectSwitchCombo.GreatWindowSeconds;
 
         [Test]
         public void SwitchInsideWindow_CountsPerfectAndTracksMax()
@@ -21,38 +22,55 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void EarlySwitch_BreaksComboButKeepsMax()
+        public void Grade_UsesWindowBoundariesAndTreatsHoldingAsPerfect()
         {
-            var combo = new PerfectSwitchCombo();
-            combo.Record(GateOutcome.Matched, Switch(0f));
-            combo.Record(GateOutcome.Matched, Switch(0f));
-            Assert.That(combo.Record(GateOutcome.Matched, Switch(Window + 0.01f)),
-                Is.EqualTo(ComboStep.Broken));
-            Assert.That(combo.Current, Is.Zero);
-            Assert.That(combo.Max, Is.EqualTo(2));
-            Assert.That(combo.PerfectCount, Is.EqualTo(2));
+            Assert.That(PerfectSwitchCombo.Grade(default), Is.EqualTo(ComboStep.Perfect));
+            Assert.That(PerfectSwitchCombo.Grade(Switch(Window)),
+                Is.EqualTo(ComboStep.Perfect));
+            Assert.That(PerfectSwitchCombo.Grade(Switch(Window + 0.01f)),
+                Is.EqualTo(ComboStep.Great));
+            Assert.That(PerfectSwitchCombo.Grade(Switch(GreatWindow)),
+                Is.EqualTo(ComboStep.Great));
+            Assert.That(PerfectSwitchCombo.Grade(Switch(GreatWindow + 0.01f)),
+                Is.EqualTo(ComboStep.Good));
         }
 
         [Test]
-        public void NoSwitchEchoAndBooster_HoldCombo()
+        public void PerfectAndGreat_ContinueCombo()
         {
             var combo = new PerfectSwitchCombo();
             combo.Record(GateOutcome.Matched, Switch(0f));
+            Assert.That(combo.Record(GateOutcome.Matched, Switch(GreatWindow)),
+                Is.EqualTo(ComboStep.Great));
             Assert.That(combo.Record(GateOutcome.Matched, default),
-                Is.EqualTo(ComboStep.Held));
-            Assert.That(combo.Record(GateOutcome.Echoed, Switch(1f)),
-                Is.EqualTo(ComboStep.Held));
-            Assert.That(combo.Record(GateOutcome.Boosted, Switch(1f)),
-                Is.EqualTo(ComboStep.Held));
-            Assert.That(combo.Record(GateOutcome.Ignored, Switch(0f)),
-                Is.EqualTo(ComboStep.Ignored));
-            Assert.That(combo.Current, Is.EqualTo(1));
+                Is.EqualTo(ComboStep.Perfect));
+            Assert.That(combo.Current, Is.EqualTo(3));
+            Assert.That(combo.Max, Is.EqualTo(3));
+            Assert.That(combo.PerfectCount, Is.EqualTo(2));
+            Assert.That(combo.GreatCount, Is.EqualTo(1));
+            Assert.That(combo.ComboHitCount, Is.EqualTo(3));
+            Assert.That(combo.BreakCount, Is.Zero);
         }
 
+        [Test]
+        public void Good_BreaksComboButKeepsMax()
+        {
+            var combo = new PerfectSwitchCombo();
+            combo.Record(GateOutcome.Matched, Switch(0f));
+            combo.Record(GateOutcome.Matched, Switch(0f));
+            Assert.That(combo.Record(GateOutcome.Matched, Switch(GreatWindow + 0.01f)),
+                Is.EqualTo(ComboStep.Good));
+            Assert.That(combo.Current, Is.Zero);
+            Assert.That(combo.Max, Is.EqualTo(2));
+            Assert.That(combo.BreakCount, Is.EqualTo(1));
+        }
+
+        [TestCase(GateOutcome.Echoed)]
+        [TestCase(GateOutcome.Boosted)]
         [TestCase(GateOutcome.Shielded)]
         [TestCase(GateOutcome.Invulnerable)]
         [TestCase(GateOutcome.Mismatched)]
-        public void ShieldContinueAndFailure_BreakCombo(GateOutcome outcome)
+        public void GatesWithoutGrade_BreakCombo(GateOutcome outcome)
         {
             var combo = new PerfectSwitchCombo();
             combo.Record(GateOutcome.Matched, Switch(0f));
@@ -60,17 +78,32 @@ namespace ColorGateRunner.Tests.EditMode
                 Is.EqualTo(ComboStep.Broken));
             Assert.That(combo.Current, Is.Zero);
             Assert.That(combo.Max, Is.EqualTo(1));
+            Assert.That(combo.BreakCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Ignored_LeavesComboUntouched()
+        {
+            var combo = new PerfectSwitchCombo();
+            combo.Record(GateOutcome.Matched, Switch(0f));
+            Assert.That(combo.Record(GateOutcome.Ignored, Switch(1f)),
+                Is.EqualTo(ComboStep.Ignored));
+            Assert.That(combo.Current, Is.EqualTo(1));
+            Assert.That(combo.BreakCount, Is.Zero);
         }
 
         [Test]
         public void Reset_ClearsAllCounts()
         {
             var combo = new PerfectSwitchCombo();
-            combo.Record(GateOutcome.Matched, Switch(0f));
+            combo.Record(GateOutcome.Matched, Switch(GreatWindow));
+            combo.Record(GateOutcome.Mismatched, default);
             combo.Reset();
             Assert.That(combo.Current, Is.Zero);
             Assert.That(combo.Max, Is.Zero);
             Assert.That(combo.PerfectCount, Is.Zero);
+            Assert.That(combo.GreatCount, Is.Zero);
+            Assert.That(combo.BreakCount, Is.Zero);
         }
 
         [Test]

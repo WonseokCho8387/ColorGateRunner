@@ -28,7 +28,7 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void ShieldContinueBreakOrNoPerfect_DenyFullCombo()
+        public void ShieldContinueBreakOrNoComboHit_DenyFullCombo()
         {
             Assert.That(StageCrownPolicy.Evaluate(
                     new StageClearRun(false, 1, 4, 8, 1), 1),
@@ -116,7 +116,8 @@ namespace ColorGateRunner.Tests.EditMode
             combo.Record(GateOutcome.Matched, new GateSwitchTiming(true, 1f));
             combo.Record(GateOutcome.Shielded, default);
             combo.Record(GateOutcome.Matched, default);
-            Assert.That(combo.BreakCount, Is.EqualTo(2));
+            combo.Record(GateOutcome.Echoed, default);
+            Assert.That(combo.BreakCount, Is.EqualTo(3));
             combo.Reset();
             Assert.That(combo.BreakCount, Is.Zero);
         }

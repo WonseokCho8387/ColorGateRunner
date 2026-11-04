@@ -80,7 +80,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 ResolveNextGateWithPerfectSwitch();
             }
             Assert.That(_controller.Combo.Current, Is.EqualTo(3));
+            // Just after the punch-in settles, while the ghost still glows.
+            _controller.ComboHud.Tick(0.15f);
             yield return Capture("04E-Combo-Perfect.png");
+            ResolveNextGateWithPerfectSwitch(0.4f);
+            _controller.ComboHud.Tick(0.15f);
+            yield return Capture("04F-Judgment-Great.png");
+            ResolveNextGateWithPerfectSwitch(0.7f);
+            _controller.ComboHud.Tick(0.15f);
+            yield return Capture("04G-Judgment-Good.png");
 
             yield return LoadCleanScene();
             SelectItemEnabledStage();
@@ -604,9 +612,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.StageCleared));
         }
 
-        // Forces a fresh color change just before the gate resolves, so the
-        // switch lands inside the Perfect window.
-        private void ResolveNextGateWithPerfectSwitch()
+        // Forces a fresh color change the given gameplay seconds before the
+        // gate resolves; zero lands inside the Perfect window.
+        private void ResolveNextGateWithPerfectSwitch(float secondsBeforeGate = 0f)
         {
             StageGateView gate = FindGate(_controller.Session.GatesPassed);
             if (_controller.Session.CurrentColor == gate.AssignedColor)
@@ -614,6 +622,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.HandleGameplayTap();
             }
             Match(gate.AssignedColor);
+            if (secondsBeforeGate > 0f)
+            {
+                _controller.Session.Advance(secondsBeforeGate, 0f);
+            }
             Assert.That(gate.TryResolveCrossing(), Is.True);
         }
 

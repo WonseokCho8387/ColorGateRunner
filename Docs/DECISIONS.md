@@ -1911,6 +1911,16 @@ Status: Approved and implemented.
 
 
 
+## Iteration 70 gate judgment grades (2026-11-04 기록)
+
+- 사용자 결정: PERFECT·GREAT·GOOD 등급을 둔다. 색을 바꾸지 않고 맞게 통과하면 "속지 않고 잘
+  통과"한 것으로 보고 PERFECT로 표시한다. 콤보는 PERFECT와 GREAT만 이어지고 GOOD과 판정이 없는
+  게이트는 끊긴다(Echo·Booster 통과도 끊김으로 바뀜).
+- 등급 구간은 `0.25`초(PERFECT)와 `0.50`초(GREAT)로 한다. 게이트 간격 약 `1.0-1.5`초 기준의
+  잠정값이며 플레이로 조정할 수 있다.
+- 판정 글자는 느낌을 주는 연출이므로 Iteration 69 불투명 판 규칙의 예외로 두고, 가독성 감사에서
+  `GateJudgmentFlash`만 제외한다. 합성 Bold는 쓰지 않는다.
+
 ## Iteration 69 UI readability (2026-11-04 기록)
 
 - 사용자 결정(권장안 승인): 글자 바탕은 불투명으로 하고 상태는 색으로 구분한다. 최소 글자

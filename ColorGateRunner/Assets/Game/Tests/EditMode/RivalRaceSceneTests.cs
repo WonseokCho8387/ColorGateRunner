@@ -58,7 +58,9 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(combo.ComboText.transform.parent.name,
                     Is.EqualTo("StageHud"));
                 Assert.That(combo.ComboText.gameObject.activeSelf, Is.False);
-                Assert.That(combo.PerfectText.gameObject.activeSelf, Is.False);
+                Assert.That(combo.JudgmentRoot.activeSelf, Is.False);
+                Assert.That(combo.JudgmentRoot.name, Is.EqualTo("GateJudgmentFlash"));
+                Assert.That(combo.JudgmentText.fontSize, Is.GreaterThanOrEqualTo(96));
 
                 for (int rival = 0; rival < RivalRaceSimulation.RivalCount; rival++)
                 {

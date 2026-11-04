@@ -22,20 +22,21 @@ namespace ColorGateRunner.Core
             bool continued,
             int shieldAbsorbCount,
             int maxCombo,
-            int perfectCount,
+            int comboHitCount,
             int comboBreakCount)
         {
             Continued = continued;
             ShieldAbsorbCount = Math.Max(0, shieldAbsorbCount);
             MaxCombo = Math.Max(0, maxCombo);
-            PerfectCount = Math.Max(0, perfectCount);
+            ComboHitCount = Math.Max(0, comboHitCount);
             ComboBreakCount = Math.Max(0, comboBreakCount);
         }
 
         public bool Continued { get; }
         public int ShieldAbsorbCount { get; }
         public int MaxCombo { get; }
-        public int PerfectCount { get; }
+        // Perfect and Great gates, the ones that continue the combo.
+        public int ComboHitCount { get; }
         public int ComboBreakCount { get; }
     }
 
@@ -63,7 +64,7 @@ namespace ColorGateRunner.Core
             {
                 crowns |= StageCrown.Combo;
             }
-            if (clean && run.PerfectCount > 0 && run.ComboBreakCount == 0)
+            if (clean && run.ComboHitCount > 0 && run.ComboBreakCount == 0)
             {
                 crowns |= StageCrown.FullCombo;
             }

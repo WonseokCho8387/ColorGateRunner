@@ -3646,30 +3646,59 @@ namespace ColorGateRunner.Tests.PlayMode
             SelectAndStartStage(4);
             ComboHudView hud = _controller.ComboHud;
             Assert.That(hud.ComboText.gameObject.activeSelf, Is.False);
-            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
-            Assert.That(hud.PerfectPlate, Is.Not.Null);
-            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
+            Assert.That(hud.JudgmentRoot, Is.Not.Null);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.False);
 
             ResolveNextGateWithSwitch();
             Assert.That(_controller.Combo.Current, Is.EqualTo(1));
             Assert.That(hud.ComboText.gameObject.activeSelf, Is.True);
             Assert.That(hud.ComboText.text, Is.EqualTo("1 COMBO"));
-            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.True);
-            Assert.That(hud.PerfectPlate.activeSelf, Is.True);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.True);
+            Assert.That(hud.ShownStep, Is.EqualTo(ComboStep.Perfect));
+            Assert.That(hud.JudgmentText.text, Is.EqualTo("PERFECT"));
+            float punched = hud.JudgmentText.rectTransform.localScale.x;
 
             _controller.RequestPause();
             _controller.Tick(1f);
-            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.True);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.True);
+            Assert.That(hud.JudgmentText.rectTransform.localScale.x,
+                Is.EqualTo(punched));
             _controller.RequestResume();
-            _controller.TickMovement(ComboHudView.PerfectFlashSeconds + 0.01f);
-            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
-            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
+            _controller.TickMovement(0.2f);
+            Assert.That(hud.JudgmentText.rectTransform.localScale.x,
+                Is.LessThan(punched));
+            _controller.TickMovement(ComboHudView.FlashSeconds);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.False);
+            Assert.That(hud.ShownStep, Is.EqualTo(ComboStep.Ignored));
 
             ResolveNextGateWithSwitch();
-            Assert.That(hud.PerfectPlate.activeSelf, Is.True);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.True);
             hud.Hide();
-            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
-            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
+            Assert.That(hud.JudgmentRoot.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void GateJudgment_GreatContinuesAndGoodBreaksCombo()
+        {
+            SelectAndStartStage(4);
+            ComboHudView hud = _controller.ComboHud;
+            ResolveNextGateWithSwitch();
+            Assert.That(_controller.Combo.Current, Is.EqualTo(1));
+
+            ResolveNextGateWithSwitch(0.4f);
+            Assert.That(hud.ShownStep, Is.EqualTo(ComboStep.Great));
+            Assert.That(hud.JudgmentText.text, Is.EqualTo("GREAT"));
+            Assert.That(_controller.Combo.Current, Is.EqualTo(2));
+            Assert.That(hud.ComboText.text, Is.EqualTo("2 COMBO"));
+
+            ResolveNextGateWithSwitch(0.7f);
+            Assert.That(hud.ShownStep, Is.EqualTo(ComboStep.Good));
+            Assert.That(hud.JudgmentText.text, Is.EqualTo("GOOD"));
+            Assert.That(_controller.Combo.Current, Is.Zero);
+            Assert.That(_controller.Combo.Max, Is.EqualTo(2));
+            Assert.That(hud.ComboText.gameObject.activeSelf, Is.False);
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
         }
 
         [Test]
@@ -3677,8 +3706,7 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             SelectAndStartStage(4);
             ResolveNextGateWithSwitch();
-            Assert.That(_controller.ComboHud.PerfectText.gameObject.activeSelf,
-                Is.True);
+            Assert.That(_controller.ComboHud.JudgmentRoot.activeSelf, Is.True);
 
             StageGateView next = null;
             for (int slot = 0; slot < 6; slot++)
@@ -3695,8 +3723,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Failed));
             Assert.That(_controller.Combo.Current, Is.Zero);
-            Assert.That(_controller.ComboHud.PerfectText.gameObject.activeSelf,
-                Is.False);
+            Assert.That(_controller.ComboHud.JudgmentRoot.activeSelf, Is.False);
             Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
                 Is.False);
         }
@@ -3831,9 +3858,9 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Combo.Max, Is.Zero);
         }
 
-        // Resolves the next gate, forcing a fresh color change right before
-        // arrival so the switch lands inside the Perfect window.
-        private void ResolveNextGateWithSwitch()
+        // Resolves the next gate, forcing a fresh color change the given
+        // gameplay seconds before arrival (zero lands inside Perfect).
+        private void ResolveNextGateWithSwitch(float secondsBeforeGate = 0f)
         {
             int gateIndex = _controller.Session.GatesPassed;
             StageGateView gate = null;
@@ -3851,6 +3878,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 Mismatch(gate.AssignedColor);
             }
             Match(gate.AssignedColor);
+            if (secondsBeforeGate > 0f)
+            {
+                _controller.Session.Advance(secondsBeforeGate, 0f);
+            }
             Assert.That(gate.TryResolveCrossing(), Is.True);
         }
 

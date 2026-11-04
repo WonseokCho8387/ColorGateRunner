@@ -1270,6 +1270,26 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 70 gate judgment grades
+
+- EditMode `PerfectSwitchComboTests`: grade boundaries (holding = PERFECT,
+  `0.25` / `0.50` seconds), PERFECT and GREAT continue the combo, GOOD and
+  Echoed / Boosted / Shielded / Invulnerable / Mismatched gates break it,
+  Ignored changes nothing, Reset clears Perfect, Great and break counts.
+- `StageCrownTests`: FULL COMBO uses combo hits (Perfect + Great).
+- `RivalRaceSceneTests`: the generated `GateJudgmentFlash` is hidden at start
+  and its judgment text is at least `96`.
+- PlayMode: PERFECT flash punches in, freezes while paused, fades after
+  `0.6` seconds and hides with the HUD; GREAT continues and GOOD breaks the
+  combo without failing the run; a failure hides the flash and combo.
+- The readability audit exempts only the `GateJudgmentFlash` subtree.
+- Not automated: ghost and streak visibility beyond the D3D11 captures,
+  per-grade colors and scale, Flicker-gate grading in PlayMode.
+- Final evidence: Builders `2/2`; EditMode `553/553`; PlayMode `285` passed +
+  `1` intentional opt-in ignore; Campaign and Step 10 artifacts regenerated and
+  hash-identical; D3D11 captures `2/2` with `04E`/`04F`/`04G`; Product save and
+  Campaign PlayerPrefs exact.
+
 ### Iteration 69 UI readability
 
 - PlayMode `FrontendPages_PassReadabilityAudit` and

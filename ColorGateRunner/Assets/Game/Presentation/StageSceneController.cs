@@ -3007,7 +3007,7 @@ namespace ColorGateRunner.Presentation
                     _session.ContinueUsed,
                     _session.ShieldAbsorbCount,
                     _combo.Max,
-                    _combo.PerfectCount,
+                    _combo.ComboHitCount,
                     _combo.BreakCount),
                 out StageCrown earned);
             int highestUnlocked = StageProgress.HighestUnlockedAfterClear(

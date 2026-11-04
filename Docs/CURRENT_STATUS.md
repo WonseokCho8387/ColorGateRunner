@@ -1,5 +1,30 @@
 # Current Status
 
+## Iteration 70 — Gate Judgment Grades (2026-11-04 KST)
+
+- 기준: `b55d181` (Iteration 69) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 결정: 맞게 통과한 게이트를 마지막 색 전환 시점으로 등급을 나눈다. 전환 없이 맞는 색을
+  유지한 통과와 도착 `0.25`초 안의 전환은 **PERFECT**, `0.50`초 안은 **GREAT**, 그보다 이르면
+  **GOOD**. PERFECT·GREAT만 콤보를 +1 하고, GOOD과 등급이 없는 게이트(Echo, Booster, Shield
+  흡수, Continue 보호, 실패)는 콤보를 끊는다. FULL COMBO는 콤보 히트(PERFECT·GREAT) 1회 이상과
+  끊김 0회를 요구한다. 판정 결과(통과/실패)·속도·보상·저장 형식 변경 없음.
+- 판정 연출: 러너 앞 불투명 PERFECT 판을 없애고, 상단 HUD와 일시정지 버튼 바로 아래 띠
+  (`GateJudgmentFlash`)에 큰 반투명 글자, 등급색 테두리, Additive 잔상과 가로 빛줄기를 띄운다.
+  튀어 들어오는 크기와 색으로 등급을 구분하고(PERFECT 금색·마젠타 잔상, GREAT 시안, GOOD
+  라벤더) `0.6`초에 사라진다. 일시정지 중에는 멈춘다. 새 셰이더 `ColorGateRunner/UI/AdditiveGlow`와
+  생성 머티리얼 `JudgmentGlow.mat`을 추가했다(패키지·ProjectSettings 변경 없음).
+- 가독성 감사는 `GateJudgmentFlash`만 예외로 두고 나머지 글자는 그대로 검사한다.
+- 자동 검증: **EditMode 553/553 passed; PlayMode `285` passed, `1` intentional opt-in ignore**.
+  Builder 각 2회. Campaign 시뮬레이션과 Step 10 산출물 8개를 다시 생성했고 해시가 기준과
+  **동일**하다. D3D11 Lobby·Campaign 캡처 2/2(`04E-Combo-Perfect`, `04F-Judgment-Great`,
+  `04G-Judgment-Good`).
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다
+  (`TestResults.xml`과 Unity 세션 카운터만 변경).
+- 독립 read-only checker: 기준 7개 PASS, blocker 없음. should-fix(셰이더 클립 키워드 가드,
+  감사 주석 위치, `StopFlash` null 가드)를 한 번의 수정으로 반영했다. 근거:
+  `Artifacts/Validation/Iteration70/`.
+
 ## Iteration 69 — UI Readability Pass (2026-11-04 KST)
 
 - 기준: `666eef0` (Iteration 68B) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

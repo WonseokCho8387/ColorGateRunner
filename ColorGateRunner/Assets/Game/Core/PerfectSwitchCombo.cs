@@ -13,59 +13,73 @@ namespace ColorGateRunner.Core
         public float SecondsBeforeGate { get; }
     }
 
+    // The graded result of one resolved gate for the combo and its flash.
+    // Broken carries no grade: the combo resets and nothing is shown.
     public enum ComboStep
     {
         Ignored,
         Perfect,
-        Held,
+        Great,
+        Good,
         Broken
     }
 
-    // Counts consecutive Perfect Switches: a matched gate whose final color
-    // change landed inside the window just before arrival. Score only; it
-    // never changes judgment, speed, rewards or saves.
+    // Grades matched gates by the final color change before arrival and
+    // counts the combo. Perfect and Great continue it; Good and every gate
+    // without a grade break it. Score only; it never changes judgment, speed,
+    // rewards or saves.
     public sealed class PerfectSwitchCombo
     {
         public const float PerfectWindowSeconds = 0.25f;
+        public const float GreatWindowSeconds = 0.5f;
 
         public int Current { get; private set; }
         public int Max { get; private set; }
         public int PerfectCount { get; private set; }
+        public int GreatCount { get; private set; }
         public int BreakCount { get; private set; }
+        public int ComboHitCount => PerfectCount + GreatCount;
 
         public ComboStep Record(GateOutcome outcome, GateSwitchTiming timing)
         {
-            switch (outcome)
+            if (outcome == GateOutcome.Ignored)
             {
-                case GateOutcome.Ignored:
-                    return ComboStep.Ignored;
-                case GateOutcome.Matched:
-                    if (!timing.Switched)
-                    {
-                        return ComboStep.Held;
-                    }
-                    if (timing.SecondsBeforeGate <= PerfectWindowSeconds)
-                    {
-                        Current++;
-                        PerfectCount++;
-                        if (Current > Max)
-                        {
-                            Max = Current;
-                        }
-                        return ComboStep.Perfect;
-                    }
-                    Current = 0;
-                    BreakCount++;
-                    return ComboStep.Broken;
-                case GateOutcome.Echoed:
-                case GateOutcome.Boosted:
-                    return ComboStep.Held;
-                default:
-                    // Shielded, Invulnerable after Continue, and Mismatched.
-                    Current = 0;
-                    BreakCount++;
-                    return ComboStep.Broken;
+                return ComboStep.Ignored;
             }
+            ComboStep step = outcome == GateOutcome.Matched
+                ? Grade(timing)
+                : ComboStep.Broken;
+            switch (step)
+            {
+                case ComboStep.Perfect:
+                    PerfectCount++;
+                    Continue();
+                    break;
+                case ComboStep.Great:
+                    GreatCount++;
+                    Continue();
+                    break;
+                default:
+                    // Good, plus Echoed, Boosted, Shielded, Invulnerable
+                    // after Continue and Mismatched gates.
+                    Current = 0;
+                    BreakCount++;
+                    break;
+            }
+            return step;
+        }
+
+        // Holding the right color through a gate is as good as a switch
+        // timed just before it.
+        public static ComboStep Grade(GateSwitchTiming timing)
+        {
+            if (!timing.Switched || timing.SecondsBeforeGate <= PerfectWindowSeconds)
+            {
+                return ComboStep.Perfect;
+            }
+            return timing.SecondsBeforeGate <= GreatWindowSeconds
+                ? ComboStep.Great
+                : ComboStep.Good;
         }
 
         public void Reset()
@@ -73,7 +87,17 @@ namespace ColorGateRunner.Core
             Current = 0;
             Max = 0;
             PerfectCount = 0;
+            GreatCount = 0;
             BreakCount = 0;
+        }
+
+        private void Continue()
+        {
+            Current++;
+            if (Current > Max)
+            {
+                Max = Current;
+            }
         }
     }
 }

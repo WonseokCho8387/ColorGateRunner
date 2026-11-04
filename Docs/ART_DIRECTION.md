@@ -1109,6 +1109,18 @@ This section supersedes Iteration 47's separate additive frame trace.
   the canvas just above the runner for `0.45` seconds.
 
 
+## Iteration 70 gate judgment flash
+
+- PERFECT / GREAT / GOOD flash in a band just under the top HUD and the Pause
+  button, not over the road in front of the runner.
+- The flash is a feeling, not text to read, and is the one exception to the
+  Iteration 69 opaque-plate rule: a large translucent core with a solid
+  grade-colored outline, an additive ghost that expands and an additive
+  horizontal streak, a punch-in scale and a fade over `0.6` seconds.
+- PERFECT is Gold with a Magenta ghost and the strongest punch, GREAT is Cyan
+  and medium, GOOD is soft lavender, smaller and calmer. The font stays the
+  unsynthesized SemiBold; the outline provides the weight.
+
 ## Iteration 69 readability rules
 
 - Every visible label sits on an opaque surface: a Theme01 panel/button sprite

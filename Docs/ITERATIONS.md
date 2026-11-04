@@ -3991,3 +3991,42 @@ Theme01 스프라이트 7종 알파 처리, `NeonUiPalette.PlateMuted/TextMuted`
   PERFECT 판이 도로 시야를 가리는지 사람이 확인해야 한다.
 - Boot 로딩 화면의 반투명 패널, 9:16 외 화면비 감사, 캔버스 간 겹침 검사는 범위 밖이다.
 - 음악 연동(Iteration 70)은 사용자의 음원 파일을 받은 뒤 Phase A로 진행한다.
+
+## Iteration 70 — Gate Judgment Grades (2026-11-04)
+
+### Play / Analyze
+
+사용자가 PERFECT 외의 등급과, 색을 바꾸지 않고 통과할 때 아무 표시가 없는 문제를 지적했다.
+색을 억지로 바꿔야 할 것 같은 느낌을 주었다. PERFECT는 러너 앞의 불투명 판에 떠서 도로를 가리고
+밋밋했다.
+
+### Design
+
+순수 C# `PerfectSwitchCombo.Grade`가 마지막 전환 시점으로 등급을 정하고, 색 유지 통과를
+PERFECT로 본다. 사용자가 콤보를 PERFECT·GREAT만 잇도록 정했다. 연출은 상단 HUD 아래 띠에서
+크기·색·튀는 정도로 등급의 느낌을 전한다.
+
+### Implementation
+
+`Core/PerfectSwitchCombo`(등급, GreatCount, ComboHitCount), `StageCrownPolicy.ComboHitCount`,
+`Presentation/ComboHudView`(Tick 기반 punch·잔상·빛줄기·페이드), `GrayboxSceneBuilder.CreateComboHud`,
+`Art/UI/UiAdditiveGlow.shader`, `Generated/Materials/JudgmentGlow.mat`, 가독성 감사 예외, 테스트와
+`04F`/`04G` 캡처.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 합성 Bold 금지 테스트가 첫 전체
+실행에서 실패해 Bold를 빼고 테두리로 굵기를 냈다. Checker should-fix를 한 번의 수정으로 반영했다.
+
+### Learning
+
+시뮬레이션 산출물은 `Tools/Validate.ps1`이 다시 만들지 않는다. 해시 비교 전에 Step 9A와 Step 10
+명령을 직접 실행해야 한다.
+
+### Deferred / Human Review
+
+- 등급 구간(`0.25`/`0.50`초)의 손맛, 연출이 충분히 화려한지, 등급 차이가 느껴지는지, 잔상이 일시정지
+  버튼·상단 HUD·먼 게이트를 가리는지는 실제 플레이와 기기로 확인해야 한다.
+- 색 유지 PERFECT로 10 COMBO·FULL COMBO가 쉬워지고, Echo·Booster가 있는 스테이지에서는
+  FULL COMBO가 어려워지는 영향을 플레이로 판단해야 한다.
+- 효과음·진동, MISS 표시, 판정의 점수 반영은 범위 밖이다. 음악 연동은 음원 파일을 받은 뒤 진행한다.
