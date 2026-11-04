@@ -1109,6 +1109,18 @@ This section supersedes Iteration 47's separate additive frame trace.
   the canvas just above the runner for `0.45` seconds.
 
 
+## Iteration 69 readability rules
+
+- Every visible label sits on an opaque surface: a Theme01 panel/button sprite
+  (opaque interior, transparent chamfer corners), the safe window of authored
+  frame art, or an opaque plate the Builder draws directly behind it.
+- State is shown by tint, border or text color. Muted states use the opaque
+  `PlateMuted` / `TextMuted` tones; no text background lowers its alpha.
+- Minimum font size is `14` on the 540-wide Frontend canvas and `28` on the
+  1080-wide Campaign canvas. Text that does not fit gets a larger rect.
+- Labels stay clear of decorative frames and neon strokes; scroll viewports end
+  above the bottom navigation dock, whose tab names share one opaque strip.
+
 ## Iteration 68B Collection page
 
 - Collection keeps its authored background and page header. A summary card

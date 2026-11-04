@@ -81,9 +81,7 @@ namespace ColorGateRunner.Presentation
             switch (model.State)
             {
                 case StageCollectionRowState.Cleared:
-                    cardBackground.color = NeonUiPalette.WithAlpha(
-                        NeonUiPalette.Signal,
-                        0.9f);
+                    cardBackground.color = NeonUiPalette.Signal;
                     titleText.color = NeonUiPalette.TextPrimary;
                     detailText.color = NeonUiPalette.TextPrimary;
                     break;
@@ -93,9 +91,7 @@ namespace ColorGateRunner.Presentation
                     detailText.color = NeonUiPalette.TextPrimary;
                     break;
                 default:
-                    cardBackground.color = NeonUiPalette.WithAlpha(
-                        NeonUiPalette.TextSecondary,
-                        0.45f);
+                    cardBackground.color = NeonUiPalette.PlateMuted;
                     titleText.color = NeonUiPalette.TextSecondary;
                     detailText.color = NeonUiPalette.TextSecondary;
                     break;
@@ -107,7 +103,7 @@ namespace ColorGateRunner.Presentation
                 text.text = StageCrownResultView.Labels[index];
                 text.color = model.Has(StageCrownResultView.DisplayOrder[index])
                     ? NeonUiPalette.Gold
-                    : NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.45f);
+                    : NeonUiPalette.TextMuted;
             }
         }
 

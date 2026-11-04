@@ -83,9 +83,7 @@ namespace ColorGateRunner.Presentation
                 else
                 {
                     text.text = Labels[index];
-                    text.color = NeonUiPalette.WithAlpha(
-                        NeonUiPalette.TextSecondary,
-                        0.45f);
+                    text.color = NeonUiPalette.TextMuted;
                 }
             }
         }

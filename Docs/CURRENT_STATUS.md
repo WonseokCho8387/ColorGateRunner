@@ -1,5 +1,32 @@
 # Current Status
 
+## Iteration 69 — UI Readability Pass (2026-11-04 KST)
+
+- 기준: `666eef0` (Iteration 68B) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시
+  Editor 종료/lock 없음. Push 없음.
+- 사용자 피드백: 가독성이 떨어지고 텍스트와 UI가 겹친다. 사용자 결정(권장안 승인): 모든 글자는
+  불투명 바탕 위에 두고 상태는 바탕 투명도가 아니라 색으로 구분한다. 최소 글자 크기는 Frontend
+  540 기준 `14`(Campaign 1080 기준 `28`). 분위기는 기존 네온 팔레트와 아트로 유지한다.
+- Theme01 패널·버튼 스프라이트 7종의 안쪽을 불투명하게 바꿨다(모서리 투명은 유지). Journey·
+  Collection·크라운·Settings의 반투명 색을 불투명 톤(`PlateMuted`, `TextMuted`)으로 바꿨다.
+- Builder가 배경 아트 위에 떠 있던 글자 뒤에 불투명 판을 깐다(Home 테마 이름, Journey 진행,
+  Shop 상태, 계정 선택 카드, 하단 탭 이름 띠). Home 스테이지 카드 글자를 카드 유리창 안으로
+  옮기고, 스크롤 영역이 하단 탭 아래로 들어가지 않게 했다. `COLOR GATE RUNNER` 제목은 Lobby
+  상단 바에 가려져 있었으므로 계정 선택 화면에만 둔다.
+- 게임 화면: PERFECT는 함께 켜지고 꺼지는 불투명 판 위에 뜬다. STAGE CLEAR·TAP TO CONTINUE에도
+  판을 깔고, 일시정지 버튼의 겹친 `II` 글자를 아이콘 하나로 바꿨다. 판정·속도·보상·저장 변경 없음.
+- 새 PlayMode 가독성 감사(`UiReadabilityAudit`)가 Frontend 페이지와 Campaign 상태의 보이는
+  글자를 1080×1920 고정 프레임에서 검사한다(불투명 판, 겹침, 최소 크기, 잘림). Lobby 캡처는
+  Editor 창 크기와 무관한 1080×1920 렌더 텍스처로 바꿨다(이전 캡처는 326×580이었다).
+- 자동 검증: **EditMode 549/549 passed; PlayMode `284` passed, `1` intentional opt-in ignore**.
+  Builder 각 2회. Campaign 시뮬레이션과 Step 10 해시 8개가 기준과 **동일**하다. D3D11 Lobby·
+  Campaign 캡처 2/2.
+- Product 저장 파일과 `ColorGateRunner.*` Campaign PlayerPrefs는 전후 동일하다
+  (`TestResults.xml`만 변경).
+- 독립 read-only checker: blocker 없음. should-fix(감사가 가려진 글자를 건너뛰던 구멍, 밝은
+  무스프라이트 판, 테두리 여백, PERFECT 판 회귀 테스트, PLAY 버튼 크기)를 한 번의 수정으로
+  반영했다. 근거: `Artifacts/Validation/Iteration69/`.
+
 ## Iteration 68B — Collection Stage Records and Replay (2026-11-04 KST)
 
 - 기준: `4c7a4a6` (Iteration 68A) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

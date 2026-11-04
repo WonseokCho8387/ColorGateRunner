@@ -3647,12 +3647,15 @@ namespace ColorGateRunner.Tests.PlayMode
             ComboHudView hud = _controller.ComboHud;
             Assert.That(hud.ComboText.gameObject.activeSelf, Is.False);
             Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
+            Assert.That(hud.PerfectPlate, Is.Not.Null);
+            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
 
             ResolveNextGateWithSwitch();
             Assert.That(_controller.Combo.Current, Is.EqualTo(1));
             Assert.That(hud.ComboText.gameObject.activeSelf, Is.True);
             Assert.That(hud.ComboText.text, Is.EqualTo("1 COMBO"));
             Assert.That(hud.PerfectText.gameObject.activeSelf, Is.True);
+            Assert.That(hud.PerfectPlate.activeSelf, Is.True);
 
             _controller.RequestPause();
             _controller.Tick(1f);
@@ -3660,6 +3663,13 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.RequestResume();
             _controller.TickMovement(ComboHudView.PerfectFlashSeconds + 0.01f);
             Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
+            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
+
+            ResolveNextGateWithSwitch();
+            Assert.That(hud.PerfectPlate.activeSelf, Is.True);
+            hud.Hide();
+            Assert.That(hud.PerfectText.gameObject.activeSelf, Is.False);
+            Assert.That(hud.PerfectPlate.activeSelf, Is.False);
         }
 
         [Test]

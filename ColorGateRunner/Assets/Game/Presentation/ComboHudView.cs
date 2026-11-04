@@ -12,27 +12,30 @@ namespace ColorGateRunner.Presentation
 
         [SerializeField] private Text comboText;
         [SerializeField] private Text perfectText;
+        [SerializeField] private GameObject perfectPlate;
 
         private int _shownCombo = -1;
         private float _flashRemaining;
 
         internal Text ComboText => comboText;
         internal Text PerfectText => perfectText;
+        internal GameObject PerfectPlate => perfectPlate;
 
         internal bool HasRequiredReferences =>
             comboText != null && perfectText != null;
 
-        internal void Configure(Text combo, Text perfect)
+        internal void Configure(Text combo, Text perfect, GameObject plate = null)
         {
             comboText = combo;
             perfectText = perfect;
+            perfectPlate = plate;
             Hide();
         }
 
         internal void Begin()
         {
             _flashRemaining = 0f;
-            perfectText.gameObject.SetActive(false);
+            SetPerfectVisible(false);
             ShowCombo(0);
         }
 
@@ -45,14 +48,14 @@ namespace ColorGateRunner.Presentation
             if (step == ComboStep.Perfect)
             {
                 _flashRemaining = PerfectFlashSeconds;
-                perfectText.gameObject.SetActive(true);
+                SetPerfectVisible(true);
             }
             else if (step == ComboStep.Broken)
             {
                 // A failure stops Tick, so a lingering flash would sit on
                 // the fail panel; a break always clears it.
                 _flashRemaining = 0f;
-                perfectText.gameObject.SetActive(false);
+                SetPerfectVisible(false);
             }
             ShowCombo(combo);
         }
@@ -67,7 +70,7 @@ namespace ColorGateRunner.Presentation
             if (_flashRemaining <= 0f)
             {
                 _flashRemaining = 0f;
-                perfectText.gameObject.SetActive(false);
+                SetPerfectVisible(false);
             }
         }
 
@@ -81,7 +84,17 @@ namespace ColorGateRunner.Presentation
             }
             if (perfectText != null)
             {
-                perfectText.gameObject.SetActive(false);
+                SetPerfectVisible(false);
+            }
+        }
+
+        // The flash and its opaque plate always appear together.
+        private void SetPerfectVisible(bool visible)
+        {
+            perfectText.gameObject.SetActive(visible);
+            if (perfectPlate != null)
+            {
+                perfectPlate.SetActive(visible);
             }
         }
 

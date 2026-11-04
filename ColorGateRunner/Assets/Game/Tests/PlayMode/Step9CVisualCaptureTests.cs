@@ -151,6 +151,74 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator CampaignScreens_PassReadabilityAudit()
+        {
+            var problems = new System.Collections.Generic.List<string>();
+            yield return LoadCleanScene();
+            yield return UiReadabilityAudit.Check("Lobby", problems);
+            _controller.PlayFromLobby();
+            yield return UiReadabilityAudit.Check("PreRun", problems);
+
+            yield return LoadCleanScene();
+            _store.HighestUnlocked = 5;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(5);
+            _controller.StartSelectedStage();
+            _controller.Tick(3.1f);
+            for (int gate = 0; gate < 3; gate++)
+            {
+                ResolveNextGateWithPerfectSwitch();
+            }
+            yield return UiReadabilityAudit.Check("Gameplay-Combo", problems);
+            _controller.RequestPause();
+            yield return UiReadabilityAudit.Check("Pause", problems);
+
+            yield return LoadCleanScene();
+            StartWithBooster();
+            yield return UiReadabilityAudit.Check("Gameplay-Booster", problems);
+
+            yield return LoadCleanScene();
+            _store.HighestUnlocked = 2;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SelectStage(2);
+            StartWithoutItems();
+            ClearCurrentStage();
+            _controller.Tick(_controller.ClearPanelDelaySeconds + 0.1f);
+            _controller.Tick(1.5f);
+            yield return UiReadabilityAudit.Check("Clear-Celebration", problems);
+            _controller.HandleGameplayTap();
+            _controller.Tick(
+                StageResultSequenceView.CelebrationExitDuration + 0.01f);
+            _controller.Tick(2f);
+            yield return UiReadabilityAudit.Check("Clear-Rewards", problems);
+
+            yield return LoadCleanScene();
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(heartCount: 4),
+                new RewardedAdTestService());
+            StartWithoutItems();
+            FailCurrentGate();
+            _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
+            yield return UiReadabilityAudit.Check("Failed-Continue", problems);
+            _controller.RequestFailureExit();
+            yield return UiReadabilityAudit.Check("Failed-Exit", problems);
+            _controller.ConfirmFailureExit();
+            yield return UiReadabilityAudit.Check("Failed-Final", problems);
+
+            yield return LoadCleanScene();
+            _controller.SetContinueServicesForTests(
+                new ContinueEconomyTestGateway(heartCount: 4),
+                new RewardedAdTestService());
+            StartWithoutItems();
+            FailCurrentGate();
+            _controller.Tick(_controller.FailurePanelDelaySeconds + 0.1f);
+            _controller.RequestCoinContinue();
+            yield return UiReadabilityAudit.Check("Continue-Countdown", problems);
+
+            UiReadabilityAudit.AssertNone(problems);
+        }
+
+        [UnityTest]
         public IEnumerator CaptureStep10ReferenceScreenshots()
         {
             if (Environment.GetEnvironmentVariable(

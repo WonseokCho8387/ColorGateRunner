@@ -14,6 +14,7 @@ namespace ColorGateRunner.Editor
 {
     public static class FrontendSceneBuilder
     {
+        private const int MinReadableFontSize = 14;
         internal const string ScenePath = "Assets/Scenes/Frontend.unity";
         internal const string RootName = "FrontendRoot";
 
@@ -39,11 +40,11 @@ namespace ColorGateRunner.Editor
             GameObject sharedHeader = CreateFlowRoot(
                 "SharedHeaderRoot",
                 safeArea.transform);
-            CreateSharedHeader(sharedHeader.transform);
 
             GameObject titleRoot = CreateFlowRoot(
                 "AccountChoicePageRoot",
                 safeArea.transform);
+            CreateSharedHeader(titleRoot.transform);
             CreateTitlePage(
                 titleRoot.transform,
                 out Text titleProfile,
@@ -510,9 +511,13 @@ namespace ColorGateRunner.Editor
                 parent,
                 "COLOR GATE RUNNER",
                 18,
-                new Vector2(0.08f, 0.93f),
-                new Vector2(0.92f, 0.98f));
-            title.color = new Color(1f, 1f, 1f, 0.72f);
+                new Vector2(0.24f, 0.925f),
+                new Vector2(0.76f, 0.965f));
+            title.color = NeonUiPalette.TextSecondary;
+            CreateTextPlate(
+                title,
+                new Vector2(0.20f, 0.915f),
+                new Vector2(0.80f, 0.975f));
         }
 
         private static void CreateTitlePage(
@@ -525,6 +530,12 @@ namespace ColorGateRunner.Editor
             out Button settings,
             out GameObject legalRoot)
         {
+            CreatePanel(
+                "AccountChoiceCardPanel",
+                parent,
+                new Vector2(0.06f, 0.06f),
+                new Vector2(0.94f, 0.86f),
+                Color.white).GetComponent<Image>().raycastTarget = false;
             CreateText(
                 "AccountChoiceTitle",
                 parent,
@@ -577,7 +588,7 @@ namespace ColorGateRunner.Editor
                 13,
                 new Vector2(0.2f, 0.08f),
                 new Vector2(0.8f, 0.12f));
-            version.color = new Color(1f, 1f, 1f, 0.56f);
+            version.color = NeonUiPalette.TextSecondary;
             legalRoot = CreateFlowRoot("TitleLegalRoot", parent);
         }
 
@@ -702,42 +713,42 @@ namespace ColorGateRunner.Editor
                 themeRoot.transform,
                 "STAGE 1",
                 18,
-                new Vector2(0.11f, 0.272f),
-                new Vector2(0.34f, 0.302f));
+                new Vector2(0.12f, 0.261f),
+                new Vector2(0.52f, 0.285f));
             stage.alignment = TextAnchor.MiddleLeft;
             stageTitle = CreateText(
                 "LobbyStageTitleText",
                 themeRoot.transform,
                 "TWO-COLOR BASICS",
                 20,
-                new Vector2(0.11f, 0.246f),
-                new Vector2(0.89f, 0.272f));
+                new Vector2(0.12f, 0.237f),
+                new Vector2(0.88f, 0.261f));
             stageTitle.alignment = TextAnchor.MiddleLeft;
             stageTitle.horizontalOverflow = HorizontalWrapMode.Wrap;
             stageTitle.verticalOverflow = VerticalWrapMode.Truncate;
-            stageTitle.resizeTextMinSize = 13;
+            stageTitle.resizeTextMinSize = MinReadableFontSize;
             stageMechanic = CreateText(
                 "LobbyStageMechanicText",
                 themeRoot.transform,
                 "COLOR MATCH  •  NORMAL",
-                12,
-                new Vector2(0.11f, 0.226f),
-                new Vector2(0.62f, 0.246f));
+                14,
+                new Vector2(0.12f, 0.215f),
+                new Vector2(0.88f, 0.237f));
             stageMechanic.alignment = TextAnchor.MiddleLeft;
             progress = CreateText(
                 "LobbyProgressText",
                 themeRoot.transform,
                 "0 / 20",
-                12,
-                new Vector2(0.68f, 0.272f),
-                new Vector2(0.89f, 0.302f));
+                16,
+                new Vector2(0.56f, 0.261f),
+                new Vector2(0.88f, 0.285f));
             progress.alignment = TextAnchor.MiddleRight;
             play = CreateButton(
                 "LobbyPlayCampaignButton",
                 themeRoot.transform,
                 "PLAY",
-                new Vector2(0.23f, 0.145f),
-                new Vector2(0.77f, 0.195f),
+                new Vector2(0.28f, 0.159f),
+                new Vector2(0.72f, 0.209f),
                 FromHex(0x22C55E),
                 out _);
             currencySlot = CreateFlowRoot("CurrencySlotRoot", parent);
@@ -790,8 +801,12 @@ namespace ColorGateRunner.Editor
                 themeRoot.transform,
                 "COLOR COURTYARD",
                 24,
-                new Vector2(0.12f, 0.805f),
-                new Vector2(0.88f, 0.855f));
+                new Vector2(0.20f, 0.808f),
+                new Vector2(0.80f, 0.852f));
+            CreateTextPlate(
+                theme,
+                new Vector2(0.16f, 0.800f),
+                new Vector2(0.84f, 0.860f));
             Text nextUpgrade = CreateText(
                 "LobbyNextUpgradeText",
                 hiddenProgressRoot.transform,
@@ -1038,7 +1053,7 @@ namespace ColorGateRunner.Editor
                 "CollectionBreakdownText",
                 summary.transform,
                 string.Empty,
-                13,
+                14,
                 new Vector2(0.06f, 0.32f),
                 new Vector2(0.94f, 0.58f));
             breakdown.color = NeonUiPalette.TextPrimary;
@@ -1046,7 +1061,7 @@ namespace ColorGateRunner.Editor
                 "CollectionComebackText",
                 summary.transform,
                 string.Empty,
-                13,
+                14,
                 new Vector2(0.06f, 0.06f),
                 new Vector2(0.94f, 0.32f));
             comeback.color = NeonUiPalette.Magenta;
@@ -1059,7 +1074,7 @@ namespace ColorGateRunner.Editor
             scrollObject.transform.SetParent(root.transform, false);
             SetAnchors(
                 scrollObject.GetComponent<RectTransform>(),
-                new Vector2(0.035f, 0.125f),
+                new Vector2(0.035f, 0.145f),
                 new Vector2(0.965f, 0.575f));
             scrollObject.GetComponent<LobbyPageSwipeForwarder>()
                 .Configure(pagePager);
@@ -1086,7 +1101,7 @@ namespace ColorGateRunner.Editor
             contentRect.offsetMin = Vector2.zero;
             contentRect.offsetMax = Vector2.zero;
 
-            const float rowHeight = 84f;
+            const float rowHeight = 108f;
             const float rowGap = 8f;
             int stageCount = ColorGateRunner.Core.StageCatalog.Count;
             contentRect.sizeDelta = new Vector2(
@@ -1148,19 +1163,19 @@ namespace ColorGateRunner.Editor
                 root.transform,
                 $"STAGE {index + 1:00}",
                 17,
-                new Vector2(0.04f, 0.62f),
-                new Vector2(0.72f, 0.95f));
+                new Vector2(0.05f, 0.64f),
+                new Vector2(0.72f, 0.90f));
             title.alignment = TextAnchor.MiddleLeft;
             var crowns = new Text[StageCrownResultView.DisplayOrder.Length];
             for (int crown = 0; crown < crowns.Length; crown++)
             {
-                float left = 0.04f + (crown * 0.23f);
+                float left = 0.05f + (crown * 0.23f);
                 crowns[crown] = CreateText(
                     $"CrownText_{crown}",
                     root.transform,
                     StageCrownResultView.Labels[crown],
-                    12,
-                    new Vector2(left, 0.34f),
+                    14,
+                    new Vector2(left, 0.38f),
                     new Vector2(left + 0.22f, 0.62f));
                 crowns[crown].alignment = TextAnchor.MiddleLeft;
             }
@@ -1168,9 +1183,9 @@ namespace ColorGateRunner.Editor
                 "StageDetailText",
                 root.transform,
                 "LOCKED",
-                12,
-                new Vector2(0.04f, 0.05f),
-                new Vector2(0.72f, 0.34f));
+                14,
+                new Vector2(0.05f, 0.12f),
+                new Vector2(0.72f, 0.36f));
             detail.alignment = TextAnchor.MiddleLeft;
             Button replay = CreateButton(
                 "CollectionReplayButton",
@@ -1221,10 +1236,14 @@ namespace ColorGateRunner.Editor
                 "JourneyProgressText",
                 root.transform,
                 "0 / 18",
-                14,
-                new Vector2(0.20f, 0.705f),
-                new Vector2(0.80f, 0.735f));
+                15,
+                new Vector2(0.36f, 0.703f),
+                new Vector2(0.64f, 0.737f));
             progress.color = NeonUiPalette.Signal;
+            Image progressPlate = CreateTextPlate(
+                progress,
+                new Vector2(0.34f, 0.698f),
+                new Vector2(0.66f, 0.742f));
 
             GameObject scrollObject = new GameObject(
                 "JourneyScrollView",
@@ -1234,7 +1253,7 @@ namespace ColorGateRunner.Editor
             scrollObject.transform.SetParent(root.transform, false);
             SetAnchors(
                 scrollObject.GetComponent<RectTransform>(),
-                new Vector2(0.035f, 0.125f),
+                new Vector2(0.035f, 0.145f),
                 new Vector2(0.965f, 0.70f));
             scrollObject.GetComponent<LobbyPageSwipeForwarder>()
                 .Configure(pagePager);
@@ -1316,6 +1335,7 @@ namespace ColorGateRunner.Editor
                 leagueView);
             header.transform.SetAsLastSibling();
             title.transform.SetAsLastSibling();
+            progressPlate.transform.SetAsLastSibling();
             progress.transform.SetAsLastSibling();
             return root;
         }
@@ -1357,7 +1377,7 @@ namespace ColorGateRunner.Editor
                 "ChapterRequirement",
                 root.transform,
                 $"CHAPTER {chapterIndex + 1}",
-                12,
+                14,
                 new Vector2(0.27f, 0.14f),
                 new Vector2(0.67f, 0.50f));
             requirement.alignment = TextAnchor.MiddleLeft;
@@ -1402,7 +1422,7 @@ namespace ColorGateRunner.Editor
                 "LeagueDescriptionText",
                 root.transform,
                 "CLEAR ALL LIVE STAGES",
-                13,
+                14,
                 new Vector2(0.07f, 0.12f),
                 new Vector2(0.93f, 0.50f));
             var view = root.AddComponent<JourneyLeagueView>();
@@ -1447,7 +1467,7 @@ namespace ColorGateRunner.Editor
                 "StateText",
                 root.transform,
                 "LOCKED",
-                12,
+                14,
                 new Vector2(0.58f, 0.57f),
                 new Vector2(0.94f, 0.88f));
             state.alignment = TextAnchor.MiddleRight;
@@ -1509,8 +1529,8 @@ namespace ColorGateRunner.Editor
                 "Amount",
                 root.transform,
                 "0",
-                13,
-                new Vector2(0.45f, 0f),
+                14,
+                new Vector2(0.50f, 0f),
                 Vector2.one);
             amount.alignment = TextAnchor.MiddleLeft;
             return root;
@@ -1548,10 +1568,14 @@ namespace ColorGateRunner.Editor
                 "ShopStatusText",
                 root.transform,
                 "STORE PREVIEW",
-                13,
-                new Vector2(0.20f, 0.705f),
-                new Vector2(0.80f, 0.735f));
+                14,
+                new Vector2(0.32f, 0.703f),
+                new Vector2(0.68f, 0.737f));
             status.color = NeonUiPalette.Signal;
+            CreateTextPlate(
+                status,
+                new Vector2(0.30f, 0.698f),
+                new Vector2(0.70f, 0.742f));
 
             GameObject scrollObject = new GameObject(
                 "ShopScrollView",
@@ -1560,7 +1584,7 @@ namespace ColorGateRunner.Editor
             scrollObject.transform.SetParent(root.transform, false);
             SetAnchors(
                 scrollObject.GetComponent<RectTransform>(),
-                new Vector2(0.035f, 0.125f),
+                new Vector2(0.035f, 0.145f),
                 new Vector2(0.965f, 0.70f));
 
             GameObject viewportObject = new GameObject(
@@ -1710,7 +1734,7 @@ namespace ColorGateRunner.Editor
                 "BadgeText",
                 root.transform,
                 card.Badge,
-                13,
+                14,
                 new Vector2(0.36f, 0.71f),
                 new Vector2(0.59f, 0.90f));
             badge.alignment = TextAnchor.MiddleLeft;
@@ -1734,7 +1758,7 @@ namespace ColorGateRunner.Editor
                 FromHex(0x334155),
                 out Text actionLabel);
             action.interactable = false;
-            actionLabel.fontSize = 13;
+            actionLabel.fontSize = MinReadableFontSize;
         }
 
         private static void CreateShopRewardChips(
@@ -1767,7 +1791,7 @@ namespace ColorGateRunner.Editor
                     "Amount",
                     chip.transform,
                     reward.Amount,
-                    12,
+                    14,
                     new Vector2(0f, 0f),
                     new Vector2(1f, 0.38f));
                 amount.color = NeonUiPalette.TextPrimary;
@@ -1795,6 +1819,19 @@ namespace ColorGateRunner.Editor
                 new Vector2(1f, 0.135f)).gameObject;
             Image barImage = bar.GetComponent<Image>();
             barImage.raycastTarget = true;
+            // One opaque strip carries all five tab labels below the icons.
+            var labelStrip = new GameObject(
+                "LobbyNavigationLabelStrip",
+                typeof(RectTransform),
+                typeof(Image));
+            labelStrip.transform.SetParent(bar.transform, false);
+            SetAnchors(
+                labelStrip.GetComponent<RectTransform>(),
+                new Vector2(0.01f, 0.09f),
+                new Vector2(0.99f, 0.385f));
+            Image stripImage = labelStrip.GetComponent<Image>();
+            stripImage.color = NeonUiPalette.Night;
+            stripImage.raycastTarget = false;
 
             shop = CreateNavigationButton(
                 "ShopNavigationButton", bar.transform, "SHOP", 0,
@@ -1843,12 +1880,11 @@ namespace ColorGateRunner.Editor
                 FromHex(0x1E3A8A),
                 out Text labelText);
             button.GetComponent<Image>().color = Color.clear;
-            labelText.fontSize = 11;
-            labelText.resizeTextForBestFit = true;
-            labelText.resizeTextMinSize = 8;
-            labelText.resizeTextMaxSize = 11;
-            labelText.rectTransform.anchorMin = new Vector2(0f, 0.16f);
-            labelText.rectTransform.anchorMax = new Vector2(1f, 0.40f);
+            labelText.fontSize = MinReadableFontSize;
+            labelText.resizeTextForBestFit = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            labelText.rectTransform.anchorMin = new Vector2(-0.05f, 0.07f);
+            labelText.rectTransform.anchorMax = new Vector2(1.05f, 0.34f);
             labelText.rectTransform.offsetMin = Vector2.zero;
             labelText.rectTransform.offsetMax = Vector2.zero;
             string[] iconNames =
@@ -2065,13 +2101,31 @@ namespace ColorGateRunner.Editor
             Text text = textObject.GetComponent<Text>();
             Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
-            text.fontSize = fontSize;
+            text.fontSize = Mathf.Max(fontSize, MinReadableFontSize);
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 11;
-            text.resizeTextMaxSize = fontSize;
+            text.resizeTextMinSize = MinReadableFontSize;
+            text.resizeTextMaxSize = text.fontSize;
             return text;
+        }
+
+        // Iteration 69: labels that do not sit on a card get an opaque plate
+        // drawn directly behind them.
+        private static Image CreateTextPlate(
+            Text text,
+            Vector2 anchorMin,
+            Vector2 anchorMax)
+        {
+            Image plate = CreatePanel(
+                text.name + "PlatePanel",
+                text.transform.parent,
+                anchorMin,
+                anchorMax,
+                Color.white).GetComponent<Image>();
+            plate.raycastTarget = false;
+            plate.transform.SetSiblingIndex(text.transform.GetSiblingIndex());
+            return plate;
         }
 
         private static Button CreateButton(

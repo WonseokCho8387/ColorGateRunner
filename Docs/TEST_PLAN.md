@@ -1270,6 +1270,26 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 69 UI readability
+
+- PlayMode `FrontendPages_PassReadabilityAudit` and
+  `CampaignScreens_PassReadabilityAudit` audit every visible label at a fixed
+  1080x1920 portrait frame across Account Choice, Home, Shop (3 scroll
+  positions), Rank, Journey (9), Collection (7), Settings, League Home and the
+  Campaign Lobby, PreRun, combo HUD, Pause, Booster HUD, Clear celebration and
+  rewards, failure pages and Continue countdown. Each label must sit inside an
+  opaque plate drawn before it, touch no other label or later image, not be
+  hidden under a later opaque surface (modal dims excepted), render glyphs
+  without truncation and use at least `14` (540 reference) / `28` (1080).
+- The PERFECT plate shows and hides with the flash (combo HUD PlayMode test).
+- Known audit limits: canvases are judged separately, transform scale is not
+  applied to font size, only the 9:16 frame is audited and labels partly
+  inside a scroll viewport are judged at the sampled positions only.
+- Final evidence: Builders `2/2`; audit `2/2`; EditMode `549/549`; PlayMode
+  `284` passed + `1` intentional opt-in ignore; Campaign and Step 10 artifacts
+  hash-identical; D3D11 Lobby and Campaign captures `2/2`; Product save and
+  Campaign PlayerPrefs exact.
+
 ### Iteration 68B Collection stage records
 
 - EditMode `StageCollectionPresentationTests` prove one row per catalog Stage

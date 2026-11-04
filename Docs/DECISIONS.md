@@ -1911,6 +1911,14 @@ Status: Approved and implemented.
 
 
 
+## Iteration 69 UI readability (2026-11-04 기록)
+
+- 사용자 결정(권장안 승인): 글자 바탕은 불투명으로 하고 상태는 색으로 구분한다. 최소 글자
+  크기는 540 기준 14(1080 기준 28). 게임 화면 PERFECT도 작은 불투명 판 위에 둔다.
+- 새 아트를 만들지 않고 Theme01 패널·버튼 스프라이트의 안쪽 알파만 불투명하게 처리했다.
+- 가독성은 PlayMode 감사(불투명 판·겹침·최소 크기·잘림)로 회귀를 막는다. Boot 로딩 화면과
+  미사용 `GameSceneController`의 반투명 행은 이번 범위 밖으로 남긴다.
+
 ## Iteration 68B Collection stage records (2026-11-04 기록)
 
 - 사용자 결정(권장안 A 승인): 스테이지 목록·REPLAY·크라운 합계는 Collection 페이지에 둔다.

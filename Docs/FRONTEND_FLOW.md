@@ -576,6 +576,8 @@ Rules:
   separate from the base reward and are also first-Clear only.
 - Continue clears keep current Best restrictions.
 - Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).- Campaign Clear shows Replay to the same Stage's PreRun (Iteration 68A).
+- Since Iteration 69 the shared `COLOR GATE RUNNER` title appears only on the
+  Account Choice page; Lobby pages already hid it under the top resource bar.
 - Since Iteration 68B the Lobby Collection page is a read-only Stage record
   list. Its REPLAY on a cleared, unlocked row queues an Authored launch for
   that stable Stage ID through the same transition path as Home PLAY and opens

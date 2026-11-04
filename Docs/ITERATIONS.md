@@ -3953,3 +3953,41 @@ fileID·공백 변경을 남기므로 의도한 Frontend만 남기고 복원한�
 - 행 정보 밀도·가독성, Signal 행 위 Gold 크라운 대비, REPLAY 버튼 크기, 세로 스크롤과
   좌우 페이지 스와이프의 손맛은 사람이 확인해야 한다.
 - 기록 날짜(첫 풀콤보 등), 크라운 보상, Rank 페이지는 범위 밖이다.
+
+## Iteration 69 — UI Readability Pass (2026-11-04)
+
+### Play / Analyze
+
+사용자가 가독성 저하와 글자·UI 겹침을 지적했다. 1080 캡처와 첫 감사에서 Frontend 773건을
+찾았다. 원인은 반투명 패널 스프라이트(알파 0.80-0.94)와 투명도로 표현한 상태 색, 장식 테두리
+위 글자 배치, 최소 11(540 기준)까지 줄어드는 글자였다. 기존 Lobby 캡처는 Editor 창 크기
+때문에 326×580으로 찍혀 문제를 볼 수 없었다.
+
+### Design
+
+규칙 하나(불투명 판, 색으로 상태, 최소 크기, 장식 밖 배치)를 ART_DIRECTION에 두고, 같은 규칙을
+PlayMode 감사가 검사한다. 수정은 Builder와 View 색 토큰으로만 했다.
+
+### Implementation
+
+Theme01 스프라이트 7종 알파 처리, `NeonUiPalette.PlateMuted/TextMuted`, Journey·Collection·
+크라운·Settings 색, `FrontendSceneBuilder.CreateTextPlate`와 배치·크기 조정, 하단 탭 이름 띠,
+`GrayboxSceneBuilder` 최소 크기·PERFECT/STAGE CLEAR/TAP 판·일시정지 아이콘, `ComboHudView`
+판 동기화, 테스트 `UiReadabilityAudit`·`UiPortraitFrame` 캡처.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. Checker should-fix를 한 번의
+수정으로 반영했다.
+
+### Learning
+
+감사 규칙은 반복마다 구멍을 드러냈다(배경 아트를 판으로 셈, 1080 캔버스 크기 환산, 글리프 없는
+라벨 건너뜀, 마스크 밖 카드를 덮개로 셈). 눈으로 본 1080 캡처와 감사 결과를 함께 비교해야 한다.
+
+### Deferred / Human Review
+
+- 실제 기기에서 글자 크기·대비, 하단 탭 이름 띠, 불투명 카드가 주는 분위기, PLAY 버튼 크기,
+  PERFECT 판이 도로 시야를 가리는지 사람이 확인해야 한다.
+- Boot 로딩 화면의 반투명 패널, 9:16 외 화면비 감사, 캔버스 간 겹침 검사는 범위 밖이다.
+- 음악 연동(Iteration 70)은 사용자의 음원 파일을 받은 뒤 Phase A로 진행한다.

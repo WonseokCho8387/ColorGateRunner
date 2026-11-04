@@ -19,6 +19,9 @@ namespace ColorGateRunner.Editor
     public static class GrayboxSceneBuilder
     {
         internal const string ScenePath = "Assets/Scenes/SampleScene.unity";
+        // Iteration 69: 28 units on the 1080-wide Campaign canvas equals the
+        // Frontend minimum of 14 on its 540-wide canvas.
+        private const int MinReadableFontSize = 28;
         internal const string GeneratedRootName = "ColorGateRunner_Graybox";
         internal const string GeneratedMaterialsFolder =
             "Assets/Game/Generated/Materials";
@@ -1793,16 +1796,23 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.3f, 0.52f));
             combo.alignment = TextAnchor.MiddleLeft;
             combo.color = NeonUiPalette.Magenta;
+            GameObject perfectPlate = CreateAnchoredPanel(
+                "PerfectPlatePanel",
+                hud.parent,
+                new Vector2(0.28f, 0.425f),
+                new Vector2(0.72f, 0.495f),
+                Color.white);
+            perfectPlate.GetComponent<Image>().raycastTarget = false;
             Text perfect = CreateText(
                 "PerfectText",
                 hud.parent,
                 "PERFECT",
                 44,
-                new Vector2(0.2f, 0.42f),
-                new Vector2(0.8f, 0.5f));
+                new Vector2(0.3f, 0.43f),
+                new Vector2(0.7f, 0.49f));
             perfect.color = NeonUiPalette.Signal;
             ComboHudView view = root.GetComponent<ComboHudView>();
-            view.Configure(combo, perfect);
+            view.Configure(combo, perfect, perfectPlate);
             return view;
         }
 
@@ -3191,7 +3201,7 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.30f, 0.045f),
                 new Vector2(0.70f, 0.085f),
                 out labLabel);
-            labLabel.fontSize = 16;
+            labLabel.fontSize = MinReadableFontSize;
             Text resetLabel;
             resetProgress = CreateButton(
                 "ResetProgressButton",
@@ -3200,7 +3210,7 @@ namespace ColorGateRunner.Editor
                 new Vector2(0.36f, 0.005f),
                 new Vector2(0.64f, 0.035f),
                 out resetLabel);
-            resetLabel.fontSize = 16;
+            resetLabel.fontSize = MinReadableFontSize;
             tierRoots = new GameObject[4];
             Color[] colors =
             {
@@ -3300,7 +3310,7 @@ namespace ColorGateRunner.Editor
                     new Vector2(right, top),
                     out label);
                 label.alignment = TextAnchor.MiddleLeft;
-                label.fontSize = 21;
+                label.fontSize = MinReadableFontSize;
                 summaries[index] = label;
             }
 
@@ -3773,10 +3783,11 @@ namespace ColorGateRunner.Editor
                     $"ColorTileNextMarker_{index}",
                     tile.transform,
                     "NEXT",
-                    14,
-                    new Vector2(0f, 1.02f),
-                    new Vector2(1f, 1.45f));
+                    MinReadableFontSize,
+                    new Vector2(-0.3f, 1.04f),
+                    new Vector2(1.3f, 1.9f));
                 nextLabel.alignment = TextAnchor.MiddleCenter;
+                nextLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
                 nextColorMarkers[index] = nextLabel.gameObject;
             }
 
@@ -3933,13 +3944,19 @@ namespace ColorGateRunner.Editor
             emblemImage.preserveAspect = true;
             emblemImage.raycastTarget = false;
 
+            CreateAnchoredPanel(
+                "StageClearTitlePanel",
+                celebrationRoot.transform,
+                new Vector2(0.06f, 0.775f),
+                new Vector2(0.94f, 0.885f),
+                Color.white).GetComponent<Image>().raycastTarget = false;
             titleText = CreateText(
                 "StageClearTitle",
                 celebrationRoot.transform,
                 "STAGE CLEAR",
                 62,
-                new Vector2(0.08f, 0.77f),
-                new Vector2(0.92f, 0.89f));
+                new Vector2(0.10f, 0.79f),
+                new Vector2(0.90f, 0.87f));
             titleText.color = NeonUiPalette.Signal;
 
             GameObject skipObject = CreateUiObject(
@@ -3950,15 +3967,22 @@ namespace ColorGateRunner.Editor
             skipImage.color = new Color(1f, 1f, 1f, 0.001f);
             skipButton = skipObject.AddComponent<Button>();
             skipButton.targetGraphic = skipImage;
+            GameObject skipPlate = CreateAnchoredPanel(
+                "ClearSkipPromptPanel",
+                skipObject.transform,
+                new Vector2(0.22f, 0.08f),
+                new Vector2(0.78f, 0.14f),
+                Color.white);
+            skipPlate.GetComponent<Image>().raycastTarget = false;
             Text skipLabel = CreateText(
                 "ClearSkipLabel",
-                skipObject.transform,
+                skipPlate.transform,
                 "TAP TO CONTINUE",
                 22,
-                new Vector2(0.2f, 0.08f),
-                new Vector2(0.8f, 0.14f));
+                new Vector2(0.06f, 0.1f),
+                new Vector2(0.94f, 0.9f));
             skipLabel.color = NeonUiPalette.TextSecondary;
-            skipPromptGroup = skipLabel.gameObject.AddComponent<CanvasGroup>();
+            skipPromptGroup = skipPlate.AddComponent<CanvasGroup>();
 
             rewardRoot = CreateAnchoredPanel(
                 "ClearRewardCard",
@@ -4282,10 +4306,17 @@ namespace ColorGateRunner.Editor
             pauseButton = CreateButton(
                 "PauseButton",
                 hud,
-                "II",
+                string.Empty,
                 new Vector2(0.83f, 0.76f),
                 new Vector2(0.96f, 0.84f),
                 out _);
+            // The pause glyph is the whole label, centered in the button.
+            RectTransform pauseIcon =
+                pauseButton.transform.Find("ThemeIcon") as RectTransform;
+            if (pauseIcon != null)
+            {
+                SetAnchors(pauseIcon, new Vector2(0.24f, 0.2f), new Vector2(0.76f, 0.8f));
+            }
 
             overlayRoot = CreateUiObject("PauseOverlayRoot", canvas);
             Stretch(overlayRoot.GetComponent<RectTransform>());
@@ -4518,7 +4549,7 @@ namespace ColorGateRunner.Editor
             Text text = textObject.AddComponent<Text>();
             Theme01UiSkinBuilder.ApplyFont(text);
             text.text = value;
-            text.fontSize = fontSize;
+            text.fontSize = Mathf.Max(fontSize, MinReadableFontSize);
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;

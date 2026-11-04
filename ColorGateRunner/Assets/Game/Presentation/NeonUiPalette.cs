@@ -15,6 +15,10 @@ namespace ColorGateRunner.Presentation
         public static readonly Color Gold = FromHex(0xFFC83D);
         public static readonly Color TextPrimary = FromHex(0xF2F7FF);
         public static readonly Color TextSecondary = FromHex(0x8A96B8);
+        // Iteration 69: text never sits on translucent chrome. Muted states
+        // use these opaque tones instead of lowering alpha.
+        public static readonly Color TextMuted = FromHex(0x6E7A9C);
+        public static readonly Color PlateMuted = FromHex(0x5C6684);
 
         public static Color WithAlpha(Color color, float alpha)
         {

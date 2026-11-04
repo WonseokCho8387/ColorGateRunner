@@ -88,7 +88,7 @@ namespace ColorGateRunner.Presentation
             {
                 case JourneyMilestoneState.Collected:
                     stateText.text = "COLLECTED";
-                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.Signal, 0.9f);
+                    cardColor = NeonUiPalette.Signal;
                     glowColor = NeonUiPalette.Signal;
                     break;
                 case JourneyMilestoneState.Current:
@@ -98,13 +98,13 @@ namespace ColorGateRunner.Presentation
                     break;
                 case JourneyMilestoneState.ComingSoon:
                     stateText.text = "COMING SOON";
-                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.45f);
-                    glowColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.4f);
+                    cardColor = NeonUiPalette.PlateMuted;
+                    glowColor = NeonUiPalette.TextMuted;
                     break;
                 default:
                     stateText.text = "LOCKED";
-                    cardColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.85f);
-                    glowColor = NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.7f);
+                    cardColor = NeonUiPalette.PlateMuted;
+                    glowColor = NeonUiPalette.TextSecondary;
                     break;
             }
             cardBackground.color = cardColor;

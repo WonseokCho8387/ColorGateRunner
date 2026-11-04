@@ -30,7 +30,7 @@ namespace ColorGateRunner.Presentation
 
             track.color = on
                 ? NeonUiPalette.Magenta
-                : NeonUiPalette.WithAlpha(NeonUiPalette.TextSecondary, 0.55f);
+                : NeonUiPalette.PlateMuted;
             knobImage.color = on
                 ? NeonUiPalette.TextPrimary
                 : NeonUiPalette.TextSecondary;

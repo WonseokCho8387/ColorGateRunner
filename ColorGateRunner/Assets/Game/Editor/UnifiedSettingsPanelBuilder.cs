@@ -73,7 +73,7 @@ namespace ColorGateRunner.Editor
                 "NotificationNoticeText",
                 content,
                 "PREFERENCE ONLY - NOTIFICATIONS ARE NOT SENT YET",
-                13,
+                14,
                 InfoHeight,
                 NeonUiPalette.TextSecondary);
 
@@ -89,7 +89,7 @@ namespace ColorGateRunner.Editor
                 "SettingsFontCreditText",
                 content,
                 FontCredit,
-                13,
+                14,
                 InfoHeight,
                 NeonUiPalette.TextSecondary);
             GameObject linkRow = CreateLinkRow(
@@ -101,7 +101,7 @@ namespace ColorGateRunner.Editor
                 "LinkStatusText",
                 content,
                 "URL NOT CONFIGURED",
-                13,
+                14,
                 InfoHeight,
                 NeonUiPalette.TextSecondary);
 

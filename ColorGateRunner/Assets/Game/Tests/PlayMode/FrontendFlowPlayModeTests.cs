@@ -399,12 +399,11 @@ namespace ColorGateRunner.Tests.PlayMode
                 Assert.Ignore("Frontend visual capture is opt-in.");
             }
 
-            Screen.SetResolution(1080, 1920, false);
             yield return LoadFrontendThroughBoot(() =>
                 CreateGraph(new RoundtripSaveService(12)));
             FrontendSceneController controller = RequireController();
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return null;
+            yield return null;
 
             string artifactDirectory = Path.GetFullPath(Path.Combine(
                 Application.dataPath,
@@ -476,27 +475,20 @@ namespace ColorGateRunner.Tests.PlayMode
             }
 
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(homePath);
-            Screen.SetResolution(720, 1280, false);
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-            Canvas.ForceUpdateCanvases();
-            CaptureFrame(homeNarrowPath);
-            Screen.SetResolution(1080, 1920, false);
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return null;
+            yield return UiCanvasCapture.Capture(homePath, 1080, 1920);
+            yield return UiCanvasCapture.Capture(homeNarrowPath, 720, 1280);
 
             controller.JourneyPageView.ChapterViews[1]
                 .SelectButton.onClick.Invoke();
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(homeNeonGardenPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(homeNeonGardenPath, 1080, 1920);
             controller.JourneyPageView.ChapterViews[0]
                 .SelectButton.onClick.Invoke();
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(homeColorCourtyardPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(homeColorCourtyardPath, 1080, 1920);
 
             controller.ShopNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++)
@@ -504,71 +496,136 @@ namespace ColorGateRunner.Tests.PlayMode
                 yield return null;
             }
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(shopPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(shopPath, 1080, 1920);
 
             ShopPageView shopView =
                 controller.ShopPageRoot.GetComponent<ShopPageView>();
             shopView.ScrollRect.verticalNormalizedPosition = 0.52f;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(shopLargePath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(shopLargePath, 1080, 1920);
             shopView.ScrollRect.verticalNormalizedPosition = 0f;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(shopCoinVaultPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(shopCoinVaultPath, 1080, 1920);
 
             controller.LeaderboardNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++) yield return null;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(rankPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(rankPath, 1080, 1920);
 
             controller.JourneyNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++) yield return null;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(journeyPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(journeyPath, 1080, 1920);
 
             controller.JourneyPageView.ScrollRect.verticalNormalizedPosition =
                 0.76f;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(journeyLeaguePath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(journeyLeaguePath, 1080, 1920);
 
             controller.JourneyPageView.ScrollRect.verticalNormalizedPosition = 1f;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(journeyComingSoonPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(journeyComingSoonPath, 1080, 1920);
 
             controller.CollectionNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++) yield return null;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(collectionPath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(collectionPath, 1080, 1920);
 
             yield return DestroyAllAppRoots();
             yield return LoadFrontendThroughBoot(() =>
                 CreateGraph(new CompletedCampaignSaveService()));
             controller = RequireController();
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return null;
+            yield return null;
             Canvas.ForceUpdateCanvases();
-            CaptureFrame(homeLeaguePath);
+            yield return UiCanvasCapture.Capture(homeLeaguePath, 1080, 1920);
 
             controller.JourneyNavigationButton.onClick.Invoke();
             for (int frame = 0; frame < 10; frame++) yield return null;
             controller.JourneyPageView.ScrollRect.verticalNormalizedPosition =
                 0.76f;
             Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-            CaptureFrame(journeyLeagueActivePath);
+            yield return null;
+            yield return UiCanvasCapture.Capture(journeyLeagueActivePath, 1080, 1920);
 
             for (int index = 0; index < paths.Length; index++)
             {
                 Assert.That(new FileInfo(paths[index]).Length,
                     Is.GreaterThan(1024));
             }
+        }
+
+        [UnityTest]
+        public IEnumerator FrontendPages_PassReadabilityAudit()
+        {
+            var problems = new System.Collections.Generic.List<string>();
+            yield return LoadFrontendThroughBoot();
+            FrontendSceneController controller = RequireController();
+            yield return UiReadabilityAudit.Check("AccountChoice", problems);
+
+            yield return DestroyAllAppRoots();
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new PartialCampaignSaveService()));
+            controller = RequireController();
+            yield return UiReadabilityAudit.Check("Home", problems);
+
+            controller.ShopNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            ShopPageView shopView =
+                controller.ShopPageRoot.GetComponent<ShopPageView>();
+            float[] shopPositions = { 1f, 0.52f, 0f };
+            for (int index = 0; index < shopPositions.Length; index++)
+            {
+                shopView.ScrollRect.verticalNormalizedPosition =
+                    shopPositions[index];
+                yield return UiReadabilityAudit.Check(
+                    $"Shop@{shopPositions[index]}", problems);
+            }
+
+            controller.LeaderboardNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            yield return UiReadabilityAudit.Check("Rank", problems);
+
+            controller.JourneyNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            for (int step = 0; step <= 8; step++)
+            {
+                controller.JourneyPageView.ScrollRect
+                    .verticalNormalizedPosition = step / 8f;
+                yield return UiReadabilityAudit.Check(
+                    $"Journey@{step}/8", problems);
+            }
+
+            controller.CollectionNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            for (int step = 0; step <= 6; step++)
+            {
+                controller.CollectionPageView.ScrollRect
+                    .verticalNormalizedPosition = 1f - (step / 6f);
+                yield return UiReadabilityAudit.Check(
+                    $"Collection@{step}/6", problems);
+            }
+
+            controller.HomeNavigationButton.onClick.Invoke();
+            for (int frame = 0; frame < 10; frame++) yield return null;
+            controller.LobbySettingsButton.onClick.Invoke();
+            yield return null;
+            yield return UiReadabilityAudit.Check("Settings", problems);
+
+            yield return DestroyAllAppRoots();
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new CompletedCampaignSaveService()));
+            yield return UiReadabilityAudit.Check("HomeLeague", problems);
+
+            UiReadabilityAudit.AssertNone(problems);
         }
 
         [UnityTest]
@@ -1462,19 +1519,6 @@ namespace ColorGateRunner.Tests.PlayMode
                 Object.Destroy(roots[index].gameObject);
             }
             yield return null;
-        }
-
-        private static void CaptureFrame(string path)
-        {
-            Texture2D capture = ScreenCapture.CaptureScreenshotAsTexture();
-            try
-            {
-                File.WriteAllBytes(path, capture.EncodeToPNG());
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(capture);
-            }
         }
 
         private void RestoreCampaignProgress()
