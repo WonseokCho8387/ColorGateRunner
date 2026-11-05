@@ -153,5 +153,26 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(settings.preloadAudioData, Is.False);
             }
         }
+
+        // Iteration 74: every Stage has its own theme, so no two Stage
+        // tracks may share the same audio.
+        [Test]
+        public void Catalog_EveryStageTrackIsDistinctAudio()
+        {
+            var owners = new Dictionary<string, int>(StageCatalog.Count);
+            for (int number = 1; number <= StageCatalog.Count; number++)
+            {
+                string path = StageMusicCatalogBuilder.GetClipPath(number);
+                byte[] bytes = System.IO.File.ReadAllBytes(path);
+                string hash;
+                using (var sha = System.Security.Cryptography.SHA256.Create())
+                {
+                    hash = Convert.ToBase64String(sha.ComputeHash(bytes));
+                }
+                Assert.That(owners.TryGetValue(hash, out int other), Is.False,
+                    $"Stage {number} repeats Stage {other}'s track");
+                owners.Add(hash, number);
+            }
+        }
     }
 }

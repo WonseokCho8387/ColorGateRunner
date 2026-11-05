@@ -1,5 +1,24 @@
 # Current Status
 
+## Iteration 74 — Per-Stage Music Themes (2026-11-05 KST)
+
+- 기준: `14f75d1`(Iteration 73) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음. Push 없음.
+- 26곡이 모두 다른 테마다. 챕터 첫 Stage 8곡(1, 6, 9, 12, 15, 18, 21, 24)은 Iteration 72 곡을 그대로
+  두었고 다시 합성해도 바이트 단위로 같다. 하드록 11곡(2, 3, 5, 8, 10, 13, 16, 19, 22, 25, 26)은 키·음계·
+  진행·리프·드럼 그루브(punk, gallop, halftime, shuffle, blast, tribal)·기타 음색과 2마디 훅 멜로디가 각각
+  다르다. 각 챕터 가운데의 7곡(4, 7, 11, 14, 17, 20, 23)은 완급 조절용 90년대 시티팝이다(FM 일렉트릭
+  피아노 메이저7·9 코드, 클린 커팅 기타, 핑거 베이스, 하프타임 그루브).
+- 바뀐 파일은 합성 스크립트(`Tools/Music/synth_stage_music.py`)와 WAV 18개뿐이다. `.meta`,
+  `StageMusicCatalog.asset`, 런타임 코드는 그대로이므로 게이트 지도와 Booster 동기화는 변하지 않는다.
+- 자동 검증: **EditMode `580/580` passed; PlayMode `292` passed, `1` intentional opt-in ignore**. Builder 각 2회(Scene은 ID 재배치, 재질은 공백만 바뀌어
+  복원). Campaign 시뮬레이션과 Step 10 산출물 8개 해시 **동일**. Product 저장 파일과 Campaign PlayerPrefs
+  전후 동일. 새 곡 18개 모두 클리핑 없음. 게이트 박자 일치는 15곡이 전부, Stage 16 `45/46`, Stage 25 `46/48`, Stage 26
+  `51/52`(Iteration 72 Stage 26은 `50/52`). 근거: `Artifacts/Validation/Iteration74/`.
+- Fresh-context checker: 기준 4개 PASS. 지적 1건 수정: 시티팝 베이스의 7음 기호가 dom9 코드에서 9음을
+  골랐다(Stage 7, 11, 20). 고친 뒤 세 곡만 바뀐 것을 확인하고 관련 테스트를 다시 통과했다. 추가한 동일
+  음원 검사는 곡 파일 중복만 잡고 테마가 비슷한지는 판단하지 못한다(사람이 듣고 판단).
+
 ## Iteration 73 — Sound Effects and Lobby Music (2026-11-05 KST)
 
 - 기준: `f1e6531`(로비 일러스트 프롬프트 문서) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시

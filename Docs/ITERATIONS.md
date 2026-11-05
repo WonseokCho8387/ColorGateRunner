@@ -4142,3 +4142,37 @@ Unity의 NUnit에는 `Is.AnyOf`가 없다. 여러 값 허용은 `Is.EqualTo(a).O
 - 실제 기기 출력, 오디오 믹서와 덕킹, Campaign 내부 로비의 음악은 범위 밖이다.
 - 26곡 개별 테마는 Iteration 74, 상단 바·하단 메뉴·아이콘은 66, 로비 일러스트 교체는 65(사용자 이미지
   전달 후)에서 진행한다.
+
+## Iteration 74 — Per-Stage Music Themes (2026-11-05)
+
+### Play / Analyze
+
+사용자는 Stage 음악이 좋으니 곡마다 다르게 만들자고 했다. Iteration 72는 8개 챕터 테마를 공유해 같은 챕터의
+곡이 비슷하게 들렸다. 샘플을 들은 사용자는 계속 강한 곡만 나오면 질릴 수 있으니 시티팝을 섞자고 했다.
+
+### Design
+
+같은 엔진에 Stage별 테마 표를 두었다. 하드록 곡은 그루브·음색·훅 멜로디를 바꾸고, 시티팝은 별도 편곡
+경로(FM 일렉트릭 피아노, Karplus-Strong 커팅 기타, 핑거 베이스, 하프타임 드럼)로 만든다. 마디 = 게이트
+간격 규칙은 두 스타일 모두 유지한다.
+
+### Implementation
+
+`Tools/Music/synth_stage_music.py`(Stage 테마 표, GROOVES·TONES, 훅 멜로디, 시티팝 편곡, 공통 WAV 쓰기),
+WAV 18개 교체, `StageMusicTests.Catalog_EveryStageTrackIsDistinctAudio`.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+기존 곡을 그대로 두려면 새 옵션의 기본값이 원래 부동소수 연산과 난수 소비 순서를 바꾸지 않아야 한다.
+Stage 1을 다시 합성해 바이트 비교한 결과로 이를 확인했다. 블래스트 드럼처럼 촘촘한 킥은 게이트 첫 박을
+가리기 쉽다.
+
+### Deferred / Human Review
+
+- 곡마다 다르게 들리는지, 재미, 시티팝의 완급 조절 효과, 하드록과 시티팝 사이 음량 균형은 직접 들어
+  판단한다.
+- 로비 일러스트 교체는 Iteration 65, 상단 바·하단 메뉴·아이콘은 Iteration 66에서 진행한다.

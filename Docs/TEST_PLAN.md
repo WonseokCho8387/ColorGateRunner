@@ -1270,6 +1270,22 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 74 per-Stage music themes
+
+- EditMode `Catalog_EveryStageTrackIsDistinctAudio`: no two Stage clips share
+  the same audio bytes. The existing catalog test still checks the gate map,
+  clip length and Streaming import settings.
+- Tool evidence: re-rendering Stage 1 matches the committed Iteration 72 file
+  byte for byte, and two re-renders (Stage 4, 25) are byte-identical, so the
+  output is deterministic. `Tools/Music/analyze_track.py` reports no clipping
+  and the gate-downbeat onset alignment for every new track.
+- Not automated: whether the themes feel distinct and fun, whether the
+  city-pop tracks give the intended pacing, and loudness balance between the
+  hard-rock and city-pop tracks.
+- Final evidence: Builders `2/2`; EditMode `580/580` passed; PlayMode `292` passed, `1` intentional opt-in ignore;
+  Campaign and Step 10 artifacts hash-identical; Product save and Campaign
+  PlayerPrefs exact.
+
 ### Iteration 73 sound effects and lobby music
 
 - EditMode `SoundEffectsTests`: cue rules for representative control names

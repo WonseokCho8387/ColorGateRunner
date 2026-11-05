@@ -986,6 +986,18 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 74 per-Stage music themes
+
+- Supersedes the eight shared chapter themes of Iteration 72: every Stage has
+  its own track. The first Stage of each chapter keeps its Iteration 72 track.
+- Hard-rock Stages vary key, scale, progression, riffs, drum groove, guitar
+  tone and a two-bar hook melody.
+- One calmer 90s city-pop track sits in the middle of each chapter for pacing:
+  Stages 4, 7, 11, 14, 17, 20 and 23. The final Flicker chapter (24-26) stays
+  hard rock.
+- Gate arrivals stay on bar downbeats and the distance and Booster sync is
+  unchanged.
+
 ## Iteration 73 sound effects and lobby music
 
 - Every button, tab and toggle clicks with a short cue chosen by its role

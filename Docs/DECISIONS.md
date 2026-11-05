@@ -1911,6 +1911,14 @@ Status: Approved and implemented.
 
 
 
+## Iteration 74 per-Stage music themes (2026-11-05 기록)
+
+- 사용자 결정: 26개 Stage 곡을 모두 다른 테마로 만든다. 샘플(Stage 2, 13, 25)을 듣고 방향을 승인했다.
+- 사용자 결정: 강한 곡만 이어지지 않도록 90년대 일본 시티팝 곡을 중간중간 섞는다. 샘플(Stage 4, 17)을
+  듣고 승인했다.
+- 챕터 첫 Stage 8곡은 승인된 Iteration 72 곡을 유지한다. 시티팝은 각 챕터 가운데 Stage 한 곡이고,
+  마지막 Flicker 챕터는 마무리 긴장감을 위해 하드록만 둔다.
+
 ## Iteration 73 sound effects and lobby music (2026-11-05 기록)
 
 - 사용자 결정: 모든 버튼에 효과음을 넣고, 로비에는 잔잔한 배경음을 넣는다.
