@@ -1911,6 +1911,13 @@ Status: Approved and implemented.
 
 
 
+## Iteration 76 Android app icon and League clear coins (2026-11-05 기록)
+
+- 사용자 결정: Android 앱 아이콘은 Victory 엠블럼(게이트 포털, 후보 B)으로 한다.
+- 사용자 결정: 리그 클리어마다 100코인을 준다. 이전 결정("League adds no League-only economy")을 이
+  보상만큼 대체한다. 난이도·판정·아이템 사용 규칙은 바꾸지 않는다.
+- 기기 표시 이름 변경(`ColorGateRunner` → `Color Gate Runner`)은 저장 위치 영향 때문에 보류했다.
+
 ## Iteration 75 free web edition for itch.io (2026-11-05 기록)
 
 - 사용자 상황: 사업자 미등록, 회사 겸업 금지로 수익을 낼 수 없고 반응을 먼저 보고 싶다.

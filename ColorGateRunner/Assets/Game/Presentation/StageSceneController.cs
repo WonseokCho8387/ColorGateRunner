@@ -178,6 +178,7 @@ namespace ColorGateRunner.Presentation
         private string _clearRewardSummary = string.Empty;
         private StageClearRewardPreview _clearRewardPreview;
         private bool _clearRewardsEarned;
+        private bool _clearLeagueReward;
         private StageCrown _clearCrownsOwned;
         private StageCrown _clearCrownsNew;
         private string _countdownCueLabel = string.Empty;
@@ -3014,6 +3015,7 @@ namespace ColorGateRunner.Presentation
             _clearRewardSummary = string.Empty;
             _clearRewardPreview = default;
             _clearRewardsEarned = false;
+            _clearLeagueReward = false;
             if (_playtest != null)
             {
                 _playtest.CompleteStage(_selectedStageId);
@@ -3022,6 +3024,8 @@ namespace ColorGateRunner.Presentation
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
+            bool leagueClear = !firstClear &&
+                LobbyProgression.AreAllStagesCleared(LoadClearedStages());
             StageCrown previousCrowns = record.Crowns;
             _clearAttempt = record.AttemptsSinceClear;
             _clearCrownsEarned = StageCrown.None;
@@ -3052,7 +3056,8 @@ namespace ColorGateRunner.Presentation
                     _selectedStageNumber,
                     record,
                     highestUnlocked,
-                    _heartRefundToken);
+                    _heartRefundToken,
+                    leagueClear);
             }
             else
             {
@@ -3080,6 +3085,16 @@ namespace ColorGateRunner.Presentation
                     _clearRewardPreview = reward;
                     _clearRewardsEarned = true;
                     _clearRewardSummary = FormatClearReward(reward);
+                }
+                else if (productRewardAuthority && leagueClear)
+                {
+                    StageClearRewardPreview reward =
+                        StageClearRewardPolicy.PreviewLeagueClear();
+                    _clearRewardPreview = reward;
+                    _clearRewardsEarned = true;
+                    _clearLeagueReward = true;
+                    _clearRewardSummary =
+                        $"LEAGUE REWARD +{reward.BaseCoins} COINS";
                 }
                 _heartRefundToken = string.Empty;
                 RefreshStartItemInventory();
@@ -3286,7 +3301,7 @@ namespace ColorGateRunner.Presentation
                 {
                     rewards.Add(new StageResultRewardLine(
                         StageResultRewardKind.Coin,
-                        "CLEAR COINS",
+                        _clearLeagueReward ? "LEAGUE COINS" : "CLEAR COINS",
                         _clearRewardPreview.BaseCoins));
                 }
                 if (_clearRewardPreview.MilestoneCoins > 0)
@@ -3415,6 +3430,7 @@ namespace ColorGateRunner.Presentation
             _clearRewardSummary = string.Empty;
             _clearRewardPreview = default;
             _clearRewardsEarned = false;
+            _clearLeagueReward = false;
             _campaignResultFlow?.Reset();
             _failureConsequenceQueue?.Reset();
             resultSequenceView.ResetView();

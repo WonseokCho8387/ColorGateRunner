@@ -24,7 +24,8 @@ namespace ColorGateRunner.Presentation
             int stageNumber,
             StageRecord record,
             int highestUnlocked,
-            string heartRefundToken);
+            string heartRefundToken,
+            bool leagueClear = false);
     }
 
     internal sealed class PlayerPrefsStageProgressStore : IStageProgressStore
@@ -156,7 +157,8 @@ namespace ColorGateRunner.Presentation
             int stageNumber,
             StageRecord record,
             int highestUnlocked,
-            string heartRefundToken)
+            string heartRefundToken,
+            bool leagueClear = false)
         {
             StageDefinition stage = _catalog.GetByDisplayNumber(stageNumber);
             StageDefinition highest =
@@ -179,7 +181,8 @@ namespace ColorGateRunner.Presentation
                         AttemptsSinceClear = record.AttemptsSinceClear
                     },
                     MapDifficulty(stage.Difficulty),
-                    heartRefundToken));
+                    heartRefundToken,
+                    leagueClear));
         }
 
         private static StageRewardDifficulty MapDifficulty(

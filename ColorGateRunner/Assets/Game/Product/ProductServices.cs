@@ -369,6 +369,15 @@ namespace ColorGateRunner.Product
                     request.StageId,
                     request.RewardDifficulty);
             }
+            else if (request.LeagueClear)
+            {
+                // The clear count makes each League clear one transaction.
+                ApplyTransaction(
+                    candidate.Economy,
+                    $"league-clear:{request.StageId}:{merged.ClearCount}",
+                    economy => economy.Coins +=
+                        StageClearRewardPolicy.LeagueClearCoins);
+            }
             if (!string.IsNullOrWhiteSpace(request.HeartRefundToken))
             {
                 string spendId = HeartSpendTransactionId(

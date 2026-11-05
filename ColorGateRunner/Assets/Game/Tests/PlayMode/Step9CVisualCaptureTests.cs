@@ -676,7 +676,8 @@ namespace ColorGateRunner.Tests.PlayMode
                 int stageNumber,
                 StageRecord record,
                 int highestUnlocked,
-                string heartRefundToken)
+                string heartRefundToken,
+                bool leagueClear = false)
             {
                 _records[stageNumber - 1] = record;
                 HighestUnlocked = highestUnlocked;

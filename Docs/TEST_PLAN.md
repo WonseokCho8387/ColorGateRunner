@@ -1270,6 +1270,20 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 76 Android app icon and League clear coins
+
+- EditMode `AppIconTests`: the 432 px adaptive background/foreground and the
+  512 px legacy icon exist and fill every Android adaptive, round and legacy
+  slot. `ProductFoundationTests.LeagueClear_PaysCoinsOncePerReplayClear`:
+  a League replay clear pays 100 Coins once per clear count, a first clear
+  keeps only its first-clear reward and a pre-League replay pays nothing.
+- Build evidence: the Android test APK's manifest icon resources and launcher
+  icon from the new art.
+- Not automated: how the icon reads on a real launcher, and whether 100 Coins
+  per League clear feels fair.
+- Final evidence: EditMode `612/612` passed; PlayMode `293` passed, `1` intentional opt-in ignore; Campaign and Step 10
+  artifacts hash-identical; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 75 free web edition for itch.io
 
 - EditMode `FreeEditionBuildTests`: non-development WebGL options with only

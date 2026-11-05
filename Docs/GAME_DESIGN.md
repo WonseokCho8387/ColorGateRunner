@@ -986,6 +986,13 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 76 League clear coins
+
+- Supersedes the Iteration 55 rule that League has no League-only economy:
+  every League clear pays `100` Coins, shown as LEAGUE COINS on the result.
+  First clears keep their existing rewards; Campaign replays before League
+  pay nothing. League still adds no adaptive difficulty, skip or multiplier.
+
 ## Iteration 74 per-Stage music themes
 
 - Supersedes the eight shared chapter themes of Iteration 72: every Stage has

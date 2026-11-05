@@ -1494,6 +1494,40 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void LeagueClear_PaysCoinsOncePerReplayClear()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            // A League flag on the first clear still pays only the first clear.
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    3, "stage-03", "stage-04",
+                    CreateStageRecord("stage-03", true, 1),
+                    leagueClear: true)).Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.Coins, Is.EqualTo(100));
+
+            var replay = new StageClearProgressRequest(
+                3, "stage-03", "stage-04",
+                CreateStageRecord("stage-03", true, 2),
+                leagueClear: true);
+            Assert.That(pipeline.Session.RecordStageClear(replay).Succeeded, Is.True);
+            Assert.That(pipeline.Session.RecordStageClear(replay).Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.Coins,
+                Is.EqualTo(100 + StageClearRewardPolicy.LeagueClearCoins));
+
+            // A Campaign replay before the League pays nothing.
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(
+                    3, "stage-03", "stage-04",
+                    CreateStageRecord("stage-03", true, 3))).Succeeded, Is.True);
+            Assert.That(pipeline.Progression.Economy.Coins,
+                Is.EqualTo(100 + StageClearRewardPolicy.LeagueClearCoins));
+            Assert.That(StageClearRewardPolicy.PreviewLeagueClear().TotalCoins,
+                Is.EqualTo(100));
+        }
+
+        [Test]
         public void StageClear_NeverRemovesStoredCrownsOrBestCombo()
         {
             var save = new MutableSessionSaveService(CreateValidData());

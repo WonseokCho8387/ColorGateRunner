@@ -30,7 +30,8 @@ namespace ColorGateRunner.Product
             LocalStageProgressData record,
             StageRewardDifficulty rewardDifficulty =
                 StageRewardDifficulty.Normal,
-            string heartRefundToken = null)
+            string heartRefundToken = null,
+            bool leagueClear = false)
         {
             DisplayNumber = displayNumber;
             StageId = stageId;
@@ -38,6 +39,7 @@ namespace ColorGateRunner.Product
             Record = record ?? throw new ArgumentNullException(nameof(record));
             RewardDifficulty = rewardDifficulty;
             HeartRefundToken = heartRefundToken ?? string.Empty;
+            LeagueClear = leagueClear;
         }
 
         public int DisplayNumber { get; }
@@ -46,6 +48,8 @@ namespace ColorGateRunner.Product
         public LocalStageProgressData Record { get; }
         public StageRewardDifficulty RewardDifficulty { get; }
         public string HeartRefundToken { get; }
+        // A replay clear made after every live Stage was cleared (League).
+        public bool LeagueClear { get; }
     }
 
     public enum StageRewardDifficulty
@@ -98,6 +102,15 @@ namespace ColorGateRunner.Product
 
     public static class StageClearRewardPolicy
     {
+        // Every League clear pays a small amount so Coin-bought items stay
+        // obtainable after the Campaign without a Shop.
+        public const int LeagueClearCoins = 100;
+
+        public static StageClearRewardPreview PreviewLeagueClear()
+        {
+            return new StageClearRewardPreview(LeagueClearCoins, 0, 0, 0);
+        }
+
         public static int GetBaseCoins(StageRewardDifficulty difficulty)
         {
             return difficulty switch

@@ -4275,3 +4275,36 @@ Unity 6 WebGL은 `persistentDataPath` 저장을 IndexedDB에 자동으로 동기
 - 실제 itch.io 페이지와 모바일 브라우저 동작, 빈 Shop 칸의 인상은 업로드 뒤 사람이 확인한다.
 - Android 설정 화면의 링크 겹침, 빌드 중간 파일의 git 추적 정리, Android 출시 준비, WAV→OGG 변환은 이후
   작업이다.
+
+## Iteration 76 — Android App Icon and League Clear Coins (2026-11-05)
+
+### Play / Analyze
+
+Android 내부 테스트에 기본 Unity 아이콘이 쓰이고 있었다. 상점 없이 부스터를 얻을 수 있는지 계산하니
+캠페인 안에서는 코인 6,500, Shield 9, Booster 8로 충분하지만, 캠페인 뒤 리그에서는 수입이 0이라 아이템과
+이어하기가 다시는 채워지지 않았다.
+
+### Design
+
+아이콘 후보 3개(크리스털, 게이트 포털, 색 엠블럼)를 원형·둥근 사각 마스크로 보여 주고 사용자가 게이트
+포털을 골랐다. 리그 클리어 보상은 첫 클리어 보상과 같은 거래 방식(클리어 횟수별 ID)으로 붙였다.
+
+### Implementation
+
+`Tools/Generate-AppIcon.ps1`, `Assets/Game/Art/AppIcon/*`, `Editor/AppIconBuilder`, ProjectSettings 아이콘
+슬롯, `StageClearRewardPolicy.LeagueClearCoins`/`PreviewLeagueClear`, `StageClearProgressRequest.LeagueClear`,
+`ProductStageProgressStore`/`StageSceneController` 리그 판정과 결과 줄, 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+검증 스크립트가 Unity 실행마다 ProjectSettings 전체를 되돌리면 승인된 설정 변경까지 지워진다. 패키지가
+바꾸는 스크립팅 define 블록만 되돌리도록 고쳤다.
+
+### Deferred / Human Review
+
+- 실제 런처에서 아이콘이 잘 보이는지, 리그 100코인이 적절한지는 사람이 판단한다.
+- Continue Ticket의 플레이 획득 경로, 기기 표시 이름, Android 설정 화면 링크 겹침은 이후 작업이다.

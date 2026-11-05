@@ -1,5 +1,20 @@
 # Current Status
 
+## Iteration 76 — Android App Icon and League Clear Coins (2026-11-05 KST)
+
+- 기준: `a957e4d`(Iteration 75, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음. Push 없음.
+- 앱 아이콘: `Tools/Generate-AppIcon.ps1`이 Victory 엠블럼(게이트 포털)으로 적응형 아이콘 배경·전경(432px)과
+  레거시 아이콘(512px)을 만들고(`Assets/Game/Art/AppIcon`), `Tools > Color Gate Runner > Apply App Icons`
+  (`Editor/AppIconBuilder`)가 Android 적응형·원형·레거시 슬롯과 기본 아이콘에 넣는다. 사용자 승인 범위로
+  ProjectSettings는 아이콘 항목만 바뀌었다. 기기 표시 이름은 바꾸지 않았다.
+- 경제: 상점 없이 캠페인에서 얻는 양은 코인 6,500(첫 클리어 3,500 + 마일스톤 3,000), Shield 9, Booster
+  8이다. 캠페인 뒤에는 수입이 없던 문제를 막기 위해 리그 클리어마다 100코인을 준다
+  (`StageClearRewardPolicy.LeagueClearCoins`, 클리어 횟수별 거래 ID로 한 번만). 결과 화면에 LEAGUE COINS로
+  보인다. Continue Ticket은 여전히 플레이로 얻을 수 없다(버튼은 0개일 때 숨김).
+- 자동 검증: **EditMode `612/612` passed; PlayMode `293` passed, `1` intentional opt-in ignore**(활성 플랫폼 WebGL). Campaign 시뮬레이션과 Step 10 산출물
+  해시 **동일**. Android 테스트 APK build succeeded (targetSdk 36; adaptive, round and legacy icons present at every density). Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+
 ## Iteration 75 — Free Web Edition for itch.io (2026-11-05 KST)
 
 - 기준: `1b47939`(Iteration 66, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
