@@ -986,6 +986,19 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 78 mechanic guide runs
+
+- Supersedes the Stage-1-only guide of Iteration 77: every Stage that first
+  introduces something is a guide run until it is cleared. Stage 4 holds
+  before the first Green gate, 9 just after the first Camouflage reveal, 15
+  before the first Ice gate, 18 before the first Echo gate and 24 just after
+  the first Flicker gate locks, each until the runner matches. Stage 21 holds
+  for `2.2s` while the first Hidden gate still shows its color, with taps
+  waiting. Stages 6, 7 and 12 and Echo store/use show short lines without
+  stopping. A Booster dash is never held; the next matching gate is.
+- Frozen time is not gameplay time: judgment, grades, records, Stage count and
+  simulations are unchanged.
+
 ## Iteration 77 tutorial
 
 - Until Stage 1 is cleared, Stage 1 is a guide run: before each of its first

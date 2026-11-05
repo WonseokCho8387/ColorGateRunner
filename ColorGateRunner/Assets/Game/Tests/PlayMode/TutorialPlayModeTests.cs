@@ -75,6 +75,20 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void GuideRun_ShowsTheTapLineDuringTheCountdown()
+        {
+            _store.HighestUnlocked = StageCatalog.Count;
+            _controller.SetProgressStoreForTests(_store);
+            _controller.SetTutorialsEnabledForTests(true);
+            _controller.SelectStage(1);
+            _controller.StartSelectedStage();
+            _controller.Tick(1f);
+            Assert.That(_controller.Session.FlowState, Is.EqualTo(StageFlowState.Countdown));
+            Assert.That(_controller.TutorialGuideText.gameObject.activeSelf, Is.True);
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("TAP ANYWHERE"));
+        }
+
+        [Test]
         public void GuideRun_IsSkippedOnceStageOneIsCleared()
         {
             _store.Records[0] = new StageRecord(true, 30f, 30f, 1);
@@ -161,6 +175,168 @@ namespace ColorGateRunner.Tests.PlayMode
             _store.Records[11] = new StageRecord(false, 0f, 0f, 0, 0, 0, StageCrown.None, 1);
             _controller.SelectStage(12);
             Assert.That(_controller.TutorialCard.IsOpen, Is.False, "Already attempted.");
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsTheFirstGreenGate()
+        {
+            StageGateView gate = RunToMechanicHold(4);
+            Assert.That(gate.ActivePlan.Color, Is.EqualTo(RunnerColor.Green));
+            Assert.That(_controller.Guide.GateColor, Is.EqualTo(RunnerColor.Green));
+            Assert.That(gate.PlanIndex, Is.EqualTo(_controller.Session.GatesPassed));
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("GREEN"));
+            AssertWaitsForMatchThenPasses(gate);
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsCamouflageAfterTheReveal()
+        {
+            StageGateView gate = RunToMechanicHold(9);
+            Assert.That(gate.ActivePlan.Modifier.IsCamouflage, Is.True);
+            Assert.That(gate.CamouflageRevealProgress, Is.EqualTo(1f).Within(0.001f));
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("COLOR REVEALED"));
+            AssertWaitsForMatchThenPasses(gate);
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsTheFirstIceGate()
+        {
+            StageGateView gate = RunToMechanicHold(15);
+            Assert.That(gate.ActivePlan.Modifier.IsIce, Is.True);
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("ICE"));
+            AssertWaitsForMatchThenPasses(gate);
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsTheEchoGateThenShowsTheStoredColor()
+        {
+            StageGateView gate = RunToMechanicHold(18);
+            Assert.That(gate.ActivePlan.Modifier.IsEchoProvider, Is.True);
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("ECHO GATE"));
+            AssertWaitsForMatchThenPasses(gate);
+            Assert.That(_controller.Session.EchoActive, Is.True);
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("ECHO STORED"));
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsHiddenWhileItsColorShowsThenResumes()
+        {
+            StageGateView gate = RunToMechanicHold(21);
+            Assert.That(gate.ActivePlan.Modifier.IsHidden, Is.True);
+            Assert.That(gate.HiddenHideStarted, Is.False);
+            Assert.That(_controller.Guide.Step, Is.EqualTo(TutorialGuideStep.HoldTimed));
+            Assert.That(_controller.TutorialGuideText.text,
+                Does.Contain("REMEMBER THIS GATE: " + gate.ActivePlan.Color.ToString().ToUpperInvariant()));
+            RunnerColor before = _controller.Session.CurrentColor;
+            _controller.HandleGameplayTap();
+            Assert.That(_controller.Session.CurrentColor, Is.EqualTo(before), "Taps wait during the hold.");
+            for (int frame = 0; frame < 300 && !gate.HiddenHideStarted; frame++)
+            {
+                StageGateView next = FindActive(_controller.Session.GatesPassed);
+                if (next != null) AutoMatch(next);
+                _controller.Tick(0.02f);
+            }
+            Assert.That(_controller.Guide.Frozen, Is.False);
+            Assert.That(gate.HiddenHideStarted, Is.True);
+        }
+
+        [Test]
+        public void MechanicGuide_HoldsFlickerAfterItLocks()
+        {
+            StageGateView gate = RunToMechanicHold(24);
+            Assert.That(gate.ActivePlan.Modifier.IsFlicker, Is.True);
+            Assert.That(gate.FlickerWindow.IsLocked, Is.True);
+            Assert.That(gate.FlickerWindow.Accepts(_controller.Guide.GateColor), Is.True);
+            Assert.That(_controller.TutorialGuideText.text, Does.Contain("LOCKED ON"));
+            AssertWaitsForMatchThenPasses(gate);
+        }
+
+        [Test]
+        public void MechanicGuide_IsSkippedOnceTheStageIsCleared()
+        {
+            _store.Records[8] = new StageRecord(true, 40f, 40f, 1);
+            StartStage(9);
+            Assert.That(_controller.GuideRunActive, Is.False);
+        }
+
+        // Plays the Stage, matching every gate except the guide's target,
+        // until the guide holds the run.
+        private StageGateView RunToMechanicHold(int stageNumber)
+        {
+            StartStage(stageNumber);
+            Assert.That(_controller.GuideRunActive, Is.True);
+            TutorialScript script = _controller.Guide.Script;
+            for (int frame = 0; frame < 3000 && !_controller.Guide.Frozen; frame++)
+            {
+                StageGateView next = FindActive(_controller.Session.GatesPassed);
+                if (next != null && !script.Matches(next.ActivePlan, RunnerColor.Green))
+                {
+                    AutoMatch(next);
+                }
+                _controller.Tick(0.02f);
+                Assert.That(_controller.Session.FlowState,
+                    Is.Not.EqualTo(StageFlowState.Failed), $"stage {stageNumber} frame {frame}");
+            }
+            Assert.That(_controller.Guide.Frozen, Is.True, $"stage {stageNumber} never held");
+            for (int slot = 0; slot < 6; slot++)
+            {
+                StageGateView gate = _controller.GetGate(slot);
+                if (gate.gameObject.activeSelf && gate.PlanIndex == _controller.Guide.HeldGateIndex)
+                {
+                    return gate;
+                }
+            }
+            Assert.Fail("Held gate is not active.");
+            return null;
+        }
+
+        private void AssertWaitsForMatchThenPasses(StageGateView gate)
+        {
+            float distance = _controller.CampaignDistance;
+            _controller.Tick(0.5f);
+            Assert.That(_controller.CampaignDistance, Is.EqualTo(distance));
+            Assert.That(_controller.StageMusic.IsPaused, Is.True);
+            int index = gate.PlanIndex;
+            for (int tap = 0; tap < 3 &&
+                _controller.Guide.Step == TutorialGuideStep.HoldNeedsTap; tap++)
+            {
+                _controller.HandleGameplayTap();
+            }
+            Assert.That(_controller.Guide.Step,
+                Is.EqualTo(TutorialGuideStep.HoldMatched).Or.EqualTo(TutorialGuideStep.HoldSameColor));
+            for (int frame = 0; frame < 300 && _controller.Session.GatesPassed <= index; frame++)
+            {
+                _controller.Tick(0.02f);
+            }
+            Assert.That(_controller.Session.GatesPassed, Is.GreaterThan(index));
+            Assert.That(_controller.Session.FlowState, Is.Not.EqualTo(StageFlowState.Failed));
+        }
+
+        private void AutoMatch(StageGateView gate)
+        {
+            if (!_controller.Guide.AcceptsTap) return;
+            for (int tap = 0; tap < 3 && !Accepts(gate, _controller.Session.CurrentColor); tap++)
+            {
+                _controller.HandleGameplayTap();
+            }
+        }
+
+        private static bool Accepts(StageGateView gate, RunnerColor color) =>
+            gate.ActivePlan.Modifier.IsFlicker
+                ? gate.FlickerWindow.Accepts(color)
+                : gate.ActivePlan.Color == color;
+
+        private StageGateView FindActive(int planIndex)
+        {
+            for (int slot = 0; slot < 6; slot++)
+            {
+                StageGateView gate = _controller.GetGate(slot);
+                if (gate.gameObject.activeSelf && !gate.HasResolved && gate.PlanIndex == planIndex)
+                {
+                    return gate;
+                }
+            }
+            return null;
         }
 
         private void StartStage(int stageNumber)

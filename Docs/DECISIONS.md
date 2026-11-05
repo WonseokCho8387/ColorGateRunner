@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 78 mechanic guide runs (2026-11-06 기록)
+
+- 사용자 결정: 튜토리얼 스테이지를 추가하지 않고 각 기믹의 기존 입문 Stage를 가이드 런으로 쓴다.
+- 플레이어가 틀려야만 나오는 순간(Shield 흡수, Echo 사용)과 안개는 멈추지 않는 알림으로 안내한다.
+- Booster 질주 중에는 멈추지 않고 다음 해당 게이트에서 멈춘다. Flicker는 색 변화가 끝나 고정된 뒤 멈춘다.
+
 ## Iteration 77 tutorial (2026-11-05 기록)
 
 - 사용자 결정: 새 튜토리얼 Stage를 만들지 않고 Stage 1을 가이드 런으로 쓴다(추천안 1~4 승인).

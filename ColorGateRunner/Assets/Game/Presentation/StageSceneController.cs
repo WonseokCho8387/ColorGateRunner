@@ -587,10 +587,12 @@ namespace ColorGateRunner.Presentation
             }
             bool boosterBefore = _session.BoosterActive;
             TickMovement(deltaTime);
+            CommitTutorialHold();
             if (boosterBefore && !_session.BoosterActive)
             {
                 _boosterExitOverridesApplied = true;
                 ApplySafeOverridesToActiveGates();
+                OnTutorialEvent(TutorialEvent.BoosterEnded);
             }
             TickStageMusic(deltaTime);
             SynchronizeViews();
@@ -2960,6 +2962,7 @@ namespace ColorGateRunner.Presentation
                 : _session.GetSpeedForPlan(upcoming.ActivePlan);
             if (upcoming != null && upcoming.ActivePlan.Modifier.IsFog)
             {
+                OnTutorialEvent(TutorialEvent.FogStarted);
                 fogCurtain.TryActivateOnPath(
                     campaignSplinePath,
                     _campaignDistance,

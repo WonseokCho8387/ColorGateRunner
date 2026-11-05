@@ -1270,6 +1270,23 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 78 mechanic guide runs
+
+- EditMode `TutorialTests`: Stage topics (1 Basics, 4 Green, 6 Shield, 7
+  Booster, 8 items, 9, 12, 15, 18, 21, 24) and which have a script; hold lead
+  distances (after the Camouflage reveal, before the Hidden hide, inside the
+  Flicker lock); the timed Hidden hold blocks taps; event lines show once with
+  their color; the Stage 1 script keeps its Iteration 77 behaviour.
+- PlayMode `TutorialPlayModeTests`: playing Stages 4, 9, 15, 18, 21 and 24
+  holds at the first target gate in the readable state (Green, revealed,
+  Ice, Echo, still shown, locked), freezes distance and music, then passes
+  once matched; Echo shows the stored color; a cleared intro Stage has no
+  guide.
+- Not automated: whether each held moment reads clearly on a phone, and
+  whether the repeated guide feels intrusive.
+- Final evidence: EditMode 621/621; PlayMode 307 passed + 1 intentional ignore (308); Campaign and Step 10
+  artifacts hash-identical; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 77 tutorial
 
 - EditMode `TutorialTests`: guide holds wait for the matching tap, same-color

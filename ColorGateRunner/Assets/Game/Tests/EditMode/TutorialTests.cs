@@ -6,14 +6,23 @@ namespace ColorGateRunner.Tests.EditMode
 {
     public sealed class TutorialTests
     {
+        private static TutorialGuide BeginBasics()
+        {
+            var guide = new TutorialGuide();
+            guide.Begin(TutorialScripts.For(TutorialTopic.Basics), RunnerColor.Green);
+            return guide;
+        }
+
         [Test]
         public void Guide_MismatchHoldWaitsForTheMatchingTap()
         {
-            var guide = new TutorialGuide();
-            guide.Begin();
+            TutorialGuide guide = BeginBasics();
+            guide.OnEvent(TutorialEvent.Go);
             Assert.That(guide.Message, Does.Contain("TAP ANYWHERE"));
-            Assert.That(guide.TryGetHoldDistance(0, 40f, out float lead), Is.True);
-            Assert.That(lead, Is.EqualTo(40f * TutorialGuide.HoldLeadSeconds));
+            Assert.That(guide.TryGetHold(0, default), Is.True);
+            Assert.That(
+                guide.Script.HoldLeadDistance(40f, null, null),
+                Is.EqualTo(40f * TutorialGuide.HoldLeadSeconds));
 
             guide.Hold(0, RunnerColor.Blue, RunnerColor.Red);
             Assert.That(guide.Frozen, Is.True);
@@ -30,14 +39,14 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(guide.AcceptsTap, Is.False);
             guide.Tick(TutorialGuide.MatchedHoldSeconds + 0.01f);
             Assert.That(guide.Frozen, Is.False);
-            Assert.That(guide.TryGetHoldDistance(0, 40f, out _), Is.False);
+            Assert.That(guide.TryGetHold(0, default), Is.False);
+            Assert.That(guide.Message, Is.Empty, "The GO line ends at the first hold.");
         }
 
         [Test]
         public void Guide_SameColorHoldBlocksTapsThenResumes()
         {
-            var guide = new TutorialGuide();
-            guide.Begin();
+            TutorialGuide guide = BeginBasics();
             guide.Hold(0, RunnerColor.Red, RunnerColor.Red);
             Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldSameColor));
             Assert.That(guide.AcceptsTap, Is.False);
@@ -51,24 +60,102 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Guide_HoldsOnlyTheFirstGatesThenExplainsGradesAndGoal()
         {
-            var guide = new TutorialGuide();
-            guide.Begin();
-            for (int gate = 0; gate < TutorialGuide.GuidedGateCount; gate++)
+            TutorialGuide guide = BeginBasics();
+            int holds = guide.Script.HoldCount;
+            Assert.That(holds, Is.EqualTo(3));
+            for (int gate = 0; gate < holds; gate++)
             {
-                Assert.That(guide.TryGetHoldDistance(gate, 40f, out _), Is.True, $"gate {gate}");
+                Assert.That(guide.TryGetHold(gate, default), Is.True, $"gate {gate}");
                 guide.Hold(gate, RunnerColor.Red, RunnerColor.Red);
                 guide.Tick(TutorialGuide.SameColorHoldSeconds + 0.01f);
                 guide.OnGateResolved(gate);
             }
-            Assert.That(guide.TryGetHoldDistance(TutorialGuide.GuidedGateCount, 40f, out _), Is.False);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Grades));
+            Assert.That(guide.TryGetHold(holds, default), Is.False);
             Assert.That(guide.Message, Does.Contain("PERFECT"));
-            guide.Tick(TutorialGuide.GradesSeconds + 0.01f);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Goal));
+            guide.Tick(4.01f);
             Assert.That(guide.Message, Does.Contain("GOAL"));
-            guide.Tick(TutorialGuide.GoalSeconds + 0.01f);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Done));
+            guide.Tick(3.01f);
             Assert.That(guide.Message, Is.Empty);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Running));
+        }
+
+        [Test]
+        public void Guide_HiddenHoldIsTimedAndBlocksTaps()
+        {
+            var guide = new TutorialGuide();
+            guide.Begin(TutorialScripts.For(TutorialTopic.Hidden), RunnerColor.Green);
+            Assert.That(guide.HoldNeedsNextGate, Is.False);
+            guide.Hold(6, RunnerColor.Blue, RunnerColor.Red);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldTimed));
+            Assert.That(guide.AcceptsTap, Is.False);
+            Assert.That(guide.Message, Does.Contain("REMEMBER THIS GATE: BLUE"));
+            guide.Tick(guide.Script.TimedHoldSeconds + 0.01f);
+            Assert.That(guide.Frozen, Is.False);
+            Assert.That(guide.TryGetHold(12, default), Is.False, "One hold only.");
+        }
+
+        [Test]
+        public void Guide_EventBannersShowOnceWithTheirColor()
+        {
+            var guide = new TutorialGuide();
+            guide.Begin(TutorialScripts.For(TutorialTopic.Echo), RunnerColor.Green);
+            guide.OnEvent(TutorialEvent.Go);
+            Assert.That(guide.Message, Is.Empty, "Echo has no GO line.");
+            guide.OnEvent(TutorialEvent.EchoStored, RunnerColor.Blue);
+            Assert.That(guide.Message, Does.Contain("ECHO STORED: BLUE"));
+            guide.Tick(5f);
+            Assert.That(guide.Message, Is.Empty);
+            guide.OnEvent(TutorialEvent.EchoStored, RunnerColor.Red);
+            Assert.That(guide.Message, Is.Empty, "Each banner shows once.");
+        }
+
+        [Test]
+        public void Scripts_TeachEachFirstMechanicStage()
+        {
+            var expected = new Dictionary<int, TutorialTopic>
+            {
+                { 1, TutorialTopic.Basics }, { 4, TutorialTopic.ThirdColor },
+                { 6, TutorialTopic.Shield }, { 7, TutorialTopic.Booster },
+                { 8, TutorialTopic.StartItems }, { 9, TutorialTopic.Camouflage },
+                { 12, TutorialTopic.Fog }, { 15, TutorialTopic.Ice },
+                { 18, TutorialTopic.Echo }, { 21, TutorialTopic.Hidden },
+                { 24, TutorialTopic.Flicker }
+            };
+            for (int number = 1; number <= StageCatalog.Count; number++)
+            {
+                StageDefinition stage = StageCatalog.GetByDisplayNumber(number);
+                TutorialTopic topic = TutorialCards.GetStageTopic(StageCatalog.Current, stage);
+                Assert.That(topic,
+                    Is.EqualTo(expected.TryGetValue(number, out TutorialTopic t) ? t : TutorialTopic.None),
+                    $"stage {number}");
+                bool scripted = topic != TutorialTopic.None && topic != TutorialTopic.StartItems;
+                Assert.That(TutorialScripts.For(topic) != null, Is.EqualTo(scripted), $"stage {number}");
+            }
+        }
+
+        [Test]
+        public void Scripts_HoldWhereEachMechanicIsReadable()
+        {
+            StageDefinition camouflage = StageCatalog.GetByDisplayNumber(9);
+            StageDefinition hidden = StageCatalog.GetByDisplayNumber(21);
+            float speed = 40f;
+            float standard = speed * TutorialGuide.HoldLeadSeconds;
+            CamouflageSettings reveal = camouflage.CamouflageSettings;
+            float afterReveal = TutorialScripts.For(TutorialTopic.Camouflage)
+                .HoldLeadDistance(speed, reveal, null);
+            Assert.That(afterReveal, Is.GreaterThan(standard));
+            Assert.That(afterReveal / speed,
+                Is.LessThan(reveal.RevealLeadTimeSeconds - reveal.RevealTransitionSeconds),
+                "Held after the reveal has finished.");
+            float beforeHide = TutorialScripts.For(TutorialTopic.Hidden)
+                .HoldLeadDistance(speed, null, hidden.HiddenSettings);
+            Assert.That(beforeHide / speed,
+                Is.GreaterThan(hidden.HiddenSettings.HideLeadTimeSeconds),
+                "Held while the color still shows.");
+            Assert.That(TutorialScripts.For(TutorialTopic.Flicker)
+                    .HoldLeadDistance(speed, null, null),
+                Is.LessThan(FlickerGateRuntimeState.LockDistance),
+                "Held inside the lock distance.");
         }
 
         [Test]

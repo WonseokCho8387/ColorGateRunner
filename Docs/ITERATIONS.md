@@ -4343,3 +4343,36 @@ Camouflage 문구를 지적했고 한 번에 고쳤다.
 - 멈춤이 답답하지 않은지, 휴대폰에서 안내 줄·카드가 잘 읽히는지, 처음 하는 사람이 규칙을 이해하는지.
 - 실패 문구가 5줄로 늘어난 Stage 1 실패 화면의 배치.
 - 튜토리얼 문구 한국어화는 하지 않았다(UI 전체가 영어).
+
+## Iteration 78 — Mechanic Guide Runs (2026-11-06)
+
+### Play / Analyze
+
+Iteration 77의 기믹 안내는 출발 전 카드뿐이라, 실제 그 순간(색 공개, 숨김, 고정)을 직접 겪으며 배우지
+못했다. 기믹마다 이미 2색·저속 입문 Stage가 있어서 스테이지를 추가할 필요는 없었다.
+
+### Design
+
+Stage 1 가이드를 스테이지별 스크립트(대상 게이트, 멈추는 지점, 알림)로 일반화했다. 멈추는 지점은
+Camouflage 공개·Hidden 숨김·Flicker 고정 설정값에서 계산하고, 멈춤은 그 프레임의 게이트 표시 갱신 뒤에
+확정해 멈춘 화면이 공개·고정 상태를 보이게 했다.
+
+### Implementation
+
+`Core/TutorialScripts`(새), `Core/TutorialGuide`(스크립트 실행기로 재작성), `TutorialCards.GetStageTopic`,
+`StageSceneController.Tutorial`(대상 탐색, 보류 확정, 이벤트), `StageSceneController`(GO·Booster 종료·Fog
+이벤트), 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+Flicker처럼 시간으로 진행되는 표시 상태는 화면 멈춤과 함께 멈춘다. 변화 중에 멈추면 그 상태로 굳으므로,
+상태가 확정된 뒤 멈추도록 조건을 걸어야 한다.
+
+### Deferred / Human Review
+
+- 멈춘 순간 공개된 색, 꺼지기 전 색, 고정된 색이 휴대폰에서 잘 읽히는지.
+- Hidden 멈춤 때 앞 게이트와 Hidden 게이트가 함께 보여 어느 게이트인지 헷갈리지 않는지.

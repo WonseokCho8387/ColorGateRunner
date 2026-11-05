@@ -1,5 +1,16 @@
 # Current Status
 
+## Iteration 78 — Mechanic Guide Runs (2026-11-06 KST)
+
+- 기준: `bb26bbe`(Iteration 77, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음.
+- 각 기믹의 첫 Stage를 깨기 전에는 가이드 런이 된다: 4 첫 초록 게이트, 9 Camouflage 색 공개 직후, 15 첫 Ice
+  게이트, 18 첫 Echo 게이트, 24 Flicker 색 고정 직후에서 멈추고 색을 맞출 때까지 기다린다. 21 Hidden은 색이
+  꺼지기 전에 잠시 멈춰 기억할 색을 보여 준다. 6 Shield, 7 Booster, 12 Fog, Echo 저장/사용은 멈추지 않는 알림.
+  Stage 1 가이드는 같은 실행기로 옮겼고 동작은 같다. 스테이지 수·저장 구조·판정은 바뀌지 않는다.
+- 자동 검증: **EditMode 621/621; PlayMode 307 passed + 1 intentional ignore (308)**(활성 플랫폼 WebGL). Campaign 시뮬레이션과 Step 10 산출물
+  해시 **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+
 ## Iteration 77 — Tutorial (2026-11-05 KST)
 
 - 기준: `387a306`(Iteration 76, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

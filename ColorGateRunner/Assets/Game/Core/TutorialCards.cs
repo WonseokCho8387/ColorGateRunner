@@ -2,6 +2,22 @@ using System;
 
 namespace ColorGateRunner.Core
 {
+    public enum TutorialTopic
+    {
+        None,
+        Basics,
+        ThirdColor,
+        Shield,
+        Booster,
+        StartItems,
+        Camouflage,
+        Fog,
+        Ice,
+        Echo,
+        Hidden,
+        Flicker
+    }
+
     public readonly struct TutorialCard
     {
         public TutorialCard(string title, string body)
@@ -52,14 +68,15 @@ namespace ColorGateRunner.Core
 
         // The intro of the mechanic this Stage introduces, if it is the first
         // catalog Stage that uses it.
-        public static bool TryGetStageIntro(
+        // What this Stage is the first to introduce: the tutorial Stage
+        // teaches the basics, later Stages the first use of a mechanic.
+        public static TutorialTopic GetStageTopic(
             IStageCatalog catalog,
-            StageDefinition stage,
-            out TutorialCard card)
+            StageDefinition stage)
         {
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             if (stage == null) throw new ArgumentNullException(nameof(stage));
-            card = default;
+            if (stage.StageId == TutorialStageId) return TutorialTopic.Basics;
             bool firstThreeColors = stage.AllowedColorCount >= 3;
             bool firstItems = stage.ShieldAllowed || stage.BoosterAllowed;
             bool firstMechanic = stage.PrimaryMechanic != StagePrimaryMechanic.None;
@@ -73,10 +90,43 @@ namespace ColorGateRunner.Core
             }
             if (firstMechanic)
             {
+                return stage.PrimaryMechanic switch
+                {
+                    StagePrimaryMechanic.Shield => TutorialTopic.Shield,
+                    StagePrimaryMechanic.Booster => TutorialTopic.Booster,
+                    StagePrimaryMechanic.Camouflage => TutorialTopic.Camouflage,
+                    StagePrimaryMechanic.Fog => TutorialTopic.Fog,
+                    StagePrimaryMechanic.Ice => TutorialTopic.Ice,
+                    StagePrimaryMechanic.Echo => TutorialTopic.Echo,
+                    StagePrimaryMechanic.Hidden => TutorialTopic.Hidden,
+                    StagePrimaryMechanic.Flicker => TutorialTopic.Flicker,
+                    _ => TutorialTopic.None
+                };
+            }
+            if (firstItems) return TutorialTopic.StartItems;
+            return firstThreeColors ? TutorialTopic.ThirdColor : TutorialTopic.None;
+        }
+
+        // The intro of the mechanic this Stage introduces, if it is the first
+        // catalog Stage that uses it.
+        public static bool TryGetStageIntro(
+            IStageCatalog catalog,
+            StageDefinition stage,
+            out TutorialCard card)
+        {
+            TutorialTopic topic = GetStageTopic(catalog, stage);
+            card = default;
+            if (topic == TutorialTopic.None || topic == TutorialTopic.Basics)
+            {
+                return false;
+            }
+            if (topic != TutorialTopic.StartItems &&
+                topic != TutorialTopic.ThirdColor)
+            {
                 card = ForMechanic(stage.PrimaryMechanic);
                 return true;
             }
-            if (firstItems)
+            if (topic == TutorialTopic.StartItems)
             {
                 card = new TutorialCard(
                     "START ITEMS",
@@ -86,16 +136,12 @@ namespace ColorGateRunner.Core
                     "EACH START USES ONE OF EACH\nSELECTED ITEM.");
                 return true;
             }
-            if (firstThreeColors)
-            {
-                card = new TutorialCard(
-                    "GREEN",
-                    "A THIRD COLOR JOINS: GREEN.\n\n" +
-                    "TAPS NOW CYCLE\nRED > BLUE > GREEN > RED.\n\n" +
-                    "PLAN AHEAD: GOING BACK A COLOR\nTAKES TWO TAPS.");
-                return true;
-            }
-            return false;
+            card = new TutorialCard(
+                "GREEN",
+                "A THIRD COLOR JOINS: GREEN.\n\n" +
+                "TAPS NOW CYCLE\nRED > BLUE > GREEN > RED.\n\n" +
+                "PLAN AHEAD: GOING BACK A COLOR\nTAKES TWO TAPS.");
+            return true;
         }
 
         private static TutorialCard ForMechanic(StagePrimaryMechanic mechanic) =>
