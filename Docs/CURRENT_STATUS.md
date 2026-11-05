@@ -1,5 +1,21 @@
 # Current Status
 
+## Iteration 65 — Lobby Illustrations (2026-11-05 KST)
+
+- 기준: `c156e9a`(Iteration 74) 위에서 진행했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음.
+  Push 없음.
+- 세 로비 테마(Color Courtyard, Neon Garden, Sky Festival)의 Background·가운데 상징물·Ambient 9장을
+  사용자가 `LOBBY_ILLUSTRATION_PROMPTS.md`로 ChatGPT에서 만든 그림으로 교체했다. 파일 이름과 경로,
+  가져오기 설정은 그대로다. Background는 가운데 9:16(864×1536)을 잘라 941×1672로 맞췄고, 상징물
+  (1254×1254)과 Ambient(1024×1536)는 받은 그대로 넣었다. 화면은 비율을 유지해 맞추므로 코드 변경은 없다.
+- 첫 상징물 2장(Color Courtyard, Neon Garden)은 빛 주변에 회백색 얼룩과 체크무늬 구멍이 박혀 있어
+  사용자가 다시 만들었다. 세 상징물 모두 다시 만든 그림이다.
+- 자동 검증: **EditMode `580/580` passed; PlayMode `292` passed, `1` intentional opt-in ignore**. Frontend
+  Builder 포함 Builder 각 2회(Scene은 ID 재배치, 재질은 공백만 바뀌어 복원). 그래픽 캡처 1080×1920,
+  720×1280. Product 저장 파일과 Campaign PlayerPrefs 전후 동일. 근거: `Artifacts/Validation/Iteration65/`,
+  `Artifacts/Validation/VisualQC/LobbyHome-*.png`.
+- 사람 판단: 사용자가 세 테마 캡처를 보고 승인했다.
+
 ## Iteration 74 — Per-Stage Music Themes (2026-11-05 KST)
 
 - 기준: `14f75d1`(Iteration 73) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

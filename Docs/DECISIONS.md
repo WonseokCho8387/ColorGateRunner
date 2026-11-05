@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 65 lobby illustrations (2026-11-05 기록)
+
+- 사용자 결정: 로비 일러스트는 Claude가 쓴 프롬프트로 사용자가 ChatGPT에서 직접 만든다.
+- 사용자 결정: 얼룩이 박힌 상징물은 자동 보정 대신 다시 만든다. 다시 만든 세 상징물로 교체했다.
+- 사용자 결정: 세 테마 로비 캡처를 보고 최종 승인했다.
+
 ## Iteration 74 per-Stage music themes (2026-11-05 기록)
 
 - 사용자 결정: 26개 Stage 곡을 모두 다른 테마로 만든다. 샘플(Stage 2, 13, 25)을 듣고 방향을 승인했다.

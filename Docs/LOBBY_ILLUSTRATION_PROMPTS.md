@@ -191,6 +191,7 @@ corners. Leave the central vertical band (30–70% of the width) and the bottom
 - 글자나 로고가 생겼을 때: `Remove all text, letters, signs and logos completely.`
 - 아래쪽이 복잡할 때: `Make the bottom third almost empty and dark, only a plain floor.`
 - 투명 배경이 아닐 때: `Output as a PNG with a truly transparent background, no checkerboard, no backdrop.`
+- 빛 주변에 회백색 얼룩이나 체크무늬 구멍이 남을 때(Iteration 65에서 실제로 생김): `Transparent PNG with true alpha. The glow must be colored light that fades smoothly into full transparency. No checkerboard pattern, no white or gray haze, no background fragments around the object. Keep the glow tight around the object.`
 - 세 테마 톤이 다를 때: 첫 테마 Background를 대화에 다시 올리고 `Match the lighting, palette and rendering style of this image.`
 
 ## 6. 받은 뒤 Claude가 하는 일

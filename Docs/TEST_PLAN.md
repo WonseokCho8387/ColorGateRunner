@@ -1270,6 +1270,19 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 65 lobby illustrations
+
+- Existing EditMode lobby tests still check the sprite import settings of all
+  nine layers and that the transparent layers hold real transparent and opaque
+  pixels.
+- Tool evidence: alpha inspection of every delivered layer (no visible pixels
+  on midground edges, no baked haze), and graphics captures of all three
+  themes at 1080x1920 and 720x1280.
+- Human review: mood, consistency across the three themes and UI readability
+  over the art. The user approved the captures.
+- Final evidence: Builders `2/2`; EditMode `580/580`; PlayMode `292` passed,
+  `1` intentional opt-in ignore; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 74 per-Stage music themes
 
 - EditMode `Catalog_EveryStageTrackIsDistinctAudio`: no two Stage clips share

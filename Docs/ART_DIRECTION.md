@@ -1148,3 +1148,15 @@ This section supersedes Iteration 47's separate additive frame trace.
   Gold, an owned crown uses Signal and a missing crown uses dim
   TextSecondary. Reward rows start lower to make room. REPLAY and LOBBY share
   the bottom row under the primary action.
+
+## Iteration 65 lobby illustrations
+
+- All three Lobby themes now use final illustrations made from
+  `LOBBY_ILLUSTRATION_PROMPTS.md`. Theme 2 and Theme 3 are no longer palette
+  fallbacks.
+- Background layers are opaque. Midground symbols and Ambient layers carry
+  true alpha: solid parts are opaque and glow fades into full transparency,
+  with no baked haze or checkerboard.
+- Color Courtyard keeps the faceted crystal with six attachment nodes, Neon
+  Garden uses a crystal tree with Red, Blue and Green blooms, and Sky Festival
+  uses a beacon tower with Red, Blue and Green panels.
