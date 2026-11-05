@@ -130,6 +130,31 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator FreeEdition_HidesShopAndShowsUnlimitedHearts()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)), true);
+
+            yield return null;
+            FrontendSceneController controller = RequireController();
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.ShopNavigationButton.gameObject.activeSelf,
+                Is.False);
+            Assert.That(controller.ShopPageRoot.activeSelf, Is.False);
+            Assert.That(controller.LobbyPagePager.FirstIndex,
+                Is.EqualTo(LobbyPageOrder.ToIndex(FrontendPage.Leaderboard)));
+            Assert.That(controller.LeaderboardNavigationButton.gameObject.activeSelf,
+                Is.True);
+            Assert.That(controller.LobbyProgressionPanel.HeartText.text,
+                Is.EqualTo("∞"));
+
+            controller.ShopNavigationButton.onClick.Invoke();
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+        }
+
+        [UnityTest]
         public IEnumerator LobbyShell_UsesAuthoredPageArtAndContainedText()
         {
             yield return LoadFrontendThroughBoot(() =>
@@ -1415,9 +1440,13 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         private static IEnumerator LoadFrontendThroughBoot(
-            Func<AppServiceGraph> graphFactory = null)
+            Func<AppServiceGraph> graphFactory = null,
+            bool freeEdition = false)
         {
-            AppRoot.SetTestGraphFactory(graphFactory ?? CreateGraph);
+            AppRoot.SetTestGraphFactory(
+                graphFactory ?? CreateGraph,
+                false,
+                freeEdition);
             yield return SceneManager.LoadSceneAsync(
                 BootPath,
                 LoadSceneMode.Single);

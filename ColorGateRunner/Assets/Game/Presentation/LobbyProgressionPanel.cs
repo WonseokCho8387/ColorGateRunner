@@ -174,6 +174,11 @@ namespace ColorGateRunner.Presentation
                 DateTimeKind.Local => utcNow.ToUniversalTime(),
                 _ => DateTime.SpecifyKind(utcNow, DateTimeKind.Utc)
             };
+            // A permanent Heart waiver (free edition) has no timer to show.
+            if (hearts.Unlimited && hearts.UnlimitedUntilUtc == DateTime.MaxValue)
+            {
+                return "∞";
+            }
             if (hearts.Unlimited)
             {
                 return $"∞  " +

@@ -1911,6 +1911,16 @@ Status: Approved and implemented.
 
 
 
+## Iteration 75 free web edition for itch.io (2026-11-05 기록)
+
+- 사용자 상황: 사업자 미등록, 회사 겸업 금지로 수익을 낼 수 없고 반응을 먼저 보고 싶다.
+- 사용자 결정: 먼저 itch.io에 무료로 출시하고, 플레이테스트판(8개)이 아니라 수익 요소를 숨긴 전체 무료판을
+  올린다. Google Play는 반응을 본 뒤 비공개 테스트로 넓힌다.
+- 무료판 규칙: Heart 제한 없음(∞ 표시), Shop 탭은 빈칸, 결제·광고·가입 없음, 게임 안 코인·아이템은 유지.
+  itch.io 가격은 No payments, 후원도 끈다.
+- 사용자 결정: 테스트 중 소리를 내지 않고 출력 여부만 확인한다. WAV를 OGG로 바꾸는 일은 인코더 설치가
+  필요해 보류했다(빌드 크기에는 영향 없음).
+
 ## Iteration 66 neon chrome for Frontend frames and icons (2026-11-05 기록)
 
 - 사용자 결정: 남은 금색 장식을 네온으로 바꾸고, 스테이지 카드와 페이지 제목 틀도 포함한다.

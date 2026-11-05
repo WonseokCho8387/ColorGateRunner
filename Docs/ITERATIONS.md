@@ -4239,3 +4239,39 @@ RGB를 직선으로 섞으면 금색과 청록 사이가 올리브색을 지난�
 
 - 크롬 질감, 네온 페이지와의 통일감, 실제 기기 가독성은 사람이 판단한다.
 - IconContinue의 초록 화살표와 스테이지 카드의 초록 PLAY 받침은 범위 밖이다.
+
+## Iteration 75 — Free Web Edition for itch.io (2026-11-05)
+
+### Play / Analyze
+
+사용자는 수익을 낼 수 없는 상황에서 반응을 먼저 보고 싶어 했다. 출시 점검에서 웹 빌드는 8개 Stage
+플레이테스트판뿐이었고, 웹 템플릿에 브라우저 저장 동기화가 빠져 있어 정식 저장이 새로고침에 사라질 수
+있었다.
+
+### Design
+
+새 빌드 표시 `CGR_WEB_FREE`로 정식 저장과 전체 캠페인을 그대로 쓰되, Heart 제한은 Product 세션 정책으로
+끄고 Shop은 화면에서 막는다. 빌드 설정 교체는 Playtest와 공용 경로로 묶고 itch.io ZIP 패키징을 붙였다.
+
+### Implementation
+
+`LocalProductSession.DisableHeartLimit`, `AppRoot.FreeEdition`, `FrontendSceneController.FreeEdition`,
+`LobbyPagePager` 첫 페이지, 로비 Heart ∞ 표시, 코인 부족 안내, `Editor/WebGlReleaseBuild`,
+`Editor/FreeEditionBuildMenu`, `PlaytestBuildMenu` 정리, 웹 템플릿 자동 저장, 테스트, itch.io 페이지 초안.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+Unity 6 WebGL은 `persistentDataPath` 저장을 IndexedDB에 자동으로 동기화하지 않는다(옵트인
+`autoSyncPersistentDataPath`). 빌드 메뉴는 Editor의 활성 플랫폼을 바꾸므로, 그 뒤 실행한 테스트는 다른 플랫폼
+코드 경로를 탄다(Android에서 설정 화면 겹침이 드러났다). 브라우저 소리 확인은 출력 직전에 0 gain과 분석기를
+끼워 들리지 않게 측정할 수 있다.
+
+### Deferred / Human Review
+
+- 실제 itch.io 페이지와 모바일 브라우저 동작, 빈 Shop 칸의 인상은 업로드 뒤 사람이 확인한다.
+- Android 설정 화면의 링크 겹침, 빌드 중간 파일의 git 추적 정리, Android 출시 준비, WAV→OGG 변환은 이후
+  작업이다.

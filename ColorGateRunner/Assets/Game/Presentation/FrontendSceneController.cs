@@ -151,6 +151,7 @@ namespace ColorGateRunner.Presentation
             ApplyTransition(_router.IsTransitioning);
             ApplyModal(_router.CurrentModal);
             ApplyPlaytestEntry();
+            ApplyFreeEdition();
             if (!_productReady)
             {
                 _router.TryShowModal(FrontendModal.BootRequired);
@@ -703,6 +704,7 @@ namespace ColorGateRunner.Presentation
 
         private void ShowShop()
         {
+            if (FreeEdition) return;
             _router.TryShowPage(FrontendPage.Shop);
         }
 
@@ -855,7 +857,7 @@ namespace ColorGateRunner.Presentation
             bool shellVisible = FrontendPageRouter.IsLobbyDestination(page);
             lobbyPageRoot.SetActive(shellVisible);
             lobbyThemeRoot.SetActive(shellVisible && _productReady);
-            shopPageRoot.SetActive(shellVisible && _productReady);
+            shopPageRoot.SetActive(shellVisible && _productReady && !FreeEdition);
             leaderboardPageRoot.SetActive(shellVisible && _productReady);
             journeyPageRoot.SetActive(shellVisible && _productReady);
             collectionPageRoot.SetActive(shellVisible && _productReady);

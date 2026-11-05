@@ -1638,6 +1638,39 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void FreeEdition_HeartLimitDisabledStartsWithoutSpendingHearts()
+        {
+            LocalSaveData data = CreateValidData();
+            data.Economy.HeartCount = 0;
+            data.Economy.HeartRechargeAnchorUtc =
+                LocalSaveService.ToUtcString(_firstUtc);
+            var save = new MutableSessionSaveService(data);
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            pipeline.Session.DisableHeartLimit();
+            int savesBefore = save.SaveCount;
+
+            HeartStateSnapshot hearts = pipeline.Session.GetHeartState();
+            ProductMutationResult plain =
+                pipeline.Session.AuthorizeStageStart(false, false);
+            StageStartAuthorizationResult receipt =
+                pipeline.Session.AuthorizeStageStartWithReceipt(
+                    false,
+                    false,
+                    "free-attempt");
+
+            Assert.That(pipeline.Session.HeartLimitDisabled, Is.True);
+            Assert.That(hearts.Unlimited, Is.True);
+            Assert.That(hearts.UnlimitedUntilUtc, Is.EqualTo(DateTime.MaxValue));
+            Assert.That(plain.Succeeded, Is.True);
+            Assert.That(receipt.Succeeded, Is.True);
+            Assert.That(receipt.HeartConsumed, Is.False);
+            Assert.That(receipt.HeartRefundToken, Is.Empty);
+            Assert.That(pipeline.Progression.Economy.HeartCount, Is.EqualTo(0));
+            Assert.That(save.SaveCount, Is.EqualTo(savesBefore));
+        }
+
+        [Test]
         public void StageStart_RejectsEmptyHeartsWithoutSaving()
         {
             LocalSaveData data = CreateValidData();

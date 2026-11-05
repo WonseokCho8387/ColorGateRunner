@@ -17,6 +17,8 @@ namespace ColorGateRunner.Presentation
         [SerializeField] private GameObject[] selectionRoots;
 
         private int _currentIndex = 2;
+        // Pages before this index are unavailable (the free edition has no Shop).
+        private int _firstIndex;
         private float _visualPage = 2f;
         private float _animationStart;
         private float _animationTarget;
@@ -32,6 +34,12 @@ namespace ColorGateRunner.Presentation
         internal event Action<FrontendPage> PageRequested;
 
         internal int CurrentIndex => _currentIndex;
+        internal int FirstIndex => _firstIndex;
+
+        internal void SetFirstPage(FrontendPage page)
+        {
+            _firstIndex = LobbyPageOrder.ToIndex(page);
+        }
         internal bool IsAnimating => _animating;
 
         internal void Configure(
@@ -128,9 +136,9 @@ namespace ColorGateRunner.Presentation
 
             float pageOffset = -delta.x / width;
             float candidate = _currentIndex + pageOffset;
-            if (candidate < 0f)
+            if (candidate < _firstIndex)
             {
-                candidate *= 0.22f;
+                candidate = _firstIndex + ((candidate - _firstIndex) * 0.22f);
             }
             else if (candidate > 4f)
             {
@@ -158,7 +166,7 @@ namespace ColorGateRunner.Presentation
             if (qualifies)
             {
                 requestedIndex += delta.x < 0f ? 1 : -1;
-                requestedIndex = Mathf.Clamp(requestedIndex, 0, 4);
+                requestedIndex = Mathf.Clamp(requestedIndex, _firstIndex, 4);
             }
 
             if (requestedIndex == _currentIndex)

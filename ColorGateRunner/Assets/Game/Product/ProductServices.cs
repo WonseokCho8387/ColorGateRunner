@@ -170,6 +170,13 @@ namespace ColorGateRunner.Product
 
         public bool IsReady => _current != null;
 
+        // A free edition has no Heart economy: Stage starts never spend a
+        // Heart and the state reads as permanently unlimited. Saved Hearts
+        // are left untouched.
+        public bool HeartLimitDisabled { get; private set; }
+
+        public void DisableHeartLimit() => HeartLimitDisabled = true;
+
         internal void Bind(LocalSaveData data)
         {
             _current = data ?? throw new ArgumentNullException(nameof(data));
@@ -439,6 +446,7 @@ namespace ColorGateRunner.Product
             {
                 return failure;
             }
+            consumeHeart &= !HeartLimitDisabled;
             LocalSaveData candidate = _current.Clone();
             LocalEconomyData economy = candidate.Economy;
             DateTime effectiveNow = _clock.UtcNow;
@@ -510,6 +518,7 @@ namespace ColorGateRunner.Product
                     false,
                     string.Empty);
             }
+            consumeHeart &= !HeartLimitDisabled;
             if (!shield && !booster && !consumeHeart)
             {
                 return new StageStartAuthorizationResult(
@@ -597,8 +606,15 @@ namespace ColorGateRunner.Product
 
         public HeartStateSnapshot GetHeartState()
         {
-            return _current?.Economy == null
-                ? default
+            if (_current?.Economy == null)
+            {
+                return default;
+            }
+            return HeartLimitDisabled
+                ? new HeartStateSnapshot(
+                    HeartStatePolicy.MaximumHearts,
+                    true,
+                    DateTime.MaxValue)
                 : HeartStatePolicy.Read(_current.Economy, _clock.UtcNow);
         }
 

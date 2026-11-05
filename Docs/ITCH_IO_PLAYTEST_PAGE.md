@@ -40,3 +40,39 @@ Unity 6.2+/Analytics SDK 6.1+의 동의 API와 삭제 순서는 [Unity SDK 개�
 - 커버: 기존 아트 기반 630×500 후보를 별도 검토.
 - 스크린샷: 최종 후보의 시작, 일반 게임플레이, Shield, Hidden/Echo/Flicker 중 3–5장을 선정. 개발·경제 화면을 플레이테스트 화면으로 홍보하지 않는다.
 - itch.io iframe과 전체 화면 검증을 통과한 ZIP만 업로드한다.
+
+## 무료 웹판(Free Edition) 페이지 초안 (Iteration 75)
+
+전체 캠페인을 무료로 공개하는 판이다. 빌드는 `Tools/Color Gate Runner/Free Edition/Build WebGL Free
+Edition` 메뉴가 만드는 `Builds/WebFree/ColorGateRunner-Web-<버전>.zip`이다. 업로드는 사용자가 직접 한다.
+
+### 영문 페이지 문구
+
+**Color Gate Runner — Free Web Edition**
+
+Change your color. Match the gate. Keep running.
+
+Play all 26 stages across eight chapters: color matching, items, Camouflage, Fog, Ice, Echo, Hidden and
+Flicker. Every stage has its own soundtrack, from hard rock to calm city pop.
+
+**Controls:** Click or tap to change your runner's color. Match the gate before crossing it. The runner
+moves forward automatically. Use Pause to take a break.
+
+**Free to play:** No purchases, no ads, no sign-up and no heart timer. Coins and items are earned only by
+playing.
+
+**Saving:** Progress is saved in this browser only. Clearing site data, private windows or a new upload of
+the game can reset it.
+
+**Data:** Analytics is not connected. The game sends no gameplay data. itch.io and your browser may process
+their own technical information; see their privacy notices.
+
+**Feedback:** Which stage made you want to retry, or stop? Please leave a comment. Do not include personal
+information.
+
+### itch.io 설정
+
+- Kind of project: HTML. ZIP 업로드 후 "This file will be played in the browser" 선택.
+- Viewport: 540×960, Mobile friendly(세로), Fullscreen button 켬.
+- Pricing: No payments. 후원(donation)도 끈다.
+- 새 파일을 올리면 게임 주소가 바뀌어 플레이어의 브라우저 저장이 초기화될 수 있다. 업데이트 공지에 밝힌다.

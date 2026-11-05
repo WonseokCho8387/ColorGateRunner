@@ -77,6 +77,9 @@
         symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
 #endif
         streamingAssetsUrl: "StreamingAssets",
+        // Persist Application.persistentDataPath writes (the Product save)
+        // to IndexedDB so progress survives a page reload.
+        autoSyncPersistentDataPath: true,
         companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
         productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
         productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},

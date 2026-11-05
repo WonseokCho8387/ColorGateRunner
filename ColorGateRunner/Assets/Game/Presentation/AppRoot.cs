@@ -15,6 +15,7 @@ namespace ColorGateRunner.Presentation
         private static AppRoot _active;
         private static Func<AppServiceGraph> _testGraphFactory;
         private static bool _testPlaytestEnabled;
+        private static bool _testFreeEditionEnabled;
 
         private AppServiceGraph _graph;
         private readonly CampaignLaunchContext _campaignLaunch =
@@ -24,6 +25,9 @@ namespace ColorGateRunner.Presentation
         public bool IsPrimary => _active == this;
         public AppServiceGraph Graph => _graph;
         public PlaytestSession Playtest { get; private set; }
+        // The free web edition (CGR_WEB_FREE) plays the full Campaign with no
+        // Heart limit and no Shop; it never sells anything.
+        public bool FreeEdition { get; private set; }
         public LocalSettingsData CurrentSettings => _graph?.Settings?.Current;
         public bool AccountChoiceCompleted =>
             _graph?.Profile?.Current?.AccountChoiceCompleted == true;
@@ -44,6 +48,11 @@ namespace ColorGateRunner.Presentation
             playtestEnabled = true;
 #endif
             Playtest = playtestEnabled ? new PlaytestSession() : null;
+            bool freeEdition = _testFreeEditionEnabled;
+#if CGR_WEB_FREE
+            freeEdition = true;
+#endif
+            FreeEdition = freeEdition && !playtestEnabled;
             _graph = _testGraphFactory != null
                 ? _testGraphFactory()
                 : CreateProductionGraph(playtestEnabled);
@@ -51,6 +60,10 @@ namespace ColorGateRunner.Presentation
             {
                 throw new InvalidOperationException(
                     "The AppRoot service graph factory returned null.");
+            }
+            if (FreeEdition)
+            {
+                _graph.Initialization.Session.DisableHeartLimit();
             }
 
             DontDestroyOnLoad(gameObject);
@@ -214,16 +227,19 @@ namespace ColorGateRunner.Presentation
 
         internal static void SetTestGraphFactory(
             Func<AppServiceGraph> factory,
-            bool playtestEnabled = false)
+            bool playtestEnabled = false,
+            bool freeEditionEnabled = false)
         {
             _testGraphFactory = factory;
             _testPlaytestEnabled = playtestEnabled;
+            _testFreeEditionEnabled = freeEditionEnabled;
         }
 
         internal static void ClearTestState()
         {
             _testGraphFactory = null;
             _testPlaytestEnabled = false;
+            _testFreeEditionEnabled = false;
             _active = null;
         }
 

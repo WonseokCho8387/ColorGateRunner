@@ -1270,6 +1270,24 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 75 free web edition for itch.io
+
+- EditMode `FreeEditionBuildTests`: non-development WebGL options with only
+  `CGR_WEB_FREE`, output and ZIP paths, the template's
+  `autoSyncPersistentDataPath`, `_DoNotShip` filtering, itch.io limits and the
+  permanent "∞" heart text. `ProductFoundationTests`: with the Heart limit
+  disabled, both start paths succeed at 0 Hearts without spending or saving.
+- PlayMode `FreeEdition_HidesShopAndShowsUnlimitedHearts`: Shop button and page
+  hidden, paging starts at RANK, hearts read "∞", a Shop click is ignored.
+- Manual evidence: free-edition build and ZIP; muted local browser run with a
+  reload that keeps the account choice and a Stage with an audio signal.
+- Not automated: the free-edition coin popup text, the Playtest/free-edition
+  exclusion, a real swipe toward the Shop, ZIP layout, the itch.io-hosted page
+  and mobile browsers.
+- Final evidence: EditMode `610/610`; PlayMode `293` passed, `1` intentional
+  opt-in ignore (active platform WebGL); Product save and Campaign PlayerPrefs
+  exact.
+
 ### Iteration 66 neon chrome for Frontend frames and icons
 
 - EditMode `NeonChromeArtTests`: each of the 19 recolored frames and icons has

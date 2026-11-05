@@ -1394,9 +1394,14 @@ namespace ColorGateRunner.Presentation
                 return;
             }
             int missing = Math.Max(0, price - balance);
+            // The free edition never sells Coins, so it points to play instead.
+            bool freeEdition =
+                AppRoot.TryGetActive(out AppRoot appRoot) && appRoot.FreeEdition;
             insufficientCoinsMessageText.text =
                 $"YOU NEED {missing} MORE COINS.\n" +
-                "THE SHOP IS NOT AVAILABLE IN THIS BUILD YET.";
+                (freeEdition
+                    ? "EARN COINS BY CLEARING STAGES."
+                    : "THE SHOP IS NOT AVAILABLE IN THIS BUILD YET.");
             insufficientCoinsPopup.SetActive(true);
         }
 

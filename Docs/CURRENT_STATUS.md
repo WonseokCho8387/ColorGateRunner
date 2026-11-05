@@ -1,5 +1,27 @@
 # Current Status
 
+## Iteration 75 — Free Web Edition for itch.io (2026-11-05 KST)
+
+- 기준: `1b47939`(Iteration 66, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음. Push 없음.
+- 새 빌드 `Tools/Color Gate Runner/Free Edition/Build WebGL Free Edition`(`CGR_WEB_FREE`, 개발 모드 아님,
+  Gzip + 해제 대체, 세로 템플릿)이 전체 캠페인을 정식 저장으로 플레이하는 무료 웹판을 만든다. 빌드 뒤
+  `Builds/WebFree/ColorGateRunner-Web-<버전>.zip`으로 묶으며 `*_DoNotShip` 폴더를 빼고 itch.io 제한(파일
+  1000개, 파일당 200MB, 합계 500MB)을 확인한다. Playtest 빌드도 같은 공용 WebGL 빌드 경로를 쓴다.
+- 무료판에서는 Stage 시작이 Heart를 쓰지 않고(저장된 Heart는 그대로) 로비에 ∞로 보인다. Shop 탭은 빈칸,
+  Shop 페이지와 스와이프 이동은 막고, 코인 부족 안내는 "EARN COINS BY CLEARING STAGES."로 바뀐다.
+  코인·아이템·이어하기는 게임 안 재화로 그대로다. 다른 판(Android, Editor, Playtest)은 바뀌지 않는다.
+- 웹 템플릿에 `autoSyncPersistentDataPath: true`를 켜 Product 저장이 새로고침 뒤에도 남는다.
+- 자동 검증: **EditMode `610/610` passed; PlayMode `293` passed, `1` intentional opt-in ignore**(활성
+  플랫폼 WebGL). 무료판 빌드 성공: ZIP 75MB, 6개 파일, 가장 큰 파일 62MB. 로컬 브라우저(소리는 0 gain으로
+  막고 신호만 측정): 로비 ∞·Shop 빈칸, 새로고침 뒤 계정 선택 유지(저장 지속), Stage 1 실행 중 음악 신호
+  RMS 0.10, 콘솔 오류 없음. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+- 발견한 기존 결함(범위 밖): 활성 플랫폼이 Android이면 설정 화면에 진동 행이 생겨 TERMS/PRIVACY/SUPPORT가
+  Apply/Cancel 버튼 아래로 밀린다. 실제 Android 기기에서도 생기므로 Android 출시 전에 고쳐야 한다.
+- Fresh-context checker: 기준 5개 PASS. 지적 중 ZIP 충돌을 긴 빌드 전에 확인하도록 고쳤다.
+- 저장소 위생(범위 밖): `ColorGateRunner/.utmp/`와 `ColorGateRunner/Data/Plugins/lib_burst_generated.wasm`은
+  빌드 중간 파일인데 git에 추적되어 빌드할 때마다 바뀐다.
+
 ## Iteration 66 — Neon Chrome for Frontend Frames and Icons (2026-11-05 KST)
 
 - 기준: `6e7f615`(Iteration 65) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음.
