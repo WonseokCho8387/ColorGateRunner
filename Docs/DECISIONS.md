@@ -1911,6 +1911,14 @@ Status: Approved and implemented.
 
 
 
+## Iteration 66 neon chrome for Frontend frames and icons (2026-11-05 기록)
+
+- 사용자 결정: 남은 금색 장식을 네온으로 바꾸고, 스테이지 카드와 페이지 제목 틀도 포함한다.
+- 구현 중 방식 변경(사용자에게 보고): 틀과 선 아이콘을 코드로 다시 그리는 대신, 모든 대상에서 금색
+  픽셀만 다시 칠한다. 기존 그림의 모양과 질감을 잃지 않기 때문이다.
+- IconCoin은 재화라서 금색을 유지한다. IconPlay는 Magenta, IconContinue의 초록 화살표와 스테이지 카드의
+  초록 PLAY 받침은 이번 범위 밖이라 그대로 둔다.
+
 ## Iteration 65 lobby illustrations (2026-11-05 기록)
 
 - 사용자 결정: 로비 일러스트는 Claude가 쓴 프롬프트로 사용자가 ChatGPT에서 직접 만든다.

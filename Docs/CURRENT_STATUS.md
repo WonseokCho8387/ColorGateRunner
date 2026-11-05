@@ -1,5 +1,21 @@
 # Current Status
 
+## Iteration 66 — Neon Chrome for Frontend Frames and Icons (2026-11-05 KST)
+
+- 기준: `6e7f615`(Iteration 65) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음.
+  Push 없음.
+- 금색은 재화 전용이라는 Iteration 61 규칙에 맞춰, Frontend 틀 5장(TopResourceBar,
+  BottomNavigationDock, NavigationSelection, LobbyStageCard, PageHeader)과 Theme01 아이콘 14개의 금색
+  장식을 청록 크롬으로 바꿨다. IconCoin은 재화라서 금색을 유지하고 IconContinue는 금색이 없어 그대로다.
+  IconPlay의 초록 채움은 주요 행동 색인 Magenta로 바꿨다.
+- `Tools/Recolor-NeonChrome.mjs`가 `6e7f615`의 원본을 git에서 읽어 금색 띠 픽셀만 회색을 거쳐
+  청록으로 섞는다. 모양·명암·알파·크기·PNG 부가 청크는 그대로이고 같은 결과를 다시 만든다.
+- 자동 검증: **EditMode `600/600` passed; PlayMode `292` passed, `1` intentional opt-in ignore**. Builder 각 2회(Scene은 ID 재배치, 재질은 공백만
+  바뀌어 복원). 그래픽 캡처 1080×1920, 720×1280. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+  근거: `Artifacts/Validation/Iteration66/`, `Artifacts/Validation/VisualQC/`.
+- Fresh-context checker: 범위·재현성·테스트 PASS. 지적(어두운 청동·옅은 황갈색 잔여, 금색과 청록 사이
+  올리브 줄무늬, 두 번 실행 시 결과 변화, PNG 부가 청크 손실, 느슨한 테스트 기준)을 한 번에 고쳤다.
+
 ## Iteration 65 — Lobby Illustrations (2026-11-05 KST)
 
 - 기준: `c156e9a`(Iteration 74) 위에서 진행했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음.

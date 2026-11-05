@@ -1270,6 +1270,19 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 66 neon chrome for Frontend frames and icons
+
+- EditMode `NeonChromeArtTests`: each of the 19 recolored frames and icons has
+  under 0.1 percent visible pixels in the gold band (hue 26-80, saturation
+  above 0.22, value above 0.14; the originals held 4-21 percent), and
+  IconCoin stays above 30 percent gold.
+- Tool evidence: alpha unchanged in every file, bronze/tan residue 0 percent,
+  ancillary PNG chunks preserved, and repeated runs byte-identical.
+- Human review: chrome quality, cohesion with the neon pages and device
+  readability.
+- Final evidence: Builders `2/2`; EditMode `600/600` passed; PlayMode `292` passed, `1` intentional opt-in ignore;
+  Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 65 lobby illustrations
 
 - Existing EditMode lobby tests still check the sprite import settings of all

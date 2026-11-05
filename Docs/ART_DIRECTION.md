@@ -1160,3 +1160,10 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Color Courtyard keeps the faceted crystal with six attachment nodes, Neon
   Garden uses a crystal tree with Red, Blue and Green blooms, and Sky Festival
   uses a beacon tower with Red, Blue and Green panels.
+
+## Iteration 66 neon chrome
+
+- Frontend frames and Theme01 icons no longer carry gold trim; it is a cool
+  steel-cyan chrome that keeps the painted shading. Gold now appears only on
+  currency (IconCoin and coin amounts).
+- The Play icon fill is Magenta, the primary-action color.
