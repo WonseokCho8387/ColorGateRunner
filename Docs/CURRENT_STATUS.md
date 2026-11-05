@@ -6,7 +6,7 @@
   없음. Push 없음.
 - 앱 아이콘: `Tools/Generate-AppIcon.ps1`이 Victory 엠블럼(게이트 포털)으로 적응형 아이콘 배경·전경(432px)과
   레거시 아이콘(512px)을 만들고(`Assets/Game/Art/AppIcon`), `Tools > Color Gate Runner > Apply App Icons`
-  (`Editor/AppIconBuilder`)가 Android 적응형·원형·레거시 슬롯과 기본 아이콘에 넣는다. 사용자 승인 범위로
+  (`Editor/AppIconBuilder`)가 Android 적응형·원형·레거시 슬롯에 넣는다(기본 아이콘은 비움). 사용자 승인 범위로
   ProjectSettings는 아이콘 항목만 바뀌었다. 기기 표시 이름은 바꾸지 않았다.
 - 경제: 상점 없이 캠페인에서 얻는 양은 코인 6,500(첫 클리어 3,500 + 마일스톤 3,000), Shield 9, Booster
   8이다. 캠페인 뒤에는 수입이 없던 문제를 막기 위해 리그 클리어마다 100코인을 준다
