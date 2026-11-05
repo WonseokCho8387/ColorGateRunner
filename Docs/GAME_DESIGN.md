@@ -986,6 +986,20 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 77 tutorial
+
+- Until Stage 1 is cleared, Stage 1 is a guide run: before each of its first
+  three gates the run stops `0.15s` ahead (inside the PERFECT window) and waits
+  until the runner color matches; a gate that already matches resumes by
+  itself. Frozen time is not gameplay time, so judgment, grades, records and
+  simulations are unchanged. It then explains grades and the Goal, names both
+  colors on a failure and shows the crown rules after the first clear.
+- The first Stage of each new element (Green, Shield, Booster, start items,
+  Camouflage, Fog, Ice, Echo, Hidden, Flicker) shows one rule card in PreRun
+  while it has never been cleared or started.
+- The Lobby `?` opens HOW TO PLAY: controls, judgment moment, timing grades
+  and crowns.
+
 ## Iteration 76 League clear coins
 
 - Supersedes the Iteration 55 rule that League has no League-only economy:

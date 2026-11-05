@@ -155,6 +155,39 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator HowToPlay_OpensPagedRuleCardFromLobby()
+        {
+            yield return LoadFrontendThroughBoot(() =>
+                CreateGraph(new ExistingGuestSaveService(true)));
+
+            FrontendSceneController controller = RequireController();
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+            Assert.That(controller.HowToPlayButton.gameObject.activeInHierarchy,
+                Is.True);
+            TutorialCardView card = controller.HowToPlayCard;
+            Assert.That(card.IsOpen, Is.False);
+
+            controller.HowToPlayButton.onClick.Invoke();
+            Assert.That(card.IsOpen, Is.True);
+            Assert.That(card.PageCount, Is.EqualTo(4));
+            Assert.That(card.Title.text, Is.EqualTo("CHANGE COLOR"));
+            for (int page = 1; page < card.PageCount; page++)
+            {
+                card.PrimaryButton.onClick.Invoke();
+            }
+            Assert.That(card.Title.text, Is.EqualTo("CROWNS"));
+            card.PrimaryButton.onClick.Invoke();
+            Assert.That(card.IsOpen, Is.False);
+
+            controller.HowToPlayButton.onClick.Invoke();
+            controller.HandleBack();
+            Assert.That(card.IsOpen, Is.False);
+            Assert.That(controller.Router.CurrentPage,
+                Is.EqualTo(FrontendPage.Lobby));
+        }
+
+        [UnityTest]
         public IEnumerator LobbyShell_UsesAuthoredPageArtAndContainedText()
         {
             yield return LoadFrontendThroughBoot(() =>

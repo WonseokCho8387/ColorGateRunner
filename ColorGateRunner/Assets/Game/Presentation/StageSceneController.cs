@@ -522,6 +522,7 @@ namespace ColorGateRunner.Presentation
             TickGateReactions(deltaTime);
             resultSequenceView.Tick(deltaTime);
             TickOutcomePresentation(deltaTime);
+            TickTutorialCards();
             TickContinueGoFlash(deltaTime);
 
             if (splineTrackLab != null && splineTrackLab.Active)
@@ -578,6 +579,12 @@ namespace ColorGateRunner.Presentation
                 return;
             }
 
+            if (TickTutorialHold(deltaTime))
+            {
+                SynchronizeViews();
+                TickCamera(deltaTime);
+                return;
+            }
             bool boosterBefore = _session.BoosterActive;
             TickMovement(deltaTime);
             if (boosterBefore && !_session.BoosterActive)
@@ -607,6 +614,11 @@ namespace ColorGateRunner.Presentation
                 ? _session.CurrentSpeed
                 : _session.GetSpeedForPlan(upcoming.ActivePlan);
             float distance = effectiveSpeed * deltaTime;
+            distance = LimitToTutorialHold(
+                upcoming,
+                effectiveSpeed,
+                distance,
+                ref deltaTime);
             if (_session.FlowState != StageFlowState.StageFinishing)
             {
                 _session.Advance(deltaTime, distance);
@@ -669,12 +681,13 @@ namespace ColorGateRunner.Presentation
                 }
                 return;
             }
-            if (_session == null)
+            if (_session == null || TutorialBlocksTap())
             {
                 return;
             }
             if (_session.TryToggleColor())
             {
+                OnTutorialColorChanged();
                 _playtest?.RecordInput();
                 _telemetry.Record(
                     "tap",
@@ -712,6 +725,11 @@ namespace ColorGateRunner.Presentation
 
         internal void HandleBack()
         {
+            if (tutorialCard != null && tutorialCard.IsOpen)
+            {
+                tutorialCard.Close();
+                return;
+            }
             if (!_experimentActive &&
                 _campaignResultFlow?.CurrentPage ==
                 CampaignResultPage.FailureExitConfirmation)
@@ -956,6 +974,7 @@ namespace ColorGateRunner.Presentation
             selectedStageText.text =
                 $"STAGE {displayNumber}\n{_session.Stage.Title}";
             SynchronizeItemSelection();
+            ShowStageIntroIfNew(definition);
             return true;
         }
 
@@ -1204,6 +1223,7 @@ namespace ColorGateRunner.Presentation
             BuildInitialGatePool();
             PlacePlannedGoal();
             stageMusic.Prepare(_session.Stage.DisplayNumber);
+            BeginGuideRunIfEligible();
             ApplyUiFlow(MobileUiFlow.Countdown);
             shieldVisual.SetActive(_shieldSelected);
             _continueReadyActive = false;
@@ -1248,12 +1268,10 @@ namespace ColorGateRunner.Presentation
                 _combo.Record(outcome, _session.LastGateSwitchTiming);
             comboHud.Apply(comboStep, _combo.Current);
             soundEffects.PlayGateStep(comboStep);
-            if (_playtest != null)
-            {
-                if (outcome == GateOutcome.Matched) _playtest.RecordDirectMatch();
-                if (outcome == GateOutcome.Mismatched)
-                    CapturePlaytestFailure(gate, plan);
-            }
+            if (outcome == GateOutcome.Matched) _playtest?.RecordDirectMatch();
+            if (outcome == GateOutcome.Mismatched)
+                CapturePlaytestFailure(gate, plan);
+            OnTutorialGateResolved(gateIndex, outcome);
             if (outcome == GateOutcome.Matched ||
                 outcome == GateOutcome.Invulnerable ||
                 outcome == GateOutcome.Echoed)
@@ -1661,6 +1679,8 @@ namespace ColorGateRunner.Presentation
         internal void SetProgressStoreForTests(IStageProgressStore store)
         {
             _progressStore = store ?? throw new ArgumentNullException(nameof(store));
+            // Injected test stores start empty; tutorial tests opt back in.
+            _tutorialsEnabled = false;
             _highestUnlocked = Mathf.Clamp(
                 _progressStore.LoadHighestUnlocked(),
                 1,
@@ -1885,6 +1905,8 @@ namespace ColorGateRunner.Presentation
                 rivalRace == null || !rivalRace.HasRequiredReferences ||
                 comboHud == null || !comboHud.HasRequiredReferences ||
                 crownResult == null || !crownResult.HasRequiredReferences ||
+                tutorialGuideText == null ||
+                tutorialCard == null || !tutorialCard.HasRequiredReferences ||
                 stageMusic == null || !stageMusic.HasRequiredReferences ||
                 soundEffects == null || !soundEffects.HasRequiredReferences ||
                 gates == null ||
@@ -3204,11 +3226,11 @@ namespace ColorGateRunner.Presentation
                     int remaining = CampaignResultFlow.RemainingGatesAfterContinue(
                         _session.Stage.TargetGateCount,
                         _session.GatesPassed);
-                    failDetailsText.text = remaining > 0
+                    failDetailsText.text = FormatGuideFailure() + (remaining > 0
                         ? $"{remaining} GATES LEFT\n" +
                             "CONTINUE CLEARS THIS GATE · READY / GO"
                         : "GOAL AHEAD\n" +
-                            "CONTINUE CLEARS THIS GATE · READY / GO";
+                            "CONTINUE CLEARS THIS GATE · READY / GO");
                     _campaignResultFlow.BeginFailure();
                     resultSequenceView.ShowFailureContinue();
                     SynchronizeContinueOffers();
@@ -3288,6 +3310,7 @@ namespace ColorGateRunner.Presentation
                     _campaignResultFlow.BeginClear();
                     resultSequenceView.PlayCampaignClear(
                         BuildClearRewardLines());
+                    QueueCrownCard();
                 }
             }
         }
@@ -3424,6 +3447,8 @@ namespace ColorGateRunner.Presentation
         {
             _pauseCoordinator?.Clear();
             stageMusic.Stop();
+            EndGuideRun();
+            _crownCardPending = false;
             _countdownCueLabel = string.Empty;
             _pauseSceneLoadError = string.Empty;
             _clearRecorded = false;
@@ -3661,6 +3686,7 @@ namespace ColorGateRunner.Presentation
                 _shieldSelected && !_session.ContinueUsed));
             stageHudText.text = $"STAGE {_selectedStageNumber}";
             SynchronizePlaytestGuide();
+            SynchronizeTutorialGuide();
             progressText.text =
                 $"{_session.GatesPassed} / {_session.Stage.TargetGateCount}";
             progressFill.fillAmount = _session.Progress;

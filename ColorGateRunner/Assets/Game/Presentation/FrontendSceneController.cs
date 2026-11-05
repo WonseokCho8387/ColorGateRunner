@@ -152,6 +152,7 @@ namespace ColorGateRunner.Presentation
             ApplyModal(_router.CurrentModal);
             ApplyPlaytestEntry();
             ApplyFreeEdition();
+            ApplyHowToPlay();
             if (!_productReady)
             {
                 _router.TryShowModal(FrontendModal.BootRequired);
@@ -189,6 +190,7 @@ namespace ColorGateRunner.Presentation
 
         public void HandleBack()
         {
+            if (TryCloseHowToPlay()) return;
             _router.HandleBack();
         }
 

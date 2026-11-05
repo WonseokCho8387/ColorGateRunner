@@ -1911,6 +1911,14 @@ Status: Approved and implemented.
 
 
 
+## Iteration 77 tutorial (2026-11-05 기록)
+
+- 사용자 결정: 새 튜토리얼 Stage를 만들지 않고 Stage 1을 가이드 런으로 쓴다(추천안 1~4 승인).
+- 가이드의 정지는 표시 계층만 멈추고 Core StageSession을 진행하지 않는다. 그래서 판정·시간·시뮬레이션
+  계약은 바뀌지 않는다.
+- 표시 여부는 기존 기록(Stage 1 클리어, 각 Stage의 클리어/시작 횟수)으로 판단하고 저장 필드를 추가하지
+  않는다. 이미 Stage 1을 깬 플레이어는 로비 `?`(HOW TO PLAY)로 규칙을 본다.
+
 ## Iteration 76 Android app icon and League clear coins (2026-11-05 기록)
 
 - 사용자 결정: Android 앱 아이콘은 Victory 엠블럼(게이트 포털, 후보 B)으로 한다.

@@ -700,6 +700,11 @@ namespace ColorGateRunner.Editor
             controller.ConfigureResultSequence(resultSequenceView);
             controller.ConfigurePlaytestGuide(
                 PlaytestUiBuilder.CreateGuide(flowRoots[2].transform));
+            TutorialCardView tutorialCard =
+                TutorialUiBuilder.CreateCard(safeArea, 2);
+            controller.ConfigureTutorial(
+                TutorialUiBuilder.CreateGuide(flowRoots[2].transform),
+                tutorialCard);
             controller.ConfigurePause(
                 pauseButton,
                 pauseOverlayRoot,
@@ -770,6 +775,8 @@ namespace ColorGateRunner.Editor
             {
                 flowRoots[index].SetActive(index == 0);
             }
+            // Above every flow root, including PreRun and the result panels.
+            tutorialCard.transform.SetAsLastSibling();
             lobbyPanel.SetActive(true);
             stageSelectPanel.SetActive(true);
             itemPanel.SetActive(true);
@@ -1122,6 +1129,8 @@ namespace ColorGateRunner.Editor
                 "InsufficientCoinsCloseButton",
                 "ReplayButton",
                 "RetryButton",
+                "TutorialGuide",
+                "TutorialCard",
                 "PauseButton",
                 "PauseOverlayRoot",
                 "PauseDim",

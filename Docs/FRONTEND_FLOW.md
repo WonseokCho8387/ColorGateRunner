@@ -1166,3 +1166,11 @@ not reusable art assets or an exact visual copy.
 - Rank and Collection are navigable illustrated placeholders with truthful
   `COMING SOON` copy and no interaction, persistence or simulated service.
   Collection is superseded by the Iteration 68B record list.
+
+## Iteration 77 tutorial overlays
+
+- Gameplay: a non-raycasting Stage 1 guide line in the Gameplay HUD and one
+  modal rule card above every Campaign flow root (new-mechanic intro in PreRun,
+  CROWNS on the first Stage 1 clear result). Back closes the card first.
+- Frontend Lobby: the `?` button beside PLAY opens the paged HOW TO PLAY card
+  above the Popup root; Back closes it before page navigation.

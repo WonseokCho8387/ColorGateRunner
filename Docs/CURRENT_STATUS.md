@@ -1,5 +1,17 @@
 # Current Status
 
+## Iteration 77 — Tutorial (2026-11-05 KST)
+
+- 기준: `387a306`(Iteration 76, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음.
+- Stage 1 가이드 런: Stage 1을 깨기 전에는 첫 3개 게이트 `0.15s` 앞에서 화면 이동을 멈추고 색을 맞출 때까지
+  기다린다(같은 색이면 안내 후 자동 재개). 멈춘 동안 StageSession은 진행하지 않아 시간·판정·기록·시뮬레이션은
+  그대로다. 이후 등급과 Goal을 안내하고, 실패 시 `YOU / GATE` 색을 보여 준다. 첫 클리어 결과에서 CROWNS 카드.
+- 새 기믹 안내 카드: 각 기믹의 첫 Stage(4 Green, 6 Shield, 7 Booster, 8 아이템, 9, 12, 15, 18, 21, 24)를
+  클리어·시작한 적 없을 때 PreRun에서 한 번. 로비 `?` 버튼은 4장짜리 HOW TO PLAY. 저장 구조 변경 없음.
+- 자동 검증: **EditMode 617/617; PlayMode 299 passed + 1 intentional ignore (300)**(활성 플랫폼 WebGL). Builder 2회, Campaign 시뮬레이션과
+  Step 10 산출물 해시 **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+
 ## Iteration 76 — Android App Icon and League Clear Coins (2026-11-05 KST)
 
 - 기준: `a957e4d`(Iteration 75, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

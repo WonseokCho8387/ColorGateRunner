@@ -1270,6 +1270,26 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 77 tutorial
+
+- EditMode `TutorialTests`: guide holds wait for the matching tap, same-color
+  holds resume by themselves and block taps, only the first three gates hold,
+  grades and Goal follow, the message is not rebuilt per frame; intro cards
+  appear exactly on Stages 4, 6, 7, 8, 9, 12, 15, 18, 21 and 24; HOW TO PLAY
+  covers controls, judgment, timing and crowns.
+- PlayMode `TutorialPlayModeTests`: a Stage 1 hold freezes distance, gameplay
+  time and music until the color matches and the gate then passes; a cleared
+  Stage 1 has no guide; a guide failure names both colors; the first clear
+  opens CROWNS after the celebration; intro cards show once per visit and not
+  after an attempt. `FrontendFlowPlayModeTests.HowToPlay_OpensPagedRuleCardFromLobby`.
+- Injected test progress stores disable tutorials so existing flows are
+  unchanged; tutorial tests opt back in.
+- Not automated: whether the pause feels intrusive, phone readability of the
+  guide line and cards, and whether new players understand the rules.
+- Final evidence: EditMode 617/617; PlayMode 299 passed + 1 intentional ignore (300); Builders twice; Campaign
+  and Step 10 artifacts hash-identical; Product save and Campaign PlayerPrefs
+  exact.
+
 ### Iteration 76 Android app icon and League clear coins
 
 - EditMode `AppIconTests`: the 432 px adaptive background/foreground and the

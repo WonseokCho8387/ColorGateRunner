@@ -106,6 +106,20 @@ namespace ColorGateRunner.Editor
                 out Text modalCancelText);
             SettingsPanelController settingsPanel =
                 CreateSettingsPanel(popupRoot.transform);
+            // "Play"/"Lobby" in a name would pick up a skin icon.
+            Button howToPlay = CreateButton(
+                "HowToGuideButton",
+                lobbyTheme.transform,
+                "?",
+                new Vector2(0.1f, 0.159f),
+                new Vector2(0.24f, 0.209f),
+                FromHex(0x253047),
+                out Text howToPlayLabel);
+            howToPlayLabel.fontSize = 26;
+            TutorialCardView howToPlayCard =
+                TutorialUiBuilder.CreateCard(canvas.transform, 1);
+            howToPlayCard.transform.SetSiblingIndex(
+                popupRoot.transform.GetSiblingIndex() + 1);
 
             GameObject loadingRoot = CreateOverlayRoot(
                 "LoadingRoot",
@@ -208,6 +222,7 @@ namespace ColorGateRunner.Editor
             PlaytestEntryView playtestEntry = PlaytestUiBuilder.CreateEntry(safeArea.transform);
             playtestEntry.transform.SetSiblingIndex(popupRoot.transform.GetSiblingIndex());
             controller.ConfigurePlaytestEntry(playtestEntry);
+            controller.ConfigureHowToPlay(howToPlay, howToPlayCard);
             SoundEffectPlayer soundEffects =
                 SoundLibraryBuilder.CreatePlayer(root.transform);
             SoundLibraryBuilder.BindControls(root.transform, soundEffects);
@@ -353,7 +368,7 @@ namespace ColorGateRunner.Editor
                 "CollectionNavigationButton",
                 "CurrencySlotRoot", "EventModuleSlotRoot",
                 "NotificationSlotRoot", "LobbyThemeRoot",
-                "SettingsPanel"
+                "SettingsPanel", "HowToGuideButton", "TutorialCard"
             };
             for (int index = 0; index < uniqueNames.Length; index++)
             {

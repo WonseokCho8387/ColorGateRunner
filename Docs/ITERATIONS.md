@@ -4308,3 +4308,38 @@ Android 내부 테스트에 기본 Unity 아이콘이 쓰이고 있었다. 상�
 
 - 실제 런처에서 아이콘이 잘 보이는지, 리그 100코인이 적절한지는 사람이 판단한다.
 - Continue Ticket의 플레이 획득 경로, 기기 표시 이름, Android 설정 화면 링크 겹침은 이후 작업이다.
+
+## Iteration 77 — Tutorial (2026-11-05)
+
+### Play / Analyze
+
+게임 안에 조작, 판정 시점, 등급, 크라운 설명이 없었다. 로비의 스테이지 설명 한 줄과 플레이테스트 빌드
+전용 안내 문구뿐이었다.
+
+### Design
+
+별도 튜토리얼 Stage는 카탈로그·리그·컬렉션·음악·시뮬레이션을 모두 건드리므로, 가장 느린 두 색 Stage 1을
+가이드 런으로 쓰기로 했다. 게이트 앞에서 멈춰 "통과하는 순간 색을 검사한다"는 것을 직접 보여 준다.
+
+### Implementation
+
+`Core/TutorialGuide`(가이드 단계), `Core/TutorialCards`(규칙 카드와 기믹 첫 Stage 판정),
+`TutorialCardView`, `StageSceneController.Tutorial`, `FrontendSceneController.Tutorial`,
+`Editor/TutorialUiBuilder`, 두 Scene Builder, 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 새 컨텍스트 checker는 차단 문제 없이
+매 프레임 문자열 할당, 기믹 카드 재표시, 프레임률에 따른 PERFECT 여유, 3번째 게이트 실패 후 안내, 카드 순서,
+Camouflage 문구를 지적했고 한 번에 고쳤다.
+
+### Learning
+
+테스트가 주입하는 빈 진행 저장소는 "Stage 1 미클리어"로 보이므로 첫 실행 기능이 기존 테스트를 바꾼다.
+테스트 주입 경로에서 끄고, 해당 기능 테스트만 다시 켜는 방식이 변경 범위를 가장 작게 한다.
+
+### Deferred / Human Review
+
+- 멈춤이 답답하지 않은지, 휴대폰에서 안내 줄·카드가 잘 읽히는지, 처음 하는 사람이 규칙을 이해하는지.
+- 실패 문구가 5줄로 늘어난 Stage 1 실패 화면의 배치.
+- 튜토리얼 문구 한국어화는 하지 않았다(UI 전체가 영어).
