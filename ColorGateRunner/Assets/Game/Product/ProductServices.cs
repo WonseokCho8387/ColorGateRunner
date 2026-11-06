@@ -963,6 +963,62 @@ namespace ColorGateRunner.Product
             return Commit(candidate);
         }
 
+        // After the Campaign order changes, a save written for an older
+        // layout resumes at the first Stage it has not cleared in the new
+        // order. Records stay on their Stage IDs. Runs once per layout.
+        public ProductMutationResult ReconcileCampaignLayout(
+            int layoutVersion,
+            IReadOnlyList<string> orderedStageIds)
+        {
+            // Before the account choice there is no progress to move yet.
+            if (_current?.Profile == null)
+            {
+                return ProductMutationResult.Success(false);
+            }
+            if (!TryGetReady(out ProductMutationResult failure))
+            {
+                return failure;
+            }
+            if (orderedStageIds == null || orderedStageIds.Count == 0)
+            {
+                return InvalidProgression("The Campaign order is empty.");
+            }
+            LocalCampaignProgressData campaign = _current.CampaignProgress;
+            if (campaign.CampaignLayoutVersion >= layoutVersion)
+            {
+                return ProductMutationResult.Success(false);
+            }
+
+            string resume = orderedStageIds[orderedStageIds.Count - 1];
+            for (int index = 0; index < orderedStageIds.Count; index++)
+            {
+                if (!IsCleared(campaign, orderedStageIds[index]))
+                {
+                    resume = orderedStageIds[index];
+                    break;
+                }
+            }
+            LocalSaveData candidate = _current.Clone();
+            candidate.CampaignProgress.HighestUnlockedStageId = resume;
+            candidate.CampaignProgress.CampaignLayoutVersion = layoutVersion;
+            return Commit(candidate);
+        }
+
+        private static bool IsCleared(
+            LocalCampaignProgressData campaign,
+            string stageId)
+        {
+            List<LocalStageProgressData> records = campaign.StageRecords;
+            for (int index = 0; index < records.Count; index++)
+            {
+                if (records[index]?.StageId == stageId)
+                {
+                    return records[index].Cleared;
+                }
+            }
+            return false;
+        }
+
         private ProductMutationResult Commit(LocalSaveData candidate)
         {
             LocalSaveWriteResult write = _saveService.Save(candidate);

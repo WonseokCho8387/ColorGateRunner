@@ -13,7 +13,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void FrontendReader_ReusesLobbyProgressionAndReturnsStableStageId()
         {
             var progress = new MemoryProgressReader(8);
-            for (int stage = 1; stage <= 5; stage++)
+            for (int stage = 1; stage <= 3; stage++)
             {
                 progress.SetCleared(stage);
             }
@@ -23,13 +23,13 @@ namespace ColorGateRunner.Tests.EditMode
                     progress,
                     StageCatalog.Current).Read();
 
-            Assert.That(model.DisplayNumber, Is.EqualTo(6));
+            Assert.That(model.DisplayNumber, Is.EqualTo(4));
             Assert.That(model.StageId,
-                Is.EqualTo(StageCatalog.GetByDisplayNumber(6).StageId));
+                Is.EqualTo(AuthoredStage.Get(6).StageId));
             Assert.That(model.Title, Is.EqualTo("SHIELD TRAINING"));
             Assert.That(model.MechanicLabel, Is.EqualTo("SHIELD"));
             Assert.That(model.DifficultyLabel, Is.EqualTo("NORMAL"));
-            Assert.That(model.ClearedCount, Is.EqualTo(5));
+            Assert.That(model.ClearedCount, Is.EqualTo(3));
             Assert.That(progress.WriteCount, Is.Zero);
         }
 

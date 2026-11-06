@@ -101,6 +101,14 @@ namespace ColorGateRunner.Presentation
                         result.Steps,
                         migration.Error);
                 }
+                ProductMutationResult layout =
+                    ReconcileCampaignLayoutIfReady();
+                if (!layout.Succeeded)
+                {
+                    return AppInitializationResult.Failure(
+                        result.Steps,
+                        layout.Error);
+                }
                 UnityProductSettingsRuntime.ApplyMasterVolume(
                     _graph.Settings.Current);
             }
@@ -115,7 +123,35 @@ namespace ColorGateRunner.Presentation
                         ProductErrorCode.Initialization,
                         "The AppRoot service graph is unavailable.",
                         true))
-                : _graph.ProductSession.CompleteGuestAccountChoice();
+                : CompleteGuestAccountChoiceAndLayout();
+        }
+
+        private ProductMutationResult CompleteGuestAccountChoiceAndLayout()
+        {
+            ProductMutationResult result =
+                _graph.ProductSession.CompleteGuestAccountChoice();
+            return result.Succeeded
+                ? ReconcileCampaignLayoutIfReady()
+                : result;
+        }
+
+        // Moves a save made for an older Campaign order onto the current one.
+        private ProductMutationResult ReconcileCampaignLayoutIfReady()
+        {
+            if (_graph?.ProductSession?.IsReady != true)
+            {
+                return ProductMutationResult.Success(false);
+            }
+            StageCatalogProvider.EnsureConfigured();
+            IStageCatalog catalog = StageCatalog.Current;
+            var stageIds = new string[catalog.Count];
+            for (int index = 0; index < catalog.Count; index++)
+            {
+                stageIds[index] = catalog.GetByIndex(index).StageId;
+            }
+            return _graph.ProductSession.ReconcileCampaignLayout(
+                StageCatalogAsset.CampaignLayoutVersion,
+                stageIds);
         }
 
         public ProductMutationResult ApplySettings(
@@ -294,14 +330,17 @@ namespace ColorGateRunner.Presentation
             StageCatalogProvider.EnsureConfigured();
             IStageCatalog catalog = StageCatalog.Current;
             var legacy = new PlayerPrefsStageProgressStore();
+            // Legacy keys were written when display number N was stage-NN,
+            // so they map by authored Stage, not by today's order.
             int highestNumber = legacy.LoadHighestUnlocked();
-            StageDefinition highest =
-                catalog.GetByDisplayNumber(highestNumber);
+            StageDefinition highest = catalog.GetById(
+                StageCatalogAsset.LegacyStageId(highestNumber));
             var entries = new List<CampaignProgressImportEntry>(catalog.Count);
             for (int index = 0; index < catalog.Count; index++)
             {
                 StageDefinition stage = catalog.GetByIndex(index);
-                StageRecord record = legacy.LoadRecord(stage.DisplayNumber);
+                StageRecord record = legacy.LoadRecord(
+                    StageCatalogAsset.LegacyNumber(stage.StageId));
                 entries.Add(new CampaignProgressImportEntry(
                     stage.DisplayNumber,
                     new LocalStageProgressData

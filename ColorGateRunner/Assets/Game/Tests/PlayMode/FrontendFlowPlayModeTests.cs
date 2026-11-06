@@ -1144,12 +1144,14 @@ namespace ColorGateRunner.Tests.PlayMode
             }
             PlayerPrefs.SetString(RecordKey, record);
             PlayerPrefs.Save();
+            // Legacy records 1-6 are stage-01..06; in the current order the
+            // first uncleared Stage is stage-07 at display 5.
             yield return LoadFrontendThroughBoot();
             FrontendSceneController controller = RequireController();
 
             controller.TitleStartButton.onClick.Invoke();
             Assert.That(controller.LobbyStageText.text,
-                Is.EqualTo("STAGE 7"));
+                Is.EqualTo("STAGE 5"));
             Assert.That(controller.LobbyStageTitleText.text,
                 Is.EqualTo("BOOSTER TIMING"));
             controller.LobbyPlayButton.onClick.Invoke();
@@ -1162,7 +1164,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(campaign.LobbyRoot.activeSelf, Is.False);
             Assert.That(campaign.PreRunRoot.activeSelf, Is.True);
             Assert.That(campaign.UiFlow, Is.EqualTo(MobileUiFlow.PreRun));
-            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(7));
+            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(5));
             Assert.That(PlayerPrefs.GetInt(UnlockKey, -1), Is.EqualTo(8));
             Assert.That(PlayerPrefs.GetString(RecordKey, string.Empty),
                 Is.EqualTo(record));
@@ -1333,7 +1335,7 @@ namespace ColorGateRunner.Tests.PlayMode
             StageSceneController campaign =
                 Object.FindFirstObjectByType<StageSceneController>();
 
-            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(8));
+            Assert.That(campaign.SelectedStageNumber, Is.EqualTo(6));
             Assert.That(campaign.ShieldToggleText.text,
                 Is.EqualTo("SHIELD x2: OFF"));
             Assert.That(campaign.BoosterToggleText.text,
@@ -1366,7 +1368,7 @@ namespace ColorGateRunner.Tests.PlayMode
             campaign.Tick(1.3f);
 
             Assert.That(save.Stored.Economy.HeartCount, Is.EqualTo(1));
-            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(300));
+            Assert.That(save.Stored.Economy.Coins, Is.EqualTo(400));
             LocalStageProgressData stored = null;
             foreach (LocalStageProgressData record in
                 save.Stored.CampaignProgress.StageRecords)
@@ -1382,7 +1384,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo((int)StageCrown.Clean));
             Assert.That(stored.BestMaxCombo, Is.EqualTo(campaign.Combo.Max));
             Assert.That(campaign.ClearDetailsText.text,
-                Does.Contain("STAGE 8 COMPLETE"));
+                Does.Contain("STAGE 6 COMPLETE"));
             Assert.That(campaign.ClearDetailsText.text,
                 Does.Contain("TIME"));
             campaign.Tick(
@@ -1391,8 +1393,9 @@ namespace ColorGateRunner.Tests.PlayMode
             campaign.Tick(
                 StageResultSequenceView.CelebrationExitDuration + 0.01f);
             campaign.Tick(2f);
+            // Stage 6 is the third milestone: coins, a Shield and a Booster.
             Assert.That(campaign.ResultSequenceView.VisibleRewardRowCount,
-                Is.EqualTo(3));
+                Is.EqualTo(4));
             Text[] resultTexts = campaign.ResultSequenceView
                 .GetComponentsInChildren<Text>(true);
             for (int index = 0; index < resultTexts.Length; index++)

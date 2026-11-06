@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ColorGateRunner.Core;
+using ColorGateRunner.Presentation;
 using NUnit.Framework;
 
 namespace ColorGateRunner.Tests.EditMode
@@ -34,7 +35,7 @@ namespace ColorGateRunner.Tests.EditMode
             for (int index = 0; index < expected.Length; index++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(index + 6);
+                    AuthoredStage.Get(index + 6);
                 Assert.That(stage.PrimaryMechanic, Is.EqualTo(expected[index]));
             }
         }
@@ -74,32 +75,27 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void StartItems_AreLockedThroughGrantTrainingAndUnlockAtStageEight()
+        public void StartItems_AreLockedThroughGrantTrainingAndUnlockAtTheItemStage()
         {
-            for (int stageNumber = 1; stageNumber <= 7; stageNumber++)
+            // Display 1-3 basics, 4 Shield and 5 Booster training lock start
+            // items; from the Item Stage (display 6) on they are open.
+            for (int display = 1; display <= StageCatalog.Count; display++)
             {
-                StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
-                Assert.That(stage.ShieldAllowed, Is.False);
-                Assert.That(stage.BoosterAllowed, Is.False);
-
+                StageDefinition stage = StageCatalog.GetByDisplayNumber(display);
+                bool locked = display <= 5;
+                Assert.That(stage.ShieldAllowed, Is.EqualTo(!locked), $"{display}");
+                Assert.That(stage.BoosterAllowed, Is.EqualTo(!locked), $"{display}");
+                if (!locked)
+                {
+                    continue;
+                }
                 StageSession session = CreatePlaying(
-                    stageNumber,
+                    StageCatalogAsset.LegacyNumber(stage.StageId),
                     new StartItemSelection(true, true));
                 Assert.That(session.Items.Shield, Is.False);
                 Assert.That(session.Items.Booster, Is.False);
-                Assert.That(session.ShieldActive,
-                    Is.EqualTo(stageNumber == 6));
-                Assert.That(session.BoosterActive,
-                    Is.EqualTo(stageNumber == 7));
-            }
-
-            for (int stageNumber = 8; stageNumber <= 23; stageNumber++)
-            {
-                StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
-                Assert.That(stage.ShieldAllowed, Is.True);
-                Assert.That(stage.BoosterAllowed, Is.True);
+                Assert.That(session.ShieldActive, Is.EqualTo(display == 4));
+                Assert.That(session.BoosterActive, Is.EqualTo(display == 5));
             }
         }
 
@@ -135,9 +131,9 @@ namespace ColorGateRunner.Tests.EditMode
             {
                 DeterministicStageGateSequence sequence =
                     new DeterministicStageGateSequence(
-                        StageCatalog.GetByDisplayNumber(stageNumber));
+                        AuthoredStage.Get(stageNumber));
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
+                    AuthoredStage.Get(stageNumber);
                 for (int gate = 0; gate < stage.TargetGateCount; gate++)
                 {
                     Assert.That(
@@ -163,7 +159,7 @@ namespace ColorGateRunner.Tests.EditMode
                 stageOffset++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(21 + stageOffset);
+                    AuthoredStage.Get(21 + stageOffset);
                 var actual = new List<int>();
                 var sequence = new DeterministicStageGateSequence(stage);
                 for (int gate = 0; gate < stage.TargetGateCount; gate++)
@@ -197,7 +193,7 @@ namespace ColorGateRunner.Tests.EditMode
             for (int offset = 0; offset < 3; offset++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(24 + offset);
+                    AuthoredStage.Get(24 + offset);
                 DeterministicStageGateSequence sequence =
                     new DeterministicStageGateSequence(stage);
                 List<int> occurrences = new List<int>();
@@ -335,19 +331,19 @@ namespace ColorGateRunner.Tests.EditMode
         public void AuthoredSpeedCurves_AreSampledForDeterministicCoreUse()
         {
             Assert.That(
-                StageCatalog.GetByDisplayNumber(6).SpeedProfile.SampleCount,
+                AuthoredStage.Get(6).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(9).SpeedProfile.SampleCount,
+                AuthoredStage.Get(9).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(11).SpeedProfile.SampleCount,
+                AuthoredStage.Get(11).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(18).SpeedProfile.SampleCount,
+                AuthoredStage.Get(18).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
             Assert.That(
-                StageCatalog.GetByDisplayNumber(23).SpeedProfile.SampleCount,
+                AuthoredStage.Get(23).SpeedProfile.SampleCount,
                 Is.EqualTo(101));
         }
 
@@ -356,7 +352,7 @@ namespace ColorGateRunner.Tests.EditMode
             StartItemSelection items)
         {
             StageSession session = new StageSession(
-                StageCatalog.GetByDisplayNumber(stageNumber));
+                AuthoredStage.Get(stageNumber));
             session.SelectItems(items);
             session.BeginCountdown();
             session.CompleteCountdown();

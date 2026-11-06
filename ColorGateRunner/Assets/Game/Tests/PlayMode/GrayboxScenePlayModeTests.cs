@@ -430,12 +430,12 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void StagesOneThroughFive_ShowLockedItemsAndRejectToggles()
+        public void StagesOneThroughThree_ShowLockedItemsAndRejectToggles()
         {
-            _store.HighestUnlocked = 5;
+            _store.HighestUnlocked = 3;
             _controller.SetProgressStoreForTests(_store);
 
-            for (int stageNumber = 1; stageNumber <= 5; stageNumber++)
+            for (int stageNumber = 1; stageNumber <= 3; stageNumber++)
             {
                 _controller.SelectStage(stageNumber);
                 Assert.That(
@@ -465,7 +465,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(1, 1);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             Assert.That(_controller.ShieldToggleText.text,
                 Is.EqualTo("SHIELD x1: OFF"));
@@ -492,7 +492,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(0, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
             Assert.That(_controller.BoosterToggleButton.interactable, Is.True);
@@ -520,7 +520,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(0, 0, 5, false, 900);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             if (kind == StartItemKind.Shield)
             {
@@ -564,7 +564,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(0, 0, 5, false, 800);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             _controller.ToggleShieldSelection();
             _controller.ConfirmStartItemPurchase();
@@ -589,7 +589,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 FailPurchases = true
             };
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             _controller.ToggleBoosterSelection();
             _controller.ConfirmStartItemPurchase();
@@ -611,7 +611,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(0, 0, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             _controller.StartSelectedStage();
 
@@ -633,7 +633,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 FailWrites = true
             };
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleShieldSelection();
 
             _controller.StartSelectedStage();
@@ -656,7 +656,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(1, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleShieldSelection();
             _inventory.SetCounts(0, 0);
 
@@ -677,7 +677,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(1, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleShieldSelection();
 
             _controller.HandlePreRunBack();
@@ -694,7 +694,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(2, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleShieldSelection();
             _controller.StartSelectedStage();
 
@@ -715,7 +715,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _inventory = new StartItemInventoryTestGateway(1, 0);
             _controller.SetStartItemInventoryForTests(_inventory);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleShieldSelection();
             _controller.StartSelectedStage();
 
@@ -727,8 +727,8 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo("SHIELD · BUY 900"));
         }
 
-        [TestCase(6)]
-        [TestCase(7)]
+        [TestCase(4)]
+        [TestCase(5)]
         public void ProvidedItem_StartsWithoutProductInventory(int stageNumber)
         {
             _store.HighestUnlocked = 7;
@@ -743,7 +743,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.Playing));
             Assert.That(
-                stageNumber == 6
+                stageNumber == 4
                     ? _controller.Session.ShieldActive
                     : _controller.Session.BoosterActive,
                 Is.True);
@@ -756,7 +756,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _controller.SetStartItemInventoryForTests(
                 new UnavailableStartItemInventoryGateway());
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             _controller.ToggleShieldSelection();
             _controller.ToggleBoosterSelection();
@@ -790,9 +790,9 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void ThreeColorHud_ShowsFullOrder()
         {
-            _store.HighestUnlocked = 5;
+            _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(5);
+            _controller.SelectStage(14);
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
             Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(3));
@@ -1299,7 +1299,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void CampaignFog_UsesOneTimedCurtainAtAdaptiveDistance()
         {
-            SelectAndStartStage(12);
+            SelectAndStartStage(9);
             StageGateView fog = AdvanceToCampaignModifier(
                 GateModifierType.Fog);
             float expectedDistance =
@@ -1383,7 +1383,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void CampaignFog_PauseContinueAndRetryPreserveLifecycle()
         {
-            SelectAndStartStage(12);
+            SelectAndStartStage(9);
             StageGateView fog = AdvanceToCampaignModifier(
                 GateModifierType.Fog);
             _controller.TickMovement(0f);
@@ -1438,7 +1438,7 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(15);
+            _controller.SelectStage(11);
 
             Material normal =
                 _controller.TrackPool.GetSegment(0).SurfaceMaterial;
@@ -2457,7 +2457,7 @@ namespace ColorGateRunner.Tests.PlayMode
         {
             _store.HighestUnlocked = 7;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(7);
+            _controller.SelectStage(5);
 
             Assert.That(
                 _controller.BoosterToggleText.text,
@@ -2514,11 +2514,11 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void StageEight_IsCleanThreeColorItemApplicationRuntime()
+        public void StageSix_IsCleanTwoColorItemApplicationRuntime()
         {
             _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
 
             Assert.That(_controller.ShieldToggleButton.interactable, Is.True);
             Assert.That(_controller.BoosterToggleButton.interactable, Is.True);
@@ -2528,7 +2528,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Tick(3.1f);
 
             Assert.That(_controller.Session.Stage.AllowedColorCount,
-                Is.EqualTo(3));
+                Is.EqualTo(2));
             Assert.That(_controller.Session.Stage.PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.None));
             Assert.That(_controller.Session.Items.Shield, Is.True);
@@ -2548,7 +2548,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void CampaignCamouflageGate_RevealsFromEtaAndStaysJudged()
         {
-            SelectAndStartStage(9);
+            SelectAndStartStage(7);
             StageGateView camouflage = AdvanceToCampaignModifier(
                 GateModifierType.Camouflage);
             Assert.That(camouflage, Is.Not.Null);
@@ -2691,8 +2691,8 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.Playing));
         }
 
-        [TestCase(12, GateModifierType.Fog)]
-        [TestCase(15, GateModifierType.Ice)]
+        [TestCase(9, GateModifierType.Fog)]
+        [TestCase(11, GateModifierType.Ice)]
         [TestCase(21, GateModifierType.Hidden)]
         public void CampaignMechanicIntro_BindsModifierToRuntimeGateView(
             int stageNumber,
@@ -2892,7 +2892,7 @@ namespace ColorGateRunner.Tests.PlayMode
             {
                 _store.HighestUnlocked = 8;
                 _controller.SetProgressStoreForTests(_store);
-                _controller.SelectStage(8);
+                _controller.SelectStage(6);
             }
             else
             {
@@ -2982,9 +2982,9 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void RunnerForm_ColorIsImmediateAndRapidTapRetargetsVisualOnly()
         {
-            _store.HighestUnlocked = 5;
+            _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(5);
+            _controller.SelectStage(14);
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
 
@@ -3091,9 +3091,9 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void ThreeColorStage_ShowsExactlyThreeColorTiles()
         {
-            _store.HighestUnlocked = 5;
+            _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(5);
+            _controller.SelectStage(14);
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
 
@@ -3541,7 +3541,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void RivalRace_HidesOnReturnAndRestartsFromTheLine()
         {
-            SelectAndStartStage(9);
+            SelectAndStartStage(7);
             RivalRaceView rivals = _controller.RivalRace;
             _controller.TickMovement(1f);
             Assert.That(rivals.Race.GetDistance(0), Is.GreaterThan(0f));
@@ -3552,7 +3552,7 @@ namespace ColorGateRunner.Tests.PlayMode
             Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
                 Is.False);
 
-            SelectAndStartStage(9);
+            SelectAndStartStage(7);
             Assert.That(rivals.RaceActive, Is.True);
             Assert.That(rivals.Race.GetDistance(0), Is.Zero);
             Assert.That(rivals.Race.GetDistance(1), Is.Zero);
@@ -3561,7 +3561,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void RivalRace_RunsOnCurvedLanesWithRankAndClearCity()
         {
-            SelectAndStartStage(9);
+            SelectAndStartStage(7);
             RivalRaceView rivals = _controller.RivalRace;
             Assert.That(rivals.RaceActive, Is.True);
             RivalTrackLayout layout = rivals.TrackLayout;
@@ -3630,7 +3630,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void RivalRace_FreezesWhilePaused()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             RivalRaceView rivals = _controller.RivalRace;
             _controller.TickMovement(0.5f);
             float before = rivals.Race.GetDistance(0);
@@ -3643,7 +3643,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void PerfectSwitch_ShowsComboAndFlashThatFreezesWhilePaused()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             ComboHudView hud = _controller.ComboHud;
             Assert.That(hud.ComboText.gameObject.activeSelf, Is.False);
             Assert.That(hud.JudgmentRoot, Is.Not.Null);
@@ -3680,7 +3680,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void GateJudgment_GreatContinuesAndGoodBreaksCombo()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             ComboHudView hud = _controller.ComboHud;
             ResolveNextGateWithSwitch();
             Assert.That(_controller.Combo.Current, Is.EqualTo(1));
@@ -3704,7 +3704,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void GateJudgment_BoosterPassIsPerfectAndContinuesCombo()
         {
-            SelectAndStartStage(7);
+            SelectAndStartStage(5);
             Assert.That(_controller.Session.BoosterActive, Is.True);
             ComboHudView hud = _controller.ComboHud;
 
@@ -3777,7 +3777,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetStartItemInventoryForTests(_inventory);
             _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
-            _controller.SelectStage(8);
+            _controller.SelectStage(6);
             _controller.ToggleBoosterSelection();
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
@@ -3788,6 +3788,46 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.GreaterThan(1.5f));
             Assert.That(_controller.StageMusic.Pitch,
                 Is.LessThanOrEqualTo(StageMusicSync.MaximumPitch));
+        }
+
+        [Test]
+        public void StageMusic_BoosterLowersTheTrackUnderWindThenFadesBack()
+        {
+            SelectAndStartStage(5);
+            StageMusicPlayer music = _controller.StageMusic;
+            Assert.That(_controller.Session.BoosterActive, Is.True);
+            Assert.That(music.WindSource, Is.Not.Null);
+            Assert.That(music.WindSource.loop, Is.True);
+            Assert.That(music.WindSource.clip.name, Is.EqualTo("BoosterWind"));
+
+            for (int frame = 0; frame < 6; frame++)
+            {
+                _controller.Tick(0.05f);
+            }
+            Assert.That(music.BoosterRush, Is.EqualTo(1f));
+            Assert.That(music.Source.volume, Is.EqualTo(
+                SoundEffectPlayer.MusicVolume * music.Gain *
+                StageMusicPlayer.BoosterMusicLevel).Within(0.001f));
+
+            for (int frame = 0; frame < 400 && _controller.Session.BoosterActive;
+                frame++)
+            {
+                _controller.Tick(0.02f);
+            }
+            Assert.That(_controller.Session.BoosterActive, Is.False);
+            for (int frame = 0; frame < 10; frame++)
+            {
+                _controller.Tick(StageMusicPlayer.BoosterRushOutSeconds / 20f);
+            }
+            Assert.That(_controller.Session.FlowState,
+                Is.EqualTo(StageFlowState.Playing));
+            Assert.That(music.BoosterRush, Is.GreaterThan(0f).And.LessThan(1f),
+                "The wind fades out after the dash.");
+            for (int frame = 0; frame < 12; frame++)
+            {
+                _controller.Tick(StageMusicPlayer.BoosterRushOutSeconds / 20f);
+            }
+            Assert.That(music.BoosterRush, Is.Zero);
         }
 
         [Test]
@@ -3816,7 +3856,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void SoundEffects_ClearPlaysCueAndFadesStageMusic()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             FinishCurrentStage();
             SoundEffectPlayer sounds = _controller.SoundEffects;
             Assert.That(sounds.CountOf(SoundCue.Clear), Is.EqualTo(1));
@@ -3865,7 +3905,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void PerfectSwitch_FailureClearsFlashAndCombo()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             ResolveNextGateWithSwitch();
             Assert.That(_controller.ComboHud.JudgmentRoot.activeSelf, Is.True);
 
@@ -3892,7 +3932,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void PerfectSwitch_ClearResultShowsMaxComboWithoutRaceRank()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             FinishCurrentStage();
             Assert.That(_controller.Combo.Max, Is.GreaterThan(0));
             _controller.Tick(1.3f);
@@ -3906,12 +3946,12 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void StageCrowns_ClearShowsNewCrownsAndSavesThem()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
             _controller.Tick(1.3f);
 
-            StageRecord record = _store.Records[3];
+            StageRecord record = _store.Records[12];
             Assert.That(record.Crowns & StageCrown.Clean, Is.EqualTo(StageCrown.Clean));
             Assert.That(record.Crowns & StageCrown.FullCombo,
                 Is.EqualTo(StageCrown.FullCombo));
@@ -3932,7 +3972,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void StageCrowns_ReplayReopensStageAndDoesNotRepeatNew()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
             _controller.Tick(1.3f);
@@ -3948,7 +3988,7 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo("REPLAY"));
 
             _controller.ReplayButton.onClick.Invoke();
-            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(4));
+            Assert.That(_controller.SelectedStageNumber, Is.EqualTo(13));
             Assert.That(_controller.Session.FlowState,
                 Is.EqualTo(StageFlowState.PreRunSelection));
             Assert.That(_controller.CrownResult.MaxComboText.gameObject.activeSelf,
@@ -3959,7 +3999,7 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
             _controller.Tick(1.3f);
-            Assert.That(_store.Records[3].ClearCount, Is.EqualTo(2));
+            Assert.That(_store.Records[12].ClearCount, Is.EqualTo(2));
             Assert.That(_controller.CrownResult.CrownTexts[0].text,
                 Is.EqualTo("CLEAN"));
             Assert.That(_controller.CrownResult.CrownTexts[2].text,
@@ -3969,27 +4009,27 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void StageCrowns_ClearAfterSevenFailuresShowsComeback()
         {
-            _store.Records[3] = new StageRecord(
+            _store.Records[12] = new StageRecord(
                 false, 0f, 0f, 0, 0, 0, StageCrown.None, 8);
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
             _controller.Tick(1.3f);
 
             Assert.That(_controller.ClearDetailsText.text,
                 Does.Contain("COMEBACK CLEAR · ATTEMPT 8"));
-            Assert.That(_store.Records[3].Crowns & StageCrown.Comeback,
+            Assert.That(_store.Records[12].Crowns & StageCrown.Comeback,
                 Is.EqualTo(StageCrown.Comeback));
-            Assert.That(_store.Records[3].AttemptsSinceClear, Is.Zero);
+            Assert.That(_store.Records[12].AttemptsSinceClear, Is.Zero);
         }
 
         [Test]
         public void StageCrowns_UnpersistedCrownsAreNotAnnouncedAsNew()
         {
             _store.DropAchievements = true;
-            _store.Records[3] = new StageRecord(
+            _store.Records[12] = new StageRecord(
                 false, 0f, 0f, 0, 0, 0, StageCrown.None, 8);
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             _controller.Session.Advance(1f, 0f);
             FinishCurrentStage();
             _controller.Tick(1.3f);
@@ -4008,14 +4048,14 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void PerfectSwitch_ComboResetsOnRestart()
         {
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             ResolveNextGateWithSwitch();
             Assert.That(_controller.Combo.Current, Is.EqualTo(1));
 
             _controller.ShowStageSelect();
             Assert.That(_controller.ComboHud.ComboText.gameObject.activeSelf,
                 Is.False);
-            SelectAndStartStage(4);
+            SelectAndStartStage(13);
             Assert.That(_controller.Combo.Current, Is.Zero);
             Assert.That(_controller.Combo.Max, Is.Zero);
         }

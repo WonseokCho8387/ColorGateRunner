@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04efa156b22e5343817a2fba70bba90, type: 3}
   m_Name: StageCatalog
   m_EditorClassIdentifier: ColorGateRunner.Presentation::ColorGateRunner.Presentation.StageCatalogAsset
-  catalogRevision: 16
+  catalogRevision: 18
   stages:
   - stageId: stage-01
     displayNumber: 1
@@ -281,186 +281,8 @@ MonoBehaviour:
     grantActivationMode: 0
     grantActivationProgress: 0
     grantChargeCount: 0
-  - stageId: stage-04
-    displayNumber: 4
-    title: GREEN INTRODUCTION
-    description: Meet green safely, then use all three colors.
-    difficulty: 0
-    targetGateCount: 32
-    allowedColors: 000000000100000002000000
-    activeColorCount: 3
-    startingSpeed: 32
-    maximumSpeed: 48
-    speedCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    cadenceStart: 1.45
-    cadenceEnd: 1
-    allowedPatterns: 000000000a0000000300000004000000
-    introGateCount: 8
-    finalPressureGateCount: 6
-    boosterDistance: 420
-    boosterSpeed: 100
-    shieldAllowed: 0
-    boosterAllowed: 0
-    seed: 40404
-    activeColorsFromStart: 1
-    firstGateIndicesByColor: 000000000000000008000000
-    primaryMechanic: 0
-    gateModifiers: 0
-    echoEnabled: 0
-    echoEligibleStart: 0.1
-    echoEligibleEnd: 0.5
-    firstEchoGuaranteed: 1
-    firstEchoMin: 0.1
-    firstEchoMax: 0.2
-    additionalEchoChance: 0.3
-    echoCooldownGateCount: 2
-    echoMaxAcquisitions: 0
-    camouflageRevealLeadTime: 1.25
-    camouflageRevealTransition: 0.18
-    fogFadeInSeconds: 0.5
-    fogFullOpacitySeconds: 5
-    fogFadeOutSeconds: 0.5
-    iceSpeedMultiplier: 1.45
-    hiddenEnabled: 0
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
-    hiddenMinimumGateCooldown: 2
-    hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
-    hiddenFirstGuaranteed: 1
-    flickerEnabled: 0
-    flickerEligibleStart: 0.15
-    flickerEligibleEnd: 0.85
-    flickerOccurrenceChance: 0.3
-    flickerMinimumGateCooldown: 2
-    flickerMaxOccurrences: 4
-    flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.5
-    flickerPulseSeconds: 0.1
-    flickerMinimumCyclesVisible: 3
-    flickerRandomizePhase: 1
-    mechanicGrantEnabled: 0
-    grantedMechanic: 0
-    grantActivationMode: 0
-    grantActivationProgress: 0
-    grantChargeCount: 0
-  - stageId: stage-05
-    displayNumber: 5
-    title: THREE-COLOR CHALLENGE
-    description: Master three colors under pressure.
-    difficulty: 0
-    targetGateCount: 36
-    allowedColors: 000000000100000002000000
-    activeColorCount: 3
-    startingSpeed: 36
-    maximumSpeed: 54
-    speedCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    cadenceStart: 1.25
-    cadenceEnd: 0.85
-    allowedPatterns: 0900000003000000070000000500000006000000
-    introGateCount: 4
-    finalPressureGateCount: 8
-    boosterDistance: 460
-    boosterSpeed: 104
-    shieldAllowed: 0
-    boosterAllowed: 0
-    seed: 50505
-    activeColorsFromStart: 1
-    firstGateIndicesByColor: 000000000000000000000000
-    primaryMechanic: 0
-    gateModifiers: 0
-    echoEnabled: 0
-    echoEligibleStart: 0.1
-    echoEligibleEnd: 0.5
-    firstEchoGuaranteed: 1
-    firstEchoMin: 0.1
-    firstEchoMax: 0.2
-    additionalEchoChance: 0.3
-    echoCooldownGateCount: 2
-    echoMaxAcquisitions: 0
-    camouflageRevealLeadTime: 1.25
-    camouflageRevealTransition: 0.18
-    fogFadeInSeconds: 0.5
-    fogFullOpacitySeconds: 5
-    fogFadeOutSeconds: 0.5
-    iceSpeedMultiplier: 1.45
-    hiddenEnabled: 0
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
-    hiddenMinimumGateCooldown: 2
-    hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
-    hiddenFirstGuaranteed: 1
-    flickerEnabled: 0
-    flickerEligibleStart: 0.15
-    flickerEligibleEnd: 0.85
-    flickerOccurrenceChance: 0.3
-    flickerMinimumGateCooldown: 2
-    flickerMaxOccurrences: 4
-    flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.5
-    flickerPulseSeconds: 0.1
-    flickerMinimumCyclesVisible: 3
-    flickerRandomizePhase: 1
-    mechanicGrantEnabled: 0
-    grantedMechanic: 0
-    grantActivationMode: 0
-    grantActivationProgress: 0
-    grantChargeCount: 0
   - stageId: stage-06
-    displayNumber: 6
+    displayNumber: 4
     title: SHIELD TRAINING
     description: Learn one stage-local Shield charge.
     difficulty: 0
@@ -567,7 +389,7 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 1
   - stageId: stage-07
-    displayNumber: 7
+    displayNumber: 5
     title: BOOSTER TIMING
     description: Receive a stage-local Booster from the start.
     difficulty: 0
@@ -674,13 +496,13 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 1
   - stageId: stage-08
-    displayNumber: 8
+    displayNumber: 6
     title: ITEM APPLICATION
-    description: Apply an available item in a clean three-color run.
+    description: Apply an available item in a clean two-color run.
     difficulty: 0
     targetGateCount: 40
     allowedColors: 000000000100000002000000
-    activeColorCount: 3
+    activeColorCount: 2
     startingSpeed: 38
     maximumSpeed: 56
     speedCurve:
@@ -781,7 +603,7 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 0
   - stageId: stage-09
-    displayNumber: 9
+    displayNumber: 7
     title: CAMOUFLAGE INTRO
     description: Learn the reveal timing with two colors.
     difficulty: 0
@@ -888,7 +710,7 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 0
   - stageId: stage-10
-    displayNumber: 10
+    displayNumber: 8
     title: CAMOUFLAGE PRACTICE
     description: Practice concealed gates through a longer two-color run.
     difficulty: 0
@@ -994,115 +816,8 @@ MonoBehaviour:
     grantActivationMode: 0
     grantActivationProgress: 0
     grantChargeCount: 0
-  - stageId: stage-11
-    displayNumber: 11
-    title: CAMOUFLAGE MASTERY
-    description: Master concealed gates after restoring three colors.
-    difficulty: 1
-    targetGateCount: 46
-    allowedColors: 000000000100000002000000
-    activeColorCount: 3
-    startingSpeed: 42
-    maximumSpeed: 62
-    speedCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.38
-        value: 0.24
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.72
-        value: 0.64
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    cadenceStart: 1.12
-    cadenceEnd: 0.8
-    allowedPatterns: 090000000500000004000000
-    introGateCount: 6
-    finalPressureGateCount: 10
-    boosterDistance: 580
-    boosterSpeed: 118
-    shieldAllowed: 1
-    boosterAllowed: 1
-    seed: 110011
-    activeColorsFromStart: 1
-    firstGateIndicesByColor: 000000000000000000000000
-    primaryMechanic: 3
-    gateModifiers: 1
-    echoEnabled: 0
-    echoEligibleStart: 0.1
-    echoEligibleEnd: 0.5
-    firstEchoGuaranteed: 1
-    firstEchoMin: 0.1
-    firstEchoMax: 0.2
-    additionalEchoChance: 0.3
-    echoCooldownGateCount: 2
-    echoMaxAcquisitions: 0
-    camouflageRevealLeadTime: 1.25
-    camouflageRevealTransition: 0.18
-    fogFadeInSeconds: 0.5
-    fogFullOpacitySeconds: 5
-    fogFadeOutSeconds: 0.5
-    iceSpeedMultiplier: 1.45
-    hiddenEnabled: 0
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
-    hiddenMinimumGateCooldown: 2
-    hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
-    hiddenFirstGuaranteed: 1
-    flickerEnabled: 0
-    flickerEligibleStart: 0.15
-    flickerEligibleEnd: 0.85
-    flickerOccurrenceChance: 0.3
-    flickerMinimumGateCooldown: 2
-    flickerMaxOccurrences: 4
-    flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.5
-    flickerPulseSeconds: 0.1
-    flickerMinimumCyclesVisible: 3
-    flickerRandomizePhase: 1
-    mechanicGrantEnabled: 0
-    grantedMechanic: 0
-    grantActivationMode: 0
-    grantActivationProgress: 0
-    grantChargeCount: 0
   - stageId: stage-12
-    displayNumber: 12
+    displayNumber: 9
     title: FOG INTRO
     description: Learn to read the nearest gates through Fog.
     difficulty: 0
@@ -1209,7 +924,7 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 0
   - stageId: stage-13
-    displayNumber: 13
+    displayNumber: 10
     title: FOG PRACTICE
     description: Practice planning a two-color path through Fog.
     difficulty: 0
@@ -1315,115 +1030,8 @@ MonoBehaviour:
     grantActivationMode: 0
     grantActivationProgress: 0
     grantChargeCount: 0
-  - stageId: stage-14
-    displayNumber: 14
-    title: FOG MASTERY
-    description: Master Fog after restoring three colors.
-    difficulty: 1
-    targetGateCount: 48
-    allowedColors: 000000000100000002000000
-    activeColorCount: 3
-    startingSpeed: 44
-    maximumSpeed: 64
-    speedCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.38
-        value: 0.24
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.72
-        value: 0.64
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    cadenceStart: 1.1
-    cadenceEnd: 0.8
-    allowedPatterns: 090000000600000004000000
-    introGateCount: 6
-    finalPressureGateCount: 10
-    boosterDistance: 640
-    boosterSpeed: 124
-    shieldAllowed: 1
-    boosterAllowed: 1
-    seed: 140014
-    activeColorsFromStart: 1
-    firstGateIndicesByColor: 000000000000000000000000
-    primaryMechanic: 4
-    gateModifiers: 2
-    echoEnabled: 0
-    echoEligibleStart: 0.1
-    echoEligibleEnd: 0.5
-    firstEchoGuaranteed: 1
-    firstEchoMin: 0.1
-    firstEchoMax: 0.2
-    additionalEchoChance: 0.3
-    echoCooldownGateCount: 2
-    echoMaxAcquisitions: 0
-    camouflageRevealLeadTime: 1.25
-    camouflageRevealTransition: 0.18
-    fogFadeInSeconds: 0.5
-    fogFullOpacitySeconds: 7
-    fogFadeOutSeconds: 0.5
-    iceSpeedMultiplier: 1.45
-    hiddenEnabled: 0
-    hiddenEligibleStart: 0.15
-    hiddenEligibleEnd: 0.85
-    hiddenOccurrenceChance: 0.35
-    hiddenMinimumGateCooldown: 2
-    hiddenReadableSeconds: 1
-    hiddenLeadSeconds: 0.85
-    hiddenTransitionSeconds: 0.12
-    hiddenMaxOccurrences: 4
-    hiddenFirstGuaranteed: 1
-    flickerEnabled: 0
-    flickerEligibleStart: 0.15
-    flickerEligibleEnd: 0.85
-    flickerOccurrenceChance: 0.3
-    flickerMinimumGateCooldown: 2
-    flickerMaxOccurrences: 4
-    flickerFirstGuaranteed: 1
-    flickerSwitchSeconds: 0.5
-    flickerPulseSeconds: 0.1
-    flickerMinimumCyclesVisible: 3
-    flickerRandomizePhase: 1
-    mechanicGrantEnabled: 0
-    grantedMechanic: 0
-    grantActivationMode: 0
-    grantActivationProgress: 0
-    grantChargeCount: 0
   - stageId: stage-15
-    displayNumber: 15
+    displayNumber: 11
     title: ICE INTRO
     description: Learn Ice momentum with two colors.
     difficulty: 0
@@ -1530,7 +1138,7 @@ MonoBehaviour:
     grantActivationProgress: 0
     grantChargeCount: 0
   - stageId: stage-16
-    displayNumber: 16
+    displayNumber: 12
     title: ICE PRACTICE
     description: Practice controlling Ice through a longer run.
     difficulty: 0
@@ -1610,6 +1218,398 @@ MonoBehaviour:
     fogFullOpacitySeconds: 5
     fogFadeOutSeconds: 0.5
     iceSpeedMultiplier: 2
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-04
+    displayNumber: 13
+    title: GREEN INTRODUCTION
+    description: Meet green safely, then use all three colors.
+    difficulty: 0
+    targetGateCount: 32
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 32
+    maximumSpeed: 48
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.45
+    cadenceEnd: 1
+    allowedPatterns: 000000000a0000000300000004000000
+    introGateCount: 8
+    finalPressureGateCount: 6
+    boosterDistance: 420
+    boosterSpeed: 100
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 40404
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000008000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-05
+    displayNumber: 14
+    title: THREE-COLOR CHALLENGE
+    description: Master three colors under pressure.
+    difficulty: 0
+    targetGateCount: 36
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 36
+    maximumSpeed: 54
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.25
+    cadenceEnd: 0.85
+    allowedPatterns: 0900000003000000070000000500000006000000
+    introGateCount: 4
+    finalPressureGateCount: 8
+    boosterDistance: 460
+    boosterSpeed: 104
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 50505
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 0
+    gateModifiers: 0
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-11
+    displayNumber: 15
+    title: CAMOUFLAGE MASTERY
+    description: Master concealed gates after restoring three colors.
+    difficulty: 1
+    targetGateCount: 46
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 42
+    maximumSpeed: 62
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.38
+        value: 0.24
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.72
+        value: 0.64
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.12
+    cadenceEnd: 0.8
+    allowedPatterns: 090000000500000004000000
+    introGateCount: 6
+    finalPressureGateCount: 10
+    boosterDistance: 580
+    boosterSpeed: 118
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 110011
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 3
+    gateModifiers: 1
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 5
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
+    hiddenEnabled: 0
+    hiddenEligibleStart: 0.15
+    hiddenEligibleEnd: 0.85
+    hiddenOccurrenceChance: 0.35
+    hiddenMinimumGateCooldown: 2
+    hiddenReadableSeconds: 1
+    hiddenLeadSeconds: 0.85
+    hiddenTransitionSeconds: 0.12
+    hiddenMaxOccurrences: 4
+    hiddenFirstGuaranteed: 1
+    flickerEnabled: 0
+    flickerEligibleStart: 0.15
+    flickerEligibleEnd: 0.85
+    flickerOccurrenceChance: 0.3
+    flickerMinimumGateCooldown: 2
+    flickerMaxOccurrences: 4
+    flickerFirstGuaranteed: 1
+    flickerSwitchSeconds: 0.5
+    flickerPulseSeconds: 0.1
+    flickerMinimumCyclesVisible: 3
+    flickerRandomizePhase: 1
+    mechanicGrantEnabled: 0
+    grantedMechanic: 0
+    grantActivationMode: 0
+    grantActivationProgress: 0
+    grantChargeCount: 0
+  - stageId: stage-14
+    displayNumber: 16
+    title: FOG MASTERY
+    description: Master Fog after restoring three colors.
+    difficulty: 1
+    targetGateCount: 48
+    allowedColors: 000000000100000002000000
+    activeColorCount: 3
+    startingSpeed: 44
+    maximumSpeed: 64
+    speedCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.38
+        value: 0.24
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.72
+        value: 0.64
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    cadenceStart: 1.1
+    cadenceEnd: 0.8
+    allowedPatterns: 090000000600000004000000
+    introGateCount: 6
+    finalPressureGateCount: 10
+    boosterDistance: 640
+    boosterSpeed: 124
+    shieldAllowed: 1
+    boosterAllowed: 1
+    seed: 140014
+    activeColorsFromStart: 1
+    firstGateIndicesByColor: 000000000000000000000000
+    primaryMechanic: 4
+    gateModifiers: 2
+    echoEnabled: 0
+    echoEligibleStart: 0.1
+    echoEligibleEnd: 0.5
+    firstEchoGuaranteed: 1
+    firstEchoMin: 0.1
+    firstEchoMax: 0.2
+    additionalEchoChance: 0.3
+    echoCooldownGateCount: 2
+    echoMaxAcquisitions: 0
+    camouflageRevealLeadTime: 1.25
+    camouflageRevealTransition: 0.18
+    fogFadeInSeconds: 0.5
+    fogFullOpacitySeconds: 7
+    fogFadeOutSeconds: 0.5
+    iceSpeedMultiplier: 1.45
     hiddenEnabled: 0
     hiddenEligibleStart: 0.15
     hiddenEligibleEnd: 0.85

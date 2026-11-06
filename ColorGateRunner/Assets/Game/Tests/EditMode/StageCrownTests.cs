@@ -48,13 +48,13 @@ namespace ColorGateRunner.Tests.EditMode
         public void Catalog_HardAndVeryHardStagesAskForHigherCombo()
         {
             Assert.That(StageCrownPolicy.ComboTargetFor(
-                    StageCatalog.GetByDisplayNumber(1).Difficulty),
+                    AuthoredStage.Get(1).Difficulty),
                 Is.EqualTo(10));
             Assert.That(StageCrownPolicy.ComboTargetFor(
-                    StageCatalog.GetByDisplayNumber(11).Difficulty),
+                    AuthoredStage.Get(11).Difficulty),
                 Is.EqualTo(20));
             Assert.That(StageCrownPolicy.ComboTargetFor(
-                    StageCatalog.GetByDisplayNumber(20).Difficulty),
+                    AuthoredStage.Get(20).Difficulty),
                 Is.EqualTo(30));
         }
 
@@ -156,7 +156,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Session_CountsShieldAbsorbsAndRetryClearsThem()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(8);
+            StageDefinition stage = AuthoredStage.Get(8);
             var session = new StageSession(stage);
             session.SelectItems(new StartItemSelection(true, false));
             Assert.That(session.BeginCountdown(), Is.True);

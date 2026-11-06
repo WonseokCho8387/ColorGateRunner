@@ -13,6 +13,11 @@ namespace ColorGateRunner.Presentation
         internal const float FailurePitch = 0.55f;
         internal const float FreeRunPitchPerSecond = 1.5f;
         internal const float ClearFadeSeconds = 2f;
+        // A Booster dash lowers the track under a rushing wind; after the
+        // dash the wind fades out and the track comes back.
+        internal const float BoosterMusicLevel = 0.6f;
+        internal const float BoosterRushInSeconds = 0.2f;
+        internal const float BoosterRushOutSeconds = 1f;
 
         internal enum MusicState
         {
@@ -26,6 +31,7 @@ namespace ColorGateRunner.Presentation
 
         [SerializeField] private AudioSource source;
         [SerializeField] private StageMusicCatalogAsset catalog;
+        [SerializeField] private AudioSource windSource;
 
         private StageMusicTimeline _timeline;
         private float _gain;
@@ -33,6 +39,7 @@ namespace ColorGateRunner.Presentation
         private float _clock;
         private bool _paused;
         private float _volume = 1f;
+        private float _rush;
         // WebGL reports AudioSource.time from its own estimate, which breaks
         // once pitch changes meet a seek (it read about twice the real
         // position and caused a seek every frame). There the track counts
@@ -54,8 +61,11 @@ namespace ColorGateRunner.Presentation
         internal float PlaybackSeconds => _clock;
         internal AudioSource Source => source;
         internal StageMusicCatalogAsset Catalog => catalog;
+        internal float BoosterRush => _rush;
+        internal AudioSource WindSource => windSource;
         internal bool HasRequiredReferences =>
-            source != null && catalog != null;
+            source != null && catalog != null &&
+            windSource != null && windSource.clip != null;
         internal bool CountsOwnClock => _countOwnClock;
 
         // Tests step time by hand, so the device clock is left out.
@@ -68,10 +78,12 @@ namespace ColorGateRunner.Presentation
 
         internal void Configure(
             AudioSource audioSource,
-            StageMusicCatalogAsset musicCatalog)
+            StageMusicCatalogAsset musicCatalog,
+            AudioSource boosterWind)
         {
             source = audioSource;
             catalog = musicCatalog;
+            windSource = boosterWind;
         }
 
         internal void Prepare(int stageNumber)
@@ -115,7 +127,8 @@ namespace ColorGateRunner.Presentation
             float distance,
             float runnerSpeed,
             bool finalGatePassed,
-            float volume)
+            float volume,
+            bool boosterActive)
         {
             if (State == MusicState.Idle || State == MusicState.Held ||
                 _paused)
@@ -177,7 +190,17 @@ namespace ColorGateRunner.Presentation
                     ? 1f / ClearFadeSeconds
                     : 1f / FadeInSeconds;
             _gain = Mathf.MoveTowards(_gain, _gainTarget, rate * deltaTime);
-            source.volume = _volume * _gain;
+            bool rushing = boosterActive &&
+                (State == MusicState.Following ||
+                 State == MusicState.FreeRunning);
+            _rush = Mathf.MoveTowards(
+                _rush,
+                rushing ? 1f : 0f,
+                deltaTime / (rushing
+                    ? BoosterRushInSeconds
+                    : BoosterRushOutSeconds));
+            source.volume = MusicLevel;
+            ApplyWind();
             if (State == MusicState.FailingOut && _gain <= 0f)
             {
                 source.Pause();
@@ -207,7 +230,7 @@ namespace ColorGateRunner.Presentation
             _volume = Mathf.Clamp01(volume);
             if (source != null && State != MusicState.Idle)
             {
-                source.volume = _volume * _gain;
+                source.volume = MusicLevel;
             }
         }
 
@@ -221,6 +244,7 @@ namespace ColorGateRunner.Presentation
             }
             _gainTarget = 0f;
             State = MusicState.FailingOut;
+            StopWind();
         }
 
         internal void SetPaused(bool paused)
@@ -237,10 +261,12 @@ namespace ColorGateRunner.Presentation
             if (paused)
             {
                 source.Pause();
+                if (windSource != null) windSource.Pause();
             }
             else
             {
                 source.UnPause();
+                if (windSource != null && _rush > 0f) windSource.UnPause();
                 _lastDspTime = AudioSettings.dspTime;
             }
         }
@@ -271,6 +297,32 @@ namespace ColorGateRunner.Presentation
             _gainTarget = 0f;
             _clock = 0f;
             State = MusicState.Idle;
+            StopWind();
+        }
+
+        private float MusicLevel =>
+            _volume * _gain * Mathf.Lerp(1f, BoosterMusicLevel, _rush);
+
+        // The wind follows the SFX volume; it loops while the dash lasts.
+        private void ApplyWind()
+        {
+            if (windSource == null || windSource.clip == null)
+            {
+                return;
+            }
+            if (_rush <= 0f)
+            {
+                if (windSource.isPlaying) windSource.Stop();
+                return;
+            }
+            windSource.volume = SoundEffectPlayer.SfxVolume * _rush;
+            if (!windSource.isPlaying) windSource.Play();
+        }
+
+        private void StopWind()
+        {
+            _rush = 0f;
+            if (windSource != null) windSource.Stop();
         }
 
         private float ClampToClip(float seconds)

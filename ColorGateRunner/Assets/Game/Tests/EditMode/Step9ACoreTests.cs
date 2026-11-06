@@ -236,7 +236,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(StageSectionCatalog.GetSectionCount(3), Is.EqualTo(5));
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(
-                    StageCatalog.GetByDisplayNumber(3));
+                    AuthoredStage.Get(3));
             RunnerColor[] expected =
             {
                 RunnerColor.Red, RunnerColor.Red, RunnerColor.Red, RunnerColor.Red,
@@ -262,7 +262,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void PerfectSimulation_IsDeterministicAndCompletes()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(1);
+            StageDefinition stage = AuthoredStage.Get(1);
             GameplaySimulationSettings settings =
                 new GameplaySimulationSettings(1, 12345u, true);
             StageSimulationResult first = StageSimulationRunner.Run(
@@ -284,7 +284,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void StochasticSimulation_ReplaysWithSameSeed()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(3);
+            StageDefinition stage = AuthoredStage.Get(3);
             GameplaySimulationSettings settings =
                 new GameplaySimulationSettings(100, 98765u, true);
             StageSimulationResult first = StageSimulationRunner.Run(
@@ -315,7 +315,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Simulation_ContinueUseMetricsAreDeterministicAndStageBounded()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(3);
+            StageDefinition stage = AuthoredStage.Get(3);
             GameplaySimulationSettings settings =
                 new GameplaySimulationSettings(100, 43210u, true);
             StageSimulationResult result = StageSimulationRunner.Run(
@@ -345,7 +345,7 @@ namespace ColorGateRunner.Tests.EditMode
         {
             const int runs = 100;
             StageSimulationResult result = StageSimulationRunner.Run(
-                StageCatalog.GetByDisplayNumber(3),
+                AuthoredStage.Get(3),
                 default,
                 SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
                 new GameplaySimulationSettings(runs, 24680u, false));
@@ -365,7 +365,7 @@ namespace ColorGateRunner.Tests.EditMode
         {
             SimulationBatchResult batch = new SimulationBatchResult();
             batch.Results.Add(StageSimulationRunner.Run(
-                StageCatalog.GetByDisplayNumber(3),
+                AuthoredStage.Get(3),
                 default,
                 SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
                 new GameplaySimulationSettings(10, 13579u, true)));
@@ -389,7 +389,7 @@ namespace ColorGateRunner.Tests.EditMode
         {
             SimulationBatchResult batch = new SimulationBatchResult();
             batch.Results.Add(StageSimulationRunner.Run(
-                StageCatalog.GetByDisplayNumber(1),
+                AuthoredStage.Get(1),
                 default,
                 SimulatedPlayerProfile.Get(SimulatedPlayerKind.Perfect),
                 new GameplaySimulationSettings(1, 1u, true)));
@@ -407,7 +407,7 @@ namespace ColorGateRunner.Tests.EditMode
             StartItemSelection items)
         {
             StageSession session =
-                new StageSession(StageCatalog.GetByDisplayNumber(stage));
+                new StageSession(AuthoredStage.Get(stage));
             session.SelectItems(items);
             session.BeginCountdown();
             session.CompleteCountdown();

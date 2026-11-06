@@ -106,6 +106,9 @@ namespace ColorGateRunner.Product
     {
         public bool LegacyMigrationCompleted;
         public string HighestUnlockedStageId = "stage-01";
+        // The Campaign order this progress was last reconciled with; 0 is
+        // any save written before layouts were versioned.
+        public int CampaignLayoutVersion;
         public List<LocalStageProgressData> StageRecords = new();
 
         public static LocalCampaignProgressData CreateDefaults()
@@ -119,6 +122,7 @@ namespace ColorGateRunner.Product
             {
                 LegacyMigrationCompleted = LegacyMigrationCompleted,
                 HighestUnlockedStageId = HighestUnlockedStageId,
+                CampaignLayoutVersion = CampaignLayoutVersion,
                 StageRecords = new List<LocalStageProgressData>(
                     StageRecords?.Count ?? 0)
             };

@@ -3973,7 +3973,8 @@ namespace ColorGateRunner.Presentation
                 _campaignDistance,
                 speed,
                 _session.GatesPassed >= _session.Stage.TargetGateCount,
-                SoundEffectPlayer.MusicVolume);
+                SoundEffectPlayer.MusicVolume,
+                _session.BoosterActive);
         }
 
         private StageGateView FindActiveGate(int planIndex)

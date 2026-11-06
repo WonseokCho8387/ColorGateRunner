@@ -4,6 +4,10 @@ namespace ColorGateRunner.Core
 {
     public sealed class DeterministicStageGateSequence
     {
+        // Authored rules follow the Stage, not its place in the Campaign.
+        internal const string ExceptionColorStageId = "stage-03";
+        internal const string GreenIntroductionStageId = "stage-04";
+
         private static readonly RunnerColor[] StageFourTutorialColors =
         {
             RunnerColor.Red,
@@ -52,7 +56,7 @@ namespace ColorGateRunner.Core
                 : (float)gateIndex / (_stage.TargetGateCount - 1);
             float cadence = Lerp(_stage.CadenceStart, _stage.CadenceEnd, progress);
             StageSectionInfo section =
-                StageSectionCatalog.FindSection(_stage.DisplayNumber, gateIndex);
+                StageSectionCatalog.FindSection(_stage.StageId, gateIndex);
             if (!string.IsNullOrEmpty(section.Name))
             {
                 pattern = section.Pattern;
@@ -60,7 +64,7 @@ namespace ColorGateRunner.Core
                     GameRules.MinimumReactionTime,
                     cadence * section.CadenceMultiplier);
             }
-            if (_stage.DisplayNumber == 4 &&
+            if (_stage.StageId == GreenIntroductionStageId &&
                 gateIndex <= _stage.GetFirstGateIndex(RunnerColor.Green))
             {
                 cadence = _stage.CadenceStart;
@@ -311,7 +315,7 @@ namespace ColorGateRunner.Core
                 progress);
             StageSectionInfo section =
                 StageSectionCatalog.FindSection(
-                    _stage.DisplayNumber,
+                    _stage.StageId,
                     gateIndex);
             if (!string.IsNullOrEmpty(section.Name))
             {
@@ -337,17 +341,17 @@ namespace ColorGateRunner.Core
 
         private RunnerColor ChooseColor(int gateIndex, uint raw)
         {
-            if (_stage.DisplayNumber == 3)
+            if (_stage.StageId == ExceptionColorStageId)
             {
                 return RecordColor(ChooseStageThreeColor(gateIndex));
             }
 
-            if (_stage.DisplayNumber == 4 &&
+            if (_stage.StageId == GreenIntroductionStageId &&
                 gateIndex < _stage.GetFirstGateIndex(RunnerColor.Green))
             {
                 return RecordColor(ChooseStageFourTutorialColor(gateIndex));
             }
-            if (_stage.DisplayNumber == 4 &&
+            if (_stage.StageId == GreenIntroductionStageId &&
                 gateIndex == _stage.GetFirstGateIndex(RunnerColor.Green))
             {
                 return RecordColor(RunnerColor.Green);

@@ -21,7 +21,7 @@ namespace ColorGateRunner.Tests.EditMode
             { 0.84f, 0.90f, 0.84f, 0.80f, 0.88f, 0.82f, 0.80f, 0.88f, 0.82f, 0.78f, 0.86f, 0.80f, 0.78f, 0.86f, 0.80f, 0.78f };
 
         private static readonly int[] ColorCounts =
-            { 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3 };
+            { 2, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3 };
 
         private static readonly StagePrimaryMechanic[] Mechanics =
         {
@@ -70,11 +70,10 @@ namespace ColorGateRunner.Tests.EditMode
             {
                 int stageNumber = index + 8;
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
+                    AuthoredStage.Get(stageNumber);
 
                 Assert.That(stage.StageId,
                     Is.EqualTo($"stage-{stageNumber:00}"));
-                Assert.That(stage.DisplayNumber, Is.EqualTo(stageNumber));
                 Assert.That(stage.TargetGateCount, Is.EqualTo(GateCounts[index]));
                 Assert.That(stage.AllowedColorCount, Is.EqualTo(ColorCounts[index]));
                 Assert.That(stage.ActiveColorsFromStart, Is.True);
@@ -114,7 +113,7 @@ namespace ColorGateRunner.Tests.EditMode
                 stageNumber++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
+                    AuthoredStage.Get(stageNumber);
                 Assert.That(stage.PrimaryMechanic, Is.EqualTo(mechanic));
                 Assert.That(stage.GateModifiers, Is.EqualTo(modifier));
                 Assert.That(stage.AllowedColorCount,
@@ -129,7 +128,7 @@ namespace ColorGateRunner.Tests.EditMode
             for (int index = 0; index < fullOpacitySeconds.Length; index++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(index + 12);
+                    AuthoredStage.Get(index + 12);
 
                 Assert.That(stage.FogCurtainSettings.FadeInSeconds,
                     Is.EqualTo(0.5f));
@@ -146,7 +145,7 @@ namespace ColorGateRunner.Tests.EditMode
             for (int stageNumber = 15; stageNumber <= 17; stageNumber++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(stageNumber);
+                    AuthoredStage.Get(stageNumber);
 
                 Assert.That(
                     stage.IceRunwaySettings.SpeedMultiplier,
@@ -175,7 +174,7 @@ namespace ColorGateRunner.Tests.EditMode
             int expectedDoubleTapCount)
         {
             StageDefinition stage =
-                StageCatalog.GetByDisplayNumber(stageNumber);
+                AuthoredStage.Get(stageNumber);
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(stage);
             RunnerColor currentColor = stage.GetAllowedColor(0);
@@ -226,7 +225,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void IceTapRhythm_RetryReplaysTheSameColorsAndQuota()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(17);
+            StageDefinition stage = AuthoredStage.Get(17);
             DeterministicStageGateSequence first =
                 new DeterministicStageGateSequence(stage);
             DeterministicStageGateSequence replay =
@@ -248,7 +247,7 @@ namespace ColorGateRunner.Tests.EditMode
             for (int index = 0; index < Modifiers.Length; index++)
             {
                 StageDefinition stage =
-                    StageCatalog.GetByDisplayNumber(index + 8);
+                    AuthoredStage.Get(index + 8);
                 StageSession first = new StageSession(stage);
                 StageSession second = new StageSession(stage);
                 int occurrences = 0;

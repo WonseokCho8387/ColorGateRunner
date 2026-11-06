@@ -114,10 +114,10 @@ namespace ColorGateRunner.Tests.EditMode
         {
             var expected = new Dictionary<int, TutorialTopic>
             {
-                { 1, TutorialTopic.Basics }, { 4, TutorialTopic.ThirdColor },
-                { 6, TutorialTopic.Shield }, { 7, TutorialTopic.Booster },
-                { 8, TutorialTopic.StartItems }, { 9, TutorialTopic.Camouflage },
-                { 12, TutorialTopic.Fog }, { 15, TutorialTopic.Ice },
+                { 1, TutorialTopic.Basics }, { 13, TutorialTopic.ThirdColor },
+                { 4, TutorialTopic.Shield }, { 5, TutorialTopic.Booster },
+                { 6, TutorialTopic.StartItems }, { 7, TutorialTopic.Camouflage },
+                { 9, TutorialTopic.Fog }, { 11, TutorialTopic.Ice },
                 { 18, TutorialTopic.Echo }, { 21, TutorialTopic.Hidden },
                 { 24, TutorialTopic.Flicker }
             };
@@ -136,7 +136,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Scripts_HoldWhereEachMechanicIsReadable()
         {
-            StageDefinition camouflage = StageCatalog.GetByDisplayNumber(9);
+            StageDefinition camouflage = StageCatalog.GetByDisplayNumber(7);
             StageDefinition hidden = StageCatalog.GetByDisplayNumber(21);
             float speed = 40f;
             float standard = speed * TutorialGuide.HoldLeadSeconds;
@@ -163,9 +163,9 @@ namespace ColorGateRunner.Tests.EditMode
         {
             var expected = new Dictionary<int, string>
             {
-                { 4, "GREEN" }, { 6, "SHIELD" }, { 7, "BOOSTER" },
-                { 8, "START ITEMS" }, { 9, "CAMOUFLAGE" }, { 12, "FOG" },
-                { 15, "ICE" }, { 18, "ECHO" }, { 21, "HIDDEN" }, { 24, "FLICKER" }
+                { 13, "GREEN" }, { 4, "SHIELD" }, { 5, "BOOSTER" },
+                { 6, "START ITEMS" }, { 7, "CAMOUFLAGE" }, { 9, "FOG" },
+                { 11, "ICE" }, { 18, "ECHO" }, { 21, "HIDDEN" }, { 24, "FLICKER" }
             };
             for (int number = 1; number <= StageCatalog.Count; number++)
             {

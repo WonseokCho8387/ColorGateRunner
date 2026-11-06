@@ -380,6 +380,10 @@ Rules:
 - Continue clears preserve existing Best restrictions.
 - Stage 1–26 definitions and deterministic plans are not duplicated in save.
 - Unknown saved Stage IDs are not remapped by array index.
+- `CampaignLayoutVersion` records the Campaign order a save was last moved
+  onto. When the catalog order version is higher, AppRoot moves the save
+  once: the highest unlocked Stage becomes the first uncleared Stage in the
+  current order; records stay on their Stage IDs (Iteration 80).
 
 # 7. Economy
 

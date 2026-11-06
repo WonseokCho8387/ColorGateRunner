@@ -8,6 +8,61 @@ namespace ColorGateRunner.Tests.EditMode
     public sealed class StageCatalogArchitectureTests
     {
         [Test]
+        public void CampaignOrder_TeachesMechanicsInTwoColorsBeforeThreeColors()
+        {
+            IStageCatalog catalog = Resources.Load<StageCatalogAsset>(
+                StageCatalogProvider.ResourceName).BuildCatalog();
+            Assert.That(catalog.Count,
+                Is.EqualTo(StageCatalogAsset.CampaignOrder.Length));
+            var ids = new System.Collections.Generic.HashSet<string>();
+            for (int index = 0; index < catalog.Count; index++)
+            {
+                StageDefinition stage = catalog.GetByIndex(index);
+                Assert.That(stage.DisplayNumber, Is.EqualTo(index + 1));
+                Assert.That(stage.StageId,
+                    Is.EqualTo(StageCatalogAsset.CampaignOrder[index]));
+                Assert.That(ids.Add(stage.StageId), Is.True);
+                if (stage.DisplayNumber < 13)
+                {
+                    Assert.That(stage.AllowedColorCount, Is.EqualTo(2),
+                        $"Stage {stage.DisplayNumber} stays two-color.");
+                }
+            }
+            Assert.That(catalog.GetByDisplayNumber(4).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Shield));
+            Assert.That(catalog.GetByDisplayNumber(5).PrimaryMechanic,
+                Is.EqualTo(StagePrimaryMechanic.Booster));
+            Assert.That(catalog.GetByDisplayNumber(6).StageId,
+                Is.EqualTo("stage-08"));
+            Assert.That(catalog.GetByDisplayNumber(13).StageId,
+                Is.EqualTo("stage-04"));
+            Assert.That(catalog.GetByDisplayNumber(13).AllowedColorCount,
+                Is.EqualTo(3));
+            Assert.That(
+                TutorialCards.GetStageTopic(
+                    catalog, catalog.GetByDisplayNumber(13)),
+                Is.EqualTo(TutorialTopic.ThirdColor));
+        }
+
+        [Test]
+        public void CampaignOrder_MovedStagesKeepTheirAuthoredGates()
+        {
+            // Stage 3 exception colors and Stage 4 Green teaching follow the
+            // Stage ID, so moving a Stage never changes its gates.
+            IStageCatalog catalog = Resources.Load<StageCatalogAsset>(
+                StageCatalogProvider.ResourceName).BuildCatalog();
+            StageDefinition green = catalog.GetByDisplayNumber(13);
+            var sequence = new DeterministicStageGateSequence(green);
+            int firstGreen = green.GetFirstGateIndex(RunnerColor.Green);
+            for (int gate = 0; gate <= firstGreen; gate++)
+            {
+                GatePlan plan = sequence.GetPlan(gate);
+                Assert.That(plan.Color == RunnerColor.Green,
+                    Is.EqualTo(gate == firstGreen), $"gate {gate}");
+            }
+        }
+
+        [Test]
         public void ResourceAsset_BuildsLearningCurveAndPreservesFoundationStages()
         {
             StageCatalogAsset asset =
@@ -18,56 +73,59 @@ namespace ColorGateRunner.Tests.EditMode
             IStageCatalog catalog = asset.BuildCatalog();
             Assert.That(catalog.Count, Is.EqualTo(26));
             Assert.That(
-                catalog.GetByDisplayNumber(1).StartingSpeed,
+                AuthoredStage.From(catalog, 1).StartingSpeed,
                 Is.EqualTo(28f));
             Assert.That(
-                catalog.GetByDisplayNumber(5).MaximumSpeed,
+                AuthoredStage.From(catalog, 5).MaximumSpeed,
                 Is.EqualTo(54f));
             for (int index = 0; index < 5; index++)
             {
                 Assert.That(
-                    catalog.GetByIndex(index).SpeedProfile.SampleCount,
+                    AuthoredStage.From(catalog, index + 1).SpeedProfile.SampleCount,
                     Is.EqualTo(2));
+                // Green and three-color Stages now come after the Item
+                // Stage, so only the basics keep start items locked.
+                bool basics = index < 3;
                 Assert.That(
-                    catalog.GetByIndex(index).ShieldAllowed,
-                    Is.False);
+                    AuthoredStage.From(catalog, index + 1).ShieldAllowed,
+                    Is.EqualTo(!basics));
                 Assert.That(
-                    catalog.GetByIndex(index).BoosterAllowed,
-                    Is.False);
+                    AuthoredStage.From(catalog, index + 1).BoosterAllowed,
+                    Is.EqualTo(!basics));
             }
             Assert.That(
-                catalog.GetByDisplayNumber(6).PrimaryMechanic,
+                AuthoredStage.From(catalog, 6).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Shield));
             Assert.That(
-                catalog.GetByDisplayNumber(7).PrimaryMechanic,
+                AuthoredStage.From(catalog, 7).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Booster));
             Assert.That(
-                catalog.GetByDisplayNumber(8).PrimaryMechanic,
+                AuthoredStage.From(catalog, 8).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.None));
             Assert.That(
-                catalog.GetByDisplayNumber(9).PrimaryMechanic,
+                AuthoredStage.From(catalog, 9).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Camouflage));
             Assert.That(
-                catalog.GetByDisplayNumber(12).PrimaryMechanic,
+                AuthoredStage.From(catalog, 12).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Fog));
             Assert.That(
-                catalog.GetByDisplayNumber(15).PrimaryMechanic,
+                AuthoredStage.From(catalog, 15).PrimaryMechanic,
                 Is.EqualTo(StagePrimaryMechanic.Ice));
             for (int number = 15; number <= 17; number++)
             {
                 Assert.That(
-                    catalog.GetByDisplayNumber(number)
+                    AuthoredStage.From(catalog, number)
                         .IceRunwaySettings.SpeedMultiplier,
                     Is.EqualTo(2f));
             }
             Assert.That(
-                catalog.GetByDisplayNumber(18).EchoSettings.Enabled,
+                AuthoredStage.From(catalog, 18).EchoSettings.Enabled,
                 Is.True);
             Assert.That(
-                catalog.GetByDisplayNumber(21).HiddenSettings.Enabled,
+                AuthoredStage.From(catalog, 21).HiddenSettings.Enabled,
                 Is.True);
             Assert.That(
-                catalog.GetByDisplayNumber(24).FlickerSettings.Enabled,
+                AuthoredStage.From(catalog, 24).FlickerSettings.Enabled,
                 Is.True);
             for (int number = 1; number <= 26; number++)
             {
@@ -78,7 +136,7 @@ namespace ColorGateRunner.Tests.EditMode
                         ? StageDifficulty.Hard
                         : StageDifficulty.Normal;
                 Assert.That(
-                    catalog.GetByDisplayNumber(number).Difficulty,
+                    AuthoredStage.From(catalog, number).Difficulty,
                     Is.EqualTo(expected),
                     $"Stage {number} difficulty");
             }

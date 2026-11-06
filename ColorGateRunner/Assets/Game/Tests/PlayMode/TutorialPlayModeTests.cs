@@ -184,33 +184,33 @@ namespace ColorGateRunner.Tests.PlayMode
             _controller.SetProgressStoreForTests(_store);
             _controller.SetTutorialsEnabledForTests(true);
 
-            _controller.SelectStage(9);
+            _controller.SelectStage(7);
             Assert.That(_controller.TutorialCard.IsOpen, Is.True);
             Assert.That(_controller.TutorialCard.Title.text, Is.EqualTo("CAMOUFLAGE"));
             _controller.TutorialCard.PrimaryButton.onClick.Invoke();
             Assert.That(_controller.TutorialCard.IsOpen, Is.False);
 
-            _controller.SelectStage(9);
+            _controller.SelectStage(7);
             Assert.That(_controller.TutorialCard.IsOpen, Is.False, "Shown once per visit.");
 
-            _controller.SelectStage(10);
+            _controller.SelectStage(8);
             Assert.That(_controller.TutorialCard.IsOpen, Is.False, "Practice Stage has no intro.");
 
-            _controller.SelectStage(15);
+            _controller.SelectStage(11);
             Assert.That(_controller.TutorialCard.Title.text, Is.EqualTo("ICE"));
             _controller.TutorialCard.Close();
-            _controller.SelectStage(9);
+            _controller.SelectStage(7);
             Assert.That(_controller.TutorialCard.IsOpen, Is.False, "Remembered across Stages.");
 
-            _store.Records[11] = new StageRecord(false, 0f, 0f, 0, 0, 0, StageCrown.None, 1);
-            _controller.SelectStage(12);
+            _store.Records[8] = new StageRecord(false, 0f, 0f, 0, 0, 0, StageCrown.None, 1);
+            _controller.SelectStage(9);
             Assert.That(_controller.TutorialCard.IsOpen, Is.False, "Already attempted.");
         }
 
         [Test]
         public void MechanicGuide_HoldsTheFirstGreenGate()
         {
-            StageGateView gate = RunToMechanicHold(4);
+            StageGateView gate = RunToMechanicHold(13);
             Assert.That(gate.ActivePlan.Color, Is.EqualTo(RunnerColor.Green));
             Assert.That(_controller.Guide.GateColor, Is.EqualTo(RunnerColor.Green));
             Assert.That(gate.PlanIndex, Is.EqualTo(_controller.Session.GatesPassed));
@@ -221,7 +221,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void MechanicGuide_HoldsCamouflageAfterTheReveal()
         {
-            StageGateView gate = RunToMechanicHold(9);
+            StageGateView gate = RunToMechanicHold(7);
             Assert.That(gate.ActivePlan.Modifier.IsCamouflage, Is.True);
             Assert.That(gate.CamouflageRevealProgress, Is.EqualTo(1f).Within(0.001f));
             Assert.That(_controller.TutorialGuideText.text, Does.Contain("COLOR REVEALED"));
@@ -231,7 +231,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void MechanicGuide_HoldsTheFirstIceGate()
         {
-            StageGateView gate = RunToMechanicHold(15);
+            StageGateView gate = RunToMechanicHold(11);
             Assert.That(gate.ActivePlan.Modifier.IsIce, Is.True);
             Assert.That(_controller.TutorialGuideText.text, Does.Contain("ICE"));
             AssertWaitsForMatchThenPasses(gate);
@@ -284,8 +284,8 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void MechanicGuide_IsSkippedOnceTheStageIsCleared()
         {
-            _store.Records[8] = new StageRecord(true, 40f, 40f, 1);
-            StartStage(9);
+            _store.Records[6] = new StageRecord(true, 40f, 40f, 1);
+            StartStage(7);
             Assert.That(_controller.GuideRunActive, Is.False);
         }
 

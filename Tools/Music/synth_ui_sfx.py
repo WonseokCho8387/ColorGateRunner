@@ -199,6 +199,38 @@ def crown():
     return b
 
 
+def booster_wind():
+    """Seamless 3 s loop of rushing air: band-limited noise with slow gusts
+    and a faint high whistle. The tail is crossfaded into the head so the
+    loop has no seam."""
+    seconds, fade = 3.0, 0.4
+    n, m = int(seconds * SR), int(fade * SR)
+    rng = random.Random(2401)
+    raw = array.array('f', bytes(4 * (n + m)))
+    low = band = whistle = 0.0
+    a_low = 1.0 - math.exp(-TWO_PI * 900.0 / SR)
+    a_band = 1.0 - math.exp(-TWO_PI * 2600.0 / SR)
+    a_whistle = 1.0 - math.exp(-TWO_PI * 5200.0 / SR)
+    for k in range(n + m):
+        t = k / SR
+        x = rng.uniform(-1.0, 1.0)
+        low += a_low * (x - low)
+        band += a_band * (x - band)
+        whistle += a_whistle * (x - whistle)
+        # Gusts repeat every loop (periods divide 3 s).
+        gust = 0.7 + 0.3 * math.sin(TWO_PI * t / 1.5) *             math.sin(TWO_PI * t / 3.0 + 0.6)
+        raw[k] = (low * 1.4 + (band - low) * 0.9 +
+                  (whistle - band) * 0.25 * (0.6 + 0.4 * math.sin(
+                      TWO_PI * t / 0.75))) * gust
+    buf = buffer(seconds)
+    for k in range(n):
+        buf[k] = raw[k]
+    for k in range(m):
+        w = k / m
+        buf[k] = raw[k] * w + raw[n + k] * (1.0 - w)
+    return buf
+
+
 CUES = {
     'UiTap': ui_tap,
     'UiConfirm': ui_confirm,
@@ -217,12 +249,15 @@ CUES = {
     'Fail': fail,
     'Clear': clear,
     'Crown': crown,
+    # Looped by StageMusicPlayer during a Booster dash, not a SoundCue.
+    'BoosterWind': booster_wind,
 }
 
 
 # Relative loudness: UI cues stay quiet, gate cues sit just above the music.
 PEAKS = {'UiTap': 0.45, 'UiTab': 0.5, 'UiToggleOn': 0.45, 'UiToggleOff': 0.45,
-         'UiBack': 0.5, 'GateGood': 0.5, 'GateGreat': 0.6, 'GatePerfect': 0.7}
+         'UiBack': 0.5, 'GateGood': 0.5, 'GateGreat': 0.6, 'GatePerfect': 0.7,
+         'BoosterWind': 0.6}
 
 
 def write(path, buf, peak_target=0.8):

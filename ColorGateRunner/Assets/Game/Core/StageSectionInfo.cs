@@ -58,7 +58,25 @@ namespace ColorGateRunner.Core
             int stageNumber,
             int gateIndex)
         {
-            StageSectionInfo[] sections = GetSections(stageNumber);
+            return FindSection(GetSections(stageNumber), gateIndex);
+        }
+
+        // Sections belong to the authored Stage wherever it is placed.
+        public static StageSectionInfo FindSection(
+            string stageId,
+            int gateIndex)
+        {
+            return FindSection(
+                stageId == "stage-02" ? StageTwo
+                    : stageId == "stage-03" ? StageThree
+                    : null,
+                gateIndex);
+        }
+
+        private static StageSectionInfo FindSection(
+            StageSectionInfo[] sections,
+            int gateIndex)
+        {
             if (sections == null)
             {
                 return default;

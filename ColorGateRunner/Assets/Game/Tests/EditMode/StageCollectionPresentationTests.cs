@@ -67,7 +67,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(StageCollectionPresentation.FormatComeback(model),
                 Is.EqualTo("COMEBACK CLEARS 2"));
             Assert.That(model.Rows[0].ComboTarget, Is.EqualTo(10));
-            Assert.That(model.Rows[10].ComboTarget, Is.EqualTo(20));
+            Assert.That(model.Rows[AuthoredStage.Number(11) - 1].ComboTarget, Is.EqualTo(20));
             Assert.That(model.Rows[19].ComboTarget, Is.EqualTo(30));
         }
 

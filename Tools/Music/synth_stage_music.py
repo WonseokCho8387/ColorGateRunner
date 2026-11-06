@@ -9,6 +9,12 @@ chapter theme of Iteration 72 and renders identically. One Stage in the middle
 of each chapter is a calmer 90s city-pop track (electric piano, clean cutting
 guitar, fingered bass, half-time groove) for pacing.
 
+Themes belong to the authored Stage (its stage-NN ID), not to its place in
+the Campaign: --stage takes the Campaign display number, CAMPAIGN_ORDER maps
+it to the authored Stage, and the timeline CSV is read by display number.
+Iteration 80 moved the Booster Stage (authored 7) onto a hard-rock theme and
+its city-pop breather onto the Item Stage (authored 8).
+
 Standard library only. The same inputs always render the same samples.
 
     python Tools/Music/synth_stage_music.py --stage 1 --out Artifacts/Music
@@ -147,13 +153,14 @@ STAGE_THEMES = {
              C='o---o---o-o-o---', D='mmmmmmmmmnmfmvo-'),
         groove='blast', tone='fuzz', hook=5),
 
-    8: stage_theme(
-        'heavy_cargo', 37, 818, HARMONIC_MINOR,
-        dict(A=[0, 0, 8, 7], B=[0, 1, 8, 7], C=[5, 7, 8, 7],
-             D=[0, 8, 1, 7]),
-        dict(A='o-----m.m.o-----', B='m.m.o---m.mbo---',
-             C='o---------------', D='m.mbm.mbm.mnmvo-'),
-        groove='halftime', tone='heavy', hook=8),
+    7: stage_theme(
+        'afterburner', 42, 717, MINOR_PENT,
+        dict(A=[0, 0, 3, 5], B=[0, 10, 3, 5], C=[8, 10, 0, 0],
+             D=[0, 3, 5, 7]),
+        dict(A='mmmmmmmmo-mmmmo-', B='o-mmo-mmo-mmmvmx',
+             C='o---o---o-o-o-o-', D='mmmmmmmmmnmfmvo-'),
+        groove='blast', tone='fuzz', bass='octave', hook=7,
+        lead_drive=3.0),
     10: stage_theme(
         'chameleon', 46, 1010, PHRYGIAN,
         dict(A=[0, 1, 0, 10], B=[0, 8, 10, 1], C=[8, 10, 1, 0],
@@ -240,7 +247,7 @@ CITYPOP_THEMES = {
         bass=dict(A='r-----r-o-r-f---', B='r---o-r---f-o-r-',
                   C='r-----f---r-o---', D='r-o-r---f-o-r-s-'),
         hook=404),
-    7: citypop_theme(
+    8: citypop_theme(
         'neon_boulevard', 43, 707,
         dict(A=[(0, 'maj9'), (11, 'm7'), (9, 'm9'), (2, 'dom9')],
              B=[(5, 'maj7'), (7, 'dom7'), (4, 'm7'), (9, 'm7')],
@@ -414,6 +421,16 @@ HOOK_CELLS = [
     [(0, 4), (4, 2), (6, 2), (8, 4), (12, 4)],
     [(0, 2), (2, 4), (6, 2), (8, 2), (10, 6)],
 ]
+
+
+# Campaign display number -> authored Stage number (stage-NN), the same order
+# as StageCatalogAsset.CampaignOrder.
+CAMPAIGN_ORDER = [1, 2, 3, 6, 7, 8, 9, 10, 12, 13, 15, 16, 4, 5, 11, 14, 17,
+                  18, 19, 20, 21, 22, 23, 24, 25, 26]
+
+
+def authored_stage(display_number):
+    return CAMPAIGN_ORDER[display_number - 1]
 
 
 def theme_for(stage):
@@ -824,7 +841,7 @@ def citypop_bass_note(root, quality, symbol):
     return root
 
 
-def render_citypop(stage, theme, csv_path, out_path):
+def render_citypop(stage, theme, csv_path, out_path, display_number):
     rng = random.Random(theme['seed'] * 1000 + stage)
     bars, lead, gates = load_bars(csv_path)
     total_bars = len(bars) - 1
@@ -984,17 +1001,20 @@ def render_citypop(stage, theme, csv_path, out_path):
         peak = max(peak, abs(l), abs(r))
 
     write_track(out_path, mix_l, mix_r, peak, seconds)
-    return dict(stage=stage, chapter=stage_chapter(stage),
+    return dict(stage=display_number, authored=stage,
+                chapter=stage_chapter(stage),
                 theme=theme['name'], seconds=seconds, bars=total_bars,
                 gates=gates, lead_in_bars=lead, first_gate=bars[lead],
                 last_gate=bars[lead + gates - 1])
 
 
-def render_stage(stage, csv_path, out_path):
+def render_stage(display_number, csv_path, out_path):
+    stage = authored_stage(display_number)
     chapter = stage_chapter(stage)
     theme = theme_for(stage)
     if theme.get('style') == 'citypop':
-        return render_citypop(stage, theme, csv_path, out_path)
+        return render_citypop(stage, theme, csv_path, out_path,
+                              display_number)
     groove_set = GROOVES[theme.get('groove', 'rock')]
     tone = TONES[theme.get('tone', 'classic')]
     lead_drive = theme.get('lead_drive', 10.0)
@@ -1158,7 +1178,7 @@ def render_stage(stage, csv_path, out_path):
         peak = max(peak, abs(l), abs(r))
 
     write_track(out_path, mix_l, mix_r, peak, seconds)
-    return dict(stage=stage, chapter=chapter,
+    return dict(stage=display_number, authored=stage, chapter=chapter,
                 theme=theme.get('name', ORIGINAL_STAGES.get(stage)),
                 seconds=seconds,
                 bars=total_bars, gates=gates, lead_in_bars=lead,

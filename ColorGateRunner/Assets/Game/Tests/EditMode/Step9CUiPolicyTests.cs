@@ -8,7 +8,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void TwoColorHud_UsesStageOrder()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(1);
+            StageDefinition stage = AuthoredStage.Get(1);
 
             Assert.That(MobileUiPolicy.GetActiveColorCount(stage, 0), Is.EqualTo(2));
             Assert.That(MobileUiPolicy.GetColorAt(stage, 0, 0), Is.EqualTo(RunnerColor.Red));
@@ -18,7 +18,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void ThreeColorHud_UsesStageOrderAfterIntroduction()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
 
             Assert.That(
                 MobileUiPolicy.GetActiveColorCount(stage, stage.IntroGateCount),
@@ -30,7 +30,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void StageFour_ShowsCompleteColorCycleFromStart()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
 
             Assert.That(
                 MobileUiPolicy.GetActiveColorCount(
@@ -42,7 +42,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void StageFive_ShowsThreeTilesImmediately()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(5);
+            StageDefinition stage = AuthoredStage.Get(5);
 
             Assert.That(
                 MobileUiPolicy.GetActiveColorCount(stage, 0),
@@ -55,7 +55,7 @@ namespace ColorGateRunner.Tests.EditMode
             RunnerColor current,
             RunnerColor expected)
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(1);
+            StageDefinition stage = AuthoredStage.Get(1);
 
             Assert.That(
                 MobileUiPolicy.GetNextColor(stage, 0, current),
@@ -65,7 +65,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void CurrentColor_RemainsAnActiveTile()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(5);
+            StageDefinition stage = AuthoredStage.Get(5);
 
             Assert.That(
                 MobileUiPolicy.GetNextColor(stage, 12, RunnerColor.Green),
@@ -83,7 +83,7 @@ namespace ColorGateRunner.Tests.EditMode
             RunnerColor color,
             int expectedSlot)
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(5);
+            StageDefinition stage = AuthoredStage.Get(5);
 
             Assert.That(
                 MobileUiPolicy.GetStackSlot(stage, 0, current, color),

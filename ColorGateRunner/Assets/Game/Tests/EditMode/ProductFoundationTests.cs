@@ -698,6 +698,74 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void CampaignLayout_OlderSaveResumesAtFirstUnclearedStageOnce()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(pipeline.Session.ImportLegacyCampaign(
+                "stage-01",
+                Array.Empty<CampaignProgressImportEntry>()).Succeeded,
+                Is.True);
+            for (int number = 1; number <= 3; number++)
+            {
+                Assert.That(pipeline.Session.RecordStageClear(
+                    new StageClearProgressRequest(
+                        number,
+                        $"stage-0{number}",
+                        $"stage-0{number + 1}",
+                        CreateStageRecord($"stage-0{number}", true, 1)))
+                    .Succeeded, Is.True);
+            }
+            Assert.That(pipeline.Progression.Campaign.HighestUnlockedStageId,
+                Is.EqualTo("stage-04"));
+            string[] order =
+            {
+                "stage-01", "stage-02", "stage-03", "stage-06", "stage-04"
+            };
+
+            ProductMutationResult first =
+                pipeline.Session.ReconcileCampaignLayout(1, order);
+            ProductMutationResult second =
+                pipeline.Session.ReconcileCampaignLayout(1, order);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(first.Changed, Is.True);
+            Assert.That(second.Succeeded, Is.True);
+            Assert.That(second.Changed, Is.False);
+            Assert.That(pipeline.Progression.Campaign.HighestUnlockedStageId,
+                Is.EqualTo("stage-06"));
+            Assert.That(pipeline.Progression.Campaign.CampaignLayoutVersion,
+                Is.EqualTo(1));
+            Assert.That(pipeline.Progression.Campaign.StageRecords.Count,
+                Is.EqualTo(3), "Records stay on their Stage IDs.");
+            Assert.That(save.Stored.CampaignProgress.CampaignLayoutVersion,
+                Is.EqualTo(1));
+            Assert.That(save.Stored.CampaignProgress.Clone()
+                .CampaignLayoutVersion, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void CampaignLayout_SaveFailureKeepsTheOlderLayout()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            save.FailWrites = true;
+
+            ProductMutationResult result = pipeline.Session
+                .ReconcileCampaignLayout(1, new[] { "stage-01", "stage-02" });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(pipeline.Progression.Campaign.CampaignLayoutVersion,
+                Is.Zero);
+            save.FailWrites = false;
+            Assert.That(pipeline.Session
+                .ReconcileCampaignLayout(1, new[] { "stage-01", "stage-02" })
+                .Changed, Is.True, "The move is retried on the next launch.");
+        }
+
+        [Test]
         public void StageClearRewardPolicy_UsesDifficultyAndKeepsMilestoneSeparate()
         {
             Assert.That(StageClearRewardPolicy.GetBaseCoins(

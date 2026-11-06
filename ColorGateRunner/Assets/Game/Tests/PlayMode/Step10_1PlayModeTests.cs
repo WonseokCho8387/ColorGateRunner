@@ -31,7 +31,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Stage4_HudShowsThreeColorsImmediately()
         {
-            StartStage(4, completeCountdown: false);
+            StartStage(13, completeCountdown: false);
 
             Assert.That(_controller.ActiveColorTileCount, Is.EqualTo(3));
             Assert.That(_controller.GetColorTile(2).activeSelf, Is.True);
@@ -40,7 +40,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Stage4_EarlyGatesDoNotUseGreen()
         {
-            StartStage(4);
+            StartStage(13);
             int firstGreen = _controller.Session.Stage.GetFirstGateIndex(
                 RunnerColor.Green);
 
@@ -56,7 +56,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Stage4_LaterGateUsesGreen()
         {
-            StartStage(4);
+            StartStage(13);
             int firstGreen = _controller.Session.Stage.GetFirstGateIndex(
                 RunnerColor.Green);
 
@@ -72,7 +72,7 @@ namespace ColorGateRunner.Tests.PlayMode
         [Test]
         public void Goal_IsVisibleAtLongRangeAndApproachesContinuously()
         {
-            StartStage(4);
+            StartStage(13);
             Vector3 initialGoalPosition = _controller.Goal.transform.position;
             float initialDistance = _controller.GoalPathDistance -
                 _controller.CampaignDistance;
@@ -402,7 +402,7 @@ namespace ColorGateRunner.Tests.PlayMode
 
         private void StartStage(int number, bool completeCountdown = true)
         {
-            _store.HighestUnlocked = 5;
+            _store.HighestUnlocked = StageCatalog.Count;
             _controller.SetProgressStoreForTests(_store);
             _controller.SelectStage(number);
             _controller.StartSelectedStage();

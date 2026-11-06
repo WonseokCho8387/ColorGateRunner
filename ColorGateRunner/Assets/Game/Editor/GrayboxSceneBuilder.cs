@@ -1811,6 +1811,9 @@ namespace ColorGateRunner.Editor
         // judgment flash spans the band just under the top HUD and the Pause
         // button. Iteration 70: the flash is a feeling effect, so it is bold,
         // translucent and additive instead of sitting on an opaque plate.
+        private const string BoosterWindClipPath =
+            "Assets/Game/Audio/Sfx/BoosterWind.wav";
+
         private static StageMusicPlayer CreateStageMusic(
             Transform parent,
             StageMusicCatalogAsset catalog)
@@ -1826,8 +1829,19 @@ namespace ColorGateRunner.Editor
             source.spatialBlend = 0f;
             source.volume = 0f;
             source.priority = 0;
+            GameObject windRoot = new GameObject(
+                "BoosterWind",
+                typeof(AudioSource));
+            windRoot.transform.SetParent(root.transform, false);
+            AudioSource wind = windRoot.GetComponent<AudioSource>();
+            wind.playOnAwake = false;
+            wind.loop = true;
+            wind.spatialBlend = 0f;
+            wind.volume = 0f;
+            wind.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(
+                BoosterWindClipPath);
             StageMusicPlayer player = root.GetComponent<StageMusicPlayer>();
-            player.Configure(source, catalog);
+            player.Configure(source, catalog, wind);
             return player;
         }
 

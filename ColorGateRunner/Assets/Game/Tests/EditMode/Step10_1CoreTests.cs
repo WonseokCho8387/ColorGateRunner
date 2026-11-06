@@ -8,7 +8,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_ActiveColorsAreCompleteAtRunStart()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             StageSession session = CreatePlaying(stage);
 
             Assert.That(stage.ActiveColorsFromStart, Is.True);
@@ -22,7 +22,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_GreenGatesBeginAtConfiguredLaterIndex()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(stage);
             int firstGreen = stage.GetFirstGateIndex(RunnerColor.Green);
@@ -40,7 +40,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_ColorCycleDoesNotMutateMidRun()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             StageSession session = CreatePlaying(stage);
 
             AssertCycleHasThreeColors(session);
@@ -57,7 +57,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_EarlyTutorialPrimarilyRequiresZeroOrOneTap()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(stage);
             RunnerColor current = RunnerColor.Red;
@@ -80,7 +80,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_PerfectFirstAttemptUsesRuntimeColorCycle()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             StageSimulationResult result = StageSimulationRunner.Run(
                 stage,
                 new StartItemSelection(false, false),
@@ -95,7 +95,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Stage4_SharedTapCalculationMatchesRuntimeCycle()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             StageSession session = CreatePlaying(stage);
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(stage);
@@ -222,7 +222,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Goal_IsPartOfDeterministicStagePlanning()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
 
             StageGoalPlan first = StageGoalPlanner.Create(stage, 48f, 40f);
             StageGoalPlan replay = StageGoalPlanner.Create(stage, 48f, 40f);
@@ -237,7 +237,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void Continue_ConsumesFailedGateImmediately()
         {
             StageSession session = CreatePlaying(
-                StageCatalog.GetByDisplayNumber(1));
+                AuthoredStage.Get(1));
             GatePlan failed = session.GetNextGatePlan();
             MatchDifferentColor(session, failed.Color);
             Assert.That(session.ResolveGate(failed.Color),
@@ -254,7 +254,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void Continue_SelectsGateAfterConsumedFailure()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(1);
+            StageDefinition stage = AuthoredStage.Get(1);
             StageSession session = CreatePlaying(stage);
             GatePlan failed = session.GetNextGatePlan();
             MatchDifferentColor(session, failed.Color);

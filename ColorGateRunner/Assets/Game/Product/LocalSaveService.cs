@@ -533,6 +533,7 @@ namespace ColorGateRunner.Product
             if (campaign == null || economy == null || lobby == null ||
                 string.IsNullOrWhiteSpace(
                     campaign.HighestUnlockedStageId) ||
+                campaign.CampaignLayoutVersion < 0 ||
                 campaign.StageRecords == null ||
                 economy.AppliedTransactionIds == null ||
                 economy.Coins < 0 || economy.ShieldCount < 0 ||

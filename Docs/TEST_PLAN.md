@@ -1270,6 +1270,28 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 80 campaign reorder, Booster rock and wind
+
+- EditMode `StageCatalogArchitectureTests.CampaignOrder_*`: display numbers
+  follow `CampaignOrder`, IDs unique, two colors before 13, Green teaching
+  at 13 follows its Stage ID. `ProductFoundationTests.CampaignLayout_*`: an
+  older save resumes at the first uncleared Stage once, records stay, a
+  failed save keeps the old layout and retries.
+- PlayMode `GrayboxScenePlayModeTests.StageMusic_BoosterLowersTheTrackUnderWindThenFadesBack`:
+  the wind loops during the dash, the track sits at 60%, the wind fades
+  after the dash.
+- Tests that named Stages by number now find them by authored Stage ID
+  (`AuthoredStage` helper); position-based rules (milestones, unlocks) keep
+  display numbers.
+- Gate timelines of all 26 Stages compared with Iteration 79: moved Stages
+  identical, the Item Stage differs only in colors. Moved music re-renders
+  byte-identical.
+- Not automated: whether the new order feels right, the Booster rock track,
+  and the wind and duck balance on phones.
+- Final evidence: EditMode 625/625; PlayMode 309 passed + 1 intentional
+  ignore; Step 10 hash-identical; Campaign simulation new baseline (hashes
+  in `CURRENT_STATUS.md`); Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 79 web stage music clock
 
 - PlayMode `TutorialPlayModeTests.GuideRun_OwnMusicClockStopsDuringTheHoldAndFollowsAfter`:

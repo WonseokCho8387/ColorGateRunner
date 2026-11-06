@@ -53,10 +53,10 @@ namespace ColorGateRunner.Tests.EditMode
         public void StagesFourAndFive_AllowGreen()
         {
             Assert.That(
-                StageCatalog.GetByDisplayNumber(4).AllowsColor(RunnerColor.Green),
+                AuthoredStage.Get(4).AllowsColor(RunnerColor.Green),
                 Is.True);
             Assert.That(
-                StageCatalog.GetByDisplayNumber(5).AllowsColor(RunnerColor.Green),
+                AuthoredStage.Get(5).AllowsColor(RunnerColor.Green),
                 Is.True);
         }
 
@@ -283,7 +283,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void StageSequence_IsDeterministic()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(5);
+            StageDefinition stage = AuthoredStage.Get(5);
             DeterministicStageGateSequence first =
                 new DeterministicStageGateSequence(stage);
             DeterministicStageGateSequence second =
@@ -302,7 +302,7 @@ namespace ColorGateRunner.Tests.EditMode
         [Test]
         public void StageFour_IntroducesGreenAtConfiguredGate()
         {
-            StageDefinition stage = StageCatalog.GetByDisplayNumber(4);
+            StageDefinition stage = AuthoredStage.Get(4);
             DeterministicStageGateSequence sequence =
                 new DeterministicStageGateSequence(stage);
             for (int index = 0; index < stage.IntroGateCount; index++)
@@ -347,7 +347,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void Countdown_DoesNotAdvanceElapsedTime()
         {
             StageSession session =
-                new StageSession(StageCatalog.GetByDisplayNumber(1));
+                new StageSession(AuthoredStage.Get(1));
             session.BeginCountdown();
             session.Advance(1f, 5f);
 
@@ -360,7 +360,7 @@ namespace ColorGateRunner.Tests.EditMode
                 items.Shield || items.Booster ? 8 : 1;
             StageSession session =
                 new StageSession(
-                    StageCatalog.GetByDisplayNumber(stageNumber));
+                    AuthoredStage.Get(stageNumber));
             session.SelectItems(items);
             session.BeginCountdown();
             session.CompleteCountdown();

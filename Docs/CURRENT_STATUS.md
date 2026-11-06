@@ -1,5 +1,30 @@
 # Current Status
 
+## Iteration 80 — Campaign Reorder, Booster Rock and Wind (2026-11-06 KST)
+
+- 기준: `e5c6137`(Iteration 79, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음.
+- 캠페인 순서(`StageCatalogAsset.CampaignOrder`, 26개 그대로): 1-3 기본, 4 Shield(`stage-06`), 5 Booster
+  (`stage-07`), 6 아이템(`stage-08`, 3색→2색), 7-12 위장·안개·얼음 입문/연습, 13 초록 입문(`stage-04`), 14 3색
+  도전(`stage-05`), 15-17 위장·안개·얼음 마스터리, 18-26 그대로. 12번까지 2색. Stage ID·시드는 내용을 따라가고
+  표시 번호만 바뀐다. 번호로 판단하던 생성 규칙(예외 색, 초록 입문, 2·3번 구간)은 ID 기준이 됐다. 옮겨진 25개의
+  게이트 색·타이밍은 이전과 같고, 아이템 스테이지는 색만 바뀌었다(타이밍 같음). 13·14번은 시작 아이템을 허용한다.
+- 저장: `LocalCampaignProgressData.CampaignLayoutVersion`(현재 `1`). 오래된 배치의 저장은 시작할 때 한 번 현재
+  순서에서 처음 안 깬 스테이지로 진행 위치를 다시 잡는다. 기록은 Stage ID 그대로. 레거시 PlayerPrefs 가져오기는
+  번호 N을 `stage-NN`으로 매핑한다. 보상 마일스톤과 트랙 곡선·로비 테마는 표시 번호(위치) 기준 그대로다.
+- 음악: 곡은 스테이지를 따라 이름만 옮겼다(재렌더와 바이트 동일 확인). Booster 스테이지(5)는 새 하드록
+  `afterburner`, 아이템 스테이지(6)는 원래 Booster 자리의 시티팝 `neon_boulevard`. 모든 Booster 질주 중 음악은
+  `60%`, 3초 반복 바람 소리(`Audio/Sfx/BoosterWind.wav`)가 `0.2s`에 커지고 질주 후 `1s`에 사라진다.
+- 자동 검증: **EditMode 625/625; PlayMode 309 passed + 1 intentional ignore (310)**(활성 플랫폼 WebGL). Builder
+  2회. Step 10 산출물 5개 해시 **동일**. Campaign 시뮬레이션은 순서가 바뀌어 **새 기준**:
+  `MechanicCampaign-SimulationResults.csv` `895ACC31CEC089BDD3DF5AEA1520059974265877A15E7A3EBD43CCECBC504F6F`,
+  `.json` `76B957F67CBB8AC6D559D30096C28B34CF62E907D47F06C80D2DAF261F5412F6`,
+  `Summary.md` `56637538D14CDB4391A1F3431DA9725610CC89B402A3480940133A940A2FAE10`.
+  Product 저장 파일과 Campaign PlayerPrefs 전후 동일(테스트는 실제 저장을 쓰지 않는다).
+- 새 무료 웹판 브라우저 계측(소리 0 gain): 새 저장으로 1-5 자동 클리어. 5번에서 바람 반복이 GO에 시작해 약
+  `5.5s` 뒤(질주 약 `4.4s` + 페이드) 멈추고, 음악은 한 번 시작해 골인 뒤까지 재생됐다. 4·5번 안내 카드 정상.
+- Editor의 기존 개발 저장은 다음 실행 때 한 번 새 순서로 진행 위치가 옮겨진다(의도된 마이그레이션).
+
 ## Iteration 79 — Web Stage Music Clock (2026-11-06 KST)
 
 - 기준: `14015cb`(Iteration 78, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

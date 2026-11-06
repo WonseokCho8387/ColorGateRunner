@@ -155,7 +155,7 @@ namespace ColorGateRunner.Tests.EditMode
 
         private static StageSession StartPlaying(int stageNumber)
         {
-            var session = new StageSession(StageCatalog.GetByDisplayNumber(stageNumber));
+            var session = new StageSession(AuthoredStage.Get(stageNumber));
             Assert.That(session.BeginCountdown(), Is.True);
             Assert.That(session.CompleteCountdown(), Is.True);
             Assert.That(session.FlowState, Is.EqualTo(StageFlowState.Playing));

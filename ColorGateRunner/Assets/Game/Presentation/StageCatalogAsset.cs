@@ -10,7 +10,7 @@ namespace ColorGateRunner.Presentation
     public sealed class StageCatalogAsset : ScriptableObject
     {
         private const int CurvedProfileSampleCount = 101;
-        private const int CurrentCatalogRevision = 16;
+        private const int CurrentCatalogRevision = 18;
 
         [Serializable]
         private sealed class StageEntry
@@ -281,6 +281,13 @@ namespace ColorGateRunner.Presentation
             {
                 speedCurve = new AnimationCurve(keys);
                 return this;
+            }
+
+            internal string Id => stageId;
+
+            internal void Renumber(int number)
+            {
+                displayNumber = number;
             }
 
             public StageEntry WithActiveColorCount(int count)
@@ -567,7 +574,7 @@ namespace ColorGateRunner.Presentation
                     },
                     8, 6, 420f, 100f, 40404u,
                     true, new[] { 0, 0, 8 })
-                    .WithItemAvailability(false, false),
+                    .WithItemAvailability(true, true),
                 StageEntry.Create(
                     "stage-05", 5, "THREE-COLOR CHALLENGE",
                     "Master three colors under pressure.",
@@ -587,7 +594,7 @@ namespace ColorGateRunner.Presentation
                         GatePatternType.SingleColorBreak
                     },
                     4, 8, 460f, 104f, 50505u)
-                    .WithItemAvailability(false, false),
+                    .WithItemAvailability(true, true),
                 StageEntry.Create(
                     "stage-06", 6, "SHIELD TRAINING",
                     "Learn one stage-local Shield charge.",
@@ -650,7 +657,7 @@ namespace ColorGateRunner.Presentation
                     .WithItemAvailability(false, false),
                 StageEntry.Create(
                     "stage-08", 8, "ITEM APPLICATION",
-                    "Apply an available item in a clean three-color run.",
+                    "Apply an available item in a clean two-color run.",
                     40, new[]
                     {
                         RunnerColor.Red,
@@ -669,7 +676,8 @@ namespace ColorGateRunner.Presentation
                         new Keyframe(0f, 0f),
                         new Keyframe(0.45f, 0.30f),
                         new Keyframe(0.78f, 0.70f),
-                        new Keyframe(1f, 1f)),
+                        new Keyframe(1f, 1f))
+                    .WithActiveColorCount(2),
                 StageEntry.Create(
                     "stage-09", 9, "CAMOUFLAGE INTRO",
                     "Learn the reveal timing with two colors.",
@@ -1164,6 +1172,54 @@ namespace ColorGateRunner.Presentation
                         0.10f, 0.96f, 1.00f, 2,
                         0.99f, 0.24f, 10)
             };
+            ApplyCampaignOrder();
+        }
+
+        // Campaign play order by Stage ID. A Stage keeps its ID and seed
+        // wherever it is placed; only its display number follows the order.
+        // Changing this order needs a higher CampaignLayoutVersion, which
+        // moves older saves onto the new order once.
+        public const int CampaignLayoutVersion = 1;
+
+        // Before layouts, display number N was always stage-NN.
+        public static string LegacyStageId(int legacyNumber) =>
+            $"stage-{legacyNumber:00}";
+
+        public static int LegacyNumber(string stageId) =>
+            int.Parse(
+                stageId.Substring("stage-".Length),
+                System.Globalization.CultureInfo.InvariantCulture);
+
+        internal static readonly string[] CampaignOrder =
+        {
+            "stage-01", "stage-02", "stage-03",
+            "stage-06", "stage-07", "stage-08",
+            "stage-09", "stage-10", "stage-12", "stage-13",
+            "stage-15", "stage-16",
+            "stage-04", "stage-05",
+            "stage-11", "stage-14", "stage-17",
+            "stage-18", "stage-19", "stage-20",
+            "stage-21", "stage-22", "stage-23",
+            "stage-24", "stage-25", "stage-26"
+        };
+
+        private void ApplyCampaignOrder()
+        {
+            var ordered = new StageEntry[CampaignOrder.Length];
+            for (int index = 0; index < CampaignOrder.Length; index++)
+            {
+                StageEntry entry = Array.Find(
+                    stages,
+                    candidate => candidate.Id == CampaignOrder[index]);
+                if (entry == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Campaign order names a missing Stage: {CampaignOrder[index]}");
+                }
+                entry.Renumber(index + 1);
+                ordered[index] = entry;
+            }
+            stages = ordered;
         }
     }
 

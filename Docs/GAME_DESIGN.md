@@ -986,6 +986,17 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 80 campaign order
+
+- Campaign order by Stage ID: basics (1-3), Shield (4), Booster (5), Item
+  Stage (6, now two colors), Camouflage, Fog and Ice intro and practice
+  (7-12), Green introduction (13), three-color challenge (14), Camouflage,
+  Fog and Ice mastery (15-17), then Echo, Hidden and Flicker (18-26). Every
+  Stage before 13 uses two colors. A moved Stage keeps its authored gates.
+- Start items are locked through Stage 5 and open from the Item Stage on.
+- Booster dash: the Stage track drops to 60% under a rushing wind, which
+  fades out over 1s after the dash.
+
 ## Iteration 78 mechanic guide runs
 
 - Supersedes the Stage-1-only guide of Iteration 77: every Stage that first

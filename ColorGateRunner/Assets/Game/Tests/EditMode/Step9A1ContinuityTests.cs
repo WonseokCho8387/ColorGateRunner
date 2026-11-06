@@ -15,7 +15,7 @@ namespace ColorGateRunner.Tests.EditMode
 
             for (int index = 0; index < starts.Length; index++)
             {
-                StageDefinition stage = StageCatalog.GetByIndex(index);
+                StageDefinition stage = AuthoredStage.Get(index + 1);
                 Assert.That(stage.StartingSpeed, Is.EqualTo(starts[index]));
                 Assert.That(stage.MaximumSpeed, Is.EqualTo(maximums[index]));
                 Assert.That(stage.BoosterSpeed, Is.EqualTo(boosters[index]));
@@ -292,7 +292,7 @@ namespace ColorGateRunner.Tests.EditMode
         public void Simulation_ContinuityMetricsReportNoReset()
         {
             StageSimulationResult result = StageSimulationRunner.Run(
-                StageCatalog.GetByDisplayNumber(8),
+                AuthoredStage.Get(8),
                 new StartItemSelection(false, true),
                 SimulatedPlayerProfile.Get(SimulatedPlayerKind.Stress),
                 new GameplaySimulationSettings(200, 98765u, true));
@@ -315,7 +315,7 @@ namespace ColorGateRunner.Tests.EditMode
             bool booster = false)
         {
             StageSession session = new StageSession(
-                StageCatalog.GetByDisplayNumber(stageNumber));
+                AuthoredStage.Get(stageNumber));
             session.SelectItems(new StartItemSelection(shield, booster));
             session.BeginCountdown();
             session.CompleteCountdown();
