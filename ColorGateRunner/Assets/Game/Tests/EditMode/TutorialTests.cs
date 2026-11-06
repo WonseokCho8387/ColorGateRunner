@@ -21,7 +21,7 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(guide.Message, Does.Contain("TAP ANYWHERE"));
             Assert.That(guide.TryGetHold(0, default), Is.True);
             Assert.That(
-                guide.Script.HoldLeadDistance(40f, null, null),
+                guide.Script.HoldLeadDistance(40f, 60f, null),
                 Is.EqualTo(40f * TutorialGuide.HoldLeadSeconds));
 
             guide.Hold(0, RunnerColor.Blue, RunnerColor.Red);
@@ -39,6 +39,15 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(guide.AcceptsTap, Is.False);
             guide.Tick(TutorialGuide.MatchedHoldSeconds + 0.01f);
             Assert.That(guide.Frozen, Is.False);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Passing));
+            Assert.That(guide.AcceptsTap, Is.False,
+                "Taps cannot undo the match before the gate.");
+            Assert.That(guide.Message, Does.Contain("MATCHED"));
+            Assert.That(guide.TryGetHold(1, default), Is.False);
+
+            guide.OnGateResolved(0);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Running));
+            Assert.That(guide.AcceptsTap, Is.True);
             Assert.That(guide.TryGetHold(0, default), Is.False);
             Assert.That(guide.Message, Is.Empty, "The GO line ends at the first hold.");
         }
@@ -54,6 +63,8 @@ namespace ColorGateRunner.Tests.EditMode
             Assert.That(guide.Frozen, Is.True);
             guide.Tick(0.2f);
             Assert.That(guide.Frozen, Is.False);
+            Assert.That(guide.AcceptsTap, Is.False, "Carried through the gate.");
+            guide.OnGateResolved(0);
             Assert.That(guide.AcceptsTap, Is.True);
         }
 
@@ -134,28 +145,43 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Scripts_HoldWhereEachMechanicIsReadable()
+        public void Scripts_ExplainMechanicsHalfwayWithTapsBlocked()
         {
-            StageDefinition camouflage = StageCatalog.GetByDisplayNumber(7);
             StageDefinition hidden = StageCatalog.GetByDisplayNumber(21);
             float speed = 40f;
+            float spacing = 60f;
             float standard = speed * TutorialGuide.HoldLeadSeconds;
-            CamouflageSettings reveal = camouflage.CamouflageSettings;
-            float afterReveal = TutorialScripts.For(TutorialTopic.Camouflage)
-                .HoldLeadDistance(speed, reveal, null);
-            Assert.That(afterReveal, Is.GreaterThan(standard));
-            Assert.That(afterReveal / speed,
-                Is.LessThan(reveal.RevealLeadTimeSeconds - reveal.RevealTransitionSeconds),
-                "Held after the reveal has finished.");
-            float beforeHide = TutorialScripts.For(TutorialTopic.Hidden)
-                .HoldLeadDistance(speed, null, hidden.HiddenSettings);
+            TutorialTopic[] explained =
+            {
+                TutorialTopic.Camouflage, TutorialTopic.Ice,
+                TutorialTopic.Echo, TutorialTopic.Flicker
+            };
+            foreach (TutorialTopic topic in explained)
+            {
+                TutorialScript script = TutorialScripts.For(topic);
+                Assert.That(script.HoldKind, Is.EqualTo(TutorialHoldKind.Midway), $"{topic}");
+                Assert.That(script.WaitForMatch, Is.False, $"{topic}");
+                Assert.That(script.TimedHoldSeconds,
+                    Is.EqualTo(TutorialScripts.ExplainSeconds), $"{topic}");
+                Assert.That(script.HoldLeadDistance(speed, spacing, null),
+                    Is.EqualTo(spacing * 0.5f), $"{topic} holds halfway from the last gate");
+            }
+            Assert.That(TutorialScripts.For(TutorialTopic.Ice)
+                    .HoldLeadDistance(speed, 2f, null),
+                Is.EqualTo(standard), "Never closer than the standard hold.");
+
+            TutorialScript hide = TutorialScripts.For(TutorialTopic.Hidden);
+            Assert.That(hide.WaitForMatch, Is.False);
+            Assert.That(hide.TimedHoldSeconds, Is.EqualTo(TutorialScripts.ExplainSeconds));
+            float beforeHide = hide.HoldLeadDistance(speed, spacing, hidden.HiddenSettings);
             Assert.That(beforeHide / speed,
                 Is.GreaterThan(hidden.HiddenSettings.HideLeadTimeSeconds),
                 "Held while the color still shows.");
-            Assert.That(TutorialScripts.For(TutorialTopic.Flicker)
-                    .HoldLeadDistance(speed, null, null),
-                Is.LessThan(FlickerGateRuntimeState.LockDistance),
-                "Held inside the lock distance.");
+
+            foreach (TutorialTopic topic in new[] { TutorialTopic.Basics, TutorialTopic.ThirdColor })
+            {
+                Assert.That(TutorialScripts.For(topic).WaitForMatch, Is.True, $"{topic}");
+            }
         }
 
         [Test]

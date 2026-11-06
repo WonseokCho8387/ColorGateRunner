@@ -170,7 +170,7 @@ namespace ColorGateRunner.Presentation
             }
             float lead = _guide.Script.HoldLeadDistance(
                 _session.GetSpeedForPlan(target.ActivePlan),
-                _session.Stage.CamouflageSettings,
+                target.ActivePlan.Spacing,
                 _session.Stage.HiddenSettings);
             float holdAt = target.PathDistance - lead;
             if (_campaignDistance + distance < holdAt)

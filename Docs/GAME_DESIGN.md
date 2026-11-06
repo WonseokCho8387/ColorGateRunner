@@ -986,6 +986,14 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 81 guide holds
+
+- Color holds (Stage 1, Green at 13) wait for the match; once matched, taps
+  are ignored until the held gate is passed, so the match always carries.
+- Mechanic explanations (Camouflage, Ice, Echo, Flicker) stop halfway from
+  the previous gate for 3s with taps blocked, then the player plays the gate.
+  Hidden stops for 3s while the gate still shows its color.
+
 ## Iteration 80 campaign order
 
 - Campaign order by Stage ID: basics (1-3), Shield (4), Booster (5), Item

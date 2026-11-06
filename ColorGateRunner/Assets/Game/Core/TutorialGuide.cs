@@ -7,7 +7,9 @@ namespace ColorGateRunner.Core
         HoldNeedsTap,
         HoldSameColor,
         HoldMatched,
-        HoldTimed
+        HoldTimed,
+        // Moving again after a match; taps wait until the held gate passes.
+        Passing
     }
 
     // Runs one Stage's TutorialScript during a guide run. The presentation
@@ -47,9 +49,11 @@ namespace ColorGateRunner.Core
             Step == TutorialGuideStep.HoldSameColor ||
             Step == TutorialGuideStep.HoldMatched ||
             Step == TutorialGuideStep.HoldTimed;
-        // While frozen only a tap that can still fix the color is accepted.
+        // While frozen only a tap that can still fix the color is accepted;
+        // after a match no tap can undo it before the gate.
         public bool AcceptsTap =>
-            !Frozen || Step == TutorialGuideStep.HoldNeedsTap;
+            Step == TutorialGuideStep.HoldNeedsTap ||
+            (!Frozen && Step != TutorialGuideStep.Passing);
         // A BeforeHide hold may stop with an earlier gate still ahead.
         public bool HoldNeedsNextGate =>
             _script == null || _script.HoldKind != TutorialHoldKind.BeforeHide;
@@ -131,6 +135,11 @@ namespace ColorGateRunner.Core
         // Continue then clears.
         public void OnGateResolved(int gateIndex)
         {
+            if (Step == TutorialGuideStep.Passing && gateIndex == _heldGateIndex)
+            {
+                Step = TutorialGuideStep.Running;
+                Refresh();
+            }
             if (!Active || gateIndex != _heldGateIndex ||
                 _holdsDone < _script.HoldCount || _afterIndex >= 0 ||
                 _script.AfterHolds.Length == 0)
@@ -168,7 +177,11 @@ namespace ColorGateRunner.Core
                 _holdRemaining -= deltaTime;
                 if (_holdRemaining > 0f) return;
                 _holdRemaining = 0f;
-                Step = TutorialGuideStep.Running;
+                // A matched color is carried through the gate; a timed
+                // explanation hands control back.
+                Step = Step == TutorialGuideStep.HoldTimed
+                    ? TutorialGuideStep.Running
+                    : TutorialGuideStep.Passing;
                 Refresh();
                 return;
             }
@@ -202,7 +215,9 @@ namespace ColorGateRunner.Core
 
         private void Refresh()
         {
-            Message = Frozen ? _holdMessage : _bannerMessage;
+            Message = Frozen || Step == TutorialGuideStep.Passing
+                ? _holdMessage
+                : _bannerMessage;
         }
 
         private static string ColorName(RunnerColor color) =>

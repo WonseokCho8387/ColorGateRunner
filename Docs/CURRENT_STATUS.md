@@ -1,5 +1,17 @@
 # Current Status
 
+## Iteration 81 — Guide Holds Without Lost Taps (2026-11-06 KST)
+
+- 기준: `4cf8fce`(Iteration 80, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음.
+- 색 맞추기 멈춤(Stage 1, 13 초록): 맞출 때까지 멈추고, 맞으면 그 게이트를 지날 때까지 탭을 막아(`Passing`)
+  자동으로 통과한다. 이전에는 멈춤이 풀린 뒤 게이트까지 남은 약 `0.15s` 동안 계속 누른 탭이 색을 바꿔 실패했다.
+- 기믹 설명(위장 7, 얼음 11, Echo 18, 깜빡임 24): 지난 게이트와 다음 게이트의 중간(`Midway`, 간격의 절반)에서
+  `3s` 멈추고 탭을 막은 뒤 시간이 지나면 닫히며 직접 플레이한다. 숨김(21)은 색이 꺼지기 전에 `3s` 멈춘다.
+  위장은 색 공개 뒤, 깜빡임은 색 고정 뒤에 멈추는 조건은 그대로다.
+- 자동 검증: **EditMode 625/625; PlayMode 309 passed + 1 intentional ignore (310)**(활성 플랫폼 WebGL). Campaign
+  시뮬레이션과 Step 10 산출물 8개 해시 Iteration 80 기준과 **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+
 ## Iteration 80 — Campaign Reorder, Booster Rock and Wind (2026-11-06 KST)
 
 - 기준: `e5c6137`(Iteration 79, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

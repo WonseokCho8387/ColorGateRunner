@@ -1270,6 +1270,23 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 81 guide holds without lost taps
+
+- EditMode `TutorialTests`: after a matched or same-color hold the guide is
+  `Passing` and refuses taps until the held gate resolves;
+  `Scripts_ExplainMechanicsHalfwayWithTapsBlocked` checks Midway lead
+  (half the gate spacing, never closer than the standard hold), timed 3s,
+  no wait for a match, and that only Basics and Green wait for a match.
+- PlayMode `TutorialPlayModeTests`: Green holds, then a player tapping every
+  frame keeps the matched color through the gate; Camouflage, Ice, Echo and
+  Flicker stop clearly ahead of the gate, ignore taps, close after 3s and
+  hand control back.
+- Not automated: whether 3s reads comfortably and the halfway stop shows
+  each mechanic clearly on a phone.
+- Final evidence: EditMode 625/625; PlayMode 309 passed + 1 intentional
+  ignore; Campaign and Step 10 artifacts hash-identical to Iteration 80;
+  Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 80 campaign reorder, Booster rock and wind
 
 - EditMode `StageCatalogArchitectureTests.CampaignOrder_*`: display numbers

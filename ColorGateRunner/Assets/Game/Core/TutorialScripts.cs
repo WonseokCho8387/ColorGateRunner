@@ -19,12 +19,10 @@ namespace ColorGateRunner.Core
     {
         // Just before the gate, inside the PERFECT window.
         Standard,
-        // Just after a Camouflage gate has revealed its color.
-        AfterReveal,
+        // Halfway from the previous gate, so the mechanic is seen ahead.
+        Midway,
         // While a Hidden gate still shows its color; the gate need not be next.
-        BeforeHide,
-        // Just after a Flicker gate has locked its color.
-        AfterLock
+        BeforeHide
     }
 
     public enum TutorialEvent
@@ -109,34 +107,30 @@ namespace ColorGateRunner.Core
             _ => false
         };
 
-        // Runner distance before the gate at which this hold starts.
+        // Runner distance before the gate at which this hold starts;
+        // gateSpacing is the distance from the previous gate.
         public float HoldLeadDistance(
             float gateSpeed,
-            CamouflageSettings camouflage,
+            float gateSpacing,
             HiddenSettings hidden)
         {
             float speed = Math.Max(0f, gateSpeed);
+            float standard = speed * TutorialGuide.HoldLeadSeconds;
             return HoldKind switch
             {
-                TutorialHoldKind.AfterReveal => speed * Math.Max(
-                    TutorialGuide.HoldLeadSeconds,
-                    camouflage.RevealLeadTimeSeconds -
-                    camouflage.RevealTransitionSeconds -
-                    TutorialScripts.RevealSettleSeconds),
+                TutorialHoldKind.Midway => Math.Max(standard, gateSpacing * 0.5f),
                 TutorialHoldKind.BeforeHide => speed *
                     (hidden.HideLeadTimeSeconds + TutorialScripts.HideMarginSeconds),
-                TutorialHoldKind.AfterLock =>
-                    FlickerGateRuntimeState.LockDistance - TutorialScripts.LockMarginDistance,
-                _ => speed * TutorialGuide.HoldLeadSeconds
+                _ => standard
             };
         }
     }
 
     public static class TutorialScripts
     {
-        internal const float RevealSettleSeconds = 0.1f;
         internal const float HideMarginSeconds = 0.25f;
-        internal const float LockMarginDistance = 2f;
+        // Mechanic explanations stop the run with taps blocked, then resume.
+        public const float ExplainSeconds = 3f;
         private const string CheckedLine = "YOUR COLOR IS CHECKED AS YOU PASS THROUGH";
 
         public static TutorialScript For(TutorialTopic topic) => topic switch
@@ -176,27 +170,19 @@ namespace ColorGateRunner.Core
                     "FREE BOOSTER: YOU DASH THROUGH THE GATES", 3f),
                 new TutorialBanner(TutorialEvent.BoosterEnded,
                     "BOOSTER ENDS - MATCH THE GATES AGAIN", 3f)),
-            TutorialTopic.Camouflage => new TutorialScript(
-                topic, TutorialGateTarget.Camouflage, TutorialHoldKind.AfterReveal, 1, true,
-                "COLOR REVEALED: {0} - TAP TO MATCH\nGRAY GATES SHOW THEIR COLOR UP CLOSE",
-                "COLOR REVEALED: {0} - NO TAP NEEDED\nGRAY GATES SHOW THEIR COLOR UP CLOSE",
-                "MATCHED! KEEP IT THROUGH THE GATE",
-                0f, null, null),
+            TutorialTopic.Camouflage => Explain(topic, TutorialGateTarget.Camouflage,
+                "CAMOUFLAGE: GRAY GATES HIDE THEIR COLOR\nIT SHOWS ({0} HERE) AS YOU COME CLOSE"),
             TutorialTopic.Fog => Banners(topic,
                 new TutorialBanner(TutorialEvent.FogStarted,
                     "FOG! READ EACH GATE AS IT COMES OUT", 3.5f)),
-            TutorialTopic.Ice => new TutorialScript(
-                topic, TutorialGateTarget.Ice, TutorialHoldKind.Standard, 1, true,
-                "ICE: SPEED X2 - TAP TO {0}\nEVERY ICE GATE NEEDS A NEW COLOR",
-                "ICE: SPEED X2 - KEEP {0}",
-                "MATCHED! KEEP THE RHYTHM ON ICE",
-                0f, null, null),
+            TutorialTopic.Ice => Explain(topic, TutorialGateTarget.Ice,
+                "ICE AHEAD: YOUR SPEED DOUBLES\nEVERY ICE GATE NEEDS A NEW COLOR"),
             TutorialTopic.Echo => new TutorialScript(
-                topic, TutorialGateTarget.EchoProvider, TutorialHoldKind.Standard, 1, true,
-                "ECHO GATE: MATCH {0} TO STORE IT",
-                "ECHO GATE: KEEP {0} TO STORE IT",
-                "MATCHED! PASS TO STORE THE ECHO",
-                0f,
+                topic, TutorialGateTarget.EchoProvider, TutorialHoldKind.Midway, 1, false,
+                "ECHO GATE: MATCH {0} TO STORE IT\nA STORED ECHO SAVES YOU ONCE",
+                string.Empty,
+                string.Empty,
+                ExplainSeconds,
                 new[]
                 {
                     new TutorialBanner(TutorialEvent.EchoStored,
@@ -210,15 +196,19 @@ namespace ColorGateRunner.Core
                 "REMEMBER THIS GATE: {0}\nIT GOES DARK BEFORE YOU ARRIVE",
                 "REMEMBER THIS GATE: {0}\nIT GOES DARK BEFORE YOU ARRIVE",
                 string.Empty,
-                2.2f, null, null),
-            TutorialTopic.Flicker => new TutorialScript(
-                topic, TutorialGateTarget.Flicker, TutorialHoldKind.AfterLock, 1, true,
-                "LOCKED ON {0} - TAP TO MATCH\nFLICKER GATES STOP JUST BEFORE YOU",
-                "LOCKED ON {0} - NO TAP NEEDED\nFLICKER GATES STOP JUST BEFORE YOU",
-                "MATCHED! KEEP IT THROUGH THE GATE",
-                0f, null, null),
+                ExplainSeconds, null, null),
+            TutorialTopic.Flicker => Explain(topic, TutorialGateTarget.Flicker,
+                "FLICKER: THIS GATE KEEPS CHANGING COLOR\nMATCH THE COLOR IT LOCKS ON"),
             _ => null
         };
+
+        private static TutorialScript Explain(
+            TutorialTopic topic,
+            TutorialGateTarget target,
+            string message) =>
+            new TutorialScript(
+                topic, target, TutorialHoldKind.Midway, 1, false,
+                message, string.Empty, string.Empty, ExplainSeconds, null, null);
 
         private static TutorialScript Banners(TutorialTopic topic, params TutorialBanner[] banners) =>
             new TutorialScript(
