@@ -157,7 +157,10 @@ namespace ColorGateRunner.Tests.EditMode
                     .GetComponent<Text>().text, Is.EqualTo("OFFLINE"));
                 Assert.That(card.Find("ComingSoonBody")
                     .GetComponent<Text>().text,
-                    Does.Contain("NOT AVAILABLE IN THIS BUILD"));
+                    Does.Contain("NOT AVAILABLE RIGHT NOW"));
+                RankPageView view = rank.GetComponent<RankPageView>();
+                Assert.That(view, Is.Not.Null);
+                Assert.That(view.HasRequiredReferences, Is.True);
             });
         }
 

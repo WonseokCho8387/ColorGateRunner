@@ -8,7 +8,10 @@
     "Unity.Splines",
     "Unity.RenderPipelines.Core.Runtime",
     "UnityEngine.UI",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.Services.Core",
+    "Unity.Services.Authentication",
+    "Unity.Services.Leaderboards"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

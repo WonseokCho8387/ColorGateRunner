@@ -921,13 +921,8 @@ namespace ColorGateRunner.Editor
             shopPage = CreateShopPage(
                 viewportObject.transform,
                 lobbyPagePager);
-            leaderboardPage = CreateComingSoonPage(
+            leaderboardPage = CreateRankPage(
                 viewportObject.transform,
-                "LeaderboardPageRoot",
-                "RANK",
-                "RankBackground",
-                "OFFLINE",
-                "ONLINE RANKING IS NOT AVAILABLE IN THIS BUILD.",
                 lobbyPagePager);
             journeyPage = CreateJourneyPage(
                 viewportObject.transform,
@@ -983,6 +978,61 @@ namespace ColorGateRunner.Editor
             {
                 forwarders[index].Configure(lobbyPagePager);
             }
+        }
+
+        // The RANK page: the status card says ONLINE, LOADING or OFFLINE;
+        // under it the top players and the player's own place.
+        private static GameObject CreateRankPage(
+            Transform parent,
+            LobbyPagePager pagePager)
+        {
+            GameObject root = CreateComingSoonPage(
+                parent,
+                "LeaderboardPageRoot",
+                "RANK",
+                "RankBackground",
+                RankPageView.OfflineStatus,
+                RankPageView.OfflineBody,
+                pagePager);
+            Text status = root.transform
+                .Find("ComingSoonStatusCard/ComingSoonStatus")
+                .GetComponent<Text>();
+            Text body = root.transform
+                .Find("ComingSoonStatusCard/ComingSoonBody")
+                .GetComponent<Text>();
+            // A plain dark plate keeps the list readable over the arena art.
+            var plate = new GameObject(
+                "RankListPlate",
+                typeof(RectTransform),
+                typeof(Image));
+            plate.transform.SetParent(root.transform, false);
+            SetAnchors(
+                plate.GetComponent<RectTransform>(),
+                new Vector2(0.08f, 0.135f),
+                new Vector2(0.92f, 0.495f));
+            Image plateImage = plate.GetComponent<Image>();
+            plateImage.raycastTarget = false;
+            plateImage.color = NeonUiPalette.Night;
+            Text list = CreateText(
+                "RankList",
+                root.transform,
+                string.Empty,
+                18,
+                new Vector2(0.12f, 0.2f),
+                new Vector2(0.88f, 0.48f));
+            list.alignment = TextAnchor.UpperLeft;
+            list.color = NeonUiPalette.TextPrimary;
+            Text player = CreateText(
+                "RankPlayer",
+                root.transform,
+                string.Empty,
+                18,
+                new Vector2(0.12f, 0.15f),
+                new Vector2(0.88f, 0.19f));
+            player.alignment = TextAnchor.MiddleLeft;
+            player.color = NeonUiPalette.Magenta;
+            root.AddComponent<RankPageView>().Configure(status, body, list, player);
+            return root;
         }
 
         private static GameObject CreateComingSoonPage(

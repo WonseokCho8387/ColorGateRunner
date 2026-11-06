@@ -122,6 +122,10 @@ namespace ColorGateRunner.Presentation
             homeNavigationSelection;
         internal LobbyPagePager LobbyPagePager => lobbyPagePager;
         internal JourneyPageView JourneyPageView => journeyPageView;
+        internal RankPageView RankPage =>
+            leaderboardPageRoot != null
+                ? leaderboardPageRoot.GetComponent<RankPageView>()
+                : null;
         internal StageCollectionPageView CollectionPageView =>
             collectionPageRoot != null
                 ? collectionPageRoot.GetComponent<StageCollectionPageView>()
@@ -480,6 +484,11 @@ namespace ColorGateRunner.Presentation
                 CollectionPageView.Bind(
                     _collectionModel,
                     appRoot.Playtest == null);
+                RankPage?.Bind(
+                    () => CampaignRankingScore.Total(
+                        progressStore,
+                        StageCatalog.Current),
+                    appRoot.Graph.Ranking);
             }
             catch (Exception exception)
             {
@@ -877,6 +886,10 @@ namespace ColorGateRunner.Presentation
                 else if (page == FrontendPage.Collection)
                 {
                     CollectionPageView.OnPageShown();
+                }
+                else if (page == FrontendPage.Leaderboard)
+                {
+                    RankPage?.OnPageShown();
                 }
             }
         }

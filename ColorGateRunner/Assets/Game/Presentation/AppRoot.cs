@@ -309,6 +309,7 @@ namespace ColorGateRunner.Presentation
                 settings,
                 account,
                 progression);
+            // Playtest builds and batch test runs stay offline.
             return new AppServiceGraph(
                 clock,
                 profile,
@@ -316,7 +317,10 @@ namespace ColorGateRunner.Presentation
                 settings,
                 save,
                 initialization,
-                !playtest);
+                !playtest).WithRanking(
+                    playtest || Application.isBatchMode
+                        ? null
+                        : new UgsRankingGateway());
         }
 
         private ProductMutationResult MigrateLegacyCampaignIfRequired()
@@ -417,5 +421,13 @@ namespace ColorGateRunner.Presentation
         public LocalProductSession ProductSession => Initialization.Session;
         public ProgressionService Progression => Initialization.Progression;
         public bool LegacyCampaignMigrationEnabled { get; }
+        // Null when this build has no online ranking.
+        public IRankingGateway Ranking { get; private set; }
+
+        public AppServiceGraph WithRanking(IRankingGateway ranking)
+        {
+            Ranking = ranking;
+            return this;
+        }
     }
 }

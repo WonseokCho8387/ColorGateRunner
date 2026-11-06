@@ -1270,6 +1270,25 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 83 online campaign ranking
+
+- EditMode `RankingTests`: the total sums Stage bests and clamps an
+  impossible best to a perfect clear; the page submits a positive total,
+  shows top rows and the player's row, submits nothing at zero, and shows
+  the truthful offline text on failure or without a service.
+  `SettingsPanelDesignTests.RankPage_ShowsTruthfulOfflineStatusCard` checks
+  the built page and its view references.
+- `UiReadabilityAudit` now skips graphics a mask culls: uGUI builds no
+  geometry for them, which the audit used to report as unreadable for Shop
+  cards scrolled out of view (an order-dependent failure this change exposed).
+- Live check (free web build, local browser): sign-in, name and score reads
+  return 200 and the page shows ONLINE with the Guest name.
+- Not automated: a real score submission and ranking with several players;
+  device and network edge cases (slow, offline mid-request).
+- Final evidence: EditMode 636/636; PlayMode 309 passed + 1 intentional
+  ignore; Builder twice; Campaign and Step 10 artifacts hash-identical to
+  Iteration 80; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 82 offline stage score
 
 - EditMode `StageScoreTests`: the worked examples (Stage 1 full: 600 + 240 -

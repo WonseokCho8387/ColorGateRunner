@@ -387,6 +387,11 @@ Rules:
 - `LocalStageProgressData.BestScore` keeps the highest ranking score of any
   clear (Iteration 82); older saves read zero, negatives fail validation and
   a clear never lowers it.
+- Online ranking (Iteration 83): `AppServiceGraph.Ranking` is an
+  `IRankingGateway` (Unity Gaming Services anonymous sign-in and the
+  `campaign-total` leaderboard) or null for playtest builds and batch test
+  runs. The service holds an anonymous player ID, the shown name and the
+  Campaign total; the local save is unchanged.
 
 # 7. Economy
 

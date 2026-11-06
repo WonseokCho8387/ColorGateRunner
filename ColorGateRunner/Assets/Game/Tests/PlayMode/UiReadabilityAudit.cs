@@ -127,7 +127,10 @@ namespace ColorGateRunner.Tests.PlayMode
             for (int index = 0; index < graphics.Length; index++)
             {
                 Graphic graphic = graphics[index];
+                // A graphic a mask culls is not drawn and builds no
+                // geometry, so it is off screen rather than unreadable.
                 if (!graphic.isActiveAndEnabled ||
+                    graphic.canvasRenderer.cull ||
                     EffectiveAlpha(graphic) < VisibleAlpha ||
                     IsDecorative(graphic.transform))
                 {

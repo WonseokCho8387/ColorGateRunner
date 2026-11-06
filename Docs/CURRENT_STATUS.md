@@ -1,5 +1,26 @@
 # Current Status
 
+## Iteration 83 — Online Campaign Ranking (2026-11-07 KST)
+
+- 기준: `0cfefdf`(Iteration 82, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음. 사용자 승인으로 네트워크와 패키지 2개를 추가했다.
+- Unity Cloud 프로젝트 `ColorGateRunner`(`6771fae3-70aa-4800-b75d-0b4980a7eacd`, 조직 `wonseok-cho`)에 연결했다
+  (ProjectSettings `cloudProjectId`). 리더보드 `campaign-total`: 높은 점수 위, Best Score, 리셋·버킷·티어 없음.
+- 패키지: `com.unity.services.authentication` `3.8.1`, `com.unity.services.leaderboards` `2.3.4`
+  (`com.unity.services.core` `1.18.0` 기존).
+- RANK 탭(`RankPageView`): 열 때 익명 로그인, 이름이 없으면 `Guest` 지정(서비스가 `#NNNNN`을 붙임), 스테이지
+  최고 점수 합계를 제출(0이면 제출 안 함)하고 상위 10명과 내 순위를 보여 준다. 실패하면 `OFFLINE`과 연결 안내.
+  목록 뒤에는 단색 배경판(`RankListPlate`). 합계는 스테이지마다 완벽 클리어 최대 점수로 잘라 더한다(기본 범위 검사). 플레이테스트 빌드와 배치 테스트
+  실행은 랭킹을 붙이지 않는다(`AppServiceGraph.Ranking` null).
+- 자동 검증: **EditMode 636/636; PlayMode 309 passed + 1 intentional ignore (310)**(활성 플랫폼 WebGL). Builder 2회.
+  Campaign 시뮬레이션과 Step 10 산출물 8개 해시 Iteration 80 기준과 **동일**. Product 저장과 Campaign PlayerPrefs
+  전후 동일.
+- 실제 서버 확인(무료 웹판, 로컬 브라우저): 익명 로그인 `200`, 이름 설정 `200`(`Guest#58552`), 순위 조회 `200`,
+  내 점수 없음 `404` → 화면 `ONLINE`·`NO SCORES YET`. 점수 제출은 브라우저 창이 가려져 게임이 느려져서 실제로는
+  확인하지 못했다(가짜 서비스 테스트로만 검증).
+- 결제(IAP) 패키지가 Unity 서비스 초기화와 함께 사용 통계 요청(`prd.insights.analytics.unity3d.com`)을 보낸다.
+  확인 시 응답 상태 `0`(전달 실패로 보임). 별도 결정 필요.
+
 ## Iteration 82 — Offline Stage Score (2026-11-06 KST)
 
 - 기준: `8ce9f5e`(Iteration 81, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

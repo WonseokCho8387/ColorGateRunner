@@ -986,6 +986,12 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 83 online ranking
+
+- The RANK tab shows the top 10 Campaign totals and the player's place. The
+  total is the sum of the Stage best scores; opening the tab submits it.
+  Without a connection the tab says it is offline and the game is unchanged.
+
 ## Iteration 82 stage score
 
 - Each clear scores: crowns earned this run (Clean 100, Combo 200, Full

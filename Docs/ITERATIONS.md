@@ -4501,3 +4501,38 @@ Product 저장(`BestScore`, 병합 시 최댓값, 검증), `StageProgressStore`,
 
 - 점수가 공정하게 느껴지는지, 초과 탭 감점(−20)이 너무 세거나 약하지 않은지.
 - 2단계: 익명 로그인, 점수 제출, RANK 탭. 3단계: itch.io 이름 연동 시험.
+
+## Iteration 83 — Online Campaign Ranking (2026-11-07)
+
+### Play / Analyze
+
+RANK 탭은 `COMING SOON`이었다. 1단계에서 스테이지 최고 점수가 생겼으므로 그 합계로 온라인 순위를 열 수 있었다.
+
+### Design
+
+서비스는 `IRankingGateway` 하나로 감싸 화면과 테스트가 실제 서버에 묶이지 않게 했다. 앱 서비스 그래프가 게이트웨이를
+들고, 플레이테스트와 배치 테스트에서는 비워 둔다. 화면은 실패를 그대로 OFFLINE으로 보여 준다.
+
+### Implementation
+
+`Presentation/Ranking`(`RankingModels`, `UgsRankingGateway`, `RankPageView`), `AppRoot`(`Ranking`),
+`FrontendSceneController`(바인딩, 페이지 표시), `FrontendSceneBuilder`(RANK 페이지 목록·배경판), 패키지 2개,
+Presentation asmdef 참조, ProjectSettings Cloud 프로젝트 연결, 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 실제 서버에서 로그인·이름·조회를 확인했다.
+
+### Learning
+
+검증 스크립트의 define 복원 정규식이 여러 줄 모드(`(?ms)`)라서 그 아래 ProjectSettings 전체를 HEAD로 덮어썼고,
+그 바람에 Cloud 프로젝트 ID가 지워져 웹판이 OFFLINE이었다. 복원 범위는 `(?m)`로 그 블록만 잡아야 한다.
+스킨 카드 이미지를 목록 배경으로 넣자 Shop 읽기 검사가 순서에 따라 실패했다. 마스크에 잘린 글자를 검사가 셌기
+때문이라 검사에서 제외했고, 배경판은 단색으로 두었다.
+
+### Deferred / Human Review
+
+- 실제 점수 제출과 여러 사람 순위 확인(스테이지를 깬 뒤 RANK 탭).
+- itch.io 페이지의 "데이터를 보내지 않음" 문구 수정과 개인정보 안내(익명 ID, 이름, 점수).
+- 결제 패키지의 사용 통계 요청: 쓰지 않는 IAP 패키지를 빼거나 안내에 포함할지 결정.
+- 3단계 itch.io 이름 연동, 스테이지별 리더보드 26개.

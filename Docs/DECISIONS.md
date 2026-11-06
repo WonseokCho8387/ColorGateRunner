@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 83 online ranking (2026-11-07 기록)
+
+- 사용자 승인: Unity Gaming Services 익명 로그인과 Leaderboards 사용, 패키지 2개 추가, Unity Cloud 프로젝트 연결.
+- 리더보드는 우선 캠페인 합계 하나(`campaign-total`, Best Score, 리셋 없음). 스테이지별 26개는 나중에 설정 파일로.
+- 이름은 itch.io 로그인 전까지 `Guest#번호`. 테스트와 플레이테스트 빌드는 네트워크를 쓰지 않는다.
+
 ## Iteration 82 ranking score (2026-11-06 기록)
 
 - 사용자 결정: 랭킹 점수는 콤보와 크라운을 획득 난이도에 따라 차등으로 주고, 스테이지 최소 탭 수보다 더 누른
