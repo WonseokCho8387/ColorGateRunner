@@ -75,6 +75,36 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void GuideRun_OwnMusicClockStopsDuringTheHoldAndFollowsAfter()
+        {
+            // The WebGL path: the track counts its own playback.
+            StageMusicPlayer music = _controller.StageMusic;
+            music.SetCountOwnClockForTests(true);
+            StartStage(1);
+            TickUntilFrozen();
+            float held = music.PlaybackSeconds;
+            _controller.Tick(0.5f);
+            Assert.That(music.PlaybackSeconds, Is.EqualTo(held));
+
+            if (_controller.Guide.Step != TutorialGuideStep.HoldSameColor)
+            {
+                _controller.HandleGameplayTap();
+            }
+            for (int frame = 0; frame < 200 && _controller.Session.GatesPassed == 0; frame++)
+            {
+                _controller.Tick(0.05f);
+            }
+            for (int frame = 0; frame < 10; frame++)
+            {
+                _controller.Tick(0.05f);
+            }
+            Assert.That(_controller.Session.GatesPassed, Is.GreaterThanOrEqualTo(1));
+            Assert.That(music.PlaybackSeconds, Is.EqualTo(
+                music.Timeline.TimeAtDistance(_controller.CampaignDistance))
+                .Within(0.25f));
+        }
+
+        [Test]
         public void GuideRun_ShowsTheTapLineDuringTheCountdown()
         {
             _store.HighestUnlocked = StageCatalog.Count;

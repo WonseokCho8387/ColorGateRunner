@@ -1,5 +1,18 @@
 # Current Status
 
+## Iteration 79 — Web Stage Music Clock (2026-11-06 KST)
+
+- 기준: `14015cb`(Iteration 78, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음.
+- 웹판 스테이지 음악이 뭉개지고 골인 전에 끝나던 문제를 고쳤다. WebGL의 `AudioSource.time`은 재생 속도 변경과
+  되감기가 겹치면 실제의 약 2배를 보고했고, 동기화가 이를 보고 매 프레임 되감았다(Stage 2 약 40초에 730번 재시작).
+  WebGL에서는 `StageMusicPlayer`가 오디오 장치 시계(`AudioSettings.dspTime`)로 재생 위치를 직접 센다. Android와
+  Editor는 그대로 `AudioSource.time`을 쓴다.
+- 자동 검증: **EditMode 621/621; PlayMode 308 passed + 1 intentional ignore (309)**(활성 플랫폼 WebGL). Campaign
+  시뮬레이션과 Step 10 산출물 해시 **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+- 새 무료 웹판 브라우저 계측(소리는 0 gain): 새 저장으로 Stage 1 가이드 판 클리어까지 음악 재시작 6번(시작, 가이드
+  멈춤 뒤 재개 3번 포함), 재생 속도 `0.92`–`1.0`, 결과 화면까지 음악 유지.
+
 ## Iteration 78 — Mechanic Guide Runs (2026-11-06 KST)
 
 - 기준: `bb26bbe`(Iteration 77, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

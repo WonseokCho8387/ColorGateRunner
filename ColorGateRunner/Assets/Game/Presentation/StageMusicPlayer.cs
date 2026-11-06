@@ -33,6 +33,17 @@ namespace ColorGateRunner.Presentation
         private float _clock;
         private bool _paused;
         private float _volume = 1f;
+        // WebGL reports AudioSource.time from its own estimate, which breaks
+        // once pitch changes meet a seek (it read about twice the real
+        // position and caused a seek every frame). There the track counts
+        // its own playback on the audio device clock instead.
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private bool _countOwnClock = true;
+#else
+        private bool _countOwnClock;
+#endif
+        private bool _useDeviceClock = true;
+        private double _lastDspTime = -1d;
 
         internal MusicState State { get; private set; }
         internal bool HasTrack => _timeline != null;
@@ -45,6 +56,15 @@ namespace ColorGateRunner.Presentation
         internal StageMusicCatalogAsset Catalog => catalog;
         internal bool HasRequiredReferences =>
             source != null && catalog != null;
+        internal bool CountsOwnClock => _countOwnClock;
+
+        // Tests step time by hand, so the device clock is left out.
+        internal void SetCountOwnClockForTests(bool countOwnClock)
+        {
+            _countOwnClock = countOwnClock;
+            _useDeviceClock = false;
+            _lastDspTime = -1d;
+        }
 
         internal void Configure(
             AudioSource audioSource,
@@ -86,6 +106,7 @@ namespace ColorGateRunner.Presentation
             // Seek after Play: a streamed clip may ignore an earlier seek.
             source.Play();
             source.time = ClampToClip(_clock);
+            _lastDspTime = AudioSettings.dspTime;
             State = MusicState.Following;
         }
 
@@ -103,8 +124,8 @@ namespace ColorGateRunner.Presentation
             }
 
             _volume = Mathf.Clamp01(volume);
-            _clock += deltaTime * source.pitch;
-            if (source.isPlaying && source.time > 0f)
+            _clock += ElapsedPlaybackSeconds(deltaTime) * source.pitch;
+            if (!_countOwnClock && source.isPlaying && source.time > 0f)
             {
                 // The audio clock is the truth; it keeps running through
                 // frame hitches that cap deltaTime.
@@ -220,7 +241,22 @@ namespace ColorGateRunner.Presentation
             else
             {
                 source.UnPause();
+                _lastDspTime = AudioSettings.dspTime;
             }
+        }
+
+        // The audio device clock keeps running through frame hitches that
+        // cap deltaTime; without a running clock deltaTime is used.
+        private float ElapsedPlaybackSeconds(float deltaTime)
+        {
+            if (!_countOwnClock || !_useDeviceClock)
+            {
+                return deltaTime;
+            }
+            double now = AudioSettings.dspTime;
+            double last = _lastDspTime;
+            _lastDspTime = now;
+            return last >= 0d && now > last ? (float)(now - last) : deltaTime;
         }
 
         internal void Stop()

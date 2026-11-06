@@ -4376,3 +4376,33 @@ Flicker처럼 시간으로 진행되는 표시 상태는 화면 멈춤과 함께
 
 - 멈춘 순간 공개된 색, 꺼지기 전 색, 고정된 색이 휴대폰에서 잘 읽히는지.
 - Hidden 멈춤 때 앞 게이트와 Hidden 게이트가 함께 보여 어느 게이트인지 헷갈리지 않는지.
+
+## Iteration 79 — Web Stage Music Clock (2026-11-06)
+
+### Play / Analyze
+
+itch.io 테스트에서 웹판 스테이지 음악이 뭉개지고 Stage 1 골인 전에 끝났다. 로비 음악과 효과음은 정상이었다.
+브라우저에서 Web Audio 호출을 기록하니 스테이지 음악이 1초에 25–30번 다시 시작되며 10.5초와 21초 지점을 오갔다.
+
+### Design
+
+WebGL은 재생 위치를 자체 추정하는데, 재생 속도 변경과 되감기가 겹치면 약 2배로 틀어진다. 동기화가 이 값을
+믿고 되감는 일이 매 프레임 반복됐다. WebGL에서는 재생 위치를 오디오 장치 시계와 재생 속도로 직접 센다.
+
+### Implementation
+
+`Presentation/StageMusicPlayer`(WebGL 자체 시계, 시작·재개 때 장치 시계 기준점), `TutorialPlayModeTests` 1개.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+플랫폼이 보고하는 오디오 위치는 플랫폼마다 믿을 수 있는 정도가 다르다. 웹 오디오는 Editor 테스트로 잡히지 않아
+빌드된 웹판에서 직접 계측해야 했다.
+
+### Deferred / Human Review
+
+- 웹판 스테이지 음악이 실제 브라우저와 휴대폰에서 깨끗하고 박자에 맞게 들리는지.
+- 가이드 멈춤 뒤 재개 때 음악이 끊기는 느낌이 거슬리지 않는지.

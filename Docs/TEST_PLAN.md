@@ -1270,6 +1270,20 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 79 web stage music clock
+
+- PlayMode `TutorialPlayModeTests.GuideRun_OwnMusicClockStopsDuringTheHoldAndFollowsAfter`:
+  with the WebGL own-clock path forced on, the music clock does not move
+  during a guide hold and follows the runner within `0.25s` after it.
+- Browser measurement on the rebuilt free web edition (Web Audio calls
+  recorded, output at zero gain): long-clip restarts and playback rate
+  through a Stage 1 guide run.
+- Not automated: whether the web track sounds clean and in time on real
+  browsers and phones.
+- Final evidence: EditMode 621/621; PlayMode 308 passed + 1 intentional
+  ignore; Campaign and Step 10 artifacts hash-identical; Product save and
+  Campaign PlayerPrefs exact; Stage 1 guide run 6 restarts, rate 0.92–1.0.
+
 ### Iteration 78 mechanic guide runs
 
 - EditMode `TutorialTests`: Stage topics (1 Basics, 4 Green, 6 Shield, 7
