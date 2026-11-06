@@ -23,6 +23,7 @@ namespace ColorGateRunner.Core
         private float _speedBeforeFailure;
         private bool _mechanicGrantActivated;
         private bool _switchedSinceLastGate;
+        private RunnerColor _minimumTapColor;
         private float _lastSwitchSeconds;
 
         public StageSession(StageDefinition stage)
@@ -76,6 +77,10 @@ namespace ColorGateRunner.Core
         }
         public StartItemSelection Items => _items;
         public int ContinueUseCount { get; private set; }
+        // Color changes this run, and the fewest the judged gates needed
+        // in order (gates a Booster dashed through need none).
+        public int TapCount { get; private set; }
+        public int MinimumTapCount { get; private set; }
         public bool ContinueUsed => ContinueUseCount > 0;
         public int ShieldAbsorbCount { get; private set; }
         public bool ContinueAvailable =>
@@ -141,6 +146,9 @@ namespace ColorGateRunner.Core
             {
                 ShieldActive = _items.Shield;
                 BoosterActive = _items.Booster;
+                TapCount = 0;
+                MinimumTapCount = 0;
+                _minimumTapColor = CurrentColor;
             }
             else
             {
@@ -169,6 +177,7 @@ namespace ColorGateRunner.Core
             CurrentColor = Stage.GetNextActiveColor(
                 GatesPassed,
                 CurrentColor);
+            TapCount++;
             _switchedSinceLastGate = true;
             _lastSwitchSeconds = ElapsedPlayingSeconds;
             return true;
@@ -350,6 +359,10 @@ namespace ColorGateRunner.Core
             bool passedByPlayerColor = hasFlickerWindow
                 ? flickerWindow.Accepts(CurrentColor)
                 : CurrentColor == judgmentColor;
+            if (!BoosterActive)
+            {
+                CountMinimumTaps(passedByPlayerColor ? CurrentColor : judgmentColor);
+            }
             if (Stage.EchoSettings.Enabled && passedByPlayerColor)
             {
                 _echoCoordinator.TryAcquire(
@@ -411,6 +424,17 @@ namespace ColorGateRunner.Core
             _speedBeforeFailure = CurrentSpeed;
             CurrentSpeed = 0f;
             return GateOutcome.Mismatched;
+        }
+
+        private void CountMinimumTaps(RunnerColor required)
+        {
+            RunnerColor color = _minimumTapColor;
+            for (int step = 0; step < 4 && color != required; step++)
+            {
+                color = Stage.GetNextActiveColor(GatesPassed, color);
+                MinimumTapCount++;
+            }
+            _minimumTapColor = required;
         }
 
         public FlickerJudgmentWindow UpdateFlickerGate(
@@ -503,6 +527,8 @@ namespace ColorGateRunner.Core
             _continueCountdown = false;
             ContinueUseCount = 0;
             ShieldAbsorbCount = 0;
+            TapCount = 0;
+            MinimumTapCount = 0;
             ContinuedFailedGateResolutionCount = 0;
             _failedGatePendingForContinue = false;
             _shieldRecoveryRemaining = 0f;

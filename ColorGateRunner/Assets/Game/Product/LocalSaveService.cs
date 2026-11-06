@@ -594,6 +594,7 @@ namespace ColorGateRunner.Product
             LocalStageProgressData record)
         {
             return record.BestMaxCombo >= 0 &&
+                record.BestScore >= 0 &&
                 record.AttemptsSinceClear >= 0 &&
                 record.CrownFlags >= 0 &&
                 (record.CrownFlags &

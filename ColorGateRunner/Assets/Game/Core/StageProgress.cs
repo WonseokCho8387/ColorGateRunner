@@ -50,6 +50,30 @@ namespace ColorGateRunner.Core
             BestMaxCombo = bestMaxCombo;
             Crowns = crowns;
             AttemptsSinceClear = attemptsSinceClear;
+            BestScore = 0;
+        }
+
+        public StageRecord(
+            bool cleared,
+            float bestTime,
+            float bestNoItemTime,
+            int clearCount,
+            int continuedClearCount,
+            int bestMaxCombo,
+            StageCrown crowns,
+            int attemptsSinceClear,
+            int bestScore)
+            : this(
+                cleared,
+                bestTime,
+                bestNoItemTime,
+                clearCount,
+                continuedClearCount,
+                bestMaxCombo,
+                crowns,
+                attemptsSinceClear)
+        {
+            BestScore = Math.Max(0, bestScore);
         }
 
         public bool Cleared { get; }
@@ -61,6 +85,19 @@ namespace ColorGateRunner.Core
         public StageCrown Crowns { get; }
         // Authorized starts since the last clear, including the current one.
         public int AttemptsSinceClear { get; }
+        // Highest ranking score of any clear (Iteration 82).
+        public int BestScore { get; }
+
+        public StageRecord WithBestScore(int score) => new StageRecord(
+            Cleared,
+            BestTime,
+            BestNoItemTime,
+            ClearCount,
+            ContinuedClearCount,
+            BestMaxCombo,
+            Crowns,
+            AttemptsSinceClear,
+            Math.Max(BestScore, score));
     }
 
     public static class StageProgress
@@ -144,7 +181,8 @@ namespace ColorGateRunner.Core
                 current.ContinuedClearCount + (continued ? 1 : 0),
                 Math.Max(current.BestMaxCombo, maxCombo),
                 current.Crowns | earned,
-                0);
+                0,
+                current.BestScore);
         }
 
         public static int HighestUnlockedAfterClear(

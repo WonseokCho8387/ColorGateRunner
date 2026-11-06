@@ -184,6 +184,8 @@ namespace ColorGateRunner.Presentation
         private string _countdownCueLabel = string.Empty;
         private StageCrown _clearCrownsEarned;
         private int _clearBestMaxCombo;
+        private StageScore _clearScore;
+        private int _clearBestScore;
         private int _clearAttempt;
         private string _heartRefundToken = string.Empty;
         private IHapticFeedback _haptics;
@@ -3029,6 +3031,13 @@ namespace ColorGateRunner.Presentation
                 0f);
         }
 
+        // Score, best score, and taps beyond the fewest this run needed.
+        private string FormatClearScore() =>
+            $"SCORE {_clearScore.Total} (BEST {_clearBestScore})" +
+            (_clearScore.ExtraTaps > 0
+                ? $"  ·  +{_clearScore.ExtraTaps} TAPS"
+                : string.Empty);
+
         private void RecordClear()
         {
             if (_clearRecorded)
@@ -3069,6 +3078,14 @@ namespace ColorGateRunner.Presentation
                     _combo.BreakCount,
                     StageCrownPolicy.ComboTargetFor(_session.Stage.Difficulty)),
                 out StageCrown earned);
+            _clearScore = StageScorePolicy.Evaluate(
+                _session.Stage.Difficulty,
+                earned,
+                _combo.Max,
+                _session.TapCount,
+                _session.MinimumTapCount);
+            record = record.WithBestScore(_clearScore.Total);
+            _clearBestScore = record.BestScore;
             int highestUnlocked = StageProgress.HighestUnlockedAfterClear(
                 _highestUnlocked,
                 _selectedStageNumber);
@@ -3101,6 +3118,7 @@ namespace ColorGateRunner.Presentation
                 _clearCrownsEarned = earned & saved.Crowns;
                 _clearCrownsNew = _clearCrownsEarned & ~previousCrowns;
                 _clearBestMaxCombo = saved.BestMaxCombo;
+                _clearBestScore = saved.BestScore;
                 if (productRewardAuthority && firstClear)
                 {
                     StageClearRewardPreview reward =
@@ -3287,8 +3305,9 @@ namespace ColorGateRunner.Presentation
                             ? $"COMEBACK CLEAR · ATTEMPT {_clearAttempt}\n"
                             : string.Empty) +
                         $"ITEMS {FormatItems(_session.Items)}\n" +
-                        $"TIME {_session.ElapsedPlayingSeconds:0.00}s\n" +
-                        $"BEST {record.BestTime:0.00}s" +
+                        $"TIME {_session.ElapsedPlayingSeconds:0.00}s  ·  " +
+                        $"BEST {record.BestTime:0.00}s\n" +
+                        FormatClearScore() +
                         (string.IsNullOrWhiteSpace(_clearSaveError)
                             ? string.Empty
                             : $"\n{_clearSaveError}");

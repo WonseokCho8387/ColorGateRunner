@@ -357,6 +357,9 @@ namespace ColorGateRunner.Product
                 merged.BestMaxCombo = Math.Max(
                     merged.BestMaxCombo,
                     previous.BestMaxCombo);
+                merged.BestScore = Math.Max(
+                    merged.BestScore,
+                    previous.BestScore);
             }
             UpsertStageRecord(candidate.CampaignProgress, merged);
             candidate.CampaignProgress.HighestUnlockedStageId =

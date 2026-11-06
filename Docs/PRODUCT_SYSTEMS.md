@@ -384,6 +384,9 @@ Rules:
   onto. When the catalog order version is higher, AppRoot moves the save
   once: the highest unlocked Stage becomes the first uncleared Stage in the
   current order; records stay on their Stage IDs (Iteration 80).
+- `LocalStageProgressData.BestScore` keeps the highest ranking score of any
+  clear (Iteration 82); older saves read zero, negatives fail validation and
+  a clear never lowers it.
 
 # 7. Economy
 

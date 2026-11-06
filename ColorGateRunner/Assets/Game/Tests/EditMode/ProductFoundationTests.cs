@@ -746,6 +746,34 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void StageClear_KeepsTheHigherBestScore()
+        {
+            var save = new MutableSessionSaveService(CreateValidData());
+            AppInitializationPipeline pipeline = CreateSessionPipeline(save);
+            Assert.That(pipeline.Initialize().Succeeded, Is.True);
+            Assert.That(pipeline.Session.ImportLegacyCampaign(
+                "stage-01",
+                Array.Empty<CampaignProgressImportEntry>()).Succeeded,
+                Is.True);
+            LocalStageProgressData best = CreateStageRecord("stage-02", true, 1);
+            best.BestScore = 800;
+            LocalStageProgressData lower = CreateStageRecord("stage-02", true, 2);
+            lower.BestScore = 300;
+
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(2, "stage-02", "stage-03", best))
+                .Succeeded, Is.True);
+            Assert.That(pipeline.Session.RecordStageClear(
+                new StageClearProgressRequest(2, "stage-02", "stage-03", lower))
+                .Succeeded, Is.True);
+
+            Assert.That(save.Stored.CampaignProgress.StageRecords[0].BestScore,
+                Is.EqualTo(800));
+            Assert.That(save.Stored.CampaignProgress.StageRecords[0].Clone().BestScore,
+                Is.EqualTo(800));
+        }
+
+        [Test]
         public void CampaignLayout_SaveFailureKeepsTheOlderLayout()
         {
             var save = new MutableSessionSaveService(CreateValidData());

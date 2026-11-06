@@ -4472,3 +4472,32 @@ ID로, 위치에 따른 규칙(보상, 연출)은 번호로 나눠 두면 다음
 
 - 3초 설명이 휴대폰에서 읽기에 충분하고 지루하지 않은지.
 - 중간 지점에서 위장·깜빡임 게이트의 특징이 잘 보이는지.
+
+## Iteration 82 — Offline Stage Score (2026-11-06)
+
+### Play / Analyze
+
+온라인 랭킹 전에 점수가 무엇인지 먼저 정해야 했다. 기존 기록은 최고 콤보와 크라운뿐이었고 탭 수는 세지 않았다.
+
+### Design
+
+점수는 순수 C#(`StageScorePolicy`)으로 두고, 탭 수와 최소 탭 수는 판정과 같은 곳(`StageSession`)에서 센다. 최소
+탭 수는 실제 판정된 게이트 색으로 계산해, 시작 아이템이나 Echo 사용에 따라 공정하게 달라진다.
+
+### Implementation
+
+`Core/StageScorePolicy`(새), `StageSession`(TapCount, MinimumTapCount), `StageProgress`(BestScore),
+Product 저장(`BestScore`, 병합 시 최댓값, 검증), `StageProgressStore`, `StageSceneController`(점수 계산·표시), 테스트.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+결과 화면은 줄 수 여유가 거의 없다. 한 줄을 더할 때는 기존 줄을 합쳐 읽기 검사를 통과시켰다.
+
+### Deferred / Human Review
+
+- 점수가 공정하게 느껴지는지, 초과 탭 감점(−20)이 너무 세거나 약하지 않은지.
+- 2단계: 익명 로그인, 점수 제출, RANK 탭. 3단계: itch.io 이름 연동 시험.

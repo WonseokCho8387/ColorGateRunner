@@ -986,6 +986,15 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 82 stage score
+
+- Each clear scores: crowns earned this run (Clean 100, Combo 200, Full
+  Combo 300) plus 10 per max combo, times the difficulty (Normal 1, Hard 2,
+  Very Hard 3), minus 20 per tap beyond the fewest the judged gates needed.
+  Gates passed by a Booster dash need no taps. Scores never go below zero.
+- The best score per Stage is kept; the Campaign ranking will be the sum of
+  the Stage bests.
+
 ## Iteration 81 guide holds
 
 - Color holds (Stage 1, Green at 13) wait for the match; once matched, taps

@@ -3967,6 +3967,16 @@ namespace ColorGateRunner.Tests.PlayMode
                 comboCrown ? "10 COMBO\nNEW" : "10 COMBO"));
             Assert.That(_controller.ClearDetailsText.text,
                 Does.Not.Contain("COMEBACK"));
+            int expected = StageScorePolicy.Evaluate(
+                _controller.Session.Stage.Difficulty,
+                record.Crowns & StageCrownPolicy.DisplayedCrowns,
+                _controller.Combo.Max,
+                _controller.Session.TapCount,
+                _controller.Session.MinimumTapCount).Total;
+            Assert.That(expected, Is.Positive);
+            Assert.That(record.BestScore, Is.EqualTo(expected));
+            Assert.That(_controller.ClearDetailsText.text,
+                Does.Contain($"SCORE {expected}"));
         }
 
         [Test]

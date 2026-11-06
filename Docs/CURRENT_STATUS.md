@@ -1,5 +1,19 @@
 # Current Status
 
+## Iteration 82 — Offline Stage Score (2026-11-06 KST)
+
+- 기준: `8ce9f5e`(Iteration 81, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
+  없음, 활성 플랫폼 WebGL. Push 없음. 온라인 랭킹 1단계: 네트워크 없이 점수만 계산·저장한다.
+- 점수(`Core/StageScorePolicy`): 난이도 배수 보통 ×1, 어려움 ×2, 매우 어려움 ×3. 이번 판 크라운 CLEAN `100`,
+  COMBO `200`, FULL COMBO `300`(×배수), 최고 콤보 × `10` × 배수, 최소 탭 수를 넘은 탭 1개당 `−20`, 0 미만 없음.
+  Comeback은 점수 없음.
+- 최소 탭 수(`StageSession.MinimumTapCount`): 판정된 게이트 색을 순서대로 이으며 색 순환 거리를 센다(3색에서
+  뒤 색은 2탭). Booster로 지난 게이트는 세지 않는다. 실제 탭은 `TapCount`.
+- 결과 화면: `TIME … · BEST …` 한 줄과 `SCORE n (BEST m) · +k TAPS` 한 줄. 스테이지 최고 점수는
+  `StageRecord.BestScore`/`LocalStageProgressData.BestScore`(옛 저장은 0)에 높은 값만 남는다. 음수는 저장 검증 실패.
+- 자동 검증: **EditMode 632/632; PlayMode 309 passed + 1 intentional ignore (310)**(활성 플랫폼 WebGL). Campaign
+  시뮬레이션과 Step 10 산출물 8개 해시 Iteration 80 기준과 **동일**. Product 저장 파일과 Campaign PlayerPrefs 전후 동일.
+
 ## Iteration 81 — Guide Holds Without Lost Taps (2026-11-06 KST)
 
 - 기준: `4cf8fce`(Iteration 80, push됨) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock

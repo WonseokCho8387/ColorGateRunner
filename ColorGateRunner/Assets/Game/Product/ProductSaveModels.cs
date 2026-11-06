@@ -83,6 +83,8 @@ namespace ColorGateRunner.Product
         public int BestMaxCombo;
         public int CrownFlags;
         public int AttemptsSinceClear;
+        // Optional since Iteration 82; older saves read it as zero.
+        public int BestScore;
 
         public LocalStageProgressData Clone()
         {
@@ -96,7 +98,8 @@ namespace ColorGateRunner.Product
                 ContinuedClearCount = ContinuedClearCount,
                 BestMaxCombo = BestMaxCombo,
                 CrownFlags = CrownFlags,
-                AttemptsSinceClear = AttemptsSinceClear
+                AttemptsSinceClear = AttemptsSinceClear,
+                BestScore = BestScore
             };
         }
     }

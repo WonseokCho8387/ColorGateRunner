@@ -1270,6 +1270,21 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 82 offline stage score
+
+- EditMode `StageScoreTests`: the worked examples (Stage 1 full: 600 + 240 -
+  60 = 780; Hard doubles), Comeback scores nothing, the total floors at
+  zero; the session counts taps and the fewest taps (two-color, the
+  three-color step back = 2, Booster gates = 0); the record keeps the best.
+  `ProductFoundationTests.StageClear_KeepsTheHigherBestScore`.
+- PlayMode `StageCrowns_ClearShowsNewCrownsAndSavesThem` also checks the
+  saved best score and the `SCORE` line; the Campaign readability audit
+  passes with the score line.
+- Not automated: whether the score feels fair and the tap penalty is felt.
+- Final evidence: EditMode 632/632; PlayMode 309 passed + 1 intentional
+  ignore; Campaign and Step 10 artifacts hash-identical to Iteration 80;
+  Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 81 guide holds without lost taps
 
 - EditMode `TutorialTests`: after a matched or same-color hold the guide is

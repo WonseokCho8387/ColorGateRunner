@@ -133,7 +133,8 @@ namespace ColorGateRunner.Presentation
                     data.ContinuedClearCount,
                     data.BestMaxCombo,
                     (StageCrown)data.CrownFlags,
-                    data.AttemptsSinceClear);
+                    data.AttemptsSinceClear,
+                    data.BestScore);
         }
 
         public void SaveHighestUnlocked(int stageNumber)
@@ -178,7 +179,8 @@ namespace ColorGateRunner.Presentation
                         ContinuedClearCount = record.ContinuedClearCount,
                         BestMaxCombo = record.BestMaxCombo,
                         CrownFlags = (int)record.Crowns,
-                        AttemptsSinceClear = record.AttemptsSinceClear
+                        AttemptsSinceClear = record.AttemptsSinceClear,
+                        BestScore = record.BestScore
                     },
                     MapDifficulty(stage.Difficulty),
                     heartRefundToken,
