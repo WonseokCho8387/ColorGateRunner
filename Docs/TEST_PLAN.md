@@ -1270,6 +1270,20 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 84 bottom navigation cell alignment
+
+- EditMode `NeonUiDesignSystemTests.NavigationTabs_SitOnTheirDockCells`: each
+  tab button spans its measured dock cell, and the selection frame is centered
+  on the cell with its hexagonal body wrapping the cell's inner panel.
+- `NavigationSelectionFrame_StaysAboveTabLabel` now checks the frame's drawn
+  body (not its transparent rect) against the label top, and that the frame
+  sits behind the label strip while the buttons sit in front of it.
+- Live check (free web build, local browser): before/after capture of the
+  lobby bottom bar with HOME selected.
+- Not automated: selected-tab look on every tab and on a physical phone.
+- Final evidence: EditMode 637/637; PlayMode 309 passed + 1 intentional
+  ignore; Builder twice; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 83 online campaign ranking
 
 - EditMode `RankingTests`: the total sums Stage bests and clamps an

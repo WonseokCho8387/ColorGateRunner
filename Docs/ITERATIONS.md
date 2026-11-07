@@ -4536,3 +4536,29 @@ Presentation asmdef 참조, ProjectSettings Cloud 프로젝트 연결, 테스트
 - itch.io 페이지의 "데이터를 보내지 않음" 문구 수정과 개인정보 안내(익명 ID, 이름, 점수).
 - 결제 패키지의 사용 통계 요청: 쓰지 않는 IAP 패키지를 빼거나 안내에 포함할지 결정.
 - 3단계 itch.io 이름 연동, 스테이지별 리더보드 26개.
+
+## Iteration 84 — Bottom Navigation Cell Alignment (2026-11-07)
+
+### Play / Analyze
+
+사용자 보고: 하단 메뉴의 선택 커서가 배경 칸과 맞지 않고, 아이콘과 글자가 칸보다 좌우 바깥에 있다. 버튼은 화면을
+20%씩 똑같이 나눴지만 배경 이미지의 칸 중심은 0.136/0.319/0.500/0.682/0.865라서 가장자리 탭일수록 바깥으로
+밀렸다. 커서도 칸 위쪽에 작게 떠 있었다.
+
+### Design / Implementation
+
+`FrontendSceneBuilder`가 이미지에서 잰 칸 경계로 버튼을 놓고, 커서 이미지의 육각 몸체 비율로 커서 크기를 계산한다.
+커서를 라벨 띠보다 먼저 만들어 아래 장식은 띠 뒤로 숨긴다. 테스트는 `NeonUiDesignSystemTests`.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+배경 그림에 칸이 그려져 있으면 균등 분할 대신 그림의 실제 칸을 재서 기준으로 삼아야 한다. 투명 여백이 큰 이미지는
+사각형이 아니라 그려진 몸체 기준으로 맞추고 검사해야 한다.
+
+### Deferred / Human Review
+
+- 모든 탭 선택 상태와 실제 휴대폰에서의 모양 확인.

@@ -1915,6 +1915,18 @@ namespace ColorGateRunner.Editor
                 new Vector2(1f, 0.135f)).gameObject;
             Image barImage = bar.GetComponent<Image>();
             barImage.raycastTarget = true;
+            // Selection frames go first so the label strip hides their
+            // lower ornament; each frame's body then outlines its dock cell.
+            shopSelection = CreateNavigationSelection(
+                "ShopNavigationSelection", bar.transform, 0);
+            leaderboardSelection = CreateNavigationSelection(
+                "LeaderboardNavigationSelection", bar.transform, 1);
+            homeSelection = CreateNavigationSelection(
+                "HomeNavigationSelection", bar.transform, 2);
+            journeySelection = CreateNavigationSelection(
+                "JourneyNavigationSelection", bar.transform, 3);
+            collectionSelection = CreateNavigationSelection(
+                "CollectionNavigationSelection", bar.transform, 4);
             // One opaque strip carries all five tab labels below the icons.
             var labelStrip = new GameObject(
                 "LobbyNavigationLabelStrip",
@@ -1930,43 +1942,79 @@ namespace ColorGateRunner.Editor
             stripImage.raycastTarget = false;
 
             shop = CreateNavigationButton(
-                "ShopNavigationButton", bar.transform, "SHOP", 0,
-                out shopSelection);
+                "ShopNavigationButton", bar.transform, "SHOP", 0);
             leaderboard = CreateNavigationButton(
-                "LeaderboardNavigationButton", bar.transform, "RANK", 1,
-                out leaderboardSelection);
+                "LeaderboardNavigationButton", bar.transform, "RANK", 1);
             home = CreateNavigationButton(
-                "HomeNavigationButton", bar.transform, "HOME", 2,
-                out homeSelection);
+                "HomeNavigationButton", bar.transform, "HOME", 2);
             journey = CreateNavigationButton(
-                "JourneyNavigationButton", bar.transform, "JOURNEY", 3,
-                out journeySelection);
+                "JourneyNavigationButton", bar.transform, "JOURNEY", 3);
             collection = CreateNavigationButton(
-                "CollectionNavigationButton", bar.transform, "COLLECTION", 4,
-                out collectionSelection);
+                "CollectionNavigationButton", bar.transform, "COLLECTION", 4);
 
             leaderboardSelection.SetActive(false);
             journeySelection.SetActive(false);
             collectionSelection.SetActive(false);
         }
 
+        // Inner panel of each cell in BottomNavigationDock.png, as fractions
+        // of the image width. The cells are not evenly spaced: the dock's end
+        // caps push the outer cells inward.
+        internal static readonly Vector2[] NavigationCellBounds =
+        {
+            new Vector2(0.058f, 0.2132f),
+            new Vector2(0.2422f, 0.395f),
+            new Vector2(0.424f, 0.5764f),
+            new Vector2(0.6059f, 0.7578f),
+            new Vector2(0.7868f, 0.9424f)
+        };
+
+        // The visible cell between the label strip and the dock's top
+        // frame, as fractions of the bar height.
+        internal const float NavigationCellBottom = 0.385f;
+        internal const float NavigationCellTop = 0.72f;
+        internal const float NavigationCellMargin = 0.006f;
+
+        // The hexagonal body of NavigationSelection.png (without its side
+        // jewels, crown and lower bar), as fractions of the image measured
+        // from the bottom-left.
+        internal const float SelectionBodyLeft = 0.102f;
+        internal const float SelectionBodyRight = 0.898f;
+        internal const float SelectionBodyBottom = 0.288f;
+        internal const float SelectionBodyTop = 0.718f;
+
+        private static GameObject CreateNavigationSelection(
+            string name,
+            Transform parent,
+            int index)
+        {
+            Vector2 cell = NavigationCellBounds[index];
+            float bodyLeft = cell.x - NavigationCellMargin;
+            float bodyRight = cell.y + NavigationCellMargin;
+            float width = (bodyRight - bodyLeft) /
+                (SelectionBodyRight - SelectionBodyLeft);
+            float height = (NavigationCellTop - NavigationCellBottom) /
+                (SelectionBodyTop - SelectionBodyBottom);
+            float left = bodyLeft - SelectionBodyLeft * width;
+            float bottom = NavigationCellBottom - SelectionBodyBottom * height;
+            GameObject selection = CreateFrontendImage(
+                name,
+                parent,
+                "NavigationSelection",
+                new Vector2(left, bottom),
+                new Vector2(left + width, bottom + height)).gameObject;
+            selection.GetComponent<Image>().raycastTarget = false;
+            return selection;
+        }
+
         private static Button CreateNavigationButton(
             string name,
             Transform parent,
             string label,
-            int index,
-            out GameObject selection)
+            int index)
         {
-            float left = index * 0.2f + 0.012f;
-            float right = (index + 1) * 0.2f - 0.012f;
-            selection = CreateFrontendImage(
-                name.Replace("Button", "Selection"),
-                parent,
-                "NavigationSelection",
-                new Vector2(left, 0.42f),
-                new Vector2(right, 0.975f)).gameObject;
-            selection.GetComponent<Image>().raycastTarget = false;
-
+            float left = NavigationCellBounds[index].x;
+            float right = NavigationCellBounds[index].y;
             Button button = CreateButton(
                 name,
                 parent,

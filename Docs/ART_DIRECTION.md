@@ -1167,3 +1167,6 @@ This section supersedes Iteration 47's separate additive frame trace.
   steel-cyan chrome that keeps the painted shading. Gold now appears only on
   currency (IconCoin and coin amounts).
 - The Play icon fill is Magenta, the primary-action color.
+- Bottom navigation (Iteration 84): tabs follow the dock art's own cells, which
+  are not evenly spaced, and the selection frame's hexagonal body outlines the
+  selected cell; its lower ornament stays behind the label strip.

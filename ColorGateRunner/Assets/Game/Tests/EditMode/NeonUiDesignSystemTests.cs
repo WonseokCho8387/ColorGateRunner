@@ -151,8 +151,59 @@ namespace ColorGateRunner.Tests.EditMode
                     float buttonHeight = button.anchorMax.y - button.anchorMin.y;
                     float labelTop = button.anchorMin.y +
                         buttonHeight * label.anchorMax.y;
-                    Assert.That(selection.anchorMin.y,
+                    float selectionHeight =
+                        selection.anchorMax.y - selection.anchorMin.y;
+                    float bodyBottom = selection.anchorMin.y + selectionHeight *
+                        FrontendSceneBuilder.SelectionBodyBottom;
+                    Assert.That(bodyBottom,
                         Is.GreaterThanOrEqualTo(labelTop), tabs[index]);
+
+                    // The lower ornament hides behind the opaque label strip.
+                    Transform strip = selection.parent.Find(
+                        "LobbyNavigationLabelStrip");
+                    Assert.That(strip, Is.Not.Null);
+                    Assert.That(selection.GetSiblingIndex(),
+                        Is.LessThan(strip.GetSiblingIndex()), tabs[index]);
+                    Assert.That(button.GetSiblingIndex(),
+                        Is.GreaterThan(strip.GetSiblingIndex()), tabs[index]);
+                }
+            });
+        }
+
+        [Test]
+        public void NavigationTabs_SitOnTheirDockCells()
+        {
+            WithScene(FrontendScenePath, scene =>
+            {
+                string[] tabs =
+                {
+                    "Shop", "Leaderboard", "Home", "Journey", "Collection"
+                };
+                for (int index = 0; index < tabs.Length; index++)
+                {
+                    Vector2 cell = FrontendSceneBuilder.NavigationCellBounds[index];
+                    float cellCenter = (cell.x + cell.y) * 0.5f;
+                    RectTransform button =
+                        FindRect(scene, tabs[index] + "NavigationButton");
+                    RectTransform selection =
+                        FindRect(scene, tabs[index] + "NavigationSelection");
+                    Assert.That(button.anchorMin.x, Is.EqualTo(cell.x).Within(0.0001f),
+                        tabs[index]);
+                    Assert.That(button.anchorMax.x, Is.EqualTo(cell.y).Within(0.0001f),
+                        tabs[index]);
+                    Assert.That((selection.anchorMin.x + selection.anchorMax.x) * 0.5f,
+                        Is.EqualTo(cellCenter).Within(0.002f), tabs[index]);
+
+                    // The frame's hexagonal body wraps the cell's inner panel.
+                    float width = selection.anchorMax.x - selection.anchorMin.x;
+                    float bodyLeft = selection.anchorMin.x +
+                        width * FrontendSceneBuilder.SelectionBodyLeft;
+                    float bodyRight = selection.anchorMin.x +
+                        width * FrontendSceneBuilder.SelectionBodyRight;
+                    Assert.That(bodyLeft, Is.LessThanOrEqualTo(cell.x), tabs[index]);
+                    Assert.That(bodyRight, Is.GreaterThanOrEqualTo(cell.y), tabs[index]);
+                    Assert.That(bodyRight - bodyLeft,
+                        Is.LessThan((cell.y - cell.x) * 1.15f), tabs[index]);
                 }
             });
         }

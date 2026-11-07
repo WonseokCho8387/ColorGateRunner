@@ -1,5 +1,16 @@
 # Current Status
 
+## Iteration 84 — Bottom Navigation Cell Alignment (2026-11-07 KST)
+
+- 기준: `e4563ae`(Iteration 83, 푸시 전). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음. 패키지·ProjectSettings 변경 없음.
+- 하단 메뉴 버튼·아이콘·글자를 화면 20% 균등 칸 대신 배경 이미지(`BottomNavigationDock.png`)의 실제 칸 위치
+  (`FrontendSceneBuilder.NavigationCellBounds`)에 맞췄다. 선택 커서(`NavigationSelection.png`)는 육각 몸체가 칸
+  테두리를 감싸도록 크기와 위치를 계산하고, 라벨 띠 뒤에 그려 아래 장식이 글자를 가리지 않게 했다.
+- 자동 검증: **EditMode 637/637; PlayMode 309 passed + 1 intentional ignore (310)**. Builder 2회. Product 저장과
+  Campaign PlayerPrefs 전후 동일. 게임 규칙·생성 변경이 없어 시뮬레이션은 다시 돌리지 않았다(Iteration 83 해시 유지).
+- 무료 웹판 로컬 캡처로 HOME 칸 커서와 다섯 칸의 아이콘·글자 정렬을 확인했다(수정 전후 비교).
+
 ## Iteration 83 — Online Campaign Ranking (2026-11-07 KST)
 
 - 기준: `0cfefdf`(Iteration 82, 푸시 전) 위에서 구현했다. Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock
