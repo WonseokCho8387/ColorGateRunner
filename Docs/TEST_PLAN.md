@@ -1270,6 +1270,18 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 86 unused IAP package removal
+
+- Package diff: `com.unity.purchasing` is gone from `manifest.json` and
+  `packages-lock.json`; no other package version changed; Services Core stays
+  `1.18.0`; ProjectSettings unchanged.
+- Network check (free web build, local browser): no external request before
+  RANK; RANK requests only Unity `player-auth`, `social` and `leaderboards`
+  and shows ONLINE; no `prd.insights.analytics.unity3d.com` request.
+- Android APK build: succeeded (exit 0, about 129 MB).
+- Final evidence: EditMode 638/638; PlayMode 309 passed + 1 intentional
+  ignore (310); Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 85 clear result crown icons
 
 - EditMode `NeonUiDesignSystemTests.ClearCrownIcons_SitBetweenMaxComboAndRewardRows`:

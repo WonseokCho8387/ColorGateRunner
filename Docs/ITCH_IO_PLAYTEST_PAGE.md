@@ -64,11 +64,56 @@ playing.
 **Saving:** Progress is saved in this browser only. Clearing site data, private windows or a new upload of
 the game can reset it.
 
-**Data:** Analytics is not connected. The game sends no gameplay data. itch.io and your browser may process
-their own technical information; see their privacy notices.
+**Online ranking and data:** The game works offline. Only when you open the RANK tab does it sign you in
+anonymously to Unity Gaming Services and send your Campaign total score, so it can show the ranking.
+You appear as an automatic name such as `Guest#1234`. See the Privacy notice below.
 
 **Feedback:** Which stage made you want to retry, or stop? Please leave a comment. Do not include personal
 information.
+
+### 개인정보 안내 초안 (Iteration 86, 게시 전)
+
+`UgsRankingGateway`/`RankPageView` 기준으로 쓴 초안이다. `[ ]` 항목은 운영자가 정해야 한다. Iteration 86
+웹판 확인 결과, RANK 탭을 열기 전에는 외부 요청이 없고, 연 뒤에는 Unity `player-auth`, `social`(이름),
+`leaderboards`만 요청한다. 결제 패키지는 Iteration 86에서 뺐다.
+
+**Privacy notice — Color Gate Runner Free Web Edition**
+
+*Who runs this game:* [operator name], contact: [email address].
+
+*When data is sent:* Only when you open the RANK tab. Playing the stages sends nothing.
+
+*What is sent:*
+- An anonymous player ID that Unity creates for this browser. It is not linked to your itch.io account,
+  email or real name.
+- Your ranking name, which is set automatically to `Guest#` plus a number. You cannot type your own name.
+- Your Campaign total score.
+- Technical information that Unity's services need to answer the request, such as your IP address,
+  browser and platform, and the SDK version.
+
+*Who receives it:* Unity Gaming Services (Unity Technologies), which runs the sign-in and leaderboard.
+See Unity's privacy policy: https://unity.com/legal/privacy-policy
+
+*Why:* To show the ranking and your place in it. Your Guest name and score are visible to other players
+on the RANK tab. The game does not use this data for ads or analytics.
+
+*How long it is kept:* [Until you ask us to delete it, or until the ranking is closed.]
+
+*Your choices:* If you never open the RANK tab, nothing is sent. To delete your ranking entry and
+anonymous ID, email [email address] with the Guest name shown on your RANK tab. Clearing this site's
+data in your browser removes the local sign-in, but does not delete the entry already on the server.
+
+*Local saving:* Your progress and settings are stored only in your browser (itch.io's game frame) and
+are not sent to us.
+
+itch.io and your browser may process their own technical information; see their privacy notices.
+
+#### 한국어 요약 (운영자 확인용)
+
+- RANK 탭을 열 때만 Unity로 익명 ID, `Guest#번호` 이름, 캠페인 총점, 요청에 필요한 기술 정보(IP 등)가 간다.
+- 이름과 점수는 다른 플레이어에게 보인다. 광고·분석에는 쓰지 않는다.
+- 게임 안에는 삭제 버튼이 없다. 삭제는 메일 요청으로 받고, Unity Dashboard에서 플레이어를 지운다.
+- 운영자가 정할 것: 이름, 연락 메일, 보관 기간.
 
 ### itch.io 설정
 

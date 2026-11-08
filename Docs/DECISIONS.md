@@ -1911,6 +1911,14 @@ Status: Approved and implemented.
 
 
 
+## Iteration 86 unused IAP package removal (2026-11-08 기록)
+
+- 사용자 결정: 쓰지 않는 Unity IAP 패키지를 뺀다. 이 패키지는 로그인 때 결제 SDK 기록을 Unity로 보냈지만
+  개발자가 볼 사용 통계가 아니어서 잃는 것이 없다.
+- Iteration 20의 "Google Play 결제는 Unity IAP" 방향은 유지한다. 실제 결제를 붙이는 iteration에서 패키지와
+  `BillingMode.json`을 다시 설치한다.
+- 플레이 통계가 필요하면 동의 화면과 함께 Unity Analytics를 따로 승인받아 붙인다.
+
 ## Iteration 83 online ranking (2026-11-07 기록)
 
 - 사용자 승인: Unity Gaming Services 익명 로그인과 Leaderboards 사용, 패키지 2개 추가, Unity Cloud 프로젝트 연결.

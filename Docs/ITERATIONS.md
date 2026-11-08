@@ -4589,3 +4589,32 @@ Presentation asmdef 참조, ProjectSettings Cloud 프로젝트 연결, 테스트
 
 - 실제 휴대폰에서 아이콘이 크라운으로 읽히는지, 얻었을 때 보람이 느껴지는지.
 - 컬렉션 목록과 튜토리얼 CROWNS 카드에도 같은 아이콘 쓰기.
+
+## Iteration 86 — Remove the Unused IAP Package (2026-11-08)
+
+### Play / Analyze
+
+itch.io 공개 준비 중 개인정보 안내를 쓰면서 Iteration 83에서 본 결제 패키지 요청을 다시 봤다. 패키지 소스를
+읽어 보니 Unity 로그인 완료(`SignedIn`)에 맞춰 결제 SDK 기록을 보내는 것이고, 개발자가 볼 수 있는 통계가
+아니었다. 프로젝트 코드는 이 패키지를 쓰지 않는다.
+
+### Design / Implementation
+
+사용자 결정: 패키지를 뺀다. `manifest.json`에서 지우고 lock은 Unity가 다시 만들었다. `BillingMode.json`과 빈
+`Resources` 폴더를 지웠다. Phase A에서 CURRENT_STATUS의 패키지·ProjectSettings 해시가 Iteration 83 이후 갱신되지
+않은 것을 찾아 이번에 고쳤다. 개인정보 안내 초안에서 결제 패키지 항목을 지웠다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 웹판은 로컬 브라우저에서 RANK 전후 요청을 확인했다.
+
+### Learning
+
+패키지를 추가한 iteration은 그 절에만 적고 공통 해시 기준을 고치지 않아 세 iteration 동안 기준이 어긋나 있었다.
+패키지나 ProjectSettings를 바꾸면 "Package and ProjectSettings baseline"도 같은 커밋에서 고친다.
+
+### Deferred / Human Review
+
+- 개인정보 안내의 운영자 이름, 연락 메일, 보관 기간(사용자 결정).
+- itch.io에 올린 빌드에서 점수 제출과 여러 사람 순위 확인.
+- Android 실제 결제는 결제 iteration에서 패키지를 다시 설치한 뒤.

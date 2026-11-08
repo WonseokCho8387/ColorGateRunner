@@ -1,5 +1,21 @@
 # Current Status
 
+## Iteration 86 — Remove the Unused IAP Package (2026-11-08 KST)
+
+- 기준: `1e36a55`(Iteration 85, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음.
+- 사용자 승인으로 `com.unity.purchasing` `5.4.2`를 뺐다. 이 패키지는 쓰는 곳이 없었고, Unity 로그인이 끝나면
+  결제 SDK 기록(`prd.insights.analytics.unity3d.com`)을 보냈다. 패키지 설정 파일 `Assets/Resources/BillingMode.json`
+  (`.meta`, 빈 `Resources` 폴더 포함)도 지웠다. `packages-lock.json`에서는 purchasing 항목만 빠졌고 Services Core는
+  `1.18.0` 그대로다. ProjectSettings는 바뀌지 않았다.
+- 자동 검증: **EditMode 638/638; PlayMode 309 passed + 1 intentional ignore (310)**. Product 저장과 Campaign
+  PlayerPrefs 전후 동일. 씬과 게임 규칙 변경이 없어 Builder와 시뮬레이션은 다시 돌리지 않았다.
+- 무료 웹판(로컬 브라우저): 시작부터 HOME까지 외부 요청 없음. RANK 탭을 열면 `player-auth`, `social`(이름),
+  `leaderboards`(`services.api.unity.com`)만 요청하고 `ONLINE`이 된다. insights 요청은 없다.
+- Android APK 빌드: succeeded (exit 0, about 129 MB).
+- 아래 "Package and ProjectSettings baseline"의 해시를 이번 값으로 고쳤다. Iteration 83의 패키지 2개와 Cloud
+  프로젝트 연결이 반영되지 않은 채 남아 있었다.
+
 ## Iteration 85 — Clear Result Crown Icons (2026-11-08 KST)
 
 - 기준: `69614c3`(Iteration 84, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
@@ -1109,12 +1125,15 @@ All three entries are expected to be enabled and unique.
 ### Package and ProjectSettings baseline
 
 - `Packages/manifest.json` SHA-256:
-  `5E44864DB10C6A0A47806035C801D2271F6F48B0BF8BF6F699B88C71D6758C96`
+  `D0779A24252C6E5F96BE6034B6E1B6DCB07849070EADE5C08AF15DA4242AC95D` (Iteration 86)
 - `Packages/packages-lock.json` SHA-256:
-  `FF4B3AC486B926719707FF2447580CEB1CE33D7C0851BABA229A3CD73C48CBBE`
+  `762B1F74E325664EE61A094D1BC1204760FBFF441EA7C554E5FC65AAAAEC6AA6` (Iteration 86)
 - `ProjectSettings/ProjectSettings.asset` SHA-256:
-  `BFF9843B9363FF1C20B113108D623026E777311CAEF6372B07C92690049717BC`
-- Approved package delta: Unity IAP `5.4.2`, Unity Services Core `1.18.0`,
+  `048399642953EBCB8297198BC022B1F81335C74F3C920E108B9BD203C793010B` (Iteration 83 Cloud
+  project link; unchanged by Iteration 86)
+- Iteration 86 removed Unity IAP `5.4.2` and `Assets/Resources/BillingMode.json`.
+  Iteration 83 added Authentication `3.8.1` and Leaderboards `2.3.4`.
+- Approved package delta (history): Unity IAP `5.4.2`, Unity Services Core `1.18.0`,
   Unity Splines `2.9.0` with its Settings Manager dependency, and
   `Assets/Resources/BillingMode.json` with Google Play. The incidental
   Navigation, Rider, Visual Studio and Visual Scripting upgrades made during
