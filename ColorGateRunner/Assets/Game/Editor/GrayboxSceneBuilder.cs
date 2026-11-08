@@ -1915,6 +1915,15 @@ namespace ColorGateRunner.Editor
             return text;
         }
 
+        // Clear reward card layout (card-relative anchors): max combo, crown
+        // icons, crown labels, then the reward rows.
+        internal const float CrownIconTop = 0.665f;
+        internal const float CrownIconBottom = 0.55f;
+        internal const float CrownTextBottom = 0.485f;
+        internal const float RewardRowsTop = 0.475f;
+        internal const float RewardRowStep = 0.093f;
+        internal const float RewardRowHeight = 0.08f;
+
         private static StageCrownResultView CreateCrownResult(Transform card)
         {
             GameObject root = CreateUiObject("ClearCrownResult", card);
@@ -1926,22 +1935,39 @@ namespace ColorGateRunner.Editor
                 root.transform,
                 "MAX COMBO 0",
                 34,
-                new Vector2(0.08f, 0.655f),
+                new Vector2(0.08f, CrownIconTop),
                 new Vector2(0.92f, 0.72f));
             maxCombo.color = NeonUiPalette.Magenta;
+            Sprite[] crownSprites = Theme01UiSkinBuilder.LoadCrownIcons();
             var crowns = new Text[StageCrownResultView.DisplayOrder.Length];
+            var icons = new Image[crowns.Length];
             for (int index = 0; index < crowns.Length; index++)
             {
+                // Each crown shows its icon with the name and NEW below it.
                 float left = 0.06f + index * 0.3f;
+                GameObject iconObject = CreateUiObject(
+                    $"ClearCrownIcon_{index}",
+                    root.transform);
+                RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+                iconRect.anchorMin = new Vector2(left, CrownIconBottom);
+                iconRect.anchorMax = new Vector2(left + 0.28f, CrownIconTop);
+                iconRect.offsetMin = Vector2.zero;
+                iconRect.offsetMax = Vector2.zero;
+                icons[index] = iconObject.AddComponent<Image>();
+                icons[index].sprite = crownSprites[index];
+                icons[index].preserveAspect = true;
+                icons[index].raycastTarget = false;
                 crowns[index] = CreateText(
                     $"ClearCrownText_{index}",
                     root.transform,
                     string.Empty,
                     22,
-                    new Vector2(left, 0.575f),
-                    new Vector2(left + 0.28f, 0.65f));
+                    new Vector2(left, CrownTextBottom),
+                    new Vector2(left + 0.28f, CrownIconBottom));
+                // The name hangs right under its icon.
+                crowns[index].alignment = TextAnchor.UpperCenter;
             }
-            view.Configure(maxCombo, crowns);
+            view.Configure(maxCombo, crowns, icons);
             return view;
         }
 
@@ -4113,11 +4139,11 @@ namespace ColorGateRunner.Editor
             for (int index = 0; index < rewardRows.Length; index++)
             {
                 // Rows start below the max-combo line and crown row.
-                float top = 0.56f - index * 0.105f;
+                float top = RewardRowsTop - index * RewardRowStep;
                 GameObject row = CreateAnchoredPanel(
                     $"ClearRewardRow_{index}",
                     rewardRoot.transform,
-                    new Vector2(0.11f, top - 0.088f),
+                    new Vector2(0.11f, top - RewardRowHeight),
                     new Vector2(0.89f, top),
                     new Color(0.08f, 0.15f, 0.25f, 0.92f));
                 Theme01UiSkinBuilder.ApplyPanel(

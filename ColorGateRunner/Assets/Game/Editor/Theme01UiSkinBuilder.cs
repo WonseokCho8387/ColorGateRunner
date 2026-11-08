@@ -30,6 +30,12 @@ namespace ColorGateRunner.Editor
             "Shop", "Rank", "Home", "Journey", "Collection"
         };
 
+        // Display order matches StageCrownResultView.DisplayOrder.
+        internal static readonly string[] CrownIconNames =
+        {
+            "CrownClean", "CrownCombo", "CrownFullCombo"
+        };
+
         private static readonly string[] ColorEmblemNames =
         {
             "Red", "Blue", "Green", "Yellow", "Purple", "Cyan"
@@ -105,6 +111,11 @@ namespace ColorGateRunner.Editor
                     2048);
             }
 
+            for (int index = 0; index < CrownIconNames.Length; index++)
+            {
+                ConfigureSprite("Crowns/" + CrownIconNames[index], false, 512f);
+            }
+
             for (int index = 0; index < ColorEmblemNames.Length; index++)
             {
                 ConfigureSprite(
@@ -141,6 +152,21 @@ namespace ColorGateRunner.Editor
                 {
                     throw new InvalidOperationException(
                         $"Theme01 color emblem is missing: {name}");
+                }
+            }
+            return result;
+        }
+
+        internal static Sprite[] LoadCrownIcons()
+        {
+            var result = new Sprite[CrownIconNames.Length];
+            for (int index = 0; index < result.Length; index++)
+            {
+                result[index] = LoadSprite("Crowns/" + CrownIconNames[index]);
+                if (result[index] == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Theme01 crown icon is missing: {CrownIconNames[index]}");
                 }
             }
             return result;

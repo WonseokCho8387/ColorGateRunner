@@ -209,6 +209,36 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void ClearCrownIcons_SitBetweenMaxComboAndRewardRows()
+        {
+            WithScene(CampaignScenePath, scene =>
+            {
+                RectTransform maxCombo = FindRect(scene, "ClearMaxComboText");
+                RectTransform firstRow = FindRect(scene, "ClearRewardRow_0");
+                RectTransform lastRow = FindRect(scene, "ClearRewardRow_4");
+                Assert.That(lastRow.anchorMin.y, Is.GreaterThanOrEqualTo(0f));
+                for (int index = 0; index < 3; index++)
+                {
+                    RectTransform icon = FindRect(scene, $"ClearCrownIcon_{index}");
+                    RectTransform text = FindRect(scene, $"ClearCrownText_{index}");
+                    Image image = icon.GetComponent<Image>();
+                    Assert.That(image.sprite, Is.Not.Null);
+                    Assert.That(image.sprite.name, Is.EqualTo(
+                        Theme01UiSkinBuilder.CrownIconNames[index]));
+                    Assert.That(image.preserveAspect, Is.True);
+                    Assert.That(icon.anchorMax.y,
+                        Is.LessThanOrEqualTo(maxCombo.anchorMin.y + 0.0001f));
+                    Assert.That(text.anchorMax.y,
+                        Is.LessThanOrEqualTo(icon.anchorMin.y + 0.0001f));
+                    Assert.That(text.anchorMin.y,
+                        Is.GreaterThanOrEqualTo(firstRow.anchorMax.y));
+                    Assert.That(icon.anchorMin.x, Is.EqualTo(text.anchorMin.x));
+                    Assert.That(icon.anchorMax.x, Is.EqualTo(text.anchorMax.x));
+                }
+            });
+        }
+
+        [Test]
         public void SkinnedButtonLabels_AreInsetInsideNeonStroke()
         {
             string[] scenes =

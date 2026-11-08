@@ -25,23 +25,36 @@ namespace ColorGateRunner.Presentation
             };
 
         [SerializeField] private Text maxComboText;
+        // A newly earned crown is full color, an owned one slightly dimmed,
+        // and a missing one a dark silhouette.
+        internal static readonly Color NewIconTint = Color.white;
+        internal static readonly Color OwnedIconTint =
+            new Color(0.78f, 0.78f, 0.78f, 0.9f);
+        internal static readonly Color MissingIconTint =
+            new Color(0.26f, 0.29f, 0.38f, 0.55f);
+
         [SerializeField] private Text[] crownTexts;
+        [SerializeField] private Image[] crownIcons;
 
         internal Text MaxComboText => maxComboText;
         internal Text[] CrownTexts => crownTexts;
+        internal Image[] CrownIcons => crownIcons;
 
         internal bool HasRequiredReferences
         {
             get
             {
                 if (maxComboText == null || crownTexts == null ||
-                    crownTexts.Length != DisplayOrder.Length)
+                    crownTexts.Length != DisplayOrder.Length ||
+                    crownIcons == null ||
+                    crownIcons.Length != DisplayOrder.Length)
                 {
                     return false;
                 }
                 for (int index = 0; index < crownTexts.Length; index++)
                 {
-                    if (crownTexts[index] == null)
+                    if (crownTexts[index] == null || crownIcons[index] == null ||
+                        crownIcons[index].sprite == null)
                     {
                         return false;
                     }
@@ -50,10 +63,11 @@ namespace ColorGateRunner.Presentation
             }
         }
 
-        internal void Configure(Text maxCombo, Text[] crowns)
+        internal void Configure(Text maxCombo, Text[] crowns, Image[] icons)
         {
             maxComboText = maxCombo;
             crownTexts = crowns;
+            crownIcons = icons;
             Hide();
         }
 
@@ -72,21 +86,26 @@ namespace ColorGateRunner.Presentation
             {
                 StageCrown crown = DisplayOrder[index];
                 Text text = crownTexts[index];
+                Image icon = crownIcons[index];
                 text.gameObject.SetActive(true);
+                icon.gameObject.SetActive(true);
                 if ((newlyEarned & crown) != 0)
                 {
                     text.text = Label(index, comboTarget) + "\nNEW";
                     text.color = NeonUiPalette.Gold;
+                    icon.color = NewIconTint;
                 }
                 else if ((owned & crown) != 0)
                 {
                     text.text = Label(index, comboTarget);
                     text.color = NeonUiPalette.Signal;
+                    icon.color = OwnedIconTint;
                 }
                 else
                 {
                     text.text = Label(index, comboTarget);
                     text.color = NeonUiPalette.TextMuted;
+                    icon.color = MissingIconTint;
                 }
             }
         }
@@ -106,6 +125,11 @@ namespace ColorGateRunner.Presentation
                 if (crownTexts[index] != null)
                 {
                     crownTexts[index].gameObject.SetActive(false);
+                }
+                if (crownIcons != null && index < crownIcons.Length &&
+                    crownIcons[index] != null)
+                {
+                    crownIcons[index].gameObject.SetActive(false);
                 }
             }
         }

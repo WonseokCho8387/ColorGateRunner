@@ -3965,6 +3965,15 @@ namespace ColorGateRunner.Tests.PlayMode
                 _controller.Combo.Max >= StageCrownPolicy.NormalComboTarget;
             Assert.That(crowns[1].text, Is.EqualTo(
                 comboCrown ? "10 COMBO\nNEW" : "10 COMBO"));
+            Image[] icons = _controller.CrownResult.CrownIcons;
+            Assert.That(icons[0].gameObject.activeSelf, Is.True);
+            Assert.That(icons[0].color,
+                Is.EqualTo(StageCrownResultView.NewIconTint));
+            Assert.That(icons[2].color,
+                Is.EqualTo(StageCrownResultView.NewIconTint));
+            Assert.That(icons[1].color, Is.EqualTo(comboCrown
+                ? StageCrownResultView.NewIconTint
+                : StageCrownResultView.MissingIconTint));
             Assert.That(_controller.ClearDetailsText.text,
                 Does.Not.Contain("COMEBACK"));
             int expected = StageScorePolicy.Evaluate(
@@ -4003,6 +4012,9 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo(StageFlowState.PreRunSelection));
             Assert.That(_controller.CrownResult.MaxComboText.gameObject.activeSelf,
                 Is.False);
+            Assert.That(
+                _controller.CrownResult.CrownIcons[0].gameObject.activeSelf,
+                Is.False);
 
             _controller.StartSelectedStage();
             _controller.Tick(3.1f);
@@ -4014,6 +4026,10 @@ namespace ColorGateRunner.Tests.PlayMode
                 Is.EqualTo("CLEAN"));
             Assert.That(_controller.CrownResult.CrownTexts[2].text,
                 Is.EqualTo("FULL COMBO"));
+            Assert.That(_controller.CrownResult.CrownIcons[0].color,
+                Is.EqualTo(StageCrownResultView.OwnedIconTint));
+            Assert.That(_controller.CrownResult.CrownIcons[2].color,
+                Is.EqualTo(StageCrownResultView.OwnedIconTint));
         }
 
         [Test]

@@ -1170,3 +1170,7 @@ This section supersedes Iteration 47's separate additive frame trace.
 - Bottom navigation (Iteration 84): tabs follow the dock art's own cells, which
   are not evenly spaced, and the selection frame's hexagonal body outlines the
   selected cell; its lower ornament stays behind the label strip.
+- Crown icons (Iteration 85): CLEAN is a cyan three-point crown, COMBO a
+  magenta five-point crown with one band gem, FULL COMBO a gold five-point
+  crown with three gems and a top sparkle. One sprite per crown; the result
+  screen tints it for earned now, owned and missing.

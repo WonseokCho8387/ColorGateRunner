@@ -1270,6 +1270,20 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 85 clear result crown icons
+
+- EditMode `NeonUiDesignSystemTests.ClearCrownIcons_SitBetweenMaxComboAndRewardRows`:
+  each crown icon uses its own sprite with preserved aspect, sits under the
+  max-combo line, above its label, and the labels stay above the first reward
+  row; all five reward rows stay inside the card.
+- PlayMode `GrayboxScenePlayModeTests.StageCrowns_*`: newly earned crowns use
+  the full-color tint, a crown missed this run the missing tint, replayed
+  crowns the owned tint, and the icons hide before the next run.
+- Graphics capture `Step9C/09-Clear-Rewards.png` (missing state).
+- Not automated: whether the icons read as crowns and feel earned, on a phone.
+- Final evidence: EditMode 638/638; PlayMode 309 passed + 1 intentional ignore (310); Builder twice; Product
+  save and Campaign PlayerPrefs exact.
+
 ### Iteration 84 bottom navigation cell alignment
 
 - EditMode `NeonUiDesignSystemTests.NavigationTabs_SitOnTheirDockCells`: each

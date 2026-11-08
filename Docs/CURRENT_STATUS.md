@@ -1,5 +1,18 @@
 # Current Status
 
+## Iteration 85 — Clear Result Crown Icons (2026-11-08 KST)
+
+- 기준: `69614c3`(Iteration 84, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL(직전 APK 빌드로 Android였던 것을 되돌림). Push 없음. 패키지·ProjectSettings 변경 없음.
+- 클리어 결과의 크라운 세 개(CLEAN, COMBO, FULL COMBO)에 아이콘을 붙였다. 아이콘은
+  `Tools/Generate-CrownIcons.mjs`가 같은 결과로 그린다(`Art/UI/Theme01/Crowns`, 청록·자홍·금색). 새로 얻은
+  크라운은 원색, 이미 가진 크라운은 조금 어둡게, 없는 크라운은 어두운 실루엣이다. 이름과 `NEW`는 아이콘 아래.
+  보상 줄은 조금 내리고 간격을 줄여 다섯 줄이 그대로 들어간다.
+- 자동 검증: **EditMode 638/638; PlayMode 309 passed + 1 intentional ignore (310)**. Builder 2회. Product 저장과 Campaign PlayerPrefs 전후
+  동일. 게임 규칙 변경이 없어 시뮬레이션은 다시 돌리지 않았다.
+- 그래픽 캡처(`Step9C/09-Clear-Rewards.png`)로 없는 크라운 상태의 배치를 확인했다. 얻은 상태는 같은 위치에
+  원본 아이콘을 겹친 합성 이미지로만 확인했다.
+
 ## Iteration 84 — Bottom Navigation Cell Alignment (2026-11-07 KST)
 
 - 기준: `e4563ae`(Iteration 83, 푸시 전). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼

@@ -4562,3 +4562,30 @@ Presentation asmdef 참조, ProjectSettings Cloud 프로젝트 연결, 테스트
 ### Deferred / Human Review
 
 - 모든 탭 선택 상태와 실제 휴대폰에서의 모양 확인.
+
+## Iteration 85 — Clear Result Crown Icons (2026-11-08)
+
+### Play / Analyze
+
+사용자 보고: 튜토리얼은 "크라운"이라고 부르는데 결과창에는 글자만 나와 크라운을 얻은 느낌이 없다. 프로젝트에
+크라운 이미지가 하나도 없었다.
+
+### Design / Implementation
+
+사용자 결정: 이미지는 스크립트로 생성. `Tools/Generate-CrownIcons.mjs`가 크라운 세 개를 그리고,
+`Theme01UiSkinBuilder`가 스프라이트로 설정한다. `GrayboxSceneBuilder`가 결과 카드에 아이콘을 놓고,
+`StageCrownResultView`가 상태별로 색을 입힌다. 이번에는 결과창만 바꿨다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+직전 APK 빌드가 활성 플랫폼을 Android로 바꿔 두므로 다음 검증 전에 WebGL로 되돌려야 한다. 배치 실행이 끝난 뒤
+`Temp/UnityLockfile`이 남아 다음 배치 검증을 막는 일이 반복된다.
+
+### Deferred / Human Review
+
+- 실제 휴대폰에서 아이콘이 크라운으로 읽히는지, 얻었을 때 보람이 느껴지는지.
+- 컬렉션 목록과 튜토리얼 CROWNS 카드에도 같은 아이콘 쓰기.
