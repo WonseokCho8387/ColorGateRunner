@@ -1270,6 +1270,20 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 87 ranking submit on clear
+
+- EditMode `RankingTests.Submitter_*`: a positive total is sent after
+  sign-in and zero or negative totals send nothing; a failure is logged as a
+  warning without throwing and the next report still sends; totals reported
+  while a send is in flight collapse into the latest one.
+- PlayMode `GrayboxScenePlayModeTests.Ranking_ClearReportsTheTotalOnlyWhenTheStageBestRises`:
+  a clear that raises the Stage best reports the saved Campaign total once;
+  a replay that does not raise it reports nothing.
+- Not automated: a live submission from a clear on the hosted build, slow or
+  offline networks during the result screen, and several players.
+- Final evidence: EditMode 641/641; PlayMode 310 passed + 1 intentional ignore (311); Product save and
+  Campaign PlayerPrefs exact.
+
 ### Iteration 86 unused IAP package removal
 
 - Package diff: `com.unity.purchasing` is gone from `manifest.json` and

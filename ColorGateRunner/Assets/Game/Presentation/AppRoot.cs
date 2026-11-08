@@ -423,10 +423,15 @@ namespace ColorGateRunner.Presentation
         public bool LegacyCampaignMigrationEnabled { get; }
         // Null when this build has no online ranking.
         public IRankingGateway Ranking { get; private set; }
+        // Sends the total after a clear; null without online ranking.
+        public IRankingClearReporter RankingReporter { get; private set; }
 
         public AppServiceGraph WithRanking(IRankingGateway ranking)
         {
             Ranking = ranking;
+            RankingReporter = ranking != null
+                ? new RankingSubmitter(ranking)
+                : null;
             return this;
         }
     }

@@ -3989,6 +3989,39 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
+        public void Ranking_ClearReportsTheTotalOnlyWhenTheStageBestRises()
+        {
+            var reporter = new RankingReporterTestDouble();
+            _controller.SetRankingReporterForTests(reporter);
+            SelectAndStartStage(13);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+
+            int total = CampaignRankingScore.Total(_store, StageCatalog.Current);
+            Assert.That(total, Is.Positive);
+            Assert.That(total, Is.EqualTo(_store.Records[12].BestScore));
+            Assert.That(reporter.Totals, Is.EqualTo(new[] { total }));
+
+            _store.Records[12] = _store.Records[12].WithBestScore(int.MaxValue);
+            SelectAndStartStage(13);
+            _controller.Session.Advance(1f, 0f);
+            FinishCurrentStage();
+            _controller.Tick(1.3f);
+            Assert.That(_store.Records[12].ClearCount, Is.EqualTo(2));
+            Assert.That(reporter.Totals, Is.EqualTo(new[] { total }),
+                "A clear that does not raise the Stage best sends nothing.");
+        }
+
+        private sealed class RankingReporterTestDouble : IRankingClearReporter
+        {
+            internal readonly System.Collections.Generic.List<int> Totals =
+                new System.Collections.Generic.List<int>();
+
+            public void ReportTotal(int total) => Totals.Add(total);
+        }
+
+        [Test]
         public void StageCrowns_ReplayReopensStageAndDoesNotRepeatNew()
         {
             SelectAndStartStage(13);

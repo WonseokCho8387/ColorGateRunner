@@ -4618,3 +4618,31 @@ itch.io 공개 준비 중 개인정보 안내를 쓰면서 Iteration 83에서 �
 - 개인정보 안내의 운영자 이름, 연락 메일, 보관 기간(사용자 결정).
 - itch.io에 올린 빌드에서 점수 제출과 여러 사람 순위 확인.
 - Android 실제 결제는 결제 iteration에서 패키지를 다시 설치한 뒤.
+
+## Iteration 87 — Submit the Ranking Total on Clear (2026-11-09)
+
+### Play / Analyze
+
+사용자 보고: 랭킹에 자기 기록만 보인다. 서버와 itch.io 페이지를 확인하니 두 플레이어가 모두 올라 있고 표시도
+정상이었다. 점수가 RANK 탭을 연 플레이어만 올라가는 구조라, 확인 시점에 다른 플레이어가 아직 RANK를 열지
+않았던 것으로 판단했다.
+
+### Design / Implementation
+
+사용자 결정: 최고점이 오른 클리어 때 바로 보낸다(게임 안 안내 없음, 오프라인 재전송 없음). `RankingSubmitter`를
+`AppServiceGraph`에 두고 `StageSceneController`가 클리어 저장 성공 후 최고점이 올랐을 때 호출한다.
+`UgsRankingGateway`는 진행 중인 로그인을 함께 쓴다. itch.io 개인정보 문구를 고쳤다.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다.
+
+### Learning
+
+"보이지 않는다"는 보고는 표시 문제가 아니라 데이터가 올라가는 시점 문제일 수 있다. 화면을 고치기 전에 서버
+데이터를 먼저 조회한다.
+
+### Deferred / Human Review
+
+- itch.io 페이지 본문의 개인정보 문구를 새 문구로 직접 바꾸고 새 zip을 올린다.
+- 올린 빌드에서 RANK를 열지 않고 클리어만 한 다른 기기의 점수가 순위에 나타나는지.

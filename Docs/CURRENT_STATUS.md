@@ -1,5 +1,20 @@
 # Current Status
 
+## Iteration 87 — Submit the Ranking Total on Clear (2026-11-09 KST)
+
+- 기준: `0b157f8`(Iteration 86, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음. 패키지·ProjectSettings·씬 변경 없음.
+- 스테이지 최고점이 오른 클리어는 캠페인 합계를 백그라운드로 리더보드에 보낸다(`RankingSubmitter`). 한 번에
+  하나만 보내고, 보내는 중 들어온 합계는 마지막 값만 이어서 보낸다. 실패는 경고 로그만 남기고, 다음 최고점
+  갱신이나 RANK 탭이 전체 합계를 다시 보낸다. RANK 탭 제출은 그대로다. 클리어와 RANK가 동시에 로그인하지
+  않도록 `UgsRankingGateway`가 진행 중인 로그인을 함께 쓴다.
+- 자동 검증: **EditMode 641/641; PlayMode 310 passed + 1 intentional ignore (311)**. Product 저장과 Campaign PlayerPrefs 전후 동일. 씬과 게임
+  규칙 변경이 없어 Builder와 시뮬레이션은 다시 돌리지 않았다.
+- 새 맥락 검토자: PASS WITH NOTES. 마이그레이션 전 PlayerPrefs 저장소 합계를 보낼 수 있으나 리더보드가 최고점만
+  남겨 덮어쓰지 않는다. 실제 로그인 공유와 AppRoot 연결은 자동 테스트가 덮지 않는다.
+- 새 무료 웹 zip(78.6MB)과 APK(약 153MB) 빌드 성공, 활성 플랫폼 WebGL로 되돌림. I86 웹 빌드는
+  `0.1.0-i86-202611081418`로 보관.
+
 ## Iteration 86 — Remove the Unused IAP Package (2026-11-08 KST)
 
 - 기준: `1e36a55`(Iteration 85, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼

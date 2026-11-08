@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 87 ranking submit on clear (2026-11-09 기록)
+
+- 사용자 결정: 스테이지 최고점이 오른 클리어 때 캠페인 합계를 리더보드에 바로 보낸다. 클리어마다 보내지는 않는다.
+- 사용자 결정: 게임 안에는 따로 안내하지 않고 itch.io 개인정보 문구만 고친다.
+- 사용자 결정: 오프라인에서 놓친 제출은 따로 쌓지 않는다. 다음 최고점 갱신이나 RANK 탭이 전체 합계를 다시 보낸다.
+
 ## Iteration 86 unused IAP package removal (2026-11-08 기록)
 
 - 사용자 결정: 쓰지 않는 Unity IAP 패키지를 뺀다. 이 패키지는 로그인 때 결제 SDK 기록을 Unity로 보냈지만

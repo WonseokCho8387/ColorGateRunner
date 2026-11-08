@@ -168,6 +168,7 @@ namespace ColorGateRunner.Presentation
         private StageSession _session;
         private readonly PerfectSwitchCombo _combo = new PerfectSwitchCombo();
         private IStageProgressStore _progressStore;
+        private IRankingClearReporter _rankingReporter;
         private IStartItemInventoryGateway _startItemInventory;
         private IContinueEconomyGateway _continueEconomy;
         private IRewardedAdService _rewardedAdService;
@@ -462,6 +463,9 @@ namespace ColorGateRunner.Presentation
                         appRoot.Graph.Progression,
                         StageCatalog.Current)
                     : new PlayerPrefsStageProgressStore();
+            _rankingReporter = _playtest == null
+                ? appRoot?.Graph?.RankingReporter
+                : null;
             _startItemInventory = _playtest == null && appRoot != null &&
                 appRoot.Graph?.ProductSession?.IsReady == true &&
                 appRoot.Graph.Progression?.Economy != null
@@ -1690,6 +1694,12 @@ namespace ColorGateRunner.Presentation
                 1,
                 StageCatalog.Count);
             ShowLobby();
+        }
+
+        internal void SetRankingReporterForTests(
+            IRankingClearReporter reporter)
+        {
+            _rankingReporter = reporter;
         }
 
         internal void SetStartItemInventoryForTests(
@@ -3058,6 +3068,7 @@ namespace ColorGateRunner.Presentation
             StageRecord record =
                 _progressStore.LoadRecord(_selectedStageNumber);
             bool firstClear = !record.Cleared;
+            int previousBestScore = record.BestScore;
             bool leagueClear = !firstClear &&
                 LobbyProgression.AreAllStagesCleared(LoadClearedStages());
             StageCrown previousCrowns = record.Crowns;
@@ -3119,6 +3130,13 @@ namespace ColorGateRunner.Presentation
                 _clearCrownsNew = _clearCrownsEarned & ~previousCrowns;
                 _clearBestMaxCombo = saved.BestMaxCombo;
                 _clearBestScore = saved.BestScore;
+                if (saved.BestScore > previousBestScore)
+                {
+                    _rankingReporter?.ReportTotal(
+                        CampaignRankingScore.Total(
+                            _progressStore,
+                            StageCatalog.Current));
+                }
                 if (productRewardAuthority && firstClear)
                 {
                     StageClearRewardPreview reward =

@@ -16,7 +16,25 @@ namespace ColorGateRunner.Presentation
         public const string CampaignLeaderboardId = "campaign-total";
         internal const string GuestName = "Guest";
 
-        public async Task<string> SignInAsync()
+        private Task<string> _signIn;
+
+        // A clear and the RANK tab can both ask at once; they share one
+        // sign-in. A failed sign-in, or a session that has ended, starts a
+        // new one.
+        public Task<string> SignInAsync()
+        {
+            bool reuse = _signIn != null &&
+                (!_signIn.IsCompleted ||
+                 (_signIn.Status == TaskStatus.RanToCompletion &&
+                  AuthenticationService.Instance.IsSignedIn));
+            if (!reuse)
+            {
+                _signIn = SignInCoreAsync();
+            }
+            return _signIn;
+        }
+
+        private static async Task<string> SignInCoreAsync()
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {

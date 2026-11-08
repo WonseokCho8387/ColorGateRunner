@@ -986,6 +986,12 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - A cleared, unlocked Stage offers REPLAY, which starts the same normal
   Campaign attempt as Home PLAY (Heart cost unchanged). Crowns grant nothing.
 
+## Iteration 87 ranking submit on clear
+
+- A clear that raises a Stage best also sends the Campaign total in the
+  background, so players appear in the ranking without opening the RANK tab.
+  The RANK tab still sends it too. The result screen never waits for it.
+
 ## Iteration 83 online ranking
 
 - The RANK tab shows the top 10 Campaign totals and the player's place. The

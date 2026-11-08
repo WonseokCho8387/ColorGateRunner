@@ -392,6 +392,10 @@ Rules:
   `campaign-total` leaderboard) or null for playtest builds and batch test
   runs. The service holds an anonymous player ID, the shown name and the
   Campaign total; the local save is unchanged.
+- Iteration 87: `AppServiceGraph.RankingReporter` (`RankingSubmitter`, null
+  without a gateway) sends the total after a clear that raised a Stage best,
+  one send at a time with the latest total winning; failures are logged and
+  dropped. The UGS gateway shares one in-flight sign-in.
 
 # 7. Economy
 
