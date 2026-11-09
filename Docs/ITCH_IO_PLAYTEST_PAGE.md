@@ -61,8 +61,8 @@ moves forward automatically. Use Pause to take a break.
 **Free to play:** No purchases, no ads, no sign-up and no heart timer. Coins and items are earned only by
 playing.
 
-**Saving:** Progress is saved in this browser only. Clearing site data, private windows or a new upload of
-the game can reset it.
+**Saving:** Progress is saved in this browser only and carries over to new versions of the game.
+Clearing site data or using a private window resets it.
 
 **Online ranking and data:** The game works offline. When you clear a stage with a new best score, or
 open the RANK tab, it signs you in anonymously to Unity Gaming Services and sends your Campaign total score,
@@ -123,4 +123,5 @@ itch.io and your browser may process their own technical information; see their 
 - Kind of project: HTML. ZIP 업로드 후 "This file will be played in the browser" 선택.
 - Viewport: 540×960, Mobile friendly(세로), Fullscreen button 켬.
 - Pricing: No payments. 후원(donation)도 끈다.
-- 새 파일을 올리면 게임 주소가 바뀌어 플레이어의 브라우저 저장이 초기화될 수 있다. 업데이트 공지에 밝힌다.
+- 새 파일을 올리면 게임 주소가 바뀐다. Iteration 88부터 새 빌드가 같은 브라우저의 이전 업로드 저장을 이어받는다.
+  Iteration 87 이전 빌드에서 놀던 기록도 처음 열 때 이어받는다.

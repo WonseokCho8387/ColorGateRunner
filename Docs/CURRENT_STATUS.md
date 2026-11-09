@@ -1,5 +1,25 @@
 # Current Status
 
+## Iteration 88 — Carry the Web Save Over to a New Upload (2026-11-09 KST)
+
+- 기준: `511d246`(Iteration 87, 푸시 안 함). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음. C#·패키지·ProjectSettings·씬 변경 없음.
+- Unity WebGL은 저장 폴더를 `/idbfs/<페이지 주소에서 ?·#를 빼고 마지막 "/" 앞까지의 MD5>`로 정한다(itch.io와
+  로컬에서 실측). itch.io는 업로드마다 주소가 바뀌어 새 업로드가 빈 폴더로 시작했다. 한 사이트의 폴더는 모두
+  IndexedDB `/idbfs` 하나에 있으므로, 웹 템플릿의 `save-carryover.js`가 Unity 시작 전에 현재 폴더에 저장
+  (`product-save.json`, `.bak`, `.tmp` 중 하나)이 없을 때만 `LastWriteUtc`가 가장 최근인 우리 저장과 그 폴더의
+  `.bak`, `PlayerPrefs`(익명 랭킹 로그인 포함)를 복사한다. 덮어쓰기·삭제 없음, 3초 제한, 실패해도 게임은 시작.
+- 자동 검증: **EditMode 641/641; PlayMode 310 passed + 1 intentional ignore (311)**; Node
+  `Tools/WebSaveCarryover/save-carryover.test.mjs` 9/9. Product 저장과 Campaign PlayerPrefs 전후 동일(Editor 세션
+  값과 테스트 결과 파일만 바뀜).
+- 로컬 브라우저(같은 빌드를 `/html/111`~`555`로 제공): 새 주소가 계정 선택 없이 같은 프로필과 같은 익명 ID·
+  `Guest#81185`로 시작, 가장 최근 저장을 고름, 기존 저장 폴더와 `.bak`만 남은 폴더는 덮어쓰지 않음(게임이 백업으로
+  복구).
+- 새 맥락 검토자: PASS WITH NOTES. `.bak`만 남은 폴더를 빈 폴더로 보던 빈틈과 사이트 전체 파일을 읽던 부분을
+  고쳤다. 실제 itch.io·Safari·모바일 동작은 사람 확인 항목.
+- 새 무료 웹 zip(78.6MB, 파일 7개, `save-carryover.js` 포함) 빌드 성공, 활성 플랫폼 WebGL. I87 웹 빌드는
+  `0.1.0-i87-202611090101`로 보관. APK는 웹 템플릿만 바뀌어 다시 만들지 않았다.
+
 ## Iteration 87 — Submit the Ranking Total on Clear (2026-11-09 KST)
 
 - 기준: `0b157f8`(Iteration 86, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼

@@ -396,6 +396,11 @@ Rules:
   without a gateway) sends the total after a clear that raised a Stage best,
   one send at a time with the latest total winning; failures are logged and
   dropped. The UGS gateway shares one in-flight sign-in.
+- Iteration 88: on the web, `save-carryover.js` in the WebGL template copies
+  the newest Product save, its backup and PlayerPrefs from an earlier upload's
+  `/idbfs` folder into an empty current folder before Unity starts. It never
+  overwrites a folder that has a save, backup or temp file and deletes
+  nothing. The Product save format and services are unchanged.
 
 # 7. Economy
 

@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 88 web save carry-over (2026-11-09 기록)
+
+- 사용자 결정: 서버 저장이 아니라 같은 브라우저 안에서 이전 업로드의 저장을 이어받는다(웹 템플릿, Unity 시작 전).
+- 사용자 결정: 현재 폴더에 저장이 있으면 절대 덮어쓰지 않는다. 후보가 여럿이면 `LastWriteUtc`가 가장 최근인 것.
+- 사용자 결정: `PlayerPrefs`도 함께 옮겨 익명 랭킹 ID와 Guest 이름을 유지한다. 예전 폴더는 지우지 않는다.
+
 ## Iteration 87 ranking submit on clear (2026-11-09 기록)
 
 - 사용자 결정: 스테이지 최고점이 오른 클리어 때 캠페인 합계를 리더보드에 바로 보낸다. 클리어마다 보내지는 않는다.

@@ -62,11 +62,18 @@
       <div id="loading-status">Loading 0%</div>
     </main>
     <script src="Build/{{{ LOADER_FILENAME }}}"></script>
+    <script src="save-carryover.js"></script>
     <script>
       const canvas = document.querySelector("#unity-canvas");
       const loadingStatus = document.querySelector("#loading-status");
 
-      createUnityInstance(canvas, {
+      // A new upload gets a new save folder; bring the earlier save along
+      // before Unity reads it. See save-carryover.js.
+      const carryOver = window.ColorGateSaveCarryover
+        ? window.ColorGateSaveCarryover.run(window.indexedDB, document.URL, 3000)
+        : Promise.resolve("unavailable");
+
+      carryOver.then(() => createUnityInstance(canvas, {
         arguments: [],
         dataUrl: "Build/{{{ DATA_FILENAME }}}",
         frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
@@ -86,7 +93,7 @@
       }, (progress) => {
         loadingStatus.textContent =
           "Loading " + Math.round(progress * 100) + "%";
-      }).then(() => {
+      })).then(() => {
         loadingStatus.remove();
       }).catch((message) => {
         loadingStatus.textContent = message;

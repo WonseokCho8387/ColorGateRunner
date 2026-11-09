@@ -1270,6 +1270,22 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 88 web save carry-over
+
+- Node `node --test Tools/WebSaveCarryover/save-carryover.test.mjs`: MD5 and
+  the Unity folder rule match the observed itch.io and local folders; a
+  folder with a save, backup or temp file is kept; the newest valid save is
+  chosen and broken or foreign files are skipped; only the folder, save,
+  backup and PlayerPrefs are copied; no IndexedDB still starts the game.
+- Browser: serve one web build at two or more paths, start a profile on the
+  first, open the next path and confirm it skips account choice with the same
+  profile and ranking name; reload the first path and confirm its own save
+  stays.
+- Not automated: the real itch.io frame after an upload, Safari and mobile
+  browsers, and very large shared site storage.
+- Final evidence: EditMode 641/641; PlayMode 310 passed + 1 intentional
+  ignore; Node 9/9; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 87 ranking submit on clear
 
 - EditMode `RankingTests.Submitter_*`: a positive total is sent after

@@ -4646,3 +4646,30 @@ itch.io 공개 준비 중 개인정보 안내를 쓰면서 Iteration 83에서 �
 
 - itch.io 페이지 본문의 개인정보 문구를 새 문구로 직접 바꾸고 새 zip을 올린다.
 - 올린 빌드에서 RANK를 열지 않고 클리어만 한 다른 기기의 점수가 순위에 나타나는지.
+
+## Iteration 88 — Carry the Web Save Over to a New Upload (2026-11-09)
+
+### Play / Analyze
+
+사용자 질문: 새로 올리면 진행 상황이 사라지는데 랭킹처럼 남길 수 없는가. 브라우저 저장소를 조사하니 Unity가
+저장 폴더를 페이지 주소의 MD5로 정하고, itch.io가 업로드마다 주소를 바꿔 새 폴더가 생겼다. 예전 폴더는 같은
+IndexedDB에 그대로 남아 있었다. 익명 랭킹 로그인도 같은 폴더의 PlayerPrefs에 있어 Guest#도 함께 바뀌었다.
+
+### Design / Implementation
+
+서버 저장은 익명 ID가 사라지면 찾을 수 없어 계정 로그인이 필요하므로 제외했다. 웹 템플릿에서 Unity 시작 전에
+빈 폴더로 최신 저장·백업·PlayerPrefs를 복사한다(`save-carryover.js`). C# 변경 없음.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 검토자가 찾은 `.bak`만 남은 폴더 문제를
+고치고 브라우저에서 다시 확인했다.
+
+### Learning
+
+엔진이 정하는 저장 위치는 배포 주소에 묶일 수 있다. 호스팅을 바꾸거나 다시 올리기 전에 실제 저장소 키를 확인한다.
+
+### Deferred / Human Review
+
+- itch.io에 올린 뒤, 이전 빌드에서 놀던 브라우저가 계정 선택 없이 같은 진행과 Guest#으로 시작하는지.
+- Safari와 모바일 브라우저. 기기 사이 동기화는 범위 밖(계정 필요).
