@@ -1007,6 +1007,14 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - The best score per Stage is kept; the Campaign ranking will be the sum of
   the Stage bests.
 
+## Iteration 89 Ice guide hold
+
+- Supersedes the Ice part of Iteration 81: the Ice guide stops right after
+  the gate before the first Ice gate, before the Ice runway begins. It shows
+  the Ice line and the gate color and waits for the match; the match is then
+  carried through the gate with taps blocked. An already matching color moves
+  on after `3s`. Other guides are unchanged.
+
 ## Iteration 81 guide holds
 
 - Color holds (Stage 1, Green at 13) wait for the match; once matched, taps

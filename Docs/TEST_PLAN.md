@@ -1270,6 +1270,22 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 89 Ice guide hold before the runway
+
+- EditMode `TutorialTests.Ice_HoldsBeforeTheRunwayAndWaitsForTheMatch`: the
+  Ice script holds where the previous gate stood (never closer than the
+  standard hold), waits for the matching tap, blocks taps until the held gate
+  resolves and holds only the first Ice gate.
+- EditMode `TutorialTests.Ice_SameColorWaitsTheExplanationTimeThenMoves`: an
+  already matching color waits `3s` then moves on; Basics keeps `1.6s`.
+- PlayMode `TutorialPlayModeTests.MechanicGuide_HoldsBeforeTheIceRunwayUntilMatched`:
+  Stage 11 stops right after the previous gate, waits for the match and
+  carries it through the Ice gate.
+- Not automated: whether failures at the first Ice gate actually drop, text
+  readability, and Shield, Booster or Continue around the first Ice gate.
+- Final evidence: EditMode 643/643; PlayMode 310 passed + 1 intentional
+  ignore; Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 88 web save carry-over
 
 - Node `node --test Tools/WebSaveCarryover/save-carryover.test.mjs`: MD5 and

@@ -229,12 +229,24 @@ namespace ColorGateRunner.Tests.PlayMode
         }
 
         [Test]
-        public void MechanicGuide_HoldsTheFirstIceGate()
+        public void MechanicGuide_HoldsBeforeTheIceRunwayUntilMatched()
         {
             StageGateView gate = RunToMechanicHold(11);
             Assert.That(gate.ActivePlan.Modifier.IsIce, Is.True);
+            Assert.That(gate.PlanIndex, Is.EqualTo(_controller.Session.GatesPassed),
+                "The previous gate is passed.");
+            // Held where the previous gate stood, before the Ice runway.
+            float ahead = gate.PathDistance - _controller.CampaignDistance;
+            float spacing = gate.ActivePlan.Spacing;
+            Assert.That(ahead, Is.LessThanOrEqualTo(spacing + 0.01f));
+            Assert.That(ahead, Is.GreaterThan(
+                spacing - _controller.Session.GetSpeedForPlan(gate.ActivePlan) * 0.05f));
+            Assert.That(_controller.Guide.Step, Is.EqualTo(TutorialGuideStep.HoldNeedsTap),
+                "Every Ice gate needs a new color.");
             Assert.That(_controller.TutorialGuideText.text, Does.Contain("ICE"));
-            AssertExplainsThenHandsBack(gate);
+            Assert.That(_controller.TutorialGuideText.text,
+                Does.Contain("GATE IS " + gate.ActivePlan.Color.ToString().ToUpperInvariant()));
+            AssertWaitsForMatchThenPasses(gate);
         }
 
         [Test]

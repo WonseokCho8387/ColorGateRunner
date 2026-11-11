@@ -1,5 +1,19 @@
 # Current Status
 
+## Iteration 89 — Hold the Ice Guide Before the Runway (2026-11-12 KST)
+
+- 기준: `0b79ee4`(Iteration 88, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음. 씬·패키지·ProjectSettings·저장 변경 없음.
+- Ice 가이드 런(Stage 11, 클리어 전)은 첫 Ice 게이트의 앞 게이트를 지난 자리, 즉 Ice 런웨이에 들어가기 전에
+  멈춘다. 설명과 함께 게이트 색을 확인하고, 다르면 맞출 때까지 기다린 뒤 출발하며 그 게이트를 지날 때까지 탭을
+  막는다. 이미 같은 색이면 `3s` 후 출발한다. 다른 가이드의 같은 색 대기(`1.6s`)와 Camouflage·Echo·Flicker·Hidden
+  설명은 그대로다. 멈춘 시간은 게임 시간이 아니라 판정·기록·시뮬레이션은 바뀌지 않는다.
+- 자동 검증: **EditMode 643/643; PlayMode 310 passed + 1 intentional ignore (311)**. Product 저장과 Campaign
+  PlayerPrefs 전후 동일(Editor 세션 값과 테스트 결과 파일만 바뀜). 씬과 게임 규칙 변경이 없어 Builder와
+  시뮬레이션은 다시 돌리지 않았다.
+- 새 맥락 검토자: PASS WITH NOTES. 멈춘 동안의 탭은 게이트까지 먼 거리에서 한 전환이라 그 Ice 게이트는
+  PERFECT 전환이 되지 않는다(판정 규칙은 그대로). 실패율과 문구 가독성은 사람 확인 항목.
+
 ## Iteration 88 — Carry the Web Save Over to a New Upload (2026-11-09 KST)
 
 - 기준: `511d246`(Iteration 87, 푸시 안 함). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼

@@ -108,7 +108,7 @@ namespace ColorGateRunner.Core
             else if (gateColor == current)
             {
                 Step = TutorialGuideStep.HoldSameColor;
-                _holdRemaining = SameColorHoldSeconds;
+                _holdRemaining = _script.SameColorHoldSeconds;
                 _holdMessage = string.Format(_script.SameColorMessage, color);
             }
             else

@@ -22,7 +22,10 @@ namespace ColorGateRunner.Core
         // Halfway from the previous gate, so the mechanic is seen ahead.
         Midway,
         // While a Hidden gate still shows its color; the gate need not be next.
-        BeforeHide
+        BeforeHide,
+        // Where the previous gate stood, before the gate's approach (an Ice
+        // runway) begins.
+        RunwayStart
     }
 
     public enum TutorialEvent
@@ -65,7 +68,8 @@ namespace ColorGateRunner.Core
             string matchedMessage,
             float timedHoldSeconds,
             TutorialBanner[] banners,
-            TutorialBanner[] afterHolds)
+            TutorialBanner[] afterHolds,
+            float sameColorHoldSeconds = TutorialGuide.SameColorHoldSeconds)
         {
             Topic = topic;
             Target = target;
@@ -76,6 +80,7 @@ namespace ColorGateRunner.Core
             SameColorMessage = sameColorMessage;
             MatchedMessage = matchedMessage;
             TimedHoldSeconds = timedHoldSeconds;
+            SameColorHoldSeconds = sameColorHoldSeconds;
             Banners = banners ?? Array.Empty<TutorialBanner>();
             AfterHolds = afterHolds ?? Array.Empty<TutorialBanner>();
         }
@@ -91,6 +96,8 @@ namespace ColorGateRunner.Core
         public string SameColorMessage { get; }
         public string MatchedMessage { get; }
         public float TimedHoldSeconds { get; }
+        // How long a match hold waits when the runner already has the color.
+        public float SameColorHoldSeconds { get; }
         public TutorialBanner[] Banners { get; }
         // Shown one after another once the last guided gate resolves.
         public TutorialBanner[] AfterHolds { get; }
@@ -119,6 +126,7 @@ namespace ColorGateRunner.Core
             return HoldKind switch
             {
                 TutorialHoldKind.Midway => Math.Max(standard, gateSpacing * 0.5f),
+                TutorialHoldKind.RunwayStart => Math.Max(standard, gateSpacing),
                 TutorialHoldKind.BeforeHide => speed *
                     (hidden.HideLeadTimeSeconds + TutorialScripts.HideMarginSeconds),
                 _ => standard
@@ -131,6 +139,7 @@ namespace ColorGateRunner.Core
         internal const float HideMarginSeconds = 0.25f;
         // Mechanic explanations stop the run with taps blocked, then resume.
         public const float ExplainSeconds = 3f;
+        private const string IceLine = "ICE: YOUR SPEED DOUBLES ON ICE\n";
         private const string CheckedLine = "YOUR COLOR IS CHECKED AS YOU PASS THROUGH";
 
         public static TutorialScript For(TutorialTopic topic) => topic switch
@@ -175,8 +184,14 @@ namespace ColorGateRunner.Core
             TutorialTopic.Fog => Banners(topic,
                 new TutorialBanner(TutorialEvent.FogStarted,
                     "FOG! READ EACH GATE AS IT COMES OUT", 3.5f)),
-            TutorialTopic.Ice => Explain(topic, TutorialGateTarget.Ice,
-                "ICE AHEAD: YOUR SPEED DOUBLES\nEVERY ICE GATE NEEDS A NEW COLOR"),
+            // Stops before the runway, where there is still time to match;
+            // the matched color is then carried through the fast approach.
+            TutorialTopic.Ice => new TutorialScript(
+                topic, TutorialGateTarget.Ice, TutorialHoldKind.RunwayStart, 1, true,
+                IceLine + "GATE IS {0} - TAP TO MATCH",
+                IceLine + "{0} ALREADY - NO TAP NEEDED",
+                "MATCHED! EVERY ICE GATE NEEDS A NEW COLOR",
+                0f, null, null, ExplainSeconds),
             TutorialTopic.Echo => new TutorialScript(
                 topic, TutorialGateTarget.EchoProvider, TutorialHoldKind.Midway, 1, false,
                 "ECHO GATE: MATCH {0} TO STORE IT\nA STORED ECHO SAVES YOU ONCE",

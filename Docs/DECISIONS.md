@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 89 Ice guide hold (2026-11-12 기록)
+
+- 사용자 결정: Ice 가이드는 Ice 런웨이에 들어가기 전(앞 게이트를 지난 자리)에 멈추고, 이번 게이트 색을 맞출 때까지
+  기다린 뒤 풀린다. 이미 같은 색이면 `3s` 후 출발한다.
+- 사용자 결정: Camouflage·Echo·Flicker·Hidden 가이드는 바꾸지 않는다.
+
 ## Iteration 88 web save carry-over (2026-11-09 기록)
 
 - 사용자 결정: 서버 저장이 아니라 같은 브라우저 안에서 이전 업로드의 저장을 이어받는다(웹 템플릿, Unity 시작 전).

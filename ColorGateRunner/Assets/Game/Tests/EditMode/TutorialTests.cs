@@ -69,6 +69,61 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void Ice_HoldsBeforeTheRunwayAndWaitsForTheMatch()
+        {
+            TutorialScript script = TutorialScripts.For(TutorialTopic.Ice);
+            Assert.That(script.HoldKind, Is.EqualTo(TutorialHoldKind.RunwayStart));
+            Assert.That(script.WaitForMatch, Is.True);
+            Assert.That(script.HoldCount, Is.EqualTo(1));
+            Assert.That(script.HoldLeadDistance(80f, 60f, null), Is.EqualTo(60f),
+                "Stops where the previous gate stood, before the runway.");
+            Assert.That(script.HoldLeadDistance(80f, 2f, null),
+                Is.EqualTo(80f * TutorialGuide.HoldLeadSeconds),
+                "Never closer than the standard hold.");
+
+            var guide = new TutorialGuide();
+            guide.Begin(script, RunnerColor.Green);
+            guide.Hold(4, RunnerColor.Blue, RunnerColor.Red);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldNeedsTap));
+            Assert.That(guide.Message, Does.Contain("ICE"));
+            Assert.That(guide.Message, Does.Contain("GATE IS BLUE"));
+            guide.Tick(30f);
+            Assert.That(guide.Frozen, Is.True, "Waits for the match.");
+            guide.OnColorChanged(RunnerColor.Blue);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldMatched));
+            Assert.That(guide.Message, Does.Contain("NEW COLOR"));
+            guide.Tick(TutorialGuide.MatchedHoldSeconds + 0.01f);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Passing));
+            Assert.That(guide.AcceptsTap, Is.False, "The match is carried over the ice.");
+            guide.OnGateResolved(4);
+            Assert.That(guide.AcceptsTap, Is.True);
+            Assert.That(guide.TryGetHold(5, default), Is.False, "Only the first Ice gate.");
+        }
+
+        [Test]
+        public void Ice_SameColorWaitsTheExplanationTimeThenMoves()
+        {
+            TutorialScript script = TutorialScripts.For(TutorialTopic.Ice);
+            Assert.That(script.SameColorHoldSeconds, Is.EqualTo(TutorialScripts.ExplainSeconds));
+            Assert.That(TutorialScripts.For(TutorialTopic.Basics).SameColorHoldSeconds,
+                Is.EqualTo(TutorialGuide.SameColorHoldSeconds), "Other guides keep their time.");
+
+            var guide = new TutorialGuide();
+            guide.Begin(script, RunnerColor.Green);
+            guide.Hold(4, RunnerColor.Red, RunnerColor.Red);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldSameColor));
+            Assert.That(guide.Message, Does.Contain("RED ALREADY"));
+            Assert.That(guide.AcceptsTap, Is.False);
+            guide.Tick(TutorialScripts.ExplainSeconds - 0.1f);
+            Assert.That(guide.Frozen, Is.True);
+            guide.Tick(0.2f);
+            Assert.That(guide.Frozen, Is.False);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Passing));
+            guide.OnGateResolved(4);
+            Assert.That(guide.AcceptsTap, Is.True);
+        }
+
+        [Test]
         public void Guide_HoldsOnlyTheFirstGatesThenExplainsGradesAndGoal()
         {
             TutorialGuide guide = BeginBasics();
@@ -153,8 +208,7 @@ namespace ColorGateRunner.Tests.EditMode
             float standard = speed * TutorialGuide.HoldLeadSeconds;
             TutorialTopic[] explained =
             {
-                TutorialTopic.Camouflage, TutorialTopic.Ice,
-                TutorialTopic.Echo, TutorialTopic.Flicker
+                TutorialTopic.Camouflage, TutorialTopic.Echo, TutorialTopic.Flicker
             };
             foreach (TutorialTopic topic in explained)
             {
@@ -166,7 +220,7 @@ namespace ColorGateRunner.Tests.EditMode
                 Assert.That(script.HoldLeadDistance(speed, spacing, null),
                     Is.EqualTo(spacing * 0.5f), $"{topic} holds halfway from the last gate");
             }
-            Assert.That(TutorialScripts.For(TutorialTopic.Ice)
+            Assert.That(TutorialScripts.For(TutorialTopic.Camouflage)
                     .HoldLeadDistance(speed, 2f, null),
                 Is.EqualTo(standard), "Never closer than the standard hold.");
 
