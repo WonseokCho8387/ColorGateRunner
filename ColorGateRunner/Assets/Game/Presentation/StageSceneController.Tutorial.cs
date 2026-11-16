@@ -9,7 +9,7 @@ namespace ColorGateRunner.Presentation
     // each new mechanic until that Stage is cleared, the crown card after
     // the first Stage 1 clear, and a one-time intro card in PreRun. The guide
     // freezes only presentation movement; the StageSession is not advanced
-    // while frozen.
+    // while frozen. Mechanic guides only show lines and never freeze.
     public sealed partial class StageSceneController
     {
         [SerializeField] private Text tutorialGuideText;
@@ -157,9 +157,11 @@ namespace ColorGateRunner.Presentation
         {
             // A Booster dash passes gates unjudged; the next match is held.
             // Continue-protected gates are recolored safe gates; skip them.
+            // A notice never stops the run, so it is shown through both.
             if (!_guideRun || distance <= 0f || _pendingHoldGate != null ||
-                _session.BoosterActive || _session.SafeGateCountRemaining > 0 ||
-                _session.FlowState != StageFlowState.Playing)
+                _session.FlowState != StageFlowState.Playing ||
+                (!_guide.Script.Notice &&
+                 (_session.BoosterActive || _session.SafeGateCountRemaining > 0)))
             {
                 return distance;
             }
@@ -175,6 +177,12 @@ namespace ColorGateRunner.Presentation
             float holdAt = target.PathDistance - lead;
             if (_campaignDistance + distance < holdAt)
             {
+                return distance;
+            }
+            // A notice is a line on the way; the run never stops for it.
+            if (_guide.Script.Notice)
+            {
+                _guide.Hold(target.PlanIndex, target.ActivePlan.Color, _session.CurrentColor);
                 return distance;
             }
             // A Flicker change or Camouflage reveal still in progress finishes

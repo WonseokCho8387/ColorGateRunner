@@ -8,15 +8,17 @@ namespace ColorGateRunner.Core
         internal const string ExceptionColorStageId = "stage-03";
         internal const string GreenIntroductionStageId = "stage-04";
 
+        // Before Green each change is one tap (Red > Blue), so a two-tap
+        // move never comes before Green is taught.
         private static readonly RunnerColor[] StageFourTutorialColors =
         {
             RunnerColor.Red,
-            RunnerColor.Blue,
-            RunnerColor.Blue,
-            RunnerColor.Blue,
-            RunnerColor.Blue,
             RunnerColor.Red,
             RunnerColor.Red,
+            RunnerColor.Red,
+            RunnerColor.Blue,
+            RunnerColor.Blue,
+            RunnerColor.Blue,
             RunnerColor.Blue
         };
 

@@ -69,58 +69,26 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Ice_HoldsBeforeTheRunwayAndWaitsForTheMatch()
+        public void Guide_MechanicNoticeShowsALineWithoutStopping()
         {
-            TutorialScript script = TutorialScripts.For(TutorialTopic.Ice);
-            Assert.That(script.HoldKind, Is.EqualTo(TutorialHoldKind.RunwayStart));
-            Assert.That(script.WaitForMatch, Is.True);
-            Assert.That(script.HoldCount, Is.EqualTo(1));
-            Assert.That(script.HoldLeadDistance(80f, 60f, null), Is.EqualTo(60f),
-                "Stops where the previous gate stood, before the runway.");
-            Assert.That(script.HoldLeadDistance(80f, 2f, null),
-                Is.EqualTo(80f * TutorialGuide.HoldLeadSeconds),
-                "Never closer than the standard hold.");
-
             var guide = new TutorialGuide();
-            guide.Begin(script, RunnerColor.Green);
+            guide.Begin(TutorialScripts.For(TutorialTopic.Ice), RunnerColor.Green);
             guide.Hold(4, RunnerColor.Blue, RunnerColor.Red);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldNeedsTap));
+            Assert.That(guide.HoldsDone, Is.EqualTo(1));
+            Assert.That(guide.Frozen, Is.False, "The run keeps moving.");
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Running));
+            Assert.That(guide.AcceptsTap, Is.True, "Taps are never blocked.");
             Assert.That(guide.Message, Does.Contain("ICE"));
-            Assert.That(guide.Message, Does.Contain("GATE IS BLUE"));
-            guide.Tick(30f);
-            Assert.That(guide.Frozen, Is.True, "Waits for the match.");
-            guide.OnColorChanged(RunnerColor.Blue);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldMatched));
             Assert.That(guide.Message, Does.Contain("NEW COLOR"));
-            guide.Tick(TutorialGuide.MatchedHoldSeconds + 0.01f);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Passing));
-            Assert.That(guide.AcceptsTap, Is.False, "The match is carried over the ice.");
-            guide.OnGateResolved(4);
-            Assert.That(guide.AcceptsTap, Is.True);
             Assert.That(guide.TryGetHold(5, default), Is.False, "Only the first Ice gate.");
-        }
-
-        [Test]
-        public void Ice_SameColorWaitsTheExplanationTimeThenMoves()
-        {
-            TutorialScript script = TutorialScripts.For(TutorialTopic.Ice);
-            Assert.That(script.SameColorHoldSeconds, Is.EqualTo(TutorialScripts.ExplainSeconds));
-            Assert.That(TutorialScripts.For(TutorialTopic.Basics).SameColorHoldSeconds,
-                Is.EqualTo(TutorialGuide.SameColorHoldSeconds), "Other guides keep their time.");
-
-            var guide = new TutorialGuide();
-            guide.Begin(script, RunnerColor.Green);
-            guide.Hold(4, RunnerColor.Red, RunnerColor.Red);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldSameColor));
-            Assert.That(guide.Message, Does.Contain("RED ALREADY"));
-            Assert.That(guide.AcceptsTap, Is.False);
-            guide.Tick(TutorialScripts.ExplainSeconds - 0.1f);
-            Assert.That(guide.Frozen, Is.True);
-            guide.Tick(0.2f);
-            Assert.That(guide.Frozen, Is.False);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Passing));
+            guide.OnColorChanged(RunnerColor.Blue);
             guide.OnGateResolved(4);
-            Assert.That(guide.AcceptsTap, Is.True);
+            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.Running));
+            Assert.That(guide.Message, Does.Contain("ICE"), "Stays through the gate.");
+            guide.Tick(TutorialScripts.NoticeSeconds - 0.1f);
+            Assert.That(guide.Message, Does.Contain("ICE"));
+            guide.Tick(0.2f);
+            Assert.That(guide.Message, Is.Empty);
         }
 
         [Test]
@@ -146,18 +114,16 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Guide_HiddenHoldIsTimedAndBlocksTaps()
+        public void Guide_HiddenNoticeNamesTheColor()
         {
             var guide = new TutorialGuide();
             guide.Begin(TutorialScripts.For(TutorialTopic.Hidden), RunnerColor.Green);
             Assert.That(guide.HoldNeedsNextGate, Is.False);
             guide.Hold(6, RunnerColor.Blue, RunnerColor.Red);
-            Assert.That(guide.Step, Is.EqualTo(TutorialGuideStep.HoldTimed));
-            Assert.That(guide.AcceptsTap, Is.False);
-            Assert.That(guide.Message, Does.Contain("REMEMBER THIS GATE: BLUE"));
-            guide.Tick(guide.Script.TimedHoldSeconds + 0.01f);
             Assert.That(guide.Frozen, Is.False);
-            Assert.That(guide.TryGetHold(12, default), Is.False, "One hold only.");
+            Assert.That(guide.AcceptsTap, Is.True);
+            Assert.That(guide.Message, Does.Contain("REMEMBER THIS GATE: BLUE"));
+            Assert.That(guide.TryGetHold(12, default), Is.False, "One notice only.");
         }
 
         [Test]
@@ -200,41 +166,40 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
-        public void Scripts_ExplainMechanicsHalfwayWithTapsBlocked()
+        public void Scripts_ExplainMechanicsWithoutStopping()
         {
             StageDefinition hidden = StageCatalog.GetByDisplayNumber(21);
             float speed = 40f;
             float spacing = 60f;
-            float standard = speed * TutorialGuide.HoldLeadSeconds;
-            TutorialTopic[] explained =
+            TutorialTopic[] noticed =
             {
-                TutorialTopic.Camouflage, TutorialTopic.Echo, TutorialTopic.Flicker
+                TutorialTopic.Camouflage, TutorialTopic.Ice, TutorialTopic.Echo,
+                TutorialTopic.Hidden, TutorialTopic.Flicker
             };
-            foreach (TutorialTopic topic in explained)
+            foreach (TutorialTopic topic in noticed)
             {
                 TutorialScript script = TutorialScripts.For(topic);
-                Assert.That(script.HoldKind, Is.EqualTo(TutorialHoldKind.Midway), $"{topic}");
-                Assert.That(script.WaitForMatch, Is.False, $"{topic}");
-                Assert.That(script.TimedHoldSeconds,
-                    Is.EqualTo(TutorialScripts.ExplainSeconds), $"{topic}");
-                Assert.That(script.HoldLeadDistance(speed, spacing, null),
-                    Is.EqualTo(spacing * 0.5f), $"{topic} holds halfway from the last gate");
+                Assert.That(script.Notice, Is.True, $"{topic}");
+                Assert.That(script.HoldCount, Is.EqualTo(1), $"{topic}");
+                Assert.That(script.HoldLeadDistance(speed, spacing, hidden.HiddenSettings),
+                    Is.GreaterThanOrEqualTo(spacing), $"{topic} starts by the previous gate");
             }
-            Assert.That(TutorialScripts.For(TutorialTopic.Camouflage)
-                    .HoldLeadDistance(speed, 2f, null),
-                Is.EqualTo(standard), "Never closer than the standard hold.");
+            Assert.That(TutorialScripts.For(TutorialTopic.Camouflage).NeedsTapMessage,
+                Does.Not.Contain("{0}"), "The color is not revealed yet.");
 
             TutorialScript hide = TutorialScripts.For(TutorialTopic.Hidden);
-            Assert.That(hide.WaitForMatch, Is.False);
-            Assert.That(hide.TimedHoldSeconds, Is.EqualTo(TutorialScripts.ExplainSeconds));
-            float beforeHide = hide.HoldLeadDistance(speed, spacing, hidden.HiddenSettings);
+            float beforeHide = hide.HoldLeadDistance(speed, 2f, hidden.HiddenSettings);
             Assert.That(beforeHide / speed,
                 Is.GreaterThan(hidden.HiddenSettings.HideLeadTimeSeconds),
-                "Held while the color still shows.");
+                "Shown while the color still shows.");
 
             foreach (TutorialTopic topic in new[] { TutorialTopic.Basics, TutorialTopic.ThirdColor })
             {
-                Assert.That(TutorialScripts.For(topic).WaitForMatch, Is.True, $"{topic}");
+                TutorialScript script = TutorialScripts.For(topic);
+                Assert.That(script.Notice, Is.False, $"{topic} still stops for the match");
+                Assert.That(script.HoldLeadDistance(speed, spacing, null),
+                    Is.EqualTo(speed * TutorialGuide.HoldLeadSeconds),
+                    $"{topic} stops inside the PERFECT window");
             }
         }
 

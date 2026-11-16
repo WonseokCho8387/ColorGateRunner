@@ -1,5 +1,24 @@
 # Current Status
 
+## Iteration 90 — Mechanic Guides as Lines, One-Tap Green Lead-In (2026-11-16 KST)
+
+- 기준: `5194b95`(Iteration 89, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼
+  WebGL. Push 없음. 씬·패키지·ProjectSettings·저장 변경 없음.
+- 기믹 가이드 런(위장 7, 얼음 11, Echo 18, 숨김 21, 깜빡임 24, 클리어 전)은 더 이상 멈추거나 탭을 막지 않는다.
+  첫 대상 게이트의 앞 게이트를 지날 때(숨김은 색이 아직 보일 때) 하단 안내 줄에 설명을 `3.5s` 띄우고 계속 달린다.
+  부스터 질주와 이어하기 보호 게이트 중에도 띄운다. 위장 문구는 색을 말하지 않는다. Iteration 81·89의 기믹
+  멈춤(Midway·RunwayStart·시간 멈춤)은 제거됐다. Stage 1 기본과 13 초록은 그대로 맞출 때까지 멈춘다.
+- Stage 13(`stage-04`) 초록 앞 8개 게이트: `R B B B B R R B` → `R R R R B B B B`. 초록은 그대로 9번째(index 8),
+  게이트 간격·속도·타이밍은 같다. 초록 전에는 탭 0~1번 이동(빨→파)만 나온다.
+- 자동 검증: **EditMode 643/643; PlayMode 310 passed + 1 intentional ignore (311)**. Step 10 산출물 5개 해시
+  Iteration 80 기준과 **동일**. Campaign 시뮬레이션은 Stage 13 행만 바뀌어 **새 기준**:
+  `MechanicCampaign-SimulationResults.csv` `E66D07F4A90DEA099AA1C701203FA51A643024A8055137A4480F434C5F2B3392`,
+  `.json` `80C147264DA8183F53EB4EFBC55BAA60017A2FD3D7F4AFF07B995D88FFCAE9D1`,
+  `Summary.md` `899157CE84D156AA92FB897ADAE60CEB28B92BAB423B1B32D0C186CE60AFDFBE`
+  (Stage 13 Average 클리어율 36.7% → 39.2%). Product 저장과 Campaign PlayerPrefs 전후 동일.
+- 새 맥락 검토자: PASS WITH NOTES. 부스터·보호 게이트 중 자막을 건너뛰던 조건은 반영해 고쳤다. Echo 문구는 게이트를
+  지나 Echo가 저장되면 "ECHO STORED" 줄로 바로 바뀐다(사람 확인 항목).
+
 ## Iteration 89 — Hold the Ice Guide Before the Runway (2026-11-12 KST)
 
 - 기준: `0b79ee4`(Iteration 88, 푸시됨). Unity `6000.5.1f1`, 최종 검증 시 Editor 종료/lock 없음, 활성 플랫폼

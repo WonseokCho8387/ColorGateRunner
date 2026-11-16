@@ -1007,6 +1007,17 @@ seeds, gate counts, speed, cadence, rewards and progression remain unchanged.
 - The best score per Stage is kept; the Campaign ranking will be the sum of
   the Stage bests.
 
+## Iteration 90 mechanic guide lines
+
+- Supersedes the mechanic holds of Iterations 81 and 89: the Camouflage,
+  Ice, Echo, Hidden and Flicker guides never stop the run or block taps. When
+  the gate before the first target gate is passed (Hidden: while the target
+  still shows its color) the explanation shows in the lower guide line for
+  `3.5s`, also during a Booster dash or Continue safe gates. Basics and Green
+  still stop until the color matches.
+- Stage 13 (`stage-04`) plays `R R R R B B B B` before the first Green at
+  index 8, so every change before Green is one tap.
+
 ## Iteration 89 Ice guide hold
 
 - Supersedes the Ice part of Iteration 81: the Ice guide stops right after

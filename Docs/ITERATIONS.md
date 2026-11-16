@@ -4701,3 +4701,32 @@ IndexedDB에 그대로 남아 있었다. 익명 랭킹 로그인도 같은 폴�
 - Stage 11 첫 Ice 게이트의 실패가 실제로 줄었는지, 문구가 읽히는지.
 - 멈춘 동안의 탭은 PERFECT 전환이 되지 않아 첫 클리어의 콤보 왕관에 영향이 있을 수 있다.
 - 앞 게이트를 Shield로 넘긴 경우 런웨이 안에서 멈출 수 있다(기존 동작).
+
+## Iteration 90 — Mechanic Guides as Lines, One-Tap Green Lead-In (2026-11-16)
+
+### Play / Analyze
+
+사용자 보고: Iteration 89 뒤 실패는 줄었지만, 얼음 멈춤 중의 탭이 PERFECT가 되지 않아 풀콤보가 불가능해졌다.
+기믹 설명 멈춤은 흐름을 끊는다. 또 Stage 13은 초록 앞에서 파랑→빨강(3색 순환에서 탭 2번)이 나와 초록 설명 전에
+한 번 실패하게 된다.
+
+### Design / Implementation
+
+사용자 결정: 기믹 설명은 멈추지 않는 하단 자막, 조작(기본·초록)은 멈춤 유지. 스크립트에 `Notice`를 두고 멈춤 위치
+대신 앞 게이트를 지날 때 줄을 띄운다. 쓰지 않게 된 Midway·RunwayStart·시간 멈춤을 지웠다. Stage 13 앞 8개 게이트는
+A안 `R R R R B B B B`.
+
+### Validation
+
+수치는 `CURRENT_STATUS.md`, 인수 기준은 `TEST_PLAN.md`에 있다. 검토자 지적(부스터·보호 게이트 중 자막 생략)을
+한 번 고치고 전체를 다시 돌렸다.
+
+### Learning
+
+멈추는 안내는 판정 타이밍(PERFECT·콤보)과 함께 봐야 한다. 조작 학습만 멈추고, 기믹은 흐름 안에서 미리 알린다.
+새 색을 가르치기 전 구간은 탭 1번 이동만 쓴다.
+
+### Deferred / Human Review
+
+- 달리면서 자막을 읽을 수 있는지, 얼음 실패율이 다시 늘지 않는지, 풀콤보가 실제로 가능한지.
+- Echo 문구가 게이트를 지나면 "ECHO STORED" 줄로 바로 바뀐다.

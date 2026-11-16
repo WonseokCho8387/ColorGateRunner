@@ -78,6 +78,27 @@ namespace ColorGateRunner.Tests.EditMode
         }
 
         [Test]
+        public void Stage4_NoTwoTapMoveComesBeforeTheFirstGreen()
+        {
+            StageDefinition stage = AuthoredStage.Get(4);
+            DeterministicStageGateSequence sequence =
+                new DeterministicStageGateSequence(stage);
+            int firstGreen = stage.GetFirstGateIndex(RunnerColor.Green);
+            RunnerColor current = RunnerColor.Red;
+            bool sawBlue = false;
+
+            for (int index = 0; index <= firstGreen; index++)
+            {
+                RunnerColor target = sequence.GetPlan(index).Color;
+                Assert.That(RequiredTaps(stage, current, target),
+                    Is.LessThanOrEqualTo(1), $"gate {index}");
+                sawBlue |= target == RunnerColor.Blue;
+                current = target;
+            }
+            Assert.That(sawBlue, Is.True, "Red > Blue is played before Green.");
+        }
+
+        [Test]
         public void Stage4_PerfectFirstAttemptUsesRuntimeColorCycle()
         {
             StageDefinition stage = AuthoredStage.Get(4);

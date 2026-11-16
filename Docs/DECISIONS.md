@@ -1911,6 +1911,12 @@ Status: Approved and implemented.
 
 
 
+## Iteration 90 mechanic guide lines (2026-11-16 기록)
+
+- 사용자 결정: 트랙 기믹(위장·얼음·Echo·숨김·깜빡임) 설명은 멈추지 않고 하단 자막으로만 보여준다. 조작을
+  가르치는 Stage 1 기본과 13 초록은 계속 멈춘다. Iteration 89의 얼음 멈춤을 대체한다.
+- 사용자 결정(A안): Stage 13 초록 앞 게이트는 `R R R R B B B B`로, 초록 위치(index 8)와 타이밍은 그대로 둔다.
+
 ## Iteration 89 Ice guide hold (2026-11-12 기록)
 
 - 사용자 결정: Ice 가이드는 Ice 런웨이에 들어가기 전(앞 게이트를 지난 자리)에 멈추고, 이번 게이트 색을 맞출 때까지

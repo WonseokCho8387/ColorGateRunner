@@ -1270,6 +1270,28 @@ fairness, or polish.
   PlayerPrefs exact.
 
 
+### Iteration 90 mechanic guide lines and one-tap Green lead-in
+
+- EditMode `TutorialTests.Guide_MechanicNoticeShowsALineWithoutStopping`: a
+  notice never freezes or blocks taps, shows the Ice line for
+  `NoticeSeconds` then clears, once only.
+- EditMode `TutorialTests.Guide_HiddenNoticeNamesTheColor` and
+  `Scripts_ExplainMechanicsWithoutStopping`: all five mechanic guides are
+  notices starting no later than the previous gate (Hidden before it hides),
+  Camouflage does not name the color, Basics and Green still stop inside the
+  PERFECT window.
+- EditMode `Step10_1CoreTests.Stage4_NoTwoTapMoveComesBeforeTheFirstGreen`.
+- PlayMode `TutorialPlayModeTests.MechanicGuide_*LineRunsWithoutStopping`
+  (Camouflage, Ice, Echo, Hidden, Flicker): Stages 7, 11, 18, 21, 24 play
+  through the first target gate with the run always moving, taps accepted
+  and the line visible from the previous gate.
+- Not automated: whether the lines can be read while playing, whether Ice
+  failures rise again without the stop, the Echo line being replaced by
+  "ECHO STORED" at the gate.
+- Final evidence: EditMode 643/643; PlayMode 310 passed + 1 intentional
+  ignore; Step 10 identical; Campaign re-baselined (Stage 13 rows only);
+  Product save and Campaign PlayerPrefs exact.
+
 ### Iteration 89 Ice guide hold before the runway
 
 - EditMode `TutorialTests.Ice_HoldsBeforeTheRunwayAndWaitsForTheMatch`: the

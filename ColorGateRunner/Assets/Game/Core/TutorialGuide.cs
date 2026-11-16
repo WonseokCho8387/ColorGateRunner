@@ -7,15 +7,14 @@ namespace ColorGateRunner.Core
         HoldNeedsTap,
         HoldSameColor,
         HoldMatched,
-        HoldTimed,
         // Moving again after a match; taps wait until the held gate passes.
         Passing
     }
 
     // Runs one Stage's TutorialScript during a guide run. The presentation
     // freezes the run at each hold; frozen time is not gameplay time, so
-    // judgment, grades, records and simulations are unchanged. Banners are
-    // short lines shown on events without stopping the run.
+    // judgment, grades, records and simulations are unchanged. Banners and
+    // notices are short lines shown without stopping the run.
     public sealed class TutorialGuide
     {
         // Inside the 0.25 s PERFECT window with a frame of slack.
@@ -47,8 +46,7 @@ namespace ColorGateRunner.Core
         public bool Frozen =>
             Step == TutorialGuideStep.HoldNeedsTap ||
             Step == TutorialGuideStep.HoldSameColor ||
-            Step == TutorialGuideStep.HoldMatched ||
-            Step == TutorialGuideStep.HoldTimed;
+            Step == TutorialGuideStep.HoldMatched;
         // While frozen only a tap that can still fix the color is accepted;
         // after a match no tap can undo it before the gate.
         public bool AcceptsTap =>
@@ -83,7 +81,7 @@ namespace ColorGateRunner.Core
             Refresh();
         }
 
-        // True when the run should stop before this gate.
+        // True when the run should stop, or a notice start, before this gate.
         public bool TryGetHold(int gateIndex, GatePlan plan)
         {
             return Step == TutorialGuideStep.Running &&
@@ -99,16 +97,17 @@ namespace ColorGateRunner.Core
             GateColor = gateColor;
             if (_bannerUntilHold) ClearBanner();
             string color = ColorName(gateColor);
-            if (!_script.WaitForMatch)
+            if (_script.Notice)
             {
-                Step = TutorialGuideStep.HoldTimed;
-                _holdRemaining = _script.TimedHoldSeconds;
-                _holdMessage = string.Format(_script.NeedsTapMessage, color);
+                ShowBanner(
+                    string.Format(_script.NeedsTapMessage, color),
+                    TutorialScripts.NoticeSeconds);
+                return;
             }
-            else if (gateColor == current)
+            if (gateColor == current)
             {
                 Step = TutorialGuideStep.HoldSameColor;
-                _holdRemaining = _script.SameColorHoldSeconds;
+                _holdRemaining = SameColorHoldSeconds;
                 _holdMessage = string.Format(_script.SameColorMessage, color);
             }
             else
@@ -177,11 +176,8 @@ namespace ColorGateRunner.Core
                 _holdRemaining -= deltaTime;
                 if (_holdRemaining > 0f) return;
                 _holdRemaining = 0f;
-                // A matched color is carried through the gate; a timed
-                // explanation hands control back.
-                Step = Step == TutorialGuideStep.HoldTimed
-                    ? TutorialGuideStep.Running
-                    : TutorialGuideStep.Passing;
+                // A matched color is carried through the gate.
+                Step = TutorialGuideStep.Passing;
                 Refresh();
                 return;
             }
